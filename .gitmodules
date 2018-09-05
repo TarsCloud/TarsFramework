@@ -1,0 +1,6 @@
+[submodule "tarscpp"]
+	path = tarscpp
+	url = https://github.com/TarsCloud/TarsCpp.git
+[submodule "thirdparty/rapidjson"]
+	path = thirdparty/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
