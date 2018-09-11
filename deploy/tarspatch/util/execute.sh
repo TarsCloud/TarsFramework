@@ -11,4 +11,4 @@ if [ "$PID" != "" ]; then
         echo "kill -9 $PID"
 fi
 ulimit -c unlimited
-$bin  --config=/usr/local/app/tars/tarspatch/conf/tarspatch.conf &
+$bin  --config=/usr/local/app/tars/tarspatch/conf/tars.tarspatch.config.conf &
