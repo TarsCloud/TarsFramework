@@ -1,16 +1,16 @@
 # 目录
-> * [1 模版配置介绍] (#main-chapter-1)
-> * [2 模版配置]     (#main-chapter-2)
+> * [1 模版配置介绍](#main-chapter-1)
+> * [2 模版配置](#main-chapter-2)
 >>* [2.1 tars.default 模板](#chapter-1)
->>* [2.2 tars.tarsconfig 模板] (#chapter-2)
->>* [2.3 tars.tarslog 模板] (#chapter-3)
->>* [2.4 tars.tarsnotify 模板] (#chapter-4)
->>* [2.5 tars.tarspatch 模版] (#chapter-5)
->>* [2.6 tars.tarsproperty 模版] (#chapter-6)
->>* [2.7 tars.tarsstat 模版] (#chapter-7)
->>* [2.8 tars.tarsquerystat 模版] (#chapter-8)
->>* [2.9 tars.tarsqueryproperty 模版] (#chapter-9)
->>* [2.10 tars.tarsjava.default 模版] (#chapter-10)
+>>* [2.2 tars.tarsconfig 模板](#chapter-2)
+>>* [2.3 tars.tarslog 模板](#chapter-3)
+>>* [2.4 tars.tarsnotify 模板](#chapter-4)
+>>* [2.5 tars.tarspatch 模版](#chapter-5)
+>>* [2.6 tars.tarsproperty 模版](#chapter-6)
+>>* [2.7 tars.tarsstat 模版](#chapter-7)
+>>* [2.8 tars.tarsquerystat 模版](#chapter-8)
+>>* [2.9 tars.tarsqueryproperty 模版](#chapter-9)
+>>* [2.10 tars.tarsjava.default 模版](#chapter-10)
 
 # 1. 模版配置介绍 <a id="main-chapter-1"></a>
 
