@@ -1,6 +1,6 @@
 # Table of Contents
-> * [Service Configuration Principle] (#main-chapter-1)
-> * [Business Configuration Example] (#main-chapter-2)
+> * [Service Configuration Principle](#main-chapter-1)
+> * [Business Configuration Example](#main-chapter-2)
 
 # 1. Principle of service configuration <a id="main-chapter-1"></a>
 
