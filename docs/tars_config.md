@@ -1,6 +1,6 @@
 # 目录
-> * [业务配置原理] (#main-chapter-1)
-> * [业务配置示例] (#main-chapter-2)
+> * [业务配置原理](#main-chapter-1)
+> * [业务配置示例](#main-chapter-2)
 
 # 1. 业务配置原理 <a id="main-chapter-1"></a>
 
