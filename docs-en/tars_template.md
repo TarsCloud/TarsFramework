@@ -1,16 +1,16 @@
 # table of contents
-> * [1 Introducation of template configuration] (#main-chapter-1)
-> * [2 Template configuration]     (#main-chapter-2)
+> * [1 Introducation of template configuration](#main-chapter-1)
+> * [2 Template configuration](#main-chapter-2)
 >>* [2.1 tars.default template](#chapter-1)
->>* [2.2 tars.tarsconfig template] (#chapter-2)
->>* [2.3 tars.tarslog template] (#chapter-3)
->>* [2.4 tars.tarsnotify template] (#chapter-4)
->>* [2.5 tars.tarspatch template] (#chapter-5)
->>* [2.6 tars.tarsproperty template] (#chapter-6)
->>* [2.7 tars.tarsstat template] (#chapter-7)
->>* [2.8 tars.tarsquerystat template] (#chapter-8)
->>* [2.9 tars.tarsqueryproperty template] (#chapter-9)
->>* [2.10 tars.tarsjava.default template] (#chapter-10)
+>>* [2.2 tars.tarsconfig template](#chapter-2)
+>>* [2.3 tars.tarslog template](#chapter-3)
+>>* [2.4 tars.tarsnotify template](#chapter-4)
+>>* [2.5 tars.tarspatch template](#chapter-5)
+>>* [2.6 tars.tarsproperty template](#chapter-6)
+>>* [2.7 tars.tarsstat template](#chapter-7)
+>>* [2.8 tars.tarsquerystat template](#chapter-8)
+>>* [2.9 tars.tarsqueryproperty template](#chapter-9)
+>>* [2.10 tars.tarsjava.default template](#chapter-10)
 
 # 1. Introducation of template configuration <a id="main-chapter-1"></a>
 
