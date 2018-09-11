@@ -12,7 +12,7 @@ if [ "$PID" != "" ]; then
 fi
 ulimit -c unlimited
 
-CONFIG=/usr/local/app/tars/tarsnode/data/tars.tarsAdminRegistry/conf/tars.tarsAdminRegistry.conf
+CONFIG=/usr/local/app/tars/tarsnode/data/tars.tarsAdminRegistry/conf/tars.tarsAdminRegistry.config.conf
 
 if [ ! -f $CONFIG ]; then
 	CONFIG=/usr/local/app/tars/tarsAdminRegistry/conf/adminregistry.conf	
