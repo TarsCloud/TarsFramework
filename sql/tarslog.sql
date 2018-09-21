@@ -22,7 +22,7 @@
 
 LOCK TABLES `t_server_conf` WRITE;
 /*!40000 ALTER TABLE `t_server_conf` DISABLE KEYS */;
-INSERT INTO `t_server_conf` VALUES (23,'tars','tarslog','','10.120.129.226','2018-03-06 03:13:12','','/usr/local/app/tars/tarslog/bin/tarslog','tars.tarslog',0,'active','inactive',0,'108','2018-02-07 15:14:45','','1.0.1','2017-01-04 16:38:45',NULL,'tars_cpp',NULL,NULL,NULL,'N','N',NULL,NULL,NULL,NULL,NULL,0,3,'0','65','2',0);
+INSERT INTO `t_server_conf` VALUES (23,'tars','tarslog','','10.120.129.226','2018-03-06 03:13:12','','/usr/local/app/tars/tarslog/bin/tarslog','tars.tarslog',0,'active','inactive',0,'108','2018-02-07 15:14:45','','1.0.1','2017-01-04 16:38:45',NULL,'tars_cpp',NULL,NULL,NULL,'N','N',NULL,NULL,NULL,NULL,NULL,0,3,'0','65','2',0,'NORMAL');
 /*!40000 ALTER TABLE `t_server_conf` ENABLE KEYS */;
 UNLOCK TABLES;
 

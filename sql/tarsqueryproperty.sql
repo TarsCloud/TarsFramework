@@ -22,7 +22,7 @@
 
 LOCK TABLES `t_server_conf` WRITE;
 /*!40000 ALTER TABLE `t_server_conf` DISABLE KEYS */;
-INSERT INTO `t_server_conf` VALUES (27,'tars','tarsqueryproperty','','10.120.129.226','2017-12-01 06:51:22','','/usr/local/app/tars/tarsqueryproperty/bin/tarsqueryproperty','tars.tarsproperty',0,'active','active',6405,'57','2017-01-04 16:48:32','','1.0.1','2017-01-16 09:56:55',NULL,'tars_cpp','','','','N','N',NULL,NULL,NULL,NULL,'<tars>\n<countdb>\n<db1>\n			dbhost=db.tars.com\n			dbname=tars_property\n			tbname=tars_property_\n			dbuser=tars\n			dbpass=tars2015\n			dbport=3306\n			charset=utf8\n		</db1>\n</countdb>\n</tars>',0,3,'0','65','2',0);
+INSERT INTO `t_server_conf` VALUES (27,'tars','tarsqueryproperty','','10.120.129.226','2017-12-01 06:51:22','','/usr/local/app/tars/tarsqueryproperty/bin/tarsqueryproperty','tars.tarsproperty',0,'active','active',6405,'57','2017-01-04 16:48:32','','1.0.1','2017-01-16 09:56:55',NULL,'tars_cpp','','','','N','N',NULL,NULL,NULL,NULL,'<tars>\n<countdb>\n<db1>\n			dbhost=db.tars.com\n			dbname=tars_property\n			tbname=tars_property_\n			dbuser=tars\n			dbpass=tars2015\n			dbport=3306\n			charset=utf8\n		</db1>\n</countdb>\n</tars>',0,3,'0','65','2',0,'NORMAL');
 /*!40000 ALTER TABLE `t_server_conf` ENABLE KEYS */;
 UNLOCK TABLES;
 
