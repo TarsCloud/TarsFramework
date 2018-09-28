@@ -56,7 +56,7 @@ int ReapThread::init()
     _loadObjectsInterval2 = TC_Common::strto<int>((*g_pconf).get("/tars/reap<loadObjectsInterval2>", "300"));
 
     //主控心跳超时时间
-    _registryTimeout      = TC_Common::strto<int>((*g_pconf)["/tars/reap<reigistryTimeout>"]);
+    _registryTimeout      = TC_Common::strto<int>((*g_pconf)["/tars/reap<registryTimeout>"]);
 
     //是否启用DB恢复保护功能
     _recoverProtect       = (*g_pconf).get("/tars/reap<recoverProtect>", "Y") == "N"?false:true;

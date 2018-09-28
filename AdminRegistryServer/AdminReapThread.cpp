@@ -48,7 +48,7 @@ int AdminReapThread::init()
     _updateInterval = _updateInterval < 5 ? 5 : _updateInterval;
 
     //管理主控心跳超时时间
-    _timeout = TC_Common::strto<int>((*g_pconf)["/tars/reap<reigistryTimeout>"]);
+    _timeout = TC_Common::strto<int>((*g_pconf)["/tars/reap<registryTimeout>"]);
     _timeout       = _timeout < 5 ? 5 : _timeout;
 
     //是否关闭更新管理主控心跳时间,一般需要迁移时，设置此项为Y
