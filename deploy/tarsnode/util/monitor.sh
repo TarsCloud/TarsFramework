@@ -3,7 +3,7 @@ cd /usr/local/app/tars/tarsnode/util
 
 bin="/usr/local/app/tars/tarsnode/bin/tarsnode"
 
-$bin --monitor --config=/usr/local/app/tars/tarsnode/conf/tarsnode.conf
+$bin --monitor --config=/usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf
 
 ex=$?
 
