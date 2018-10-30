@@ -518,7 +518,8 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
     }
 
     //让tarspatch准备发布包
-    iRet = _patchPrx->preparePatchFile(reqPro.appname, reqPro.servername, patchFile);
+    string sServerName  = reqPro.groupname.empty() ? reqPro.servername : reqPro.groupname;
+    iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
     if (iRet != 0)
     {
         TLOGERROR("AdminRegistryImp::batchPatch"<< ", prepare patch file error:" << patchFile << endl);
