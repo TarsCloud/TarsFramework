@@ -13,7 +13,7 @@ case $ARGS in
         cd ..; git submodule update --init --recursive
         ;;
     all)
-	    cd $BASEPATH;  cmake ..;  make
+        cd $BASEPATH;  cmake ..;  make
         ;;
     cleanall)
         cd $BASEPATH; make clean; ls | grep -v build.sh | grep -v README.md | xargs rm -rf
@@ -24,6 +24,7 @@ case $ARGS in
     help|*)
         echo "Usage:"
         echo "$0 help:     view help info."
+        echo "$0 prepare:  download dependent project."
         echo "$0 all:      build all target"
         echo "$0 install:  install framework"
         echo "$0 cleanall: remove all temp file"

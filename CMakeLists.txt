@@ -40,6 +40,7 @@ macro(complice_module MODULE)
 
     add_executable(${MODULE} ${DIR_SRCS})
     add_dependencies(${MODULE} FRAMEWORK-PROTOCOL)
+    add_dependencies(${MODULE} tars2cpp)
 
 endmacro()
 
