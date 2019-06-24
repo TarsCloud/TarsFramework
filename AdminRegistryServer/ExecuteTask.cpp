@@ -209,6 +209,7 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
         
         string patchId   = get("patch_id", req.parameters);
         string patchType = get("patch_type", req.parameters);
+	string groupName = get("group_name", req.parameters);
 
         tars::PatchRequest patchReq;
         patchReq.appname    = req.application;
@@ -216,6 +217,7 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
         patchReq.nodename   = req.nodeName;
         patchReq.version    = patchId;
         patchReq.user       = req.userName;
+	patchReq.groupname  = groupName;
 
         try
         {
