@@ -180,7 +180,7 @@ if [ $? != 0 ]; then
 
             profile=$(cat template/${template_name} | sed "s/'/\\\'/g" ) 
 
-            parent_template="taf.default"
+            parent_template="tars.default"
             if [ "$template_name" == "tars.springboot" ]; then
                 parent_template="tars.tarsjava.default"
             fi
@@ -246,8 +246,8 @@ cp -rf web /usr/local/app/
 
 LOG_INFO "update web config";
 
-sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/tars.conf`
-sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/webConf.js`
+sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
 cd /usr/local/app/web; npm run prd
 

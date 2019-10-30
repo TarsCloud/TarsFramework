@@ -137,7 +137,7 @@ if [ "$1" == "check" ]; then
       sh ${TARS_PATH}/${var}/util/check.sh
     done
 
-    pid=`ps -ef | grep tars-node-web | grep -v grep | awk -F' ' '{print $2}'`
+    pid=`ps -ef | grep /usr/local/app/web/bin/www | grep -v grep | awk -F' ' '{print $2}'`
     if echo $pid | grep -q '[^0-9]'
     then
       echo "start tars-web"

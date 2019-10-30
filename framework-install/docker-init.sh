@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#docker run -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=Rancher@12345 -e MYSQL_PORT=3306 tars-docker:v1 sh /root/tars-install/docker-init.sh
+#docker run -d -p3001:3000 -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=Rancher@12345 -e MYSQL_PORT=3306 tars-docker:v1 sh /root/tars-install/docker-init.sh
 
 TARS=(tarsAdminRegistry tarsconfig  tarslog  tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
 
@@ -75,7 +75,7 @@ do
     sh ${TARS_PATH}/${var}/util/check.sh
   done
 
-  pid=`ps -ef | grep tars-node-web | grep -v grep | awk -F' ' '{print $2}'`
+  pid=`ps -ef | grep /usr/local/app/web/bin/www | grep -v grep | awk -F' ' '{print $2}'`
   if echo $pid | grep -q '[^0-9]'
   then
     echo "start tars-web"
