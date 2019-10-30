@@ -9,8 +9,13 @@ INET=(enp3s0 eth0)
 HOSTIP=""
 
 #######################################################
+TARS=(tarsAdminRegistry tarsconfig  tarslog  tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
+
 INSTALL_TMP=/tmp/tars-install
 TARS_PATH=/usr/local/app/tars
+MIRROR=http://mirrors.cloud.tencent.com
+
+mkdir -p ${INSTALL_TMP}
 
 workdir=$(cd $(dirname $0); pwd)
 
@@ -20,20 +25,15 @@ cp centos7_base.repo /etc/yum.repos.d/
 cp MariaDB.repo /etc/yum.repos.d/
 yum makecache fast
 
-yum install -y yum-utils wget epel-release mariadb-libs psmisc MariaDB-client telnet net-tools make curl 
+yum install -y yum-utils wget epel-release mariadb-libs psmisc MariaDB-client telnet net-tools make gcc gcc-c++
 
-wget -qO- https://raw.github.com/creationix/nvm/master/install.sh | sh
+# wget -qO- https://raw.github.com/creationix/nvm/master/install.sh | sh
 
-mkdir -p ${INSTALL_TMP}
-cp -rf web ${INSTALL_TMP}/web
-
-#fi
 
 #获取主机hostip
 for IP in ${INET[@]};
 do
     HOSTIP=`ifconfig | grep ${IP} -A3 | grep inet | grep broad | awk '{print $2}'    `
-    echo $HOSTIP $IP
     if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
       break
     fi
@@ -50,6 +50,8 @@ if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
     exit -1
 fi
 
+cp -rf web ${INSTALL_TMP}/web
+
 if [ ! -d ${workdir}/web ]; then
     LOG_ERROR "no web exits, please copy TarsWeb to ${workdir}/web first."
     exit -1
@@ -58,25 +60,46 @@ fi
 ################################################################################
 #download nodejs
 
-export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; export NVM_NODEJS_ORG_MIRROR=https://mirrors.cloud.tencent.com/nodejs-release/;nvm install ${NODE_VERSION};npm config set registry http://mirrors.cloud.tencent.com/npm/;npm install -g npm;cd ${INSTALL_TMP}/web;npm install
+source ~/.bashrc
+
+CURRENT_NODE_VERSION=`node --version`
+
+if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
+
+  sh nvm-install.sh
+
+  export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
+
+  export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; 
+
+  source ~/.bashrc
+
+  nvm install ${NODE_VERSION};
+fi
 
 ################################################################################
 #check node version
-NODE_VERSION=`node --version`
+CURRENT_NODE_VERSION=`node --version`
 
-if [ NODE_VERSION != "${NODE_VERSION}" ]; then
+if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
     echo "node is not valid, must be:${NODE_VERSION}"
     exit -1
 fi
 
 echo "install node success! Version is ${NODE_VERSION}"
 
+# env
+
+npm config set registry ${MIRROR}/npm/;
+npm install -g npm pm2
+
+cd ${INSTALL_TMP}/web; npm install
+
 ################################################################################
 cp -rf framework ${INSTALL_TMP}/framework
 cp -rf tools ${INSTALL_TMP}/tools
 cp -rf tars.sh tars-install.sh ${INSTALL_TMP}
 
-export PATH=${HOME}/.nvm/versions/node/${NODE_VERSION}/bin/:$PATH
 # export npm=mirrors.cloud.tencent.com
 
 sh ${workdir}/tars.sh stop
@@ -86,18 +109,6 @@ cd ${workdir}
 pwd
 
 sh tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP}
-
-TARS=(tarsAdminRegistry tarsconfig  tarslog  tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
-
-for var in ${TARS[@]};
-do
-   if [ ! -d ${TARS_PATH}/${var} ]; then
-       echo "${TARS_PATH}/${var} not exist."
-       exit -1 
-   fi
-done
-
-sh ${workdir}/tars.sh start
 
 if [ "$1" == "check" ]; then
   echo "begin check server..."

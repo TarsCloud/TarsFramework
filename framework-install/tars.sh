@@ -6,8 +6,9 @@ case $1 in
     "start")
         for var in ${TARS[@]};
         do
-            sh ${TARS_PATH}/${var}/util/start.sh
-            sleep 1
+            echo ${TARS_PATH}/${var}/util/start.sh
+            sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
+            # sleep 1
         done
         pid=`ps -ef | grep tars-node-web | grep -v grep | awk -F' ' '{print $2}'`
         if echo $pid | grep -q '[^0-9]'

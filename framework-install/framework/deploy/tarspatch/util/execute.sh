@@ -1,5 +1,5 @@
 #!/bin/sh
-ulimit -a
+# ulimit -a
 bin="/usr/local/app/tars/tarspatch/bin/tarspatch"
 
 PID=`ps -eopid,cmd | grep "$bin"| grep "tarspatch" |  grep -v "grep" |awk '{print $1}'`

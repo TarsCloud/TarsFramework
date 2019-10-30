@@ -7,8 +7,7 @@ case $1 in
             echo $0 build version
             exit
         fi
-        strip ${workdir}/framework/build/deploy/tars*/bin/*
-        strip ${workdir}/framework/build/deploy/tars*/*
+        strip ${workdir}/framework/deploy/tars*/bin/*
         docker build ${workdir}/. -t tars-docker:$2
         ;;
     "run")

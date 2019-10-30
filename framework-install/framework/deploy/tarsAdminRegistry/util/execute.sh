@@ -1,5 +1,5 @@
 #!/bin/sh
-ulimit -a
+# ulimit -a
 bin="/usr/local/app/tars/tarsAdminRegistry/bin/tarsAdminRegistry"
 
 chmod a+x $bin

@@ -1,5 +1,5 @@
 #!/bin/sh
-ulimit -a
+# ulimit -a
 export PATH=${PATH}:/usr/local/tars/bin;
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/app/gperftool/lib;
 #export HEAPCHECK=strict

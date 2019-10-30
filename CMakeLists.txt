@@ -186,12 +186,14 @@ endforeach ()
 
 ############################################################################################
 
+install(DIRECTORY build/deploy/ DESTINATION framework-install/framework/deploy
+        PATTERN "tars*"
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
+        
 install(DIRECTORY framework-install DESTINATION ./ 
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
-install(DIRECTORY build/deploy DESTINATION framework-install/framework/build
-        PATTERN "tars*"
-        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
+
 
 
 
