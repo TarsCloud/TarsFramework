@@ -70,20 +70,32 @@ function LOG_INFO()
 	echo -e "\033[32m $msg \033[0m"  	
 }
 
-if (( $# < 5 ))
+if (( $# < 7 ))
 then
-    echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_PASSWORD HOSTIP";
+    echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_PASSWORD HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true)";
     echo "you should not call this script directly, you should call centos-install.sh or ubuntu-intall.sh, or in docker by call docker-init.sh"
     exit -1
 fi
-
-TARS=(tarsAdminRegistry tarsconfig  tarslog  tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
 
 MYSQLIP=$1
 PORT=$2
 USER=$3
 PASS=$4
 HOSTIP=$5
+REBUILD=$6
+SLAVE=$7
+
+if [ "$SLAVE" == "" ]; then
+    SLAVE="false"
+else
+    SLAVE="true"
+fi
+
+if [ "$SLAVE" != "true" ]; then
+    TARS=(tarsAdminRegistry tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
+else
+    TARS=(tarsconfig  tarslog  tarsnode  tarsnotify tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
+fi
 
 TARS_PATH=/usr/local/app/tars
 mkdir -p ${TARS_PATH}
@@ -102,7 +114,26 @@ LOG_DEBUG "PASS:          "$PASS
 LOG_DEBUG "PORT:          "$PORT
 LOG_DEBUG "HOSTIP:        "$HOSTIP
 LOG_DEBUG "workdir:       "$workdir
+LOG_DEBUG "SALVE:         "$SALVE
 LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.\n";
+
+################################################################################
+#check port
+PORTS=(18993 18793 18693 18193 18593 18493 18393 18293 12000 19385 17890 17891)
+for P in ${PORTS[@]};
+do
+    RESULT=`netstat -lpn | grep ${HOSTIP}:${P} | grep tcp`
+    if [ "$RESULT" != "" ]; then
+        LOG_ERROR ${HOSTIP}:${P}" confict!!"
+        exit -1
+    fi
+    RESULT=`netstat -lpn | grep 127.0.0.1:${P} | grep tcp`
+    if [ "$RESULT" != "" ]; then
+        LOG_ERROR 127.0.0.1:${P}" confict!!"
+        exit -1
+    fi
+done
+
 
 ################################################################################
 #check mysql
@@ -116,49 +147,55 @@ do
         break
     fi
 
-    LOG_ERROR "check mysql is not alive"
+    LOG_ERROR "check mysql is not alive: mysqladmin -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} ping"
 
     sleep 3
 done
 
 function exec_mysql_script()
 {
+    LOG_DEBUG "exec_mysql_script: $1"  
     mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "$1"
 
-    if [ $? != 0 ]; then
-        exit -1
-    fi
+    return $?
 }
 
 function exec_mysql_sql()
 {
+    LOG_DEBUG "exec_mysql_sql: $1 $2"  
+
     mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -D$1 < $2
 
-    if [ $? != 0 ]; then
-        exit -1
-    fi
+    return $?
 }
 
 ################################################################################
 #check db_tars
+cp -rf ${workdir}/framework/sql ${workdir}/sql.tmp
 
-RESULT=`exec_mysql_script "show databases like 'db_tars'"`
+sed -i "s/192.168.2.131/$HOSTIP/g" `grep 192.168.2.131 -rl ${workdir}/sql.tmp/*`
+sed -i "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${workdir}/sql.tmp/*`
 
-echo $RESULT | grep -q "db_tars"
+if [ "$REBUILD" == "true" ]; then
+    exec_mysql_script "drop database if exists db_tars"
+    exec_mysql_script "drop database if exists tars_stat"
+    exec_mysql_script "drop database if exists tars_property"
+    exec_mysql_script "drop database if exists db_tars_web"    
+fi
+
+exec_mysql_script "use db_tars"
 if [ $? != 0 ]; then
-    LOG_INFO "flush mysql privileges";
+
+    LOG_DEBUG "no db_tars exists, begin build db_tars..."  
+    LOG_DEBUG "flush mysql privileges";
 
     exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
 
-    LOG_INFO "modify ip in sqls:${workdir}/framework/sql";
-
-    cp -rf ${workdir}/framework/sql ${workdir}/sql.tmp
-    sed -i "s/192.168.2.131/$HOSTIP/g" `grep 192.168.2.131 -rl ${workdir}/sql.tmp/*`
-    sed -i "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${workdir}/sql.tmp/*`
+    LOG_DEBUG "modify ip in sqls:${workdir}/framework/sql";
 
     cd ${workdir}/sql.tmp
 
-    LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
+    LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web)";
 
     exec_mysql_script "create database db_tars"
     exec_mysql_script "create database tars_stat"
@@ -166,7 +203,7 @@ if [ $? != 0 ]; then
     exec_mysql_script "create database db_tars_web"
     exec_mysql_sql db_tars db_tars.sql
 
-    LOG_INFO "create t_profile_template";
+    LOG_DEBUG "create t_profile_template";
 
     sqlFile="tmp.sql"
 
@@ -197,20 +234,29 @@ if [ $? != 0 ]; then
 
     exec_mysql_sql db_tars tars_servers.sql
 
-    cd ${workdir}
-    rm -rf sql.tmp
 fi
+
+################################################################################
+
+cd ${workdir}/sql.tmp
+
+#current node info
+exec_mysql_sql db_tars tars_node_init.sql
+
+cd ${workdir}
+
+rm -rf ${workdir}/sql.tmp
 
 ################################################################################
 #check framework
 
-LOG_INFO "copy ${workdir}/framework/deploy/* to tars path:${TARS_PATH}";
+LOG_DEBUG "copy ${workdir}/framework/deploy/* to tars path:${TARS_PATH}";
 
 cp -rf ${workdir}/framework/deploy/* ${TARS_PATH}
 
 function update_conf() {
 
-    LOG_INFO "update server ${TARS_PATH}/$1/conf/tars.$1.config.conf";
+    LOG_DEBUG "update server ${TARS_PATH}/$1/conf/tars.$1.config.conf";
 
     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
@@ -230,28 +276,34 @@ done
 for var in ${TARS[@]};
 do
    if [ ! -d ${TARS_PATH}/${var} ]; then
-       echo "${TARS_PATH}/${var} not exist."
+       LOG_ERROR "${TARS_PATH}/${var} not exist."
        exit -1 
    fi
-done
 
-sh ${workdir}/tars.sh start
+    LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
+    sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
+done
 
 ################################################################################
 #deploy web
+if [ "$SLAVE" != "true" ]; then
 
-LOG_INFO "copy web to web path:/usr/local/app/";
+    LOG_DEBUG "copy web to web path:/usr/local/app/";
 
-cp -rf web /usr/local/app/
+    cp -rf web /usr/local/app/
 
-LOG_INFO "update web config";
+    LOG_DEBUG "update web config";
 
-sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
-sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
+    sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+    sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
-cd /usr/local/app/web; npm run prd
+    cd /usr/local/app/web; nohup npm run start &
 
-LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
-LOG_INFO "If in Docker, please check you host ip and port."
-LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
-LOG_INFO "==============================================================";
+    LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
+    LOG_INFO "If in Docker, please check you host ip and port."
+    LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
+    LOG_INFO "==============================================================";
+else
+    LOG_INFO "Install slave($SLAVE) node success"
+    LOG_INFO "==============================================================";
+fi

@@ -33,4 +33,12 @@ Dockerfile            |生成Docker
 # 4. <a id="chapter-3"></a>制作docker方式安装
 - cd /usr/local/tars/cpp/framework-install
 - sh docker.sh build v1
-- docker run -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxx -e MYSQL_PORT=3306 tars-docker:v1 sh /root/tars-install/docker-init.sh
+### 启动docker:
+- 启动docker: docker run -e MYSQL_HOST=xxx.xxx.xxx.xxx -e MYSQL_ROOT_PASSWORD=xxx -e MYSQL_PORT=3306 tars-docker:v1 sh /root/tars-install/docker-init.sh
+- 启动docker, 和host主机同一个网络(注意端口不能冲突了), INET必须要是host机IP对应的网卡, 且重建DB: docker run -d --net=host -e MYSQL_HOST=xxx.xxx.xxx.xxx -e MYSQL_ROOT_PASSWORD=xxx -e MYSQL_PORT=3306 tars-docker:v1 -eINET=eth0 -eREBUILD=true sh /root/tars-install/docker-init.sh
+### 多活的docker:
+docker可以部署在不同host机子上多活, 但是一台为主, 为主的docker上有(tarsAdminRegistry, tarspatch, web)
+- 主: docker run -d --net=host -e MYSQL_HOST=xxx.xxx.xxx.xxx -e MYSQL_ROOT_PASSWORD=xxx -e MYSQL_PORT=3306 tars-docker:v1 -eINET=eth0 -v/data/tars/patchs:/usr/local/app/patchs  sh -v/data/tars/web_log:/usr/local/tars/web/log -v/data/tars/app_log/:/usr/local/app/tars/app_log /root/tars-install/docker-init.sh
+- 备(可以多台): docker run -d --net=host -e MYSQL_HOST=xxx.xxx.xxx.xxx -e MYSQL_ROOT_PASSWORD=xxx -e MYSQL_PORT=3306 tars-docker:v1 -eINET=eth0 -eSLAVE=true -v/data/tars/app_log/:/usr/local/app/tars/app_log sh /root/tars-install/docker-init.sh
+其他节点上tarsnode的配置文件, 配置registry时可以指定多个 host
+
