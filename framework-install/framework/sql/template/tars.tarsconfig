@@ -1,0 +1,16 @@
+<tars>
+    <application>
+    <server>
+        log    = tars.tarslog.LogObj
+        logLevel = DEBUG
+    </server>          
+    </application>
+    <db>
+        charset=utf8
+        dbhost=172.17.0.5
+        dbname=db_tars
+        dbpass=tars2015
+        dbport=3306
+        dbuser=tars
+    </db>
+</tars>

@@ -1,0 +1,45 @@
+<tars>
+  sql=CREATE TABLE `${TABLE}` (`stattime` timestamp NOT NULL default CURRENT_TIMESTAMP,`f_date` date NOT NULL default '1970-01-01', `f_tflag` varchar(8) NOT NULL default '',`master_name` varchar(128) NOT NULL default '',`master_ip` varchar(16) default NULL,`property_name` varchar(100) default NULL,`set_name` varchar(15) NOT NULL default '',`set_area` varchar(15) NOT NULL default '',`set_id` varchar(15) NOT NULL default '',`policy` varchar(20) default NULL,`value` varchar(255) default NULL, KEY (`f_date`,`f_tflag`,`master_name`,`master_ip`,`property_name`,`policy`),KEY `IDX_MASTER_NAME` (`master_name`),KEY `IDX_MASTER_IP` (`master_ip`),KEY `IDX_TIME` (`stattime`)) ENGINE=Innodb
+
+ <db>
+    charset
+   dbhost=172.17.0.5
+    dbname=tars
+   dbport=3306
+   dbuser=tars
+   dbpass=tars2015
+ </db>
+ <multidb>
+   <db1>
+     dbhost=172.17.0.5
+      dbname=tars_property
+      tbname=tars_property_
+     dbuser=tars
+     dbpass=tars2015
+     dbport=3306
+     charset=utf8
+    </db1>
+    <db2>
+     dbhost=172.17.0.5
+      dbname=tars_property
+      tbname=tars_property_
+     dbuser=tars
+     dbpass=tars2015
+     dbport=3306
+     charset=utf8
+    </db2>
+  </multidb>
+  <hashmap>
+   factor=1.5
+    file=hashmap.txt
+    insertInterval=5
+    maxBlock=200
+    minBlock=100
+    size=10M
+  </hashmap>
+  <reapSql>
+   Interval=10
+   sql=insert ignore into t_master_property select  master_name, property_name, policy from ${TABLE}  group by  master_name, property_name, policy;
+  </reapSql>
+</tars>
+

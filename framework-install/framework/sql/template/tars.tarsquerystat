@@ -1,0 +1,13 @@
+<tars>
+<countdb>
+<db1>
+     dbhost=172.17.0.5
+     dbname=tars_stat
+     tbname=tars_stat_
+     dbuser=tars
+     dbpass=tars2015
+     dbport=3306
+     charset=utf8
+    </db1>
+</countdb>
+</tars>

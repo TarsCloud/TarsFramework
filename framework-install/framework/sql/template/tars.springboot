@@ -1,0 +1,8 @@
+<tars>
+<application>
+<server>
+     packageFormat=jar
+      mainclass=-jar ${basepath}/${app}.${server}.jar
+     </server>
+</application>
+</tars>

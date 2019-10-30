@@ -126,10 +126,10 @@ SET(RUN_DEPLOY_COMMAND_FILE "${PROJECT_BINARY_DIR}/run-deploy-framework.cmake")
 FILE(WRITE ${RUN_DEPLOY_COMMAND_FILE} "#deploy framework-tar\n")
 FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "EXECUTE_PROCESS(\n")
 FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/deploy/\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/deploy/tars_install.sh .\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/deploy/tarsnode_install.sh .\n")
+FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/framework-install/framework/deploy/tars_install.sh .\n")
+FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/framework-install/framework/deploy/tarsnode_install.sh .\n")
 foreach (MODULE ${DEPENDS_LIST})
-    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/deploy/${MODULE} .\n")
+    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/framework-install/framework/deploy/${MODULE} .\n")
 endforeach ()
 FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} ")\n")
 FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "EXECUTE_PROCESS(\n")
@@ -145,6 +145,7 @@ add_custom_command(OUTPUT ${FRAMEWORK-TGZ}
 
 add_custom_target(framework-tar
         DEPENDS ${FRAMEWORK-TGZ} ${DEPENDS_LIST})
+
 
 ############################################################################################
 # 打包tarsnotify tarsstat tarsproperty tarslog tarsauth
@@ -184,6 +185,13 @@ foreach (MODULE ${DEPENDS_LIST})
 endforeach ()
 
 ############################################################################################
+
+install(DIRECTORY framework-install DESTINATION ./ 
+        PATTERN "*.sh"
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
+install(DIRECTORY build/deploy DESTINATION framework-install/framework/build
+        PATTERN "tars*"
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
 
 
 

@@ -1,0 +1,60 @@
+# CentOS-Base.repo
+#
+# The mirror system uses the connecting IP address of the client and the
+# update status of each mirror to pick mirrors that are updated to and
+# geographically close to the client.  You should use this for CentOS updates
+# unless you are manually picking other mirrors.
+#
+# If the mirrorlist= does not work for you, as a fall back you can try the
+# remarked out baseurl= line instead.
+#
+#
+
+[os]
+name=Qcloud centos os - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/os/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
+
+[updates]
+name=Qcloud centos updates - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/updates/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
+
+[centosplus]
+name=Qcloud centosplus - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/centosplus/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
+
+[cloud]
+name=Qcloud centos contrib - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/cloud/$basearch/openstack-kilo/
+enabled=0
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
+
+[cr]
+name=Qcloud centos cr - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/cr/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
+
+[extras]
+name=Qcloud centos extras - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/extras/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
+
+[fasttrack]
+name=Qcloud centos fasttrack - $basearch
+baseurl=http://mirrors.cloud.tencent.com/centos/$releasever/fasttrack/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=http://mirrors.cloud.tencent.com/centos/RPM-GPG-KEY-CentOS-7
