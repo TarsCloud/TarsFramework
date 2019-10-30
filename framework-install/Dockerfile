@@ -4,15 +4,10 @@ FROM centos:7
 ENV MIRROR http://mirrors.cloud.tencent.com
 ENV TARS_INSTALL /root/tars-install
 
-#RUN yum install -y yum-utils epel-release wget
-#RUN wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.cloud.tencent.com/repo/centos7_base.repo
-#RUN yum makecache fast
-
 COPY centos7_base.repo /etc/yum.repos.d/
 COPY MariaDB.repo /etc/yum.repos.d/
 RUN yum makecache fast
 
-#RUN yum install -y MySQL-python python-devel mariadb-libs psmisc python-pip MariaDB-client telnet net-tools make gcc gcc-c++
 RUN yum install -y yum-utils epel-release wget mariadb-libs psmisc MariaDB-client telnet net-tools make gcc gcc-c++
 
 COPY web ${TARS_INSTALL}/web

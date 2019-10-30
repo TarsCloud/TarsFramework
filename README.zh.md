@@ -3,8 +3,6 @@
 
 目录名称 |功能
 ----------------------|----------------
-sql                   |创建TARS框架运行环境的数据库的脚本和sql工具
-conf                  |各个基础服务的模版配置
 protocol              |定义各个基础服务定义的通信接口文件
 RegistryServer        |名字服务路由
 NodeServer            |管理服务
@@ -15,5 +13,5 @@ LogServer             |日志服务
 StatServer            |模调数据统计服务
 PropertyServer        |属性统计服务
 NotifyServer          |异常上报统计服务
-deploy                |核心基础服务的模版配置和工具脚本
+framework-install     |核心基础服务的模版配置和工具脚本
 tarscpp               |Tars RPC框架C++语言的源代实现

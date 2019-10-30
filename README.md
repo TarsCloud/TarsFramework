@@ -5,17 +5,10 @@ This project is the basic service of the Tars framework and is the basic framewo
 
 Directory |Features
 ----------------------|----------------
-sql                   |Create scripts and sql tools for the database of the TARS framework runtime environment
-conf                  |Template configuration for each basic service
-protocol              |Define communication interface files for each underlying service definition
-RegistryServer        |Name service routing
-NodeServer            |Management service
-AdminRegistryServer   |Access management service that interacts with the foreground
-PatchServer           |Publishing service
-ConfigServer          |Configuration service
-LogServer             |Log service
-StatServer            |Modular data statistics service
-PropertyServer        |Attribute statistics service
-NotifyServer          |Abnormal reporting service
-deploy                |Template configuration and tool scripts for core infrastructure services
-tarscpp               |The source implementation of the Tars RPC framework C++ language
+framework             |框架部署需要的配置和sql
+tools                 |生成tarsnode压缩包的脚本
+centos-install.sh     |centos7系统, 一键安装tar环境(主控只在一台机器上)
+docker.sh             |将整个tars环境生成一个基于centos7的脚本
+tars-install.sh       |安装tars的脚本, 被centos-install.sh or docker-init.sh调用
+Dockerfile            |生成Docker
+*                     |其他部署文件, 各种mirror

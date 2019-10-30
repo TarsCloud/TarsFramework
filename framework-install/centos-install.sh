@@ -1,14 +1,28 @@
 #!/bin/sh
 
-NODE_VERSION="v12.13.0"
-MYSQLIP=192.168.7.152
-USER=root
-PASS=Rancher@12345
-PORT=3306
-INET=(enp3s0 eth0)
-HOSTIP=""
+if (( $# < 5 ))
+then
+    echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_PASSWORD HOSTIP";
+    exit -1
+fi
 
-#######################################################
+MYSQLIP=$1
+PORT=$2
+USER=$3
+PASS=$4
+HOSTIP=$
+
+# MYSQLIP=192.168.7.152
+# USER=root
+# PASS=Rancher@12345
+# PORT=3306
+# INET=(enp3s0 eth0)
+
+#########################################################################
+
+HOSTIP=""
+NODE_VERSION="v12.13.0"
+
 TARS=(tarsAdminRegistry tarsconfig  tarslog  tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
 
 INSTALL_TMP=/tmp/tars-install
@@ -30,14 +44,14 @@ yum install -y yum-utils wget epel-release mariadb-libs psmisc MariaDB-client te
 # wget -qO- https://raw.github.com/creationix/nvm/master/install.sh | sh
 
 
-#获取主机hostip
-for IP in ${INET[@]};
-do
-    HOSTIP=`ifconfig | grep ${IP} -A3 | grep inet | grep broad | awk '{print $2}'    `
-    if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
-      break
-    fi
-done
+# #获取主机hostip
+# for IP in ${INET[@]};
+# do
+#     HOSTIP=`ifconfig | grep ${IP} -A3 | grep inet | grep broad | awk '{print $2}'    `
+#     if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
+#       break
+#     fi
+# done
 
 WHO=`whoami`
 if [ "$WHO" != "root" ]; then

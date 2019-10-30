@@ -72,7 +72,7 @@ function LOG_INFO()
 
 if (( $# < 5 ))
 then
-    echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_USER HOSTIP";
+    echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_PASSWORD HOSTIP";
     echo "you should not call this script directly, you should call centos-install.sh or ubuntu-intall.sh, or in docker by call docker-init.sh"
     exit -1
 fi
