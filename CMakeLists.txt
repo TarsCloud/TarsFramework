@@ -33,6 +33,8 @@ link_libraries(pthread z dl rt)
 
 macro(complice_module MODULE)
 
+    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/servers/${MODULE}/bin)
+
     include_directories(${PROJECT_SOURCE_DIR}/tarscpp/servant/protocol/framework)
     include_directories(${servant_SOURCE_DIR}/servant)
 
@@ -121,36 +123,8 @@ foreach (MODULE ${DEPENDS_LIST})
     set(MODULES "${MODULES} ${MODULE}")
 endforeach ()
 
-#打包脚本
-SET(RUN_DEPLOY_COMMAND_FILE "${PROJECT_BINARY_DIR}/run-deploy-framework.cmake")
-FILE(WRITE ${RUN_DEPLOY_COMMAND_FILE} "#deploy framework-tar\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "EXECUTE_PROCESS(\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/deploy/\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/framework-install/framework/deploy/tars_install.sh .\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/framework-install/framework/deploy/tarsnode_install.sh .\n")
-foreach (MODULE ${DEPENDS_LIST})
-    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND cp -rf ${PROJECT_SOURCE_DIR}/framework-install/framework/deploy/${MODULE} .\n")
-endforeach ()
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} ")\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "EXECUTE_PROCESS(\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/deploy/\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND tar czfv ${FRAMEWORK-TGZ} ${MODULES}\n")
-#FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND mv ${FRAMEWORK-TGZ} ${CMAKE_BINARY_DIR}/framework.tgz\n")
-FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} ")\n")
-
-#执行命令
-add_custom_command(OUTPUT ${FRAMEWORK-TGZ}
-        COMMAND ${CMAKE_COMMAND} -P ${RUN_DEPLOY_COMMAND_FILE}
-        COMMENT "call ${RUN_DEPLOY_COMMAND_FILE}")
-
-add_custom_target(framework-tar
-        DEPENDS ${FRAMEWORK-TGZ} ${DEPENDS_LIST})
-
-
 ############################################################################################
-# 打包tarsnotify tarsstat tarsproperty tarslog tarsauth
-set(TARSQUERYSTAT tarsquerystat)
-set(TARSQUERYPROPERTY tarsqueryproperty)
+# 打包tarsnotify tarsstat tarsproperty tarslog tarsauth tarsquerystat tarsqueryproperty
 
 set(DEPENDS_LIST)
 list(APPEND DEPENDS_LIST tarsnotify)
@@ -161,36 +135,29 @@ list(APPEND DEPENDS_LIST tarsquerystat)
 list(APPEND DEPENDS_LIST tarsqueryproperty)
 list(APPEND DEPENDS_LIST tarsauth)
 
-
 foreach (MODULE ${DEPENDS_LIST})
 
-    #set(MODULE-TGZ "${CMAKE_BINARY_DIR}/${MODULE}-tmp.tgz")
     set(MODULE-TGZ "${CMAKE_BINARY_DIR}/${MODULE}.tgz")
 
-    #打包脚本
-    SET(RUN_DEPLOY_COMMAND_FILE "${PROJECT_BINARY_DIR}/run-deploy-${MODULE}.cmake")
-    FILE(WRITE ${RUN_DEPLOY_COMMAND_FILE} "#deploy ${MODULE}-tar\n")
-    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "EXECUTE_PROCESS(\n")
-    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/deploy/\n")
-    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND tar czfv ${MODULE-TGZ} ${MODULE}\n")
-    #FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} "COMMAND mv ${MODULE-TGZ} ${CMAKE_BINARY_DIR}/${MODULE}.tgz\n")
-    FILE(APPEND ${RUN_DEPLOY_COMMAND_FILE} ")\n")
-
+    #兼容性更好
     add_custom_command(OUTPUT ${MODULE-TGZ}
             WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-            COMMAND ${CMAKE_COMMAND} -P ${RUN_DEPLOY_COMMAND_FILE}
-            COMMENT "call ${RUN_DEPLOY_COMMAND_FILE}")
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${MODULE}
+            COMMAND ${CMAKE_COMMAND} -E copy servers/${MODULE}/bin/${MODULE} ${MODULE}/
+            COMMAND ${CMAKE_COMMAND} -E tar czf ${MODULE-TGZ} ${MODULE}
+            COMMAND ${CMAKE_COMMAND} -E remove_directory ${MODULE}
+            COMMENT "create ${MODULE-TGZ}")
 
     add_custom_target(${MODULE}-tar DEPENDS ${MODULE-TGZ} ${MODULE})
 endforeach ()
 
 ############################################################################################
 
-install(DIRECTORY build/deploy/ DESTINATION framework-install/framework/deploy
+install(DIRECTORY build/servers/ DESTINATION deploy/framework/servers
         PATTERN "tars*"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
         
-install(DIRECTORY framework-install DESTINATION ./ 
+install(DIRECTORY deploy DESTINATION ./ 
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
 

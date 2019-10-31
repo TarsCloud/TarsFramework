@@ -6,12 +6,12 @@
 protocol              |定义各个基础服务定义的通信接口文件
 RegistryServer        |名字服务路由
 NodeServer            |管理服务
-AdminRegistryServer   |与前台进行交互的接入管理服务
+AdminRegistryServer   |与前台进行交互的接入管理服务(只能单节点)
 PatchServer           |发布服务
 ConfigServer          |配置服务
 LogServer             |日志服务
 StatServer            |模调数据统计服务
 PropertyServer        |属性统计服务
 NotifyServer          |异常上报统计服务
-framework-install     |核心基础服务的模版配置和工具脚本
+deploy                |核心基础服务的模版配置和工具脚本
 tarscpp               |Tars RPC框架C++语言的源代实现
