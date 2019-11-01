@@ -1,12 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
-#sh centos-install.sh 192.168.7.152 Rancher@12345 eth0 false false
-#sh centos-install.sh 192.168.7.152 Rancher@12345 eth0 true false
+#./linux-install.sh 192.168.7.152 Rancher@12345 eth0 false false
+#./inux-install.sh 192.168.7.152 Rancher@12345 eth0 true false
 
 if (( $# < 5 ))
 then
     echo "$0 MYSQL_IP MYSQL_PASSWORD INET REBUILD(true/false) SLAVE(false[default]/true)";
-    exit -1
+    exit 1
 fi
 
 MYSQLIP=$1
@@ -29,12 +29,6 @@ if [ "$SLAVE" != "true" ]; then
     SLAVE="false"
 fi
 
-# MYSQLIP=192.168.7.152
-# USER=root
-# PASS=Rancher@12345
-# PORT=3306
-# INET=(enp3s0 eth0)
-
 #########################################################################
 
 NODE_VERSION="v12.13.0"
@@ -50,24 +44,52 @@ MIRROR=http://mirrors.cloud.tencent.com
 
 workdir=$(cd $(dirname $0); pwd)
 
-cp centos7_base.repo /etc/yum.repos.d/
-cp epel-7.repo /etc/yum.repos.d/
-cp MariaDB.repo /etc/yum.repos.d/
-yum makecache fast
+OS=`cat /etc/os-release`
+if [[ "$OS" =~ "CentOS" ]]; then
+  OS=1
+elif [[ "$OS" =~ "Ubuntu" ]]; then
+  OS=2
+else
+  echo "OS not support:"
+  echo $OS
+  exit 1
+fi
 
-yum install -y yum-utils wget epel-release psmisc MariaDB-client telnet net-tools
+function exec_profile()
+{
+  if [ $OS == 1 ]; then
+    source ~/.bashrc
+  else
+    source ~/.profile
+  fi
+}
 
-WHO=`whoami`
-if [ "$WHO" != "root" ]; then
-    echo "only root user can call $0"
-    exit -1
+function get_host_ip()
+{
+  if [ $OS == 1 ]; then
+    IP=`ifconfig | grep $1 -A3 | grep inet | grep broad | awk '{print $2}'`
+  else
+    IP=`ifconfig | grep $1 -A3 | grep inet | awk -F':' '{print $2}' | awk '{print $1}'`
+  fi
+  echo "$IP"
+}
+
+if [ $OS == 1 ]; then
+  cp centos7_base.repo /etc/yum.repos.d/
+  cp epel-7.repo /etc/yum.repos.d/
+  cp MariaDB.repo /etc/yum.repos.d/
+  yum makecache fast
+
+  yum install -y yum-utils wget epel-release psmisc MariaDB-client telnet net-tools
+else
+  apt-get install -y wget psmisc mysql-client telnet net-tools
 fi
 
 #获取主机hostip
-for IP in ${INET[@]};
+for N in ${INET[@]};
 do
-    HOSTIP=`ifconfig | grep ${IP} -A3 | grep inet | grep broad | awk '{print $2}'    `
-    echo $HOSTIP $IP
+    HOSTIP=$(get_host_ip $N)
+
     if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
       break
     fi
@@ -75,32 +97,32 @@ done
 
 if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
     echo "HOSTIP is [$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
-    exit -1
+    exit 1
 fi
 
 if [ "${SLAVE}" != "true" ]; then
 
   if [ ! -d ${workdir}/web ]; then
       LOG_ERROR "no web exits, please copy TarsWeb to ${workdir}/web first."
-      exit -1
+      exit 1
   fi
 
   ################################################################################
   #download nodejs
 
-  source ~/.bashrc
+  exec_profile
 
   CURRENT_NODE_VERSION=`node --version`
 
   if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
 
-    sh nvm-install.sh
+    ./nvm-install.sh
 
     export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
 
     export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; 
 
-    source ~/.bashrc
+    exec_profile
 
     nvm install ${NODE_VERSION};
   fi
@@ -111,16 +133,15 @@ if [ "${SLAVE}" != "true" ]; then
 
   if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
       echo "node is not valid, must be:${NODE_VERSION}"
-      exit -1
+      exit 1
   fi
 
   echo "install node success! Version is ${NODE_VERSION}"
 
-  source ~/.bashrc
-  npm config set registry ${MIRROR}/npm/;
-  npm install -g npm pm2
-
+  exec_profile
 fi
+
+npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 cd ${workdir}/web; npm prune;npm audit fix
 
@@ -128,7 +149,7 @@ cd ${workdir}/web; npm prune;npm audit fix
 
 cd ${workdir}
 
-sh tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
+./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 
 if [ "$1" == "check" ]; then
   echo "begin check server..."

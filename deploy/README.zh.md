@@ -5,10 +5,9 @@
 ----------------------|----------------
 framework             |框架部署需要的配置和sql
 tools                 |生成tarsnode压缩包的脚本
-centos-install.sh     |centos7系统, 一键安装tar环境
-ubuntu-install.sh     |ubuntu系统, 一键安装tar环境
+linux-install.sh      |centos7/ubuntu16.04系统, 一键安装tars环境
 docker.sh             |将整个tars环境生成一个基于centos7的脚本
-tars-install.sh       |安装tars的脚本, 被centos-install.sh or docker-init.sh调用
+tars-install.sh       |安装tars的脚本, 被linux-install.sh or docker-init.sh调用
 Dockerfile            |生成Docker
 
 

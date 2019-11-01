@@ -7,9 +7,8 @@ This project is the basic service of the Tars framework and is the basic framewo
 ----------------------|----------------
 framework             |框架部署需要的配置和sql
 tools                 |生成tarsnode压缩包的脚本
-centos-install.sh     |centos7系统, 一键安装tar环境
-ubuntu-install.sh     |ubuntu系统, 一键安装tar环境
-docker.sh             |将整个tars环境生成一个基于centos7的脚本
-tars-install.sh       |安装tars的脚本, 被centos-install.sh or docker-init.sh调用
-Dockerfile            |生成Docker
+linux-install.sh      |centos7/ubuntu16.04 system, automatic install tars framework
+docker.sh             |build docker
+tars-install.sh       |called by linux-install.sh or docker-init.sh
+Dockerfile            |create Docker file
 

@@ -28,8 +28,6 @@ else
     SLAVE="true"
 fi
 
-# echo SLAVE:[${SLAVE}]
-
 HOSTIP=""
 
 #######################################################
@@ -62,12 +60,6 @@ do
     fi
 done
 
-WHO=`whoami`
-if [ "$WHO" != "root" ]; then
-    echo "only root user can call $0"
-    exit -1
-fi
-
 if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
     echo "HOSTIP:[$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
     exit -1
@@ -75,9 +67,9 @@ fi
 
 cd ${WORKDIR}
 
-pwd
+# pwd
 
-sh tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
+./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 
 echo "begin check server..."
 if [ "$SLAVE" != "true" ]; then
