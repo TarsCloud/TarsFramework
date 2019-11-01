@@ -1,0 +1,67 @@
+<tars>
+    <application>
+    #是否启用SET分组
+    enableset=${enableset}
+    #SET分组的全名.(mtt.s.1)
+    setdivision=${setdivision}
+    <client>
+        #地址
+        locator =${locator}
+        #同步调用超时时间,缺省3s(毫秒)
+        sync-invoke-timeout = 3000
+        #异步超时时间,缺省5s(毫秒)
+        async-invoke-timeout =5000
+        #重新获取服务列表时间间隔(毫秒)
+        refresh-endpoint-interval = 60000
+        #模块间调用服务[可选]
+        stat            = tars.tarsstat.StatObj
+        #属性上报服务[可选]
+        property                    = tars.tarsproperty.PropertyObj
+        #上报间隔时间,默认60s(毫秒)
+        report-interval            = 60000
+        #stat采样比1:n 例如sample-rate为1000时 采样比为千分之一
+        sample-rate = 100000
+        #1分钟内stat最大采样条数
+        max-sample-count = 50
+
+        #网络异步回调线程个数
+        asyncthread      = ${asyncthread}
+        #模块名称
+        modulename      = ${modulename}
+    </client>
+        
+    #定义所有绑定的IP
+    <server>
+        #应用名称
+        app      = ${app}
+        #服务名称
+        server  = ${server}
+        #本地ip
+        localip  = ${localip}
+        #本地管理套接字[可选]
+        local  = ${local}
+        #服务的数据目录,可执行文件,配置文件等
+        basepath = ${basepath}
+        #
+        datapath = ${datapath}
+        #日志路径
+        logpath  = ${logpath}
+        #日志大小
+        logsize = 10M
+        #日志数量
+        #   lognum = 10
+        #配置中心的地址[可选]
+        config  = tars.tarsconfig.ConfigObj
+        #信息中心的地址[可选]
+        notify  = tars.tarsnotify.NotifyObj
+        #远程LogServer[可选]
+        log = tars.tarslog.LogObj
+        #关闭服务时等待时间
+         deactivating-timeout = 3000
+        #滚动日志等级默认值
+       logLevel=DEBUG
+    </server>          
+  </application>
+</tars>
+
+
