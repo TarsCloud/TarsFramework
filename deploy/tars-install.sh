@@ -167,7 +167,7 @@ done
 function exec_mysql_script()
 {
     LOG_DEBUG "exec_mysql_script: $1"  
-    mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "$1"
+    mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} --default-character-set=utf8 -e "$1"
 
     return $?
 }
@@ -176,7 +176,7 @@ function exec_mysql_sql()
 {
     LOG_DEBUG "exec_mysql_sql: $1 $2"  
 
-    mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -D$1 < $2
+    mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} --default-character-set=utf8 -D$1 < $2
 
     return $?
 }
