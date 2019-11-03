@@ -114,7 +114,7 @@ LOG_DEBUG "PASS:          "$PASS
 LOG_DEBUG "PORT:          "$PORT
 LOG_DEBUG "HOSTIP:        "$HOSTIP
 LOG_DEBUG "WORKDIR:       "$WORKDIR
-LOG_DEBUG "SALVE:         "${SLAVE}
+LOG_DEBUG "SLAVE:         "${SLAVE}
 LOG_DEBUG "REBUILD:       "${REBUILD}
 LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.\n";
 
