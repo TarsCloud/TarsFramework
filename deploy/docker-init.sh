@@ -31,14 +31,14 @@ fi
 HOSTIP=""
 
 #######################################################
-INSTALL_TMP=/tmp/tars-install
+# INSTALL_TMP=/tmp/tars-install
 TARS_PATH=/usr/local/app/tars
 
 source ~/.bashrc
 
 WORKDIR=$(cd $(dirname $0); pwd)
 
-mkdir -p ${INSTALL_TMP}
+# mkdir -p ${INSTALL_TMP}
 mkdir -p ${TARS_PATH}
 
 if [ "$SLAVE" != "true" ]; then
@@ -47,7 +47,7 @@ if [ "$SLAVE" != "true" ]; then
       exit -1
   fi
 
-  cp -rf ${WORKDIR}/web ${INSTALL_TMP}/web
+  # cp -rf ${WORKDIR}/web ${INSTALL_TMP}/web
 fi
 
 #获取主机hostip
@@ -91,7 +91,6 @@ do
     if echo $pid | grep -q '[^0-9]'
     then
       echo "start tars-web"
-      #cd /usr/local/app/web/; nohup npm run start &
       cd /usr/local/app/web/; npm run prd
     fi
   fi

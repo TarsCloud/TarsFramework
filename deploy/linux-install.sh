@@ -74,6 +74,13 @@ function get_host_ip()
   echo "$IP"
 }
 
+now_user=`whoami`
+
+if [ $now_user != "root" ]; then
+  echo "User error, must be root user! Now user is:"$now_user;
+  exit 1;
+fi
+
 if [ $OS == 1 ]; then
   cp centos7_base.repo /etc/yum.repos.d/
   cp epel-7.repo /etc/yum.repos.d/
@@ -143,7 +150,7 @@ fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
-cd ${workdir}/web; npm prune;npm audit fix
+cd ${workdir}/web; npm prune;npm i --package-lock-only;npm audit fix
 
 ################################################################################
 
