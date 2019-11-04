@@ -87,9 +87,9 @@ if [ $OS == 1 ]; then
   cp MariaDB.repo /etc/yum.repos.d/
   yum makecache fast
 
-  yum install -y yum-utils wget epel-release psmisc MariaDB-client telnet net-tools
+  yum install -y yum-utils psmisc MariaDB-client telnet net-tools wget
 else
-  apt-get install -y wget psmisc mysql-client telnet net-tools
+  apt-get install -y psmisc mysql-client telnet net-tools wget
 fi
 
 #获取主机hostip
@@ -123,9 +123,10 @@ if [ "${SLAVE}" != "true" ]; then
 
   if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
 
-    ./nvm-install.sh
-
     export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
+
+    wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip
+    cp -rf nvm-0.35.1 $HOME/.nvm
 
     export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; 
 

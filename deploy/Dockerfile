@@ -6,16 +6,14 @@ ENV TARS_INSTALL /root/tars-install
 
 COPY centos7_base.repo MariaDB.repo epel-7.repo /etc/yum.repos.d/
 
-RUN yum makecache fast; yum install -y yum-utils epel-release wget psmisc MariaDB-client telnet net-tools
-
-# RUN yum install -y yum-utils epel-release wget psmisc MariaDB-client telnet net-tools
+#RUN yum makecache fast; yum install -y yum-utils epel-release wget psmisc MariaDB-client telnet net-tools git
+RUN yum makecache fast; yum install -y yum-utils psmisc MariaDB-client net-tools
 
 COPY web ${TARS_INSTALL}/web
 
-# RUN wget -qO- https://raw.github.com/creationix/nvm/master/install.sh | sh
-COPY nvm-install.sh .
-RUN sh nvm-install.sh
+COPY nvm $HOME/.nvm
 
+RUN git clone https://github.com/nvm-sh/nvm.git $HOME/.nvm; cd $HOME/.nvm; git checkout v0.35.1
 RUN export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release;nvm install v12.13.0 ;npm config set registry ${MIRROR}/npm/;npm install -g npm pm2;cd ${TARS_INSTALL}/web;npm prune;npm i --package-lock-only;npm audit fix
 
 COPY framework ${TARS_INSTALL}/framework
