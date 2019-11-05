@@ -313,7 +313,8 @@ if [ "$SLAVE" != "true" ]; then
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
-    source ~/.bashrc;cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd 
+    #source ~/.bashrc;cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd 
+    cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd 
 
     LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
     LOG_INFO "If in Docker, please check you host ip and port."

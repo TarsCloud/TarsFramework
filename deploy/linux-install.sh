@@ -55,6 +55,15 @@ else
   exit 1
 fi
 
+function bash_rc()
+{
+  if [ $OS == 1 ]; then
+    echo ".bashrc"
+  else
+    echo ".profile"
+  fi
+}
+
 function exec_profile()
 {
   if [ $OS == 1 ]; then
@@ -87,9 +96,9 @@ if [ $OS == 1 ]; then
   cp MariaDB.repo /etc/yum.repos.d/
   yum makecache fast
 
-  yum install -y yum-utils psmisc MariaDB-client telnet net-tools wget
+  yum install -y yum-utils psmisc MariaDB-client telnet net-tools wget unzip
 else
-  apt-get install -y psmisc mysql-client telnet net-tools wget
+  apt-get install -y psmisc mysql-client telnet net-tools wget unzip
 fi
 
 #获取主机hostip
@@ -125,10 +134,11 @@ if [ "${SLAVE}" != "true" ]; then
 
     export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
 
+    rm -rf v0.35.1.zip
     wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip
     cp -rf nvm-0.35.1 $HOME/.nvm
 
-    export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"; 
+    echo 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";' >> $HOME/$(bash_rc)
 
     exec_profile
 
@@ -151,7 +161,8 @@ fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
-cd ${workdir}/web; npm prune;npm i --package-lock-only;npm audit fix
+#cd ${workdir}/web; npm prune;npm i --package-lock-only;npm audit fix
+#cd ${workdir}/web; npm prune;npm i --package-lock-only;npm audit fix
 
 ################################################################################
 
