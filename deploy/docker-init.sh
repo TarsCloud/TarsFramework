@@ -30,14 +30,12 @@ fi
 HOSTIP=""
 
 #######################################################
-# INSTALL_TMP=/tmp/tars-install
 TARS_PATH=/usr/local/app/tars
 
 source ~/.bashrc
 
 WORKDIR=$(cd $(dirname $0); pwd)
 
-# mkdir -p ${INSTALL_TMP}
 mkdir -p ${TARS_PATH}
 
 if [ "$SLAVE" != "true" ]; then
@@ -45,8 +43,6 @@ if [ "$SLAVE" != "true" ]; then
       echo "no web exits, please copy TarsWeb to ${WORKDIR}/web first."
       exit -1
   fi
-
-  # cp -rf ${WORKDIR}/web ${INSTALL_TMP}/web
 fi
 
 #获取主机hostip
