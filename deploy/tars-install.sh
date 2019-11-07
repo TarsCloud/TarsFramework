@@ -273,14 +273,19 @@ cp -rf ${WORKDIR}/framework/servers/* ${TARS_PATH}
 function update_conf() {
 
     LOG_DEBUG "update server config: [${TARS_PATH}/$1/conf/tars.$1.config.conf]";
-
-    sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-    sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-    sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-
-    if [ "tarsnode" == $1 ]; then
-        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
+    if [ "tarsnode" != "$1" ]; then
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    else
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/util/execute.sh`
     fi
+
+#    if [ "tarsnode" == $1 ]; then
+#        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
+#    fi
 }
 
 #update server config
@@ -304,21 +309,31 @@ done
 #deploy web
 if [ "$SLAVE" != "true" ]; then
 
+    LOG_DEBUG "create tarsnode.tgz";
+
+    cd ${WORKDIR}/framework/servers;
+    tar czf tarsnode.tgz tarsnode
+    cd ${WORKDIR}
     LOG_DEBUG "copy web to web path:/usr/local/app/";
 
     cp -rf web /usr/local/app/
-
+    LOG_DEBUG "copy tarsnode.tgz to web/files";
+    mkdir -p /usr/local/app/web/files/
+    cp framework/servers/tarsnode.tgz /usr/local/app/web/files/
+    cp tools/install.sh /usr/local/app/web/files/
     LOG_DEBUG "update web config";
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
-    #source ~/.bashrc;cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd 
     cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd 
 
     LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
     LOG_INFO "If in Docker, please check you host ip and port."
     LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
+    LOG_INFO "If You want to install tarsnode in other machine, do this: "
+    LOG_INFO "wget http://$HOSTIP:3000/install.sh"
+    LOG_INFO "sh install.sh"
     LOG_INFO "==============================================================";
 else
     LOG_INFO "Install slave($SLAVE) node success"

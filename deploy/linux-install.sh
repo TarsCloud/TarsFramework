@@ -137,6 +137,7 @@ if [ "${SLAVE}" != "true" ]; then
     rm -rf v0.35.1.zip
     wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip
     cp -rf nvm-0.35.1 $HOME/.nvm
+    rm -rf nvm-0.35.1
 
     echo 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";' >> $HOME/$(bash_rc)
 
