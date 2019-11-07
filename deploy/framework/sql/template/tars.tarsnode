@@ -1,0 +1,79 @@
+<tars>
+    <application>
+        enableset=n 
+        setdivision=NULL
+        <client>
+            modulename=tars.tarsnode
+            locator=${locator}
+            #缺省3s(毫秒)
+            sync-invoke-timeout = 6000
+            asyncthread=3
+        </client>
+        <server>
+            app=tars
+            server=tarsnode
+            localip=${localip}
+            local = tcp -h 127.0.0.1 -p 19385 -t 10000
+            basepath=/usr/local/app/tars/tarsnode/data
+            datapath=/usr/local/app/tars/tarsnode/data
+            logpath=  /usr/local/app/tars/app_log
+            logLevel=DEBUG
+            #配置绑定端口
+            <NodeAdapter>
+                    #监听IP地址
+                    endpoint    = tcp -h ${localip} -p 19385 -t 60000
+                    #允许的IP地址
+                    allow      =
+                    #最大连接数
+                    maxconns    = 1024
+                    #当前线程个数
+                    threads    = 5
+                    #流量限制
+                    queuecap    = 10000
+                    #队列超时时间
+                    queuetimeout= 4000
+                    #处理对象
+                    servant    = tars.tarsnode.NodeObj
+            </NodeAdapter>
+
+            <ServerAdapter>
+                    #监听IP地址
+                    endpoint    = tcp -h  ${localip} -p 19386 -t 60000
+                    #允许的IP地址
+                    allow      =
+                    #最大连接数
+                    maxconns    = 1024
+                    #当前线程个数
+                    threads    = 5
+                    #流量限制
+                    queuecap    = 10000
+                    #队列超时时间
+                    queuetimeout= 4000
+                    #处理对象
+                    servant    = tars.tarsnode.ServerObj
+            </ServerAdapter>
+        </server>
+    </application>
+
+    <node>
+        registryObj = ${registryObj}
+        <keepalive>              
+            #业务心跳超时时间(s) 
+            heartTimeout    = 60
+            
+            #监控server状态间隔时间(s) 
+            monitorInterval = 2 
+            
+            #跟主控/本地cache同步服务状态间隔时间(s) 
+            synStatInterval = 300
+        </keepalive> 
+        
+        <hashmap>
+            file            =serversCache.dat
+            minBlock        =500
+            maxBlock        =500
+            factor          =1
+            size            =10M
+        </hashmap>
+    </node>
+</tars>

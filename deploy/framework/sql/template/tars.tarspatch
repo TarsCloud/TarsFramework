@@ -1,0 +1,12 @@
+<tars>
+    <application>
+    <server>
+        log    = tars.tarslog.LogObj
+        logLevel = DEBUG
+    </server>          
+    </application>
+
+    directory=/usr/local/app/patchs/tars
+    uploadDirectory=/usr/local/app/patchs/tars.upload
+    size=1M
+</tars>

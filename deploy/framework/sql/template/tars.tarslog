@@ -1,0 +1,14 @@
+<tars>
+     <application>
+          <server>
+               logLevel=ERROR
+              </server>
+     </application>
+     <log>
+          logpath=/usr/local/app/tars/remote_app_log
+          logthread=10         
+          <format>
+               hour=xx
+          </format>
+     </log>
+</tars>
