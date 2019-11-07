@@ -5,8 +5,8 @@ This project is the basic service of the Tars framework and is the basic framewo
 
 目录名称 |功能
 ----------------------|----------------
-framework             |框架部署需要的配置和sql
-tools                 |生成tarsnode压缩包的脚本
+framework             |fromework config & sql
+tools                 |tarsnode deploy
 linux-install.sh      |centos7/ubuntu16.04 system, automatic install tars framework
 docker.sh             |build docker
 tars-install.sh       |called by linux-install.sh or docker-init.sh
