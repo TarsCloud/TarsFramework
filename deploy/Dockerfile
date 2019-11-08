@@ -20,7 +20,7 @@ RUN  wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip; c
 RUN echo 'NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";' >> $HOME/.bashrc;
 
 RUN source $HOME/.bashrc; export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release;nvm install v12.13.0 ;npm config set registry ${MIRROR}/npm/;npm install -g npm pm2;
-
+RUN cd ${TARS_INSTALL}/web && /root/.bashrc && npm --registry https://registry.npm.taobao.org install --quiet 
 COPY framework ${TARS_INSTALL}/framework
 COPY tools ${TARS_INSTALL}/tools
 COPY docker-init.sh tars-install.sh ${TARS_INSTALL}/
