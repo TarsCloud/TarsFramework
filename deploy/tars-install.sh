@@ -166,19 +166,26 @@ done
 
 function exec_mysql_script()
 {
-    LOG_DEBUG "exec_mysql_script: $1"  
+    # LOG_DEBUG "exec_mysql_script: $1"  
     mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} --default-character-set=utf8 -e "$1"
 
-    return $?
+    ret=$?
+    LOG_DEBUG "exec_mysql_script $1, ret: $ret"  
+
+    return $ret
 }
 
 function exec_mysql_sql()
 {
-    LOG_DEBUG "exec_mysql_sql: $1 $2"  
+    # LOG_DEBUG "exec_mysql_sql: $1 $2"  
 
     mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} --default-character-set=utf8 -D$1 < $2
 
-    return $?
+    ret=$?
+
+    LOG_DEBUG "exec_mysql_sql $1 $2, ret: $ret"  
+
+    return $ret
 }
 
 ################################################################################
@@ -206,7 +213,6 @@ if [ $? != 0 ]; then
     exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
 
     LOG_DEBUG "modify ip in sqls:${WORKDIR}/framework/sql";
-
 
     LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web)";
 
@@ -333,7 +339,7 @@ if [ "$SLAVE" != "true" ]; then
     LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
     LOG_INFO "If You want to install tarsnode in other machine, do this: "
     LOG_INFO "wget http://$HOSTIP:3000/install.sh"
-    LOG_INFO "sh install.sh"
+    LOG_INFO "chmod a+x install.sh; ./install.sh"
     LOG_INFO "==============================================================";
 else
     LOG_INFO "Install slave($SLAVE) node success"

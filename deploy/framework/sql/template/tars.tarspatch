@@ -9,4 +9,7 @@
     directory=/usr/local/app/patchs/tars
     uploadDirectory=/usr/local/app/patchs/tars.upload
     size=1M
+
+    MemMax = 100M
+    MemMin = 100K
 </tars>

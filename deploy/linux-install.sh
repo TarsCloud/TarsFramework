@@ -96,9 +96,9 @@ if [ $OS == 1 ]; then
   cp MariaDB.repo /etc/yum.repos.d/
   yum makecache fast
 
-  yum install -y yum-utils psmisc MariaDB-client telnet net-tools wget unzip
+  yum install -y yum-utils psmisc MariaDB-client telnet net-tools wget unzip gcc gcc-c++
 else
-  apt-get install -y psmisc mysql-client telnet net-tools wget unzip
+  apt-get install -y psmisc mysql-client telnet net-tools wget unzip gcc gcc-c++
 fi
 
 #获取主机hostip
@@ -130,9 +130,9 @@ if [ "${SLAVE}" != "true" ]; then
 
   CURRENT_NODE_VERSION=`node --version`
 
-  if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
+  export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
 
-    export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
+  if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
 
     rm -rf v0.35.1.zip
     wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip
@@ -150,13 +150,15 @@ if [ "${SLAVE}" != "true" ]; then
   CURRENT_NODE_VERSION=`node --version`
 
   if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
-      echo "node is not valid, must be:${NODE_VERSION}"
+      echo "node is not valid, must be:${NODE_VERSION}, please remove your node first."
       exit 1
   fi
 
   echo "install node success! Version is ${NODE_VERSION}"
 
   exec_profile
+
+  cd web; npm install
 fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
