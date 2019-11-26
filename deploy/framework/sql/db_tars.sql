@@ -67,15 +67,6 @@ CREATE TABLE `t_ats_cases` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `t_ats_cases`
---
-
-LOCK TABLES `t_ats_cases` WRITE;
-/*!40000 ALTER TABLE `t_ats_cases` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_ats_cases` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `t_ats_interfaces`
 --
 
@@ -98,15 +89,6 @@ CREATE TABLE `t_ats_interfaces` (
   UNIQUE KEY `objname` (`objname`,`funcname`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `t_ats_interfaces`
---
-
-LOCK TABLES `t_ats_interfaces` WRITE;
-/*!40000 ALTER TABLE `t_ats_interfaces` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_ats_interfaces` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `t_config_files`
@@ -134,15 +116,6 @@ CREATE TABLE `t_config_files` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `t_config_files`
---
-
-LOCK TABLES `t_config_files` WRITE;
-/*!40000 ALTER TABLE `t_config_files` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_config_files` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `t_config_history_files`
 --
 
@@ -162,15 +135,6 @@ CREATE TABLE `t_config_history_files` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `t_config_history_files`
---
-
-LOCK TABLES `t_config_history_files` WRITE;
-/*!40000 ALTER TABLE `t_config_history_files` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_config_history_files` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `t_config_references`
 --
 
@@ -185,15 +149,6 @@ CREATE TABLE `t_config_references` (
   UNIQUE KEY `config_id` (`config_id`,`reference_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `t_config_references`
---
-
-LOCK TABLES `t_config_references` WRITE;
-/*!40000 ALTER TABLE `t_config_references` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_config_references` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `t_group_priority`
@@ -211,15 +166,6 @@ CREATE TABLE `t_group_priority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `t_group_priority`
---
-
-LOCK TABLES `t_group_priority` WRITE;
-/*!40000 ALTER TABLE `t_group_priority` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_group_priority` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `t_machine_tars_info`
@@ -389,15 +335,6 @@ CREATE TABLE `t_server_group_relation` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `t_server_group_relation`
---
-
-LOCK TABLES `t_server_group_relation` WRITE;
-/*!40000 ALTER TABLE `t_server_group_relation` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_server_group_relation` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `t_server_group_rule`
 --
 
@@ -417,16 +354,6 @@ CREATE TABLE `t_server_group_rule` (
   UNIQUE KEY `group_name_index` (`group_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `t_server_group_rule`
---
-
-LOCK TABLES `t_server_group_rule` WRITE;
-/*!40000 ALTER TABLE `t_server_group_rule` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_server_group_rule` ENABLE KEYS */;
-UNLOCK TABLES;
-
 
 --
 -- Table structure for table `t_server_patchs`
@@ -465,15 +392,6 @@ CREATE TABLE `t_server_patchs` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `t_server_patchs`
---
-
-LOCK TABLES `t_server_patchs` WRITE;
-/*!40000 ALTER TABLE `t_server_patchs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_server_patchs` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `t_task`
 --
 
@@ -490,15 +408,6 @@ CREATE TABLE `t_task` (
   UNIQUE KEY `f_task` (`task_no`)
 ) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `t_task`
---
-
-LOCK TABLES `t_task` WRITE;
-/*!40000 ALTER TABLE `t_task` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_task` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `t_task_item`
@@ -529,15 +438,6 @@ CREATE TABLE `t_task_item` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `t_task_item`
---
-
-LOCK TABLES `t_task_item` WRITE;
-/*!40000 ALTER TABLE `t_task_item` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_task_item` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `t_web_release_conf`
 --
 
@@ -560,14 +460,6 @@ CREATE TABLE `t_web_release_conf` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `t_web_release_conf`
---
-
-LOCK TABLES `t_web_release_conf` WRITE;
-/*!40000 ALTER TABLE `t_web_release_conf` DISABLE KEYS */;
-/*!40000 ALTER TABLE `t_web_release_conf` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

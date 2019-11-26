@@ -123,6 +123,14 @@ if [ "${SLAVE}" != "true" ]; then
       exit 1
   fi
 
+  if [ ! -d ${workdir}/web/demo ]; then
+      LOG_ERROR "web not the newest version, please update to the newest version."
+      exit 1
+  fi
+
+  cp -rf ${workdir}/web/sql/*.sql ${workdir}/framework/sql/
+  cp -rf ${workdir}/web/demo/sql/*.sql ${workdir}/framework/sql/
+ 
   ################################################################################
   #download nodejs
 
@@ -158,7 +166,8 @@ if [ "${SLAVE}" != "true" ]; then
 
   exec_profile
 
-  cd web; npm install
+  cd web; npm install;
+  cd demo; npm install;
 fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
@@ -172,34 +181,4 @@ cd ${workdir}
 
 ./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 
-if [ "$1" == "check" ]; then
-  echo "begin check server..."
-  if [ "$SLAVE" != "true" ]; then
-    TARS=(tarsAdminRegistry  tarsnode  tarsregistry)
-  else
-    TARS=(tarsnode tarsregistry)
-  fi
-
-  while [ 1 ]
-  do
-    for var in ${TARS[@]};
-    do
-      sh ${TARS_PATH}/${var}/util/check.sh
-    done
-
-    if [ "$SLAVE" != "true" ]; then
-
-      pid=`ps -ef | grep /usr/local/app/web/bin/www | grep -v grep | awk -F' ' '{print $2}'`
-      if echo $pid | grep -q '[^0-9]'
-      then
-        echo "start tars-web"
-        cd /usr/local/app/web/; npm run prd
-      fi
-    fi
-
-    sleep 3
-
-  done
-fi
-
-
+exec_profile
