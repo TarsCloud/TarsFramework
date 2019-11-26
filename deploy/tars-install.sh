@@ -200,6 +200,7 @@ if [ "$REBUILD" == "true" ]; then
     exec_mysql_script "drop database if exists tars_stat"
     exec_mysql_script "drop database if exists tars_property"
     exec_mysql_script "drop database if exists db_tars_web"    
+    exec_mysql_script "drop database if exists db_user_system"    
 fi
 
 cd ${WORKDIR}/sql.tmp
@@ -211,16 +212,23 @@ if [ $? != 0 ]; then
     LOG_DEBUG "flush mysql privileges";
 
     exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
+    exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;flush privileges;"
+    exec_mysql_script "grant all on *.* to 'tars'@'127.0.0.1' identified by 'tars2015' with grant option;flush privileges;"
 
     LOG_DEBUG "modify ip in sqls:${WORKDIR}/framework/sql";
 
-    LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web)";
+    LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web, db_user_system)";
 
     exec_mysql_script "create database db_tars"
     exec_mysql_script "create database tars_stat"
     exec_mysql_script "create database tars_property"
     exec_mysql_script "create database db_tars_web"
+    exec_mysql_script "create database db_user_system"
     exec_mysql_sql db_tars db_tars.sql
+
+    exec_mysql_sql db_tars_web db_tars_web.sql
+
+    exec_mysql_sql db_user_system db_user_system.sql
 
     LOG_DEBUG "create t_profile_template";
 
@@ -332,7 +340,17 @@ if [ "$SLAVE" != "true" ]; then
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
-    cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd 
+    sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
+    sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
+
+    # sed -i "s/localhost/$HOSTIP/g" /usr/local/app/web/config/authConf.js
+    # sed -i "s/localhost/$HOSTIP/g" /usr/local/app/web/config/loginConf.js
+
+    sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
+    sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+
+    cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd; 
+    cd /usr/local/app/web/demo; pm2 stop tars-user-system; npm run prd
 
     LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
     LOG_INFO "If in Docker, please check you host ip and port."

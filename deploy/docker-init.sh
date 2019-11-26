@@ -82,12 +82,7 @@ do
   done
 
   if [ "$SLAVE" != "true" ]; then
-    pid=`ps -ef | grep /usr/local/app/web/bin/www | grep -v grep | awk -F' ' '{print $2}'`
-    if echo $pid | grep -q '[^0-9]'
-    then
-      echo "start tars-web"
-      cd /usr/local/app/web/; npm run prd
-    fi
+    pm2 ping tars-node-web; pm2 ping tars-user-system  
   fi
 
   sleep 3
