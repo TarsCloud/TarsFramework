@@ -274,7 +274,7 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
                 PatchPrx proxy = Application::getCommunicator()->stringToProxy<PatchPrx>(_patchRequest.patchobj);
                 proxy->tars_timeout(60000);
 
-                int downloadRet = SingleFileDownloader::download(proxy, sRemoteTgzFile, dtask.sLocalTgzFile, eventPtr, sResult);
+                int downloadRet = SingleFileDownloader::download(proxy, sRemoteTgzFile, dtask.sLocalTgzFile, eventPtr, _patchRequest.appname, _patchRequest.servername, _patchRequest.nodename, sResult);
                 if(downloadRet != 0)
                 {
                     //返回码错开一下
@@ -409,7 +409,7 @@ inline int CommandPatch::execute(string &sResult)
 
         TC_Config conf;
         conf.parseFile(_serverObjectPtr->getConfigFile());
-	string packageFormat= conf.get("/tars/application/server<packageFormat>","war");
+	    string packageFormat= conf.get("/tars/application/server<packageFormat>","war");
         string cmd,sLocalTgzFile_bak;
         if (_serverObjectPtr->getServerType() == "tars_java") //如果是tars_java，使用war 方法
         {

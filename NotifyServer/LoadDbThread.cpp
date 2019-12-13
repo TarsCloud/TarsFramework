@@ -60,6 +60,7 @@ void LoadDbThread::init()
     {
         TLOGERROR("LoadDbThread::init ex:" << ex.what() << endl);
         FDLOG("EX") << "LoadDbThread::init ex:" << ex.what() << endl;
+        exit(0);
     }
 }
 
@@ -72,9 +73,9 @@ void LoadDbThread::run()
     {
         if(iNow - iLastTime >= _interval)
         {
-            loadData();
-
             iLastTime = iNow;
+
+            loadData();
         }
 
         {

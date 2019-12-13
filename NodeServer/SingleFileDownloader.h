@@ -84,7 +84,7 @@ private:
 class SingleFileDownloader
 {
 public:
-    static int download(const PatchPrx &patchPrx, const string &remoteFile, const string &localFile, const DownloadEventPtr &pPtr, std::string & sResult);
+    static int download(const PatchPrx &patchPrx, const string &remoteFile, const string &localFile, const DownloadEventPtr &pPtr, const string &application, const string &serverName, const string &nodeName, std::string & sResult);
 
 private:
 };

@@ -221,16 +221,16 @@ int AdminRegistryImp::getServerState(const string & application, const string & 
 
         return EM_TARS_SUCCESS;
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
         result = "AdminRegistryImp::getServerState '"  + application  + "." + serverName + "_" + nodeName
-                + "' TarsSyncCallTimeoutException:" + tex.what();
+                + "' TarsSyncCallTimeoutException:" + ex.what();
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
-    catch(TarsNodeNotRegistryException& re)
+    catch(TarsNodeNotRegistryException& ex)
     {
         result = "AdminRegistryImp::getServerState '"  + application  + "." + serverName + "_" + nodeName
-                + "' TarsNodeNotRegistryException:" + re.what();
+                + "' TarsNodeNotRegistryException:" + ex.what();
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
     }
     catch(TarsException & ex)
@@ -298,23 +298,26 @@ int AdminRegistryImp::startServer(const string & application, const string & ser
 
         return iRet;
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
         current->setResponse(true);
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-        TLOGERROR("AdminRegistryImp::startServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsSyncCallTimeoutException:" + tex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("start server:") + ex.what(), application, serverName, nodeName);
+        TLOGERROR("AdminRegistryImp::startServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsSyncCallTimeoutException:" + ex.what())<<endl);
     }
-    catch(TarsNodeNotRegistryException& re)
+    catch(TarsNodeNotRegistryException& ex)
     {
         current->setResponse(true);
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
-        TLOGERROR("AdminRegistryImp::startServer '"<<(application  + "." + serverName + "_" + nodeName + "' TarsNodeNotRegistryException:" + re.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("start server:") + ex.what(), application, serverName, nodeName);
+        TLOGERROR("AdminRegistryImp::startServer '"<<(application  + "." + serverName + "_" + nodeName + "' TarsNodeNotRegistryException:" + ex.what())<<endl);
     }
     catch(TarsException & ex)
     {
         current->setResponse(true);
         result = string(__FUNCTION__) + " '" + application  + "." + serverName + "_" + nodeName
                 + "' TarsException:" + ex.what();
+        TarsRemoteNotify::getInstance()->report(string("start server:") + ex.what(), application, serverName, nodeName);
         TLOGERROR("AdminRegistryImp::startServer '"<<(application  + "." + serverName + "_" + nodeName + "' TarsException:" + ex.what())<<endl);
     }
     return iRet;
@@ -355,21 +358,24 @@ int AdminRegistryImp::stopServer(const string & application, const string & serv
 
         return iRet;
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
         current->setResponse(true);
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-        TLOGERROR("AdminRegistryImp::stopServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsSyncCallTimeoutException:" + tex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("stop server:") + ex.what(), application, serverName, nodeName);
+        TLOGERROR("AdminRegistryImp::stopServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsSyncCallTimeoutException:" + ex.what())<<endl);
     }
-    catch(TarsNodeNotRegistryException& re)
+    catch(TarsNodeNotRegistryException& ex)
     {
         current->setResponse(true);
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
-        TLOGERROR("AdminRegistryImp::stopServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsNodeNotRegistryException:" + re.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("stop server:") + ex.what(), application, serverName, nodeName);
+        TLOGERROR("AdminRegistryImp::stopServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsNodeNotRegistryException:" + ex.what())<<endl);
     }
     catch(TarsException & ex)
     {
         current->setResponse(true);
+        TarsRemoteNotify::getInstance()->report(string("stop server:") + ex.what(), application, serverName, nodeName);
         TLOGERROR("AdminRegistryImp::stopServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsException:" + ex.what())<<endl);
     }
 
@@ -406,6 +412,7 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
         TLOGERROR(("AdminRegistryImp::restartServer '" + application  + "." + serverName + "_" + nodeName
                 + "' exception:" + ex.what())<<endl);
         iRet = EM_TARS_UNKNOWN_ERR;
+        TarsRemoteNotify::getInstance()->report(string("restart server:") + ex.what(), application, serverName, nodeName);
     }
 
     if(iRet == EM_TARS_SUCCESS)
@@ -430,25 +437,28 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
                 return nodePrx->startServer(application, serverName, result);
             }
         }
-        catch(TarsSyncCallTimeoutException& tex)
+        catch(TarsSyncCallTimeoutException& ex)
         {
             result = "AdminRegistryImp::restartServer '" + application  + "." + serverName + "_" + nodeName
-                    + "' TarsSyncCallTimeoutException:" + tex.what();
+                    + "' TarsSyncCallTimeoutException:" + ex.what();
 
             iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
+            TarsRemoteNotify::getInstance()->report(string("restart server:") + ex.what(), application, serverName, nodeName);
         }
-        catch(TarsNodeNotRegistryException& re)
+        catch(TarsNodeNotRegistryException& ex)
         {
             result = "AdminRegistryImp::restartServer '" + application  + "." + serverName + "_" + nodeName
-                    + "' TarsNodeNotRegistryException:" + re.what();
+                    + "' TarsNodeNotRegistryException:" + ex.what();
 
             iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+            TarsRemoteNotify::getInstance()->report(string("restart server:") + ex.what(), application, serverName, nodeName);
         }
         catch(TarsException & ex)
         {
             result += "AdminRegistryImp::restartServer '" + application  + "." + serverName + "_" + nodeName
                     + "' TarsException:" + ex.what();
             iRet = EM_TARS_UNKNOWN_ERR;
+            TarsRemoteNotify::getInstance()->report(string("restart server:") + ex.what(), application, serverName, nodeName);
         }
         TLOGERROR( result << endl);
     }
@@ -467,19 +477,21 @@ int AdminRegistryImp::notifyServer(const string & application, const string & se
         nodePrx->async_notifyServer(callback, application, serverName, command);
         return EM_TARS_SUCCESS;
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
         current->setResponse(true);
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
         TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
-                + "' TarsSyncCallTimeoutException:" + tex.what())<<endl);
+                + "' TarsSyncCallTimeoutException:" + ex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
     }
-    catch(TarsNodeNotRegistryException& re)
+    catch(TarsNodeNotRegistryException& ex)
     {
         current->setResponse(true);
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
         TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
-                + "' TarsNodeNotRegistryException:" + re.what())<<endl);
+                + "' TarsNodeNotRegistryException:" + ex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
     }
 
     catch(TarsException & ex)
@@ -487,6 +499,7 @@ int AdminRegistryImp::notifyServer(const string & application, const string & se
         current->setResponse(true);
         TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
                 + "' TarsException:" + ex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
     }
     return iRet;
 }
@@ -507,6 +520,9 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
                  << reqPro.ostype
                  << endl);
 
+    //让tarspatch准备发布包
+    string sServerName  = reqPro.groupname.empty() ? reqPro.servername : reqPro.groupname;
+
     //获取patch包的文件信息和md5值
     string patchFile;
     string md5;
@@ -514,15 +530,16 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
     if (iRet != 0)
     {
         TLOGERROR("AdminRegistryImp::batchPatch"<< ", get patch tgz error:" << reqPro.version << endl);
+        TarsRemoteNotify::getInstance()->report("get patch tgz error:" + reqPro.version, reqPro.appname, sServerName, reqPro.nodename);
+
         return EM_TARS_GET_PATCH_FILE_ERR;
     }
 
-    //让tarspatch准备发布包
-    string sServerName  = reqPro.groupname.empty() ? reqPro.servername : reqPro.groupname;
     iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
     if (iRet != 0)
     {
         TLOGERROR("AdminRegistryImp::batchPatch"<< ", prepare patch file error:" << patchFile << endl);
+        TarsRemoteNotify::getInstance()->report("prepare patch file error:" + patchFile, reqPro.appname, sServerName, reqPro.nodename);
         return EM_TARS_PREPARE_ERR;
     }
 
@@ -540,19 +557,23 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
         NodePrxCallbackPtr callback = new PatchProCallbackImp(reqPro, proxy, defaultTime, current);
         proxy->tars_set_timeout(timeout)->async_patchPro(callback, reqPro);
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
         current->setResponse(true);
-        result = tex.what();
+        result = ex.what();
+
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
         TLOGERROR("AdminRegistryImp::batchPatch " << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|TarsSyncCallTimeoutException:" << result << endl);
+        TarsRemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
+
     }
-    catch(TarsNodeNotRegistryException& re)
+    catch(TarsNodeNotRegistryException& ex)
     {
         current->setResponse(true);
-        result = re.what();
+        result = ex.what();
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
         TLOGERROR("AdminRegistryImp::batchPatch "<< reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|TarsNodeNotRegistryException:" << result << endl);
+        TarsRemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
     }
     catch (std::exception & ex)
     {
@@ -560,12 +581,14 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
         result = ex.what();
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
         TLOGERROR("AdminRegistryImp::batchPatch "<< reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|exception:" << result << endl);
+        TarsRemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
     }
     catch (...)
     {
         current->setResponse(true);
         result = "Unknown Exception";
         TLOGERROR("AdminRegistryImp::batchPatch " << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|Exception...:" << result << endl);
+        TarsRemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
     }
 
     return iRet;
@@ -591,11 +614,11 @@ int AdminRegistryImp::getPatchPercent( const string& application, const string& 
         NodePrxCallbackPtr callback = new GetPatchPercentCallbackImp(application, serverName, nodeName, current);
         nodePrx->async_getPatchPercent(callback, application, serverName);
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
         current->setResponse(true);
-        TLOGERROR( "AdminRegistryImp::getPatchPercent: "  << application + "." + serverName + "_" + nodeName << "|TarsSyncCallTimeoutException:" << tex.what() << endl);
-        result = tex.what();
+        TLOGERROR( "AdminRegistryImp::getPatchPercent: "  << application + "." + serverName + "_" + nodeName << "|TarsSyncCallTimeoutException:" << ex.what() << endl);
+        result = ex.what();
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
     catch(TarsNodeNotRegistryException& rex)
@@ -624,21 +647,24 @@ int AdminRegistryImp::loadServer(const string & application, const string & serv
         NodePrx nodePrx = _db.getNodePrx(nodeName);
         return nodePrx->loadServer(application, serverName, result);
     }
-    catch(TarsSyncCallTimeoutException& tex)
+    catch(TarsSyncCallTimeoutException& ex)
     {
-        TLOGERROR("AdminRegistryImp::loadServer: "<< application + "." + serverName + "_" + nodeName << "|Exception:" << tex.what() << endl);
+        TLOGERROR("AdminRegistryImp::loadServer: "<< application + "." + serverName + "_" + nodeName << "|Exception:" << ex.what() << endl);
+        TarsRemoteNotify::getInstance()->report(string("loadServer:") + ex.what(), application, serverName, nodeName);
         return EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
     catch(TarsNodeNotRegistryException& rex)
     {
         TLOGERROR("AdminRegistryImp::loadServer: '"<<(" '" + application  + "." + serverName + "_" + nodeName
                 + "' exception:" + rex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("loadServer:") + rex.what(), application, serverName, nodeName);
         return EM_TARS_NODE_NOT_REGISTRY_ERR;
     }
     catch(TarsException & ex)
     {
         TLOGERROR("AdminRegistryImp::loadServer: '"<<(" '" + application  + "." + serverName + "_" + nodeName
                 + "' exception:" + ex.what())<<endl);
+        TarsRemoteNotify::getInstance()->report(string("loadServer:") + ex.what(), application, serverName, nodeName);
         return EM_TARS_UNKNOWN_ERR;
     }
 
@@ -778,6 +804,8 @@ void PatchProCallbackImp::callback_patchPro_exception(tars::Int32 ret)
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
 
+    TarsRemoteNotify::getInstance()->report("patch timeout, ret:" + TC_Common::tostr(ret), _reqPro.appname, _reqPro.servername, _reqPro.nodename);
+
     AdminReg::async_response_batchPatch(_current, iRet, "");
     TLOGDEBUG("PatchProCallbackImp::callback_patchPro_exception: |exception ret."<<ret<<"|"
                  << _reqPro.appname + "." + _reqPro.servername + "_" + _reqPro.nodename << "|"
@@ -805,6 +833,7 @@ void StartServerCallbackImp::callback_startServer_exception(tars::Int32 ret)
     {
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
+    TarsRemoteNotify::getInstance()->report("start server timeout, ret:" + TC_Common::tostr(ret), _application, _serverName, _nodeName);
 
     AdminReg::async_response_startServer(_current, iRet, "");
 }
@@ -826,6 +855,9 @@ void StopServerCallbackImp::callback_stopServer_exception(tars::Int32 ret)
     {
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
+
+    TarsRemoteNotify::getInstance()->report("stop server timeout, ret:" + TC_Common::tostr(ret), _application, _serverName, _nodeName);
+
     AdminReg::async_response_stopServer(_current, iRet, "");
 }
 /////////////////////////////////////////////////////////////////////////////

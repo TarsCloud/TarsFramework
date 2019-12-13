@@ -227,7 +227,11 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
             rd["server_name"]    = make_pair(TC_Mysql::DB_STR, info.sServer);
             rd["container_name"] = make_pair(TC_Mysql::DB_STR, info.sContainer);
             rd["server_id"]      = make_pair(TC_Mysql::DB_STR, info.sApp +"."+ info.sServer + "_" + current->getIp());
-            rd["node_name"]      = make_pair(TC_Mysql::DB_STR, current->getIp());
+            if(info.sNodeName.empty()) {
+                rd["node_name"]      = make_pair(TC_Mysql::DB_STR, current->getIp());
+            } else {
+                rd["node_name"]      = make_pair(TC_Mysql::DB_STR, info.sNodeName);
+            }
             rd["thread_id"]      = make_pair(TC_Mysql::DB_STR, info.sThreadId);
 
             if (!info.sSet.empty())
