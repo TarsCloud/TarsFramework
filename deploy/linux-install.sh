@@ -119,12 +119,13 @@ fi
 if [ "${SLAVE}" != "true" ]; then
 
   if [ ! -d ${workdir}/web ]; then
-      LOG_ERROR "no web exits, please copy TarsWeb to ${workdir}/web first."
+      echo "no web exits, please copy TarsWeb to ${workdir}/web first:"
+      echo "cd ${workdir}; git clone https://github.com/TarsCloud/TarsWeb.git web"
       exit 1
   fi
 
   if [ ! -d ${workdir}/web/demo ]; then
-      LOG_ERROR "web not the newest version, please update to the newest version."
+      echo "web not the newest version, please update to the newest version."
       exit 1
   fi
 

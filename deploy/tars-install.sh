@@ -205,10 +205,31 @@ fi
 
 cd ${WORKDIR}/sql.tmp
 
-LOG_DEBUG "flush mysql privileges";
-exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
-exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;flush privileges;"
-exec_mysql_script "grant all on *.* to 'tars'@'127.0.0.1' identified by 'tars2015' with grant option;flush privileges;"
+MYSQL_VER=$(mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "SELECT VERSION();"2>/dev/null | grep -o '8.')
+
+echo $MYSQL_VER
+
+if [ "$MYSQL_VER" = "8." ];
+then
+    exec_mysql_script "CREATE USER 'tars'@'%' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
+    exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'%' WITH GRANT OPTION;"
+    exec_mysql_script "CREATE USER 'tars'@'localhost' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
+    exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'localhost' WITH GRANT OPTION;"
+    exec_mysql_script "CREATE USER 'tars'@'${HOSTIP}' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
+    exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'${HOSTIP}' WITH GRANT OPTION;"
+else
+
+    exec_mysql_script "set global validate_password_policy=LOW;"
+    exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
+    if [ $? != 0 ]; then
+        LOG_DEBUG "grant error" 
+        exit 
+    fi
+
+    exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;"
+    exec_mysql_script "grant all on *.* to 'tars'@'$HOSTIP' identified by 'tars2015' with grant option;"
+    exec_mysql_script "flush privileges;"
+fi
 
 ################################################################################
 #check mysql
@@ -222,7 +243,7 @@ do
         break
     fi
 
-    LOG_ERROR "check mysql is not alive: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
+    LOG_ERROR "check mysql not auth: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
 
     sleep 3
 done
