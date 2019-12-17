@@ -131,7 +131,7 @@ done
 
 ################################################################################
 #check port
-PORTS=(18993 18793 18693 18193 18593 18493 18393 18293 12000 19385 17890 17891)
+PORTS=(18993 18793 18693 18193 18593 18493 18393 18293 12000 19385 17890 17891 3000 3001)
 for P in ${PORTS[@]};
 do
     RESULT=`netstat -lpn | grep ${HOSTIP}:${P} | grep tcp`
@@ -205,30 +205,45 @@ fi
 
 cd ${WORKDIR}/sql.tmp
 
+LOG_DEBUG "flush mysql privileges";
+exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
+exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;flush privileges;"
+exec_mysql_script "grant all on *.* to 'tars'@'127.0.0.1' identified by 'tars2015' with grant option;flush privileges;"
+
+################################################################################
+#check mysql
+while [ 1 ]
+do
+    RESULT=`mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping`
+
+    echo $RESULT | grep -q "alive"
+    if [ $? == 0 ]; then
+        LOG_INFO "mysql no auth"
+        break
+    fi
+
+    LOG_ERROR "check mysql is not alive: mysqladmin -h${MYSQLIP} -utars -ptars -P${PORT} ping"
+
+    sleep 3
+done
+
+################################################################################
 exec_mysql_script "use db_tars"
 if [ $? != 0 ]; then
 
     LOG_DEBUG "no db_tars exists, begin build db_tars..."  
-    LOG_DEBUG "flush mysql privileges";
-
-    exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
-    exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;flush privileges;"
-    exec_mysql_script "grant all on *.* to 'tars'@'127.0.0.1' identified by 'tars2015' with grant option;flush privileges;"
 
     LOG_DEBUG "modify ip in sqls:${WORKDIR}/framework/sql";
 
-    LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web, db_user_system)";
+    LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web)";
 
     exec_mysql_script "create database db_tars"
     exec_mysql_script "create database tars_stat"
     exec_mysql_script "create database tars_property"
     exec_mysql_script "create database db_tars_web"
-    exec_mysql_script "create database db_user_system"
+
     exec_mysql_sql db_tars db_tars.sql
-
     exec_mysql_sql db_tars_web db_tars_web.sql
-
-    exec_mysql_sql db_user_system db_user_system.sql
 
     LOG_DEBUG "create t_profile_template";
 
@@ -256,6 +271,15 @@ if [ $? != 0 ]; then
     read_dir
 
     exec_mysql_sql db_tars $sqlFile;
+fi
+
+exec_mysql_script "use db_user_system"
+if [ $? != 0 ]; then
+    LOG_DEBUG "no db_user_system exists, begin build db_user_system..."  
+
+    exec_mysql_script "create database db_user_system"
+
+    exec_mysql_sql db_user_system db_user_system.sql
 fi
 
 if [ "$SLAVE" != "true" ]; then
