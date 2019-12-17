@@ -222,7 +222,7 @@ do
         break
     fi
 
-    LOG_ERROR "check mysql is not alive: mysqladmin -h${MYSQLIP} -utars -ptars -P${PORT} ping"
+    LOG_ERROR "check mysql is not alive: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
 
     sleep 3
 done
