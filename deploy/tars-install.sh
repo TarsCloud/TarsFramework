@@ -205,6 +205,8 @@ fi
 
 cd ${WORKDIR}/sql.tmp
 
+MYSQL_VER=$(mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "SELECT VERSION();" 2>/dev/null | grep -o '8.')
+
 LOG_DEBUG "flush mysql privileges";
 exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;flush privileges;"
 exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;flush privileges;"
