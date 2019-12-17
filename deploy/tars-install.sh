@@ -239,7 +239,7 @@ do
 
     echo $RESULT | grep -q "alive"
     if [ $? == 0 ]; then
-        LOG_INFO "mysql no auth"
+        LOG_INFO "mysql auth succ"
         break
     fi
 
