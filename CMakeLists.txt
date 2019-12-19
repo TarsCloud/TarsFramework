@@ -133,7 +133,7 @@ list(APPEND DEPENDS_LIST tarsproperty)
 list(APPEND DEPENDS_LIST tarslog)
 list(APPEND DEPENDS_LIST tarsquerystat)
 list(APPEND DEPENDS_LIST tarsqueryproperty)
-list(APPEND DEPENDS_LIST tarsauth)
+#list(APPEND DEPENDS_LIST tarsauth)
 
 foreach (MODULE ${DEPENDS_LIST})
 

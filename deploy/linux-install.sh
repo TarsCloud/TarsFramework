@@ -33,16 +33,10 @@ fi
 
 NODE_VERSION="v12.13.0"
 
-if [ "${SLAVE}" != "true" ]; then
-    TARS=(tarsAdminRegistry tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
-else
-    TARS=(tarsconfig  tarslog  tarsnode  tarsnotify tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
-fi
-
 TARS_PATH=/usr/local/app/tars
 MIRROR=http://mirrors.cloud.tencent.com
 
-workdir=$(cd $(dirname $0); pwd)
+WORKDIR=$(cd $(dirname $0); pwd)
 
 OS=`cat /etc/os-release`
 if [[ "$OS" =~ "CentOS" ]]; then
@@ -118,19 +112,19 @@ fi
 
 if [ "${SLAVE}" != "true" ]; then
 
-  if [ ! -d ${workdir}/web ]; then
-      echo "no web exits, please copy TarsWeb to ${workdir}/web first:"
-      echo "cd ${workdir}; git clone https://github.com/TarsCloud/TarsWeb.git web"
+  if [ ! -d ${WORKDIR}/web ]; then
+      echo "no web exits, please copy TarsWeb to ${WORKDIR}/web first:"
+      echo "cd ${WORKDIR}; git clone https://github.com/TarsCloud/TarsWeb.git web"
       exit 1
   fi
 
-  if [ ! -d ${workdir}/web/demo ]; then
+  if [ ! -d ${WORKDIR}/web/demo ]; then
       echo "web not the newest version, please update to the newest version."
       exit 1
   fi
 
-  cp -rf ${workdir}/web/sql/*.sql ${workdir}/framework/sql/
-  cp -rf ${workdir}/web/demo/sql/*.sql ${workdir}/framework/sql/
+  cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
+  cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
  
   ################################################################################
   #download nodejs
@@ -173,12 +167,20 @@ fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
-#cd ${workdir}/web; npm prune;npm i --package-lock-only;npm audit fix
-#cd ${workdir}/web; npm prune;npm i --package-lock-only;npm audit fix
+################################################################################
+
+TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
+
+cd ${WORKDIR}/framework/servers;
+for var in ${TARS[@]};
+do
+  echo "tar czf ${var}.tgz ${var}"
+  tar czf ${var}.tgz ${var}
+done
 
 ################################################################################
 
-cd ${workdir}
+cd ${WORKDIR}
 
 ./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 

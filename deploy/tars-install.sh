@@ -205,24 +205,28 @@ fi
 
 cd ${WORKDIR}/sql.tmp
 
-MYSQL_VER=$(mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "SELECT VERSION();"2>/dev/null | grep -o '8.')
+MYSQL_VER=`mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "SELECT VERSION();"`
+MYSQL_VER=`echo $MYSQL_VER | cut -d' ' -f2`
 
-echo $MYSQL_VER
+echo "mysql version is: $MYSQL_VER"
 
-if [ "$MYSQL_VER" = "8." ];
-then
+if [ `echo $MYSQL_VER|grep ^8.` ]; then
     exec_mysql_script "CREATE USER 'tars'@'%' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
     exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'%' WITH GRANT OPTION;"
     exec_mysql_script "CREATE USER 'tars'@'localhost' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
     exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'localhost' WITH GRANT OPTION;"
     exec_mysql_script "CREATE USER 'tars'@'${HOSTIP}' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
     exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'${HOSTIP}' WITH GRANT OPTION;"
-else
+fi
 
+if [ `echo $MYSQL_VER|grep ^5.7` ]; then
     exec_mysql_script "set global validate_password_policy=LOW;"
+fi
+
+if [ `echo $MYSQL_VER|grep ^5.6` ]; then
     exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
     if [ $? != 0 ]; then
-        LOG_DEBUG "grant error" 
+        LOG_DEBUG "grant error, exit." 
         exit 
     fi
 
@@ -239,11 +243,11 @@ do
 
     echo $RESULT | grep -q "alive"
     if [ $? == 0 ]; then
-        LOG_INFO "mysql no auth"
+        LOG_INFO "mysql auth succ"
         break
     fi
 
-    LOG_ERROR "check mysql not auth: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
+    LOG_ERROR "check mysql auth: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
 
     sleep 3
 done
@@ -252,11 +256,11 @@ done
 exec_mysql_script "use db_tars"
 if [ $? != 0 ]; then
 
-    LOG_DEBUG "no db_tars exists, begin build db_tars..."  
+    LOG_INFO "no db_tars exists, begin build db_tars..."  
 
-    LOG_DEBUG "modify ip in sqls:${WORKDIR}/framework/sql";
+    LOG_INFO "modify ip in sqls:${WORKDIR}/framework/sql";
 
-    LOG_DEBUG "create database (db_tars, tars_stat, tars_property, db_tars_web)";
+    LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
 
     exec_mysql_script "create database db_tars"
     exec_mysql_script "create database tars_stat"
@@ -266,7 +270,7 @@ if [ $? != 0 ]; then
     exec_mysql_sql db_tars db_tars.sql
     exec_mysql_sql db_tars_web db_tars_web.sql
 
-    LOG_DEBUG "create t_profile_template";
+    LOG_INFO "create t_profile_template";
 
     sqlFile="tmp.sql"
 
@@ -296,7 +300,7 @@ fi
 
 exec_mysql_script "use db_user_system"
 if [ $? != 0 ]; then
-    LOG_DEBUG "no db_user_system exists, begin build db_user_system..."  
+    LOG_INFO "db_user_system not exists, begin build db_user_system..."  
 
     exec_mysql_script "create database db_user_system"
 
@@ -325,13 +329,17 @@ rm -rf ${WORKDIR}/sql.tmp
 ################################################################################
 #check framework
 
-LOG_DEBUG "copy ${WORKDIR}/framework/servers/* to tars path:${TARS_PATH}";
+LOG_INFO "copy ${WORKDIR}/framework/servers/* to tars path:${TARS_PATH}";
 
-cp -rf ${WORKDIR}/framework/servers/* ${TARS_PATH}
+cp -rf ${WORKDIR}/framework/servers/*.sh ${TARS_PATH}
+for var in ${TARS[@]};
+do
+    cp -rf ${WORKDIR}/framework/servers/${var} ${TARS_PATH}
+done
 
 function update_conf() {
 
-    LOG_DEBUG "update server config: [${TARS_PATH}/$1/conf/tars.$1.config.conf]";
+    LOG_INFO "update server config: [${TARS_PATH}/$1/conf/tars.$1.config.conf]";
     if [ "tarsnode" != "$1" ]; then
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
@@ -341,10 +349,6 @@ function update_conf() {
         sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/util/execute.sh`
     fi
-
-#    if [ "tarsnode" == $1 ]; then
-#        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
-#    fi
 }
 
 #update server config
@@ -353,6 +357,7 @@ do
     update_conf ${var}
 done
 
+#start server
 for var in ${TARS[@]};
 do
    if [ ! -d ${TARS_PATH}/${var} ]; then
@@ -365,22 +370,19 @@ do
 done
 
 ################################################################################
-#deploy web
+#deploy & start web
 if [ "$SLAVE" != "true" ]; then
 
-    LOG_DEBUG "create tarsnode.tgz";
-
-    cd ${WORKDIR}/framework/servers;
-    tar czf tarsnode.tgz tarsnode
     cd ${WORKDIR}
-    LOG_DEBUG "copy web to web path:/usr/local/app/";
+    LOG_INFO "copy web to web path:/usr/local/app/";
 
     cp -rf web /usr/local/app/
-    LOG_DEBUG "copy tarsnode.tgz to web/files";
     mkdir -p /usr/local/app/web/files/
-    cp framework/servers/tarsnode.tgz /usr/local/app/web/files/
+    LOG_INFO "copy *.tgz to web/files";
+
+    cp framework/servers/*.tgz /usr/local/app/web/files/
     cp tools/install.sh /usr/local/app/web/files/
-    LOG_DEBUG "update web config";
+    LOG_INFO "update web config";
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
@@ -388,11 +390,9 @@ if [ "$SLAVE" != "true" ]; then
     sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
     sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
 
-    # sed -i "s/localhost/$HOSTIP/g" /usr/local/app/web/config/authConf.js
-    # sed -i "s/localhost/$HOSTIP/g" /usr/local/app/web/config/loginConf.js
-
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
     sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+
 
     cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd; 
     cd /usr/local/app/web/demo; pm2 stop tars-user-system; npm run prd
@@ -400,9 +400,7 @@ if [ "$SLAVE" != "true" ]; then
     LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
     LOG_INFO "If in Docker, please check you host ip and port."
     LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
-    LOG_INFO "If You want to install tarsnode in other machine, do this: "
-    LOG_INFO "wget http://$HOSTIP:3000/install.sh"
-    LOG_INFO "chmod a+x install.sh; ./install.sh"
+    LOG_INFO "You can install tarsnode to other machine in web(>=1.3.1)"
     LOG_INFO "==============================================================";
 else
     LOG_INFO "Install slave($SLAVE) node success"
