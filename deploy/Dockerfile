@@ -23,8 +23,8 @@ COPY docker-init.sh tars-install.sh tar-server.sh ${TARS_INSTALL}/
 RUN ${TARS_INSTALL}/tar-server.sh
 
 # RUN ls ${TARS_INSTALL}framework/servers/
-RUN mkdir -p ${TARS_INSTALL}/web/files; cp -rf ${TARS_INSTALL}/framework/servers/*.tgz ${TARS_INSTALL}/web/files/
-RUN rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
+# RUN mkdir -p ${TARS_INSTALL}/web/files; cp -rf ${TARS_INSTALL}/framework/servers/*.tgz ${TARS_INSTALL}/web/files/
+# RUN rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
 
 ENTRYPOINT [ "/root/tars-install/docker-init.sh"]
 
