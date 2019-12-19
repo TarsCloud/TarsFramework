@@ -41,7 +41,7 @@ mkdir -p ${TARS_PATH}
 if [ "$SLAVE" != "true" ]; then
   if [ ! -d ${WORKDIR}/web ]; then
       echo "no web exits, please copy TarsWeb to ${WORKDIR}/web first."
-      exit -1
+      exit 1
   fi
 fi
 
@@ -57,7 +57,7 @@ done
 
 if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
     echo "HOSTIP:[$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
-    exit -1
+    exit 1
 fi
 
 cd ${WORKDIR}
@@ -65,6 +65,10 @@ cd ${WORKDIR}
 # pwd
 
 ./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
+if [ $? != 0 ]; then
+    echo  "tars-install.sh error"
+    exit 1
+fi
 
 echo "begin check server..."
 if [ "$SLAVE" != "true" ]; then

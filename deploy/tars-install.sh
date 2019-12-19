@@ -74,7 +74,7 @@ if (( $# < 7 ))
 then
     echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_PASSWORD HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true)";
     echo "you should not call this script directly, you should call centos-install.sh or ubuntu-intall.sh, or in docker by call docker-init.sh"
-    exit -1
+    exit 1
 fi
 
 MYSQLIP=$1
@@ -137,12 +137,12 @@ do
     RESULT=`netstat -lpn | grep ${HOSTIP}:${P} | grep tcp`
     if [ "$RESULT" != "" ]; then
         LOG_ERROR ${HOSTIP}:${P}" confict!!"
-        exit -1
+        exit 1
     fi
     RESULT=`netstat -lpn | grep 127.0.0.1:${P} | grep tcp`
     if [ "$RESULT" != "" ]; then
         LOG_ERROR 127.0.0.1:${P}" confict!!"
-        exit -1
+        exit 1
     fi
 done
 
@@ -227,7 +227,7 @@ if [ `echo $MYSQL_VER|grep ^5.` ]; then
     exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
     if [ $? != 0 ]; then
         LOG_DEBUG "grant error, exit." 
-        exit 
+        exit 1
     fi
 
     exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;"
@@ -362,7 +362,7 @@ for var in ${TARS[@]};
 do
    if [ ! -d ${TARS_PATH}/${var} ]; then
        LOG_ERROR "${TARS_PATH}/${var} not exist."
-       exit -1 
+       exit 1 
    fi
 
     LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
