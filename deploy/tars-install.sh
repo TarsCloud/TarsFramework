@@ -223,7 +223,7 @@ if [ `echo $MYSQL_VER|grep ^5.7` ]; then
     exec_mysql_script "set global validate_password_policy=LOW;"
 fi
 
-if [ `echo $MYSQL_VER|grep ^5` ]; then
+if [ `echo $MYSQL_VER|grep ^5.` ]; then
     exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
     if [ $? != 0 ]; then
         LOG_DEBUG "grant error, exit." 
