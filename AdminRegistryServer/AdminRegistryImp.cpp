@@ -778,6 +778,48 @@ int AdminRegistryImp::gridPatchServer(const vector<ServerGridDesc> &gridDescList
     return iRet;
 }
 
+
+int AdminRegistryImp::getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::TarsCurrentPtr current)
+{
+    try
+    {
+        TLOGDEBUG("into " << __FUNCTION__ << endl);
+        string nodeIp = nodeName;
+
+        if (nodeIp.empty())
+        {
+            return EM_TARS_PREPARE_ERR;
+        }
+
+        TLOGDEBUG("into " << __FUNCTION__ << "|" << application << "|" << serverName << "|" << nodeName << endl);
+        NodePrx nodePrx = _db.getNodePrx(nodeName);
+        return nodePrx->getLogFileList(application, serverName, logFileList);
+    }
+    catch (exception & ex)
+    {
+        TLOGERROR(string(__FUNCTION__) << " '" + application  << "." + serverName << "_" + nodeName << "' exception:" << ex.what() << endl);
+    }
+
+    return EM_TARS_UNKNOWN_ERR;
+}
+
+
+int AdminRegistryImp::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd, std::string &fileData, tars::TarsCurrentPtr current)
+{
+    try
+    {
+        TLOGDEBUG("into " << __FUNCTION__ << endl);
+        NodePrx nodePrx = _db.getNodePrx(nodeName);
+        return nodePrx->getLogData(application, serverName, logFile, cmd, fileData);
+    }
+    catch (exception & ex)
+    {
+        TLOGERROR(string(__FUNCTION__) << " '" + application  << "." + serverName << "_" << nodeName << "' exception:" << ex.what() << endl);
+        return EM_TARS_UNKNOWN_ERR;
+    }
+    return -1;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
         const std::string& result)

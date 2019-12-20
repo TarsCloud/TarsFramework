@@ -763,6 +763,50 @@ string NodeImp::keyToStr(key_t key_value)
     string s(buf);
     return s;
 }
+
+int NodeImp::getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,tars::TarsCurrentPtr current)
+{
+    string logPath = ServerConfig::LogPath + FILE_SEP + application + FILE_SEP + serverName + FILE_SEP;
+    TLOGDEBUG("logpath:" << logPath << endl);
+    vector<string> logFileListTmp;
+    TC_File::listDirectory(logPath, logFileListTmp, false);
+
+    for (size_t i = 0; i < logFileListTmp.size(); ++i)
+    {
+        string fileName = TC_File::extractFileName(logFileListTmp[i]);
+        if(fileName.length() >= 5 && fileName.find(".log") != string::npos)
+        {
+            logFileList.push_back(fileName);
+        }
+    }
+    return 0;
+}
+
+int NodeImp::getLogData(const string& application, const string& serverName, const string& logFile, const string& cmd, string& fileData, tars::TarsCurrentPtr current)
+{
+    string filePath = ServerConfig::LogPath + FILE_SEP + application + FILE_SEP + serverName + FILE_SEP + logFile;
+    if (!TC_File::isFileExistEx(filePath))
+    {
+        TLOGDEBUG("The log file: " << filePath << " is not exist" << endl);
+        return -1;
+    }
+
+    string newCmd = TC_Common::replace(cmd, "__log_file_name__", filePath);
+    TLOGDEBUG("[NodeImp::getLogData]newcmd:" << newCmd << endl);
+
+    FILE* fp = popen(newCmd.c_str(), "r");
+
+    static size_t buf_len = 2 * 1024 * 1024;
+    char *buf = new char[buf_len];
+    memset(buf, 0, buf_len);
+    fread(buf, sizeof(char), buf_len - 1, fp);
+    fclose(fp);
+
+    fileData = string(buf);
+    delete []buf;
+
+    return 0;
+}
 /*********************************************************************/
 
 

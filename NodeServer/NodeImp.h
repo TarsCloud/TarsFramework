@@ -26,6 +26,8 @@
 using namespace tars;
 using namespace std;
 
+#define FILE_SEP "/"
+
 class NodeImp : public Node
 {
 public:
@@ -189,6 +191,17 @@ public:
     virtual tars::Int32 delCache(const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,TarsCurrentPtr current);
 
     virtual tars::Int32 getUnusedShmKeys(tars::Int32 count,vector<tars::Int32> &shm_keys,tars::TarsCurrentPtr current);
+
+    /**
+    * 列举某个app下面某个服务的日志文件列表，以文件最后修改时间倒排序
+    */
+    int getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,tars::TarsCurrentPtr current);
+
+    /**
+    * 获取某个日志文件的内容，cmd表示参数， 比如 tail -1000 | grep xxx
+    */
+    int getLogData(const string& application, const string& serverName,const string& logFile, const string& cmd, string& fileData, tars::TarsCurrentPtr current);
+
 
 private:
     string keyToStr(key_t key_value);
