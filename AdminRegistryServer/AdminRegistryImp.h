@@ -315,6 +315,11 @@ public:
     virtual int getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current);
 
     virtual int gridPatchServer(const vector<ServerGridDesc> &gridDescList, vector<ServerGridDesc> &gridFailDescList, std::string & resultDesc, tars::TarsCurrentPtr current);
+
+    virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,tars::TarsCurrentPtr current);
+
+    virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::TarsCurrentPtr current);
+
 protected:
 
     //数据库操作类对象
