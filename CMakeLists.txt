@@ -115,13 +115,16 @@ list(APPEND DEPENDS_LIST tarsconfig)
 #set(FRAMEWORK-TGZ "${CMAKE_BINARY_DIR}/framework-tmp.tgz")
 set(FRAMEWORK-TGZ "${CMAKE_BINARY_DIR}/framework.tgz")
 
-#需要压缩的文件
-set(MODULES "tars_install.sh")
-set(MODULES "${MODULES} tarsnode_install.sh")
+#执行命令
+add_custom_command(OUTPUT ${FRAMEWORK-TGZ}
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/servers
+        COMMAND ${CMAKE_COMMAND} -E make_directory test 
+        COMMAND ${CMAKE_COMMAND} -E tar czf ${FRAMEWORK-TGZ} ${DEPENDS_LIST}
+        COMMAND ${CMAKE_COMMAND} -E copy ${FRAMEWORK-TGZ} ${PROJECT_BINARY_DIR}
+        COMMENT "make framework-tar")
 
-foreach (MODULE ${DEPENDS_LIST})
-    set(MODULES "${MODULES} ${MODULE}")
-endforeach ()
+add_custom_target(framework-tar
+        DEPENDS ${FRAMEWORK-TGZ} ${DEPENDS_LIST})
 
 ############################################################################################
 # 打包tarsnotify tarsstat tarsproperty tarslog tarsauth tarsquerystat tarsqueryproperty
