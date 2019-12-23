@@ -36,6 +36,8 @@ int AdminRegistryImp::undeploy(const string & application, const string & server
 {
     TLOGDEBUG("AdminRegistryImp::deploy application:" << application << "|serverName:" << serverName << "|nodeName:" << nodeName <<endl);
 
+    // string info;
+    stopServer(application, serverName, nodeName, log, current);
     return _db.undeploy(application, serverName, nodeName, user, log);
 }
 
