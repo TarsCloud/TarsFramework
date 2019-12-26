@@ -376,15 +376,18 @@ if [ "$SLAVE" != "true" ]; then
     cd ${WORKDIR}
     LOG_INFO "copy web to web path:/usr/local/app/";
 
+    rm -rf web/log
     cp -rf web /usr/local/app/
-    mkdir -p /usr/local/app/web/files/
-    LOG_INFO "copy *.tgz to web/files";
+    # mkdir -p /usr/local/app/web/files/
+    # LOG_INFO "copy *.tgz to web/files";
 
-    cp framework/servers/*.tgz /usr/local/app/web/files/
-    cp tools/install.sh /usr/local/app/web/files/
+    # ls -R framework
+    # cp framework/servers/*.tgz /usr/local/app/web/files/
+    # cp tools/install.sh /usr/local/app/web/files/
     LOG_INFO "update web config";
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+    sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
     sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
@@ -392,7 +395,6 @@ if [ "$SLAVE" != "true" ]; then
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
     sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
-
 
     cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd; 
     cd /usr/local/app/web/demo; pm2 stop tars-user-system; npm run prd

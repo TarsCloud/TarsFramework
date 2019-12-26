@@ -123,9 +123,6 @@ if [ "${SLAVE}" != "true" ]; then
       exit 1
   fi
 
-  cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
-  cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
- 
   ################################################################################
   #download nodejs
 
@@ -169,6 +166,11 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 ################################################################################
 
+cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
+cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
+
+strip ${WORKDIR}/framework/servers/tars*/bin/tars*
+
 TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
 
 cd ${WORKDIR}/framework/servers;
@@ -177,6 +179,10 @@ do
   echo "tar czf ${var}.tgz ${var}"
   tar czf ${var}.tgz ${var}
 done
+
+cp -rf ${WORKDIR}/framework/servers/*.tgz ${WORKDIR}/web/files/
+rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
+cp ${WORKDIR}/tools/install.sh ${WORKDIR}/web/files/
 
 ################################################################################
 

@@ -1,6 +1,21 @@
 #!/bin/bash
 
+mkdir -p /data/tars/app_log
+mkdir -p /data/tars/web_log/demo_log
+mkdir -p /data/tars/patchs
+
+mkdir -p /usr/local/app/tars/
+mkdir -p /usr/local/app/web/
+mkdir -p /usr/local/app/web/demo/
+
+ln -s /data/tars/app_log /usr/local/app/tars/app_log 
+ln -s /data/tars/web_log /usr/local/app/web/log 
+ln -s /data/tars/web_log/demo_log /usr/local/app/web/demo/log 
+ln -s /data/tars/patchs /usr/local/app/patchs 
+
 TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat) 
+
+strip ${TARS_INSTALL}/framework/servers/tars*/bin/tars*
 
 cd ${TARS_INSTALL}/framework/servers; 
 
@@ -14,3 +29,5 @@ cp -rf ${TARS_INSTALL}/web/demo/sql/*.sql ${TARS_INSTALL}/framework/sql/
 mkdir -p ${TARS_INSTALL}/web/files
 cp -rf ${TARS_INSTALL}/framework/servers/*.tgz ${TARS_INSTALL}/web/files/
 rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
+
+cp ${TARS_INSTALL}/tools/install.sh ${TARS_INSTALL}/web/files/

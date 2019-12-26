@@ -62,8 +62,6 @@ fi
 
 cd ${WORKDIR}
 
-# pwd
-
 ./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 if [ $? != 0 ]; then
     echo  "tars-install.sh error"
