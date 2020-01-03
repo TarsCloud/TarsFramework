@@ -36,7 +36,9 @@ NODE_VERSION="v12.13.0"
 TARS_PATH=/usr/local/app/tars
 MIRROR=http://mirrors.cloud.tencent.com
 
-WORKDIR=$(cd $(dirname $0); pwd)
+export TARS_INSTALL=$(cd $(dirname $0); pwd)
+
+# TARS_INSTALL=$(cd $(dirname $0); pwd)
 
 OS=`cat /etc/os-release`
 if [[ "$OS" =~ "CentOS" ]]; then
@@ -112,13 +114,13 @@ fi
 
 if [ "${SLAVE}" != "true" ]; then
 
-  if [ ! -d ${WORKDIR}/web ]; then
-      echo "no web exits, please copy TarsWeb to ${WORKDIR}/web first:"
-      echo "cd ${WORKDIR}; git clone https://github.com/TarsCloud/TarsWeb.git web"
+  if [ ! -d ${TARS_INSTALL}/web ]; then
+      echo "no web exits, please copy TarsWeb to ${TARS_INSTALL}/web first:"
+      echo "cd ${TARS_INSTALL}; git clone https://github.com/TarsCloud/TarsWeb.git web"
       exit 1
   fi
 
-  if [ ! -d ${WORKDIR}/web/demo ]; then
+  if [ ! -d ${TARS_INSTALL}/web/demo ]; then
       echo "web not the newest version, please update to the newest version."
       exit 1
   fi
@@ -166,28 +168,29 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 ################################################################################
 
-cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
-cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
+cp -rf ${TARS_INSTALL}/web/sql/*.sql ${TARS_INSTALL}/framework/sql/
+cp -rf ${TARS_INSTALL}/web/demo/sql/*.sql ${TARS_INSTALL}/framework/sql/
 
-strip ${WORKDIR}/framework/servers/tars*/bin/tars*
+# strip ${TARS_INSTALL}/framework/servers/tars*/bin/tars*
+chmod a+x ${TARS_INSTALL}/framework/servers/tars*/util/*.sh
 
 TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
 
-cd ${WORKDIR}/framework/servers;
+cd ${TARS_INSTALL}/framework/servers;
 for var in ${TARS[@]};
 do
   echo "tar czf ${var}.tgz ${var}"
   tar czf ${var}.tgz ${var}
 done
 
-mkdir -p ${WORKDIR}/web/files/
-cp -rf ${WORKDIR}/framework/servers/*.tgz ${WORKDIR}/web/files/
+mkdir -p ${TARS_INSTALL}/web/files/
+cp -rf ${TARS_INSTALL}/framework/servers/*.tgz ${TARS_INSTALL}/web/files/
 rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
-cp ${WORKDIR}/tools/install.sh ${WORKDIR}/web/files/
+cp ${TARS_INSTALL}/tools/install.sh ${TARS_INSTALL}/web/files/
 
 ################################################################################
 
-cd ${WORKDIR}
+cd ${TARS_INSTALL}
 
 ./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 

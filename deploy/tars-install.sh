@@ -90,12 +90,12 @@ if [ "${SLAVE}" != "true" ]; then
 fi
 
 if [ "${SLAVE}" != "true" ]; then
-    TARS=(tarsAdminRegistry tarslog tarspatch tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsregistry tarsstat)
+    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarspatch tarsconfig tarsnode tarslog  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 else
-    TARS=(tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat  tarsregistry tarsstat)
+    TARS=(tarsnotify tarsregistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 fi
 
-TARSALL=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat tarsregistry tarsstat)
+TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig   tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 TARS_PATH=/usr/local/app/tars
 mkdir -p ${TARS_PATH}
 
@@ -367,6 +367,8 @@ do
 
     LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
     sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
+
+    usleep 100
 done
 
 ################################################################################

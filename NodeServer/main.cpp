@@ -42,11 +42,29 @@ bool getConfig(const string &sLocator,const string &sRegistryObj,string &sNodeId
         TC_Config       tConf;
         CommunicatorFactory::getInstance()->getCommunicator()->setProperty("locator",sLocator);
         RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(sRegistryObj);
-        if( sLocalIp.empty() && pRegistryPrx->getClientIp(sLocalIp) != 0)
+
+        int count = 0;
+        do
         {
-            cerr<<"cannot get localip: " <<sLocalIp << endl;
-            return false;
-        }
+            try
+            {
+                if( sLocalIp.empty() && pRegistryPrx->getClientIp(sLocalIp) != 0)
+                {
+                    cerr<<"cannot get localip: " <<sLocalIp << endl;
+                    return false;
+                }
+            }
+            catch(exception &ex)
+            {
+                if(++count > 10)
+                    break;
+                    
+                sleep(1);
+                continue;
+            }
+
+            break;
+        }while(true);
 
         if(sNodeId == "" )
         {

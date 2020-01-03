@@ -16,6 +16,7 @@ ln -s /data/tars/patchs /usr/local/app/patchs
 TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat) 
 
 strip ${TARS_INSTALL}/framework/servers/tars*/bin/tars*
+chmod a+x ${TARS_INSTALL}/framework/servers/tars*/util/*.sh
 
 cd ${TARS_INSTALL}/framework/servers; 
 
