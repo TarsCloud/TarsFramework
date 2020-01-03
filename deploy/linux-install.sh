@@ -180,6 +180,7 @@ do
   tar czf ${var}.tgz ${var}
 done
 
+mkdir -p ${WORKDIR}/web/files/
 cp -rf ${WORKDIR}/framework/servers/*.tgz ${WORKDIR}/web/files/
 rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
 cp ${WORKDIR}/tools/install.sh ${WORKDIR}/web/files/

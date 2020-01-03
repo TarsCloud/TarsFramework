@@ -1,4 +1,5 @@
-﻿#!/bin/sh
+#!/bin/sh
+
 export PATH=${PATH}:/usr/local/app/tars/bin:/usr/local/jdk/bin;
 bin="/usr/local/app/tars/tarsnode/bin/tarsnode"
 
