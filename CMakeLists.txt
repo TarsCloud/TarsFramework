@@ -101,7 +101,7 @@ add_subdirectory(patchclient)
 add_subdirectory(StatServer)
 add_subdirectory(QueryStatServer)
 add_subdirectory(QueryPropertyServer)
-add_subdirectory(AuthServer)
+#add_subdirectory(AuthServer)
 ############################################################################################
 # 打包deploy, 用于部署
 
