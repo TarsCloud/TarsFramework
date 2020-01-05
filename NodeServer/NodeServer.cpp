@@ -274,13 +274,23 @@ bool NodeServer::isValid(const string& ip)
 
     time_t tNow = TNOW;
 
+    // TLOGDEBUG("NodeServer::isValid ip:" << ip << " -> dst:" << dst << endl);
+
     static  TC_ThreadLock g_tMutex;
 
     TC_ThreadLock::Lock  lock(g_tMutex);
     if (tNow - g_tTime > 60)
     {
         string objs = g_pconf->get("/tars/node<cmd_white_list>", "tars.tarsregistry.AdminRegObj:tars.tarsAdminRegistry.AdminRegObj");
-        string ips  = g_pconf->get("/tars/node<cmd_white_list_ip>", "172.25.38.208:172.25.38.208");
+        string ips  = g_pconf->get("/tars/node<cmd_white_list_ip>", "");
+
+        struct in_addr stSinAddr;
+        TC_Socket::parseAddr(ServerConfig::LocalIp, stSinAddr);
+
+        char dst[INET_ADDRSTRLEN] = "\0";
+        inet_ntop(AF_INET, &stSinAddr, dst, INET_ADDRSTRLEN);
+
+        ips += string(":127.0.0.1:") + dst;
 
         TLOGDEBUG("NodeServer::isValid objs:" << objs << "|ips:" << ips << endl);
 
@@ -290,7 +300,7 @@ bool NodeServer::isValid(const string& ip)
         for (size_t i = 0; i < vIp.size(); i++)
         {
             g_ipSet.insert(vIp[i]);
-            TLOGDEBUG(ips << "g_ipSet insert ip:" << vIp[i] << endl);
+            // TLOGDEBUG(ips << ", ,g_ipSet insert ip:" << vIp[i] << endl);
         }
 
         for (size_t i = 0; i < vObj.size(); i++)
@@ -340,7 +350,7 @@ bool NodeServer::isValid(const string& ip)
         return true;
     }
 
-    if (g_sNodeIp == ip)
+    if (g_sNodeIp == ip || ServerConfig::LocalIp == ip)
     {
         return true;
     }

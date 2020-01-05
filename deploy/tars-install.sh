@@ -346,6 +346,7 @@ function update_conf() {
         sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
     else
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
         sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/util/execute.sh`
     fi
@@ -367,8 +368,6 @@ do
 
     LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
     sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
-
-    usleep 100
 done
 
 ################################################################################
@@ -380,12 +379,7 @@ if [ "$SLAVE" != "true" ]; then
 
     rm -rf web/log
     cp -rf web /usr/local/app/
-    # mkdir -p /usr/local/app/web/files/
-    # LOG_INFO "copy *.tgz to web/files";
 
-    # ls -R framework
-    # cp framework/servers/*.tgz /usr/local/app/web/files/
-    # cp tools/install.sh /usr/local/app/web/files/
     LOG_INFO "update web config";
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`

@@ -66,9 +66,10 @@ bool getConfig(const string &sLocator,const string &sRegistryObj,string &sNodeId
             break;
         }while(true);
 
-        if(sNodeId == "" )
+        if(sNodeId != "" )
         {
-            sNodeId = sLocalIp;
+            // sNodeId = sLocalIp;
+            sLocalIp = sNodeId;
         }
 
         pRegistryPrx->getNodeTemplate(sNodeId,sTemplate);
@@ -103,6 +104,8 @@ bool getConfig(const string &sLocator,const string &sRegistryObj,string &sNodeId
             }
         }
 
+        // cout << sLocalIp << ", " << sRegistryObj << ", " << sLocator << endl;
+
         string sConfigPath    = TC_File::extractFilePath(sConfigFile);
         if(!TC_File::makeDirRecursive( sConfigPath ))
         {
@@ -127,6 +130,9 @@ bool getConfig(const string &sLocator,const string &sRegistryObj,string &sNodeId
 
         TC_File::copyFile(sFileTemp,sConfigFile,true);
         TC_File::removeFile(sFileTemp,false);
+
+        // cout << TC_File::load2str(sConfigFile) << endl;
+        // cout << sFileTemp << endl;
 
         return true;
     }
@@ -192,6 +198,11 @@ void parseConfig(int argc, char *argv[])
         exit(0);
     }
 
+    if(sNodeId == "localip.tars.com")
+    {
+        sNodeId = "";
+    }
+    
     if(!TC_File::isAbsolute(sConfigFile))
     {
         char sCwd[PATH_MAX];

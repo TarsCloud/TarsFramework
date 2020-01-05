@@ -14,6 +14,8 @@ PASS=`echo ${MYSQL_ROOT_PASSWORD}`
 PORT=3306
 REBUILD=`echo ${REBUILD}`
 INET=`echo ${INET}`
+#hostname存在, 则优先使用hostname
+HOSTNAME=`echo ${HOSTNAME}`
 
 if [ "$INET" == "" ]; then
    INET=(eth0)
@@ -29,35 +31,55 @@ fi
 
 HOSTIP=""
 
-#######################################################
-TARS_PATH=/usr/local/app/tars
+if [ "$HOSTNAME" == "true" ]; then
 
-source ~/.bashrc
+  #hostname不为空, 则使用hostname
+  HOST=`hostname`
+
+  IP=`grep ".*${HOST}$" /etc/hosts | awk '{print $1}'`
+
+  echo $HOST $IP
+  if [ "$IP" == "" ]; then
+      echo "HOSTNAME:[$HOST], get not get ip exit."
+      exit 1
+  fi
+
+  HOSTIP=$HOST
+  
+else 
+
+  #获取主机hostip
+  for IP in ${INET[@]};
+  do
+      HOSTIP=`ifconfig | grep ${IP} -A3 | grep inet | grep broad | awk '{print $2}'    `
+      echo $HOSTIP $IP
+      if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
+        break
+      fi
+  done
+
+  if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
+      echo "HOSTIP:[$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
+      exit 1
+  fi
+fi
+
+#######################################################
 
 WORKDIR=$(cd $(dirname $0); pwd)
 
+#######################################################
+TARS_PATH=/usr/local/app/tars
+
 mkdir -p ${TARS_PATH}
+
+source ~/.bashrc
 
 if [ "$SLAVE" != "true" ]; then
   if [ ! -d ${WORKDIR}/web ]; then
       echo "no web exits, please copy TarsWeb to ${WORKDIR}/web first."
       exit 1
   fi
-fi
-
-#获取主机hostip
-for IP in ${INET[@]};
-do
-    HOSTIP=`ifconfig | grep ${IP} -A3 | grep inet | grep broad | awk '{print $2}'    `
-    echo $HOSTIP $IP
-    if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
-      break
-    fi
-done
-
-if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
-    echo "HOSTIP:[$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
-    exit 1
 fi
 
 cd ${WORKDIR}
