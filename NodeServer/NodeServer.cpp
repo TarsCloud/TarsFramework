@@ -267,6 +267,17 @@ string tostr(const set<string>& setStr)
     return str;
 }
 
+string NodeServer::host2Ip(const string& host)
+{
+    struct in_addr stSinAddr;
+    TC_Socket::parseAddr(host, stSinAddr);
+
+    char ip[INET_ADDRSTRLEN] = "\0";
+    inet_ntop(AF_INET, &stSinAddr, ip, INET_ADDRSTRLEN);
+
+    return ip;
+}
+
 bool NodeServer::isValid(const string& ip)
 {
     static time_t g_tTime = 0;
@@ -284,13 +295,17 @@ bool NodeServer::isValid(const string& ip)
         string objs = g_pconf->get("/tars/node<cmd_white_list>", "tars.tarsregistry.AdminRegObj:tars.tarsAdminRegistry.AdminRegObj");
         string ips  = g_pconf->get("/tars/node<cmd_white_list_ip>", "");
 
-        struct in_addr stSinAddr;
-        TC_Socket::parseAddr(ServerConfig::LocalIp, stSinAddr);
+        // struct in_addr stSinAddr;
+        // TC_Socket::parseAddr(ServerConfig::LocalIp, stSinAddr);
 
-        char dst[INET_ADDRSTRLEN] = "\0";
-        inet_ntop(AF_INET, &stSinAddr, dst, INET_ADDRSTRLEN);
+        // char dst[INET_ADDRSTRLEN] = "\0";
+        // inet_ntop(AF_INET, &stSinAddr, dst, INET_ADDRSTRLEN);
 
-        ips += string(":127.0.0.1:") + dst;
+        if(!ips.empty())
+        {
+            ips += ":";
+        }
+        ips += string("127.0.0.1:") + host2Ip(ServerConfig::LocalIp);
 
         TLOGDEBUG("NodeServer::isValid objs:" << objs << "|ips:" << ips << endl);
 
@@ -316,12 +331,12 @@ bool NodeServer::isValid(const string& ip)
 
                 for (unsigned i = 0; i < vActiveEp.size(); i++)
                 {
-                    tempSet.insert(vActiveEp[i].host());
+                    tempSet.insert(host2Ip(vActiveEp[i].host()));
                 }
 
                 for (unsigned i = 0; i < vInactiveEp.size(); i++)
                 {
-                    tempSet.insert(vInactiveEp[i].host());
+                    tempSet.insert(host2Ip(vInactiveEp[i].host()));
                 }
 
                 TLOGDEBUG("NodeServer::isValid "<< obj << "|tempSet.size():" << tempSet.size() << "|" << tostr(tempSet) << endl);

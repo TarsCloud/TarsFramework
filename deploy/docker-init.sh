@@ -31,21 +31,8 @@ fi
 
 HOSTIP=""
 
-if [ "$HOSTNAME" == "true" ]; then
-
-  #hostname不为空, 则使用hostname
-  HOST=`hostname`
-
-  IP=`grep ".*${HOST}$" /etc/hosts | awk '{print $1}'`
-
-  echo $HOST $IP
-  if [ "$IP" == "" ]; then
-      echo "HOSTNAME:[$HOST], get not get ip exit."
-      exit 1
-  fi
-
-  HOSTIP=$HOST
-  
+if [ "$HOSTNAME" != "" ]; then
+  HOSTIP=$HOSTNAME
 else 
 
   #获取主机hostip

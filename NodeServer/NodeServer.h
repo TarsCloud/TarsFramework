@@ -70,6 +70,9 @@ public:
 
 protected:
 
+    //host 换成ip
+    string host2Ip(const string& host);
+
     /**
      * 初始化, 只会进程调用一次
      */

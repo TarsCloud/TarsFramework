@@ -2,12 +2,13 @@ FROM centos/systemd
 
 #ENV MIRROR http://mirrors.cloud.tencent.com
 ENV MIRROR http://mirrors.cloud.tencent.com
-ENV TARS_INSTALL /root/tars-install
+ENV TARS_INSTALL /usr/local/tars/cpp/deploy/
 
-COPY centos7_base.repo MariaDB.repo epel-7.repo /etc/yum.repos.d/
+COPY centos7_base.repo /etc/yum.repos.d/
 
-RUN yum makecache fast \
-    && yum install -y yum-utils psmisc MariaDB-client net-tools wget unzip telnet \
+RUN mkdir -p ${TARS_INSTALL} \
+    && yum makecache fast \
+    && yum install -y yum-utils psmisc mysql net-tools wget unzip telnet \
     yum clean all && rm -rf /var/cache/yum
 
 COPY web ${TARS_INSTALL}/web
@@ -28,7 +29,7 @@ COPY docker-init.sh tars-install.sh tar-server.sh ${TARS_INSTALL}/
 
 RUN ${TARS_INSTALL}/tar-server.sh
 
-ENTRYPOINT [ "/root/tars-install/docker-init.sh"]
+ENTRYPOINT [ "/usr/local/tars/cpp/deploy/docker-init.sh"]
 
 EXPOSE 3000
 EXPOSE 3001
