@@ -74,7 +74,8 @@ function get_host_ip()
   if [ $OS == 1 ]; then
     IP=`ifconfig | grep $1 -A3 | grep inet | grep broad | awk '{print $2}'`
   else
-    IP=`ifconfig | grep $1 -A3 | grep inet | awk -F':' '{print $2}' | awk '{print $1}'`
+    #IP=`ifconfig | grep $1 -A3 | grep inet | awk -F':' '{print $2}' | awk '{print $1}'`
+    IP=`ifconfig | grep $1 -A3 | grep inet | awk -F' ' '{print $2}' | awk '{print $1}'`
   fi
   echo "$IP"
 }
@@ -87,14 +88,14 @@ if [ $now_user != "root" ]; then
 fi
 
 if [ $OS == 1 ]; then
+
   cp centos7_base.repo /etc/yum.repos.d/
-  cp epel-7.repo /etc/yum.repos.d/
-  cp MariaDB.repo /etc/yum.repos.d/
   yum makecache fast
 
-  yum install -y yum-utils psmisc MariaDB-client telnet net-tools wget unzip gcc gcc-c++
+  yum install -y yum-utils psmisc mysql telnet net-tools wget unzip
 else
-  apt-get install -y psmisc mysql-client telnet net-tools wget unzip gcc gcc-c++
+  apt-get update
+  apt-get install -y psmisc mysql-client telnet net-tools wget unzip
 fi
 
 #获取主机hostip
@@ -137,7 +138,9 @@ if [ "${SLAVE}" != "true" ]; then
   if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
 
     rm -rf v0.35.1.zip
-    wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip
+    #centos8 need chmod a+x
+    chmod a+x /usr/bin/unzip
+    wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;/usr/bin/unzip v0.35.1.zip
     rm -rf $HOME/.nvm; rm -rf $HOME/.npm; cp -rf nvm-0.35.1 $HOME/.nvm; rm -rf nvm-0.35.1;
 
     echo 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";' >> $HOME/$(bash_rc)
