@@ -1,19 +1,22 @@
-[点我查看中文版](README.zh.md)
+[Click to View English](README.md)
 
-This project is the basic service of the Tars framework and is the basic framework for the operation of the services that carry the TARS language.
+[查看Tars整体介绍文文档](https://tarscloud.github.io/TarsDocs)
 
 
-Directory |Features
+该工程是Tars框架的基础服务，是承载TARS各个语言的服务运行的基础框架。
+
+
+目录名称 |功能
 ----------------------|----------------
-protocol              |Define communication interface files for each underlying service definition
-RegistryServer        |Name service routing
-NodeServer            |Management service
-AdminRegistryServer   |Access management service that interacts with the foreground
-PatchServer           |Publishing service
-ConfigServer          |Configuration service
-LogServer             |Log service
-StatServer            |Modular data statistics service
-PropertyServer        |Attribute statistics service
-NotifyServer          |Abnormal reporting service
-deploy                |Template configuration and tool scripts for core infrastructure services
-tarscpp               |The source implementation of the Tars RPC framework C++ language
+protocol              |定义各个基础服务定义的通信接口文件
+RegistryServer        |名字服务路由
+NodeServer            |管理服务
+AdminRegistryServer   |与前台进行交互的接入管理服务
+PatchServer           |发布服务
+ConfigServer          |配置服务
+LogServer             |日志服务
+StatServer            |模调数据统计服务
+PropertyServer        |属性统计服务
+NotifyServer          |异常上报统计服务
+deploy                |核心基础服务的模版配置和工具脚本
+tarscpp               |Tars RPC框架C++语言的源代实现
