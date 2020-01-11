@@ -15,7 +15,7 @@ PORT=3306
 REBUILD=`echo ${REBUILD}`
 INET=`echo ${INET}`
 #hostname存在, 则优先使用hostname
-HOSTNAME=`echo ${HOSTNAME}`
+DOMAIN=`echo ${DOMAIN}`
 
 if [ "$INET" == "" ]; then
    INET=(eth0)
@@ -31,8 +31,8 @@ fi
 
 HOSTIP=""
 
-if [ "$HOSTNAME" != "" ]; then
-  HOSTIP=$HOSTNAME
+if [ "$DOMAIN" != "" ]; then
+  HOSTIP=$DOMAIN
 else 
 
   #获取主机hostip
