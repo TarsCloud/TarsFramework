@@ -33,7 +33,7 @@ protected:
     virtual void initialize();
 
     /**
-     * 析够, 每个进程都会调用一次
+     * 析构, 每个进程都会调用一次
      */
     virtual void destroyApp();
 

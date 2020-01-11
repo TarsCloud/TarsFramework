@@ -79,7 +79,7 @@ protected:
     virtual void initialize();
 
     /**
-     * 析够, 只会进程调用一次
+     * 析构, 只会进程调用一次
      */
     virtual void destroyApp();
 

@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-01-11 17:29:05
+ * @LastEditTime: 2020-01-11 17:30:30
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: /tars/TarsFramework/QueryPropertyServer/DbThread.h
+ */
 /**
  * Tencent is pleased to support the open source community by making Tars available.
  *
@@ -45,7 +53,7 @@ public:
     DBThread();
 
     /**
-     * 析够
+     * 析构
      */
     ~DBThread();
 

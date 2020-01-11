@@ -98,7 +98,7 @@ public:
     ReapSSDThread();
 
     /**
-     * 析够
+     * 析构
      */
     ~ReapSSDThread();
 

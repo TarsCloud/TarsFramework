@@ -44,7 +44,7 @@ public:
     DBThread();
 
     /**
-     * 析够
+     * 析构
      */
     ~DBThread();
 

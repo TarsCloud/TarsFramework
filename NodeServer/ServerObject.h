@@ -127,7 +127,7 @@ public:
     ServerObject( const ServerDescriptor& tDesc);
 
     /**
-     * 析够
+     * 析构
      */
     ~ServerObject() { };
 
