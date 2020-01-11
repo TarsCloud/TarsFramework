@@ -71,6 +71,11 @@ fi
 
 cd ${WORKDIR}
 
+mkdir -p /data/tars/app_log
+mkdir -p /data/tars/web_log
+mkdir -p /data/tars/demo_log
+mkdir -p /data/tars/patchs
+
 ./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
 if [ $? != 0 ]; then
     echo  "tars-install.sh error"
