@@ -74,8 +74,9 @@ function get_host_ip()
   if [ $OS == 1 ]; then
     IP=`ifconfig | grep $1 -A3 | grep inet | grep broad | awk '{print $2}'`
   else
-    #IP=`ifconfig | grep $1 -A3 | grep inet | awk -F':' '{print $2}' | awk '{print $1}'`
-    IP=`ifconfig | grep $1 -A3 | grep inet | awk -F' ' '{print $2}' | awk '{print $1}'`
+    #ubuntu16.04 & ubuntu18.04
+    IP=`ifconfig | sed 's/addr//g' | grep $1 -A3 | grep "inet " | awk -F'[ :]+' '{print $3}'`
+#    IP=`ifconfig | grep $1 -A3 | grep inet | awk -F' ' '{print $2}' | awk '{print $1}'`
   fi
   echo "$IP"
 }
