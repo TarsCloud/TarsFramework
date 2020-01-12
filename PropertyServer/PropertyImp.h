@@ -71,7 +71,7 @@ public:
     }
 
     /**
-     * 析够函数
+     * 析构函数
      */
     ~PropertyImp()  { }
 

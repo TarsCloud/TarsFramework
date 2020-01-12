@@ -101,7 +101,7 @@ public:
     PropertyReapThread();
 
     /**
-     * 析够
+     * 析构
      */
     ~PropertyReapThread();
 
