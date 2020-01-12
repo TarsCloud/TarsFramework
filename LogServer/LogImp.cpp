@@ -194,10 +194,7 @@ bool GlobeInfo::IsLoggerAttached(const string& logname,const string& sExcludeIp,
 TC_DayLogger& GlobeInfo::getLogger(const LogInfo & info,const string& ip)
 {
     string format = info.sFormat;
-    if(binary_search(_vHourlist.begin(), _vHourlist.end(), (info.appname + "." + info.servername)) != false)
-    {
-        format = "%Y%m%d%H";
-    }
+
 
     string setDivision = getSetGoodFormat(info.setdivision);
 
@@ -208,10 +205,13 @@ TC_DayLogger& GlobeInfo::getLogger(const LogInfo & info,const string& ip)
 
     string logname = getLogName(info);
 
-    TLOGDEBUG("GlobeInfo::getLogger logname:" << logname << "|format:" << format << "|setDivision:" << setDivision << endl);
-
     Lock lock(*this);
-
+    // 访问_vHourlist需要加锁
+    if(binary_search(_vHourlist.begin(), _vHourlist.end(), (info.appname + "." + info.servername)) != false)
+    {
+        format = "%Y%m%d%H";
+    }
+    TLOGDEBUG("GlobeInfo::getLogger logname:" << logname << "|format:" << format << "|setDivision:" << setDivision << endl);
     map<string, map<string,TC_DayLogger*> >::iterator itLogName = _loggers.find(logname);
     if( itLogName == _loggers.end())     //没有创建过的log
     {
@@ -284,7 +284,10 @@ TC_DayLogger& GlobeInfo::getLogger(const string &app, const string &server, cons
         TC_File::makeDirRecursive(_log_path + "/"  + app + "/" + server);
     }
 
-    string format = sformat;
+   
+    Lock lock(*this);
+     string format = sformat;
+    // 访问_vHourlist需要加锁
     if(binary_search(_vHourlist.begin(),_vHourlist.end(),(app + "." + server)) != false)
     {
         format = "%Y%m%d%H";
@@ -294,7 +297,7 @@ TC_DayLogger& GlobeInfo::getLogger(const string &app, const string &server, cons
 
     TLOGDEBUG("GlobeInfo::getLogger logname:" << logname << "|format:" << format << endl);
 
-    Lock lock(*this);
+    
 
     map<string, map<string,TC_DayLogger*> >::iterator itLogName = _loggers.find(logname);
     if( itLogName == _loggers.end())     //没有创建过的log
