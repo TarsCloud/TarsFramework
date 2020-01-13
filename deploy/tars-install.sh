@@ -10,12 +10,9 @@ function LOG_ERROR()
 	fi
 	
 	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
-	
-	for p in $@
-	do
-		msg=${msg}" "${p};
-	done
-	
+
+    msg="${msg} $@";
+
 	echo -e "\033[31m $msg \033[0m";	
 }
 
@@ -27,12 +24,9 @@ function LOG_WARNING()
 	fi
 	
 	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
-	
-	for p in $@
-	do
-		msg=${msg}" "${p};
-	done
-	
+
+    msg="${msg} $@";
+
 	echo -e "\033[33m $msg \033[0m";	
 }
 
@@ -44,12 +38,9 @@ function LOG_DEBUG()
 	fi
 	
 	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
-	
-	for p in $@
-	do
-		msg=${msg}" "${p};
-	done
-	
+
+    msg="${msg} $@";
+
  	echo -e "\033[40;37m $msg \033[0m";	
 }
 
@@ -208,15 +199,17 @@ cd ${WORKDIR}/sql.tmp
 MYSQL_VER=`mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "SELECT VERSION();"`
 MYSQL_VER=`echo $MYSQL_VER | cut -d' ' -f2`
 
+MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, CREATE TABLESPACE"
+
 echo "mysql version is: $MYSQL_VER"
 
 if [ `echo $MYSQL_VER|grep ^8.` ]; then
     exec_mysql_script "CREATE USER 'tars'@'%' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
-    exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'%' WITH GRANT OPTION;"
+    exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO 'tars'@'%' WITH GRANT OPTION;"
     exec_mysql_script "CREATE USER 'tars'@'localhost' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
-    exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'localhost' WITH GRANT OPTION;"
+    exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO 'tars'@'localhost' WITH GRANT OPTION;"
     exec_mysql_script "CREATE USER 'tars'@'${HOSTIP}' IDENTIFIED WITH mysql_native_password BY 'tars2015';"
-    exec_mysql_script "GRANT ALL ON *.* TO 'tars'@'${HOSTIP}' WITH GRANT OPTION;"
+    exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO 'tars'@'${HOSTIP}' WITH GRANT OPTION;"
 fi
 
 if [ `echo $MYSQL_VER|grep ^5.7` ]; then
@@ -224,14 +217,14 @@ if [ `echo $MYSQL_VER|grep ^5.7` ]; then
 fi
 
 if [ `echo $MYSQL_VER|grep ^5.` ]; then
-    exec_mysql_script "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
+    exec_mysql_script "grant ${MYSQL_GRANT} on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
     if [ $? != 0 ]; then
         LOG_DEBUG "grant error, exit." 
         exit 1
     fi
 
-    exec_mysql_script "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;"
-    exec_mysql_script "grant all on *.* to 'tars'@'$HOSTIP' identified by 'tars2015' with grant option;"
+    exec_mysql_script "grant ${MYSQL_GRANT} on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;"
+    exec_mysql_script "grant ${MYSQL_GRANT} on *.* to 'tars'@'$HOSTIP' identified by 'tars2015' with grant option;"
     exec_mysql_script "flush privileges;"
 fi
 

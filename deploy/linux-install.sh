@@ -3,19 +3,28 @@
 #./linux-install.sh 192.168.7.152 Rancher@12345 eth0 false false
 #./inux-install.sh 192.168.7.152 Rancher@12345 eth0 true false
 
-if (( $# < 5 ))
+if (( $# < 7 ))
 then
-    echo "$0 MYSQL_IP MYSQL_PASSWORD INET REBUILD(true/false) SLAVE(false[default]/true)";
+    echo $#
+    echo "$0 MYSQL_IP MYSQL_PASSWORD INET REBUILD(true/false) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT";
     exit 1
 fi
 
 MYSQLIP=$1
-PORT=3306
-USER=root
 PASS=$2
 INET=$3
 REBUILD=$4
 SLAVE=$5
+USER=$6
+PORT=$7
+
+if [ "$USER" == "" ]; then
+    USER="root"
+fi
+
+if [ "$PORT" == "" ]; then
+    PORT="3306"
+fi
 
 if [ "$INET" == "" ]; then
     INET=(eth0)

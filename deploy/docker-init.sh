@@ -9,13 +9,21 @@ env
 
 NODE_VERSION="v12.13.0"
 MYSQLIP=`echo ${MYSQL_HOST}`
-USER=root
+USER=`echo ${MYSQL_USER}`
 PASS=`echo ${MYSQL_ROOT_PASSWORD}`
-PORT=3306
+PORT=`echo ${MYSQL_PORT}`
 REBUILD=`echo ${REBUILD}`
 INET=`echo ${INET}`
 #hostname存在, 则优先使用hostname
 DOMAIN=`echo ${DOMAIN}`
+
+if [ "$USER" == "" ]; then
+    USER="root"
+fi
+
+if [ "$PORT" == "" ]; then
+    PORT="3306"
+fi
 
 if [ "$INET" == "" ]; then
    INET=(eth0)
