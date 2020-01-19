@@ -12,4 +12,6 @@ do
   fi
 done
 
-pm2 start tars-node-web;pm2 start tars-user-system
+pm2 stop tars-node-web; cd /usr/local/app/web/; npm run prd;
+
+pm2 stop tars-user-system; cd /usr/local/app/web/demo; npm run prd;
