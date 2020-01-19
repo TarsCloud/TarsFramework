@@ -414,21 +414,21 @@ inline int CommandPatch::execute(string &sResult)
         if (_serverObjectPtr->getServerType() == "tars_java") //如果是tars_java，使用war 方法
         {
             //NODE_LOG("patchPro")->error() <<"tgz file name"<<FILE_FUN<<sLocalTgzFile<<endl;
-	       if(packageFormat=="jar")
-	       {
-	           sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".jar"); 
-		   cmd +=" mv "+sLocalTgzFile+" "+sLocalTgzFile_bak+";";
-	       }
-	       else
-	       {
-                    sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".war");
-                    cmd +=" mv "+sLocalTgzFile+" "+sLocalTgzFile_bak+";";
-                    cmd += "unzip -oq  " + sLocalTgzFile_bak+ " -d "+ sLocalExtractPach+"/"+sServerName;
-               }
+            if(packageFormat=="jar")
+            {
+                sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".jar"); 
+                cmd +=" mv "+sLocalTgzFile+" "+sLocalTgzFile_bak+";";
+            }
+            else
+            {
+                sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".war");
+                cmd +=" mv "+sLocalTgzFile+" "+sLocalTgzFile_bak+";";
+                cmd += "unzip -oq  " + sLocalTgzFile_bak+ " -d "+ sLocalExtractPach+"/"+sServerName;
+            }
         }
         else
         {
-                 cmd = "tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
+            cmd = "tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
         }	
         if(iRet == 0)
         {

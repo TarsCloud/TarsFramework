@@ -172,7 +172,7 @@ inline bool CommandStart::startByScript(string& sResult)
     }
 
     string sPidFile = "/usr/local/app/tars/tarsnode/util/" + sServerId + ".pid";
-    string sGetServerPidScript = "ps -ef | grep -v 'grep' |grep -iE ' " + sFullExeFileName + " '| awk '{print $2}' > " + sPidFile;
+    string sGetServerPidScript = "ps -ef | grep -v 'grep' |grep -iE '" + sFullExeFileName + "'| awk '{print $2}' > " + sPidFile;
 
     while ((TNOW - iStartWaitInterval) < tNow)
     {
