@@ -91,12 +91,14 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-echo "begin check server..."
+echo "install tars success. begin check server..."
 if [ "$SLAVE" != "true" ]; then
   TARS=(tarsAdminRegistry  tarsnode  tarsregistry)
 else
   TARS=(tarsnode tarsregistry)
 fi
+
+trap 'exit' SIGTERM SIGINT
 
 while [ 1 ]
 do
@@ -105,10 +107,6 @@ do
   do
     sh ${TARS_PATH}/${var}/util/check.sh
   done
-
-  if [ "$SLAVE" != "true" ]; then
-    pm2 ping tars-node-web; pm2 ping tars-user-system  
-  fi
 
   sleep 3
 
