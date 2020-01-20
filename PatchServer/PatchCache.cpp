@@ -42,7 +42,7 @@ int PatchCache::load(const std::string & sFile, std::pair<char *, size_t> & mem)
         
         if ((size_t)st.st_size > _MemMax || (size_t)st.st_size < _MemMin)
         {
-            TLOGERROR("PatchCache::load sFile:" << sFile << "|invalid file size must(" << _MemMax << ">" << st.st_size << "<" << _MemMin << ")" << endl);
+            TLOGERROR("PatchCache::load sFile:" << sFile << "|invalid file size must(" << _MemMax << ">" << st.st_size << ">" << _MemMin << ")" << endl);
             return -1;
         }
 

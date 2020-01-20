@@ -168,7 +168,10 @@ inline int CommandPatch::updatePatchResult(string & sResult)
             sResult = "patch succ but update version and user fault, get registry proxy fail";
 
             NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << sResult << endl;
-            g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
+
+            g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+
+            // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
 
             return -1;
         }
@@ -188,14 +191,16 @@ inline int CommandPatch::updatePatchResult(string & sResult)
     {
         NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
         sResult = _patchRequest.appname + "." + _patchRequest.servername + "|Exception:" + e.what();
-        g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
+        g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+        // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
         return -1;
     }
     catch (...)
     {
         NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
         sResult = _patchRequest.appname + "." + _patchRequest.servername + "|Unknown Exception";
-        g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
+        g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+        // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
         return -1;
     }
 
@@ -438,11 +443,11 @@ inline int CommandPatch::execute(string &sResult)
              * 这里通过遍历解压目录下有没有文件来判断是否解压成功,因为解压之前这个目录是空的
              */
             if(packageFormat!="jar")
-	    {
-               vector<string> files;
-               tars::TC_File::listDirectory(sLocalExtractPach, files, true);
-               if(files.empty())
-               {
+	        {
+                vector<string> files;
+                tars::TC_File::listDirectory(sLocalExtractPach, files, true);
+                if(files.empty())
+                {
                    sResult = cmd + ",error!";
                    NODE_LOG("patchPro")->error() <<FILE_FUN<<sResult<< endl;
                    iRet = -6;
@@ -455,15 +460,15 @@ inline int CommandPatch::execute(string &sResult)
             NODE_LOG("patchPro")->debug() << FILE_FUN << "unzip:" << cmd <<endl;
 
             //移动目录重新命名文件
-               if(packageFormat!="jar")
-       {
-                 string sSrcFile     = sLocalExtractPach + "/" + sServerName + "/" + sServerName;
-                 string sDstFile     = sLocalExtractPach + "/" + sServerName + "/" + _patchRequest.servername;
+            if(packageFormat!="jar")
+            {
+                string sSrcFile     = sLocalExtractPach + "/" + sServerName + "/" + sServerName;
+                string sDstFile     = sLocalExtractPach + "/" + sServerName + "/" + _patchRequest.servername;
 
-                 rename(sSrcFile.c_str(), sDstFile.c_str());
-                 NODE_LOG("patchPro")->debug() <<FILE_FUN<< "rename:" << sSrcFile << " " << sDstFile << endl;
+                rename(sSrcFile.c_str(), sDstFile.c_str());
+                NODE_LOG("patchPro")->debug() <<FILE_FUN<< "rename:" << sSrcFile << " " << sDstFile << endl;
 
-            //检查是否需要备份bin目录下的文件夹，针对java服务
+                //检查是否需要备份bin目录下的文件夹，针对java服务
                 if(backupfiles(sResult) != 0)
                 {
                    NODE_LOG("patchPro")->error() << FILE_FUN << sResult << endl;
@@ -495,15 +500,15 @@ inline int CommandPatch::execute(string &sResult)
             { 
                 //如果出错，这里会抛异常
                 if(packageFormat!="jar")
-	        {
-                        TC_File::copyFile(sLocalExtractPach + "/" + sServerName, _serverObjectPtr->getExePath(), true); 
+	            {
+                    TC_File::copyFile(sLocalExtractPach + "/" + sServerName, _serverObjectPtr->getExePath(), true); 
                 }
-		else
-		 {
-		       //	TC_File::copyFile( sLocalTgzFile_bak , _serverObjectPtr->getExePath(), true);
-			  string  cpCmd =" cp -f "+sLocalTgzFile_bak+" "+_serverObjectPtr->getExePath()+";";
-			  system(cpCmd.c_str());
-		 }
+                else
+                {
+                    //	TC_File::copyFile( sLocalTgzFile_bak , _serverObjectPtr->getExePath(), true);
+                    string  cpCmd =" cp -f "+sLocalTgzFile_bak+" "+_serverObjectPtr->getExePath()+";";
+                    system(cpCmd.c_str());
+                }
             }
 
             //设置发布状态到主控
@@ -543,7 +548,8 @@ inline int CommandPatch::execute(string &sResult)
     //发布后，core频率限制重新计算
     _serverObjectPtr->resetCoreInfo();
 
-    g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
+    g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+    // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
 
     return iRet;
 }

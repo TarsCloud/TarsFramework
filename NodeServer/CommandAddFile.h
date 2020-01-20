@@ -111,7 +111,7 @@ inline int CommandAddFile::execute(string &sResult)
             tTarsRemoteConfig.setConfigInfo(Application::getCommunicator(), ServerConfig::Config,_desc.application, _desc.serverName, sFilePath,_desc.setId);
 //            tTarsRemoteConfig.setConfigInfo(ServerConfig::Config,_desc.application, _desc.serverName, sFilePath,_desc.setId);
             bRet = tTarsRemoteConfig.addConfig(sFileName,sResult);
-            g_app.reportServer(_serverObjectPtr->getServerId(),sResult); 
+            g_app.reportServer(_serverId, "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
         }
         return bRet;               
   } 
@@ -149,7 +149,8 @@ inline int CommandAddFile::getScriptFile(string &sResult)
         {
             sResult = FILE_FUN_STR+"[fail] get remote file :" + sFileName;
             TLOGERROR(sResult<<endl);
-            g_app.reportServer(_serverId,sResult); 
+            g_app.reportServer(_serverId, "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+            // g_app.reportServer(_serverId,sResult); 
             return -1;
         }
         sStream = _serverObjectPtr->decodeMacro(sStream);
@@ -180,7 +181,8 @@ inline int CommandAddFile::getScriptFile(string &sResult)
         out<<sStream;
         out.close();  
         sResult = FILE_FUN_STR+"[succ] get remote file :"+sFileName;
-        g_app.reportServer(_serverObjectPtr->getServerId(),sResult); 
+        g_app.reportServer(_serverId, "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+        // g_app.reportServer(_serverObjectPtr->getServerId(),sResult); 
         TLOGDEBUG(sResult<<endl);
         return 0;          
   } 

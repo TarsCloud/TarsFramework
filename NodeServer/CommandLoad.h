@@ -484,7 +484,8 @@ inline void CommandLoad::getRemoteConf()
         if (ret != 0)
         {
             TLOGERROR("CommandLoad::getRemoteConf [fail] get remote file list"<< endl);
-            g_app.reportServer(_serverObjectPtr->getServerId(), sResult);
+            g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+            // g_app.reportServer( sResult);
         }
 
         for (unsigned i = 0; i < vf.size(); i++)
@@ -503,7 +504,8 @@ inline void CommandLoad::getRemoteConf()
                 TarsRemoteConfig tTarsRemoteConfig;
                 tTarsRemoteConfig.setConfigInfo(Application::getCommunicator(),ServerConfig::Config,_desc.application, _desc.serverName, _exePath,_desc.setId);
                 tTarsRemoteConfig.addConfig(vf[i], sResult);
-                g_app.reportServer(_serverObjectPtr->getServerId(), sResult);
+                g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
+                // g_app.reportServer(_serverObjectPtr->getServerId(), sResult);
             }
         }
     }

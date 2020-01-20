@@ -18,6 +18,7 @@
 #define __ACTIVATOR_H_
 #include "Node.h"
 #include <unistd.h>
+// #include "ServerObject.h"
 #include "util/tc_file.h"
 #include "util/tc_monitor.h"
 #include <iostream>
@@ -26,6 +27,9 @@ using namespace tars;
 using namespace std;
 ////////////////////////////////////////////////////
 // 
+
+class ServerObject;
+typedef TC_AutoPtr<ServerObject> ServerObjectPtr;
 
 //用来标志脚本结束
 /////////////////////////////////////////////////////////
@@ -96,12 +100,13 @@ public:
      * @param iPunishInterval 惩罚时间间隔 
      *
      */
-    Activator(int iTimeInterval,int iMaxCount,int iPunishInterval)
+    Activator(ServerObject *server, int iTimeInterval,int iMaxCount,int iPunishInterval)
     : _maxCount(iMaxCount)
     , _timeInterval(iTimeInterval)
     , _punishInterval(iPunishInterval)
     , _termSignal(false)
     , _redirectPath("")
+    , _server(server)
     {
         clearRunntimeData();
     };
@@ -133,7 +138,8 @@ public:
      * @return pid_t 生成子进程id 
      *
      */
-    pid_t activate(const string &strServerId, const string& strStartScript, const string &strMonitorScript, string &strResult);
+    // pid_t activate(const string &strServerId, const string& strStartScript, const string &strMonitorScript, string &strResult);
+    pid_t activate(const string& strStartScript, const string &strMonitorScript, string &strResult);
 
     /**
      * 停止服务
@@ -166,9 +172,9 @@ public:
     void addActivatingRecord();
 
     //运行脚本
-    bool doScript(const string &sServerId, const string &strScript, string &strResult, map<string,string> &mResult,const string &sEndMark = "");
+    bool doScript(const string &strScript, string &strResult, map<string,string> &mResult,const string &sEndMark = "");
 
-    map <string,string> parseScriptResult(const string &strServerId,const string &strResult);
+    map <string,string> parseScriptResult(const string &strResult);
 
     void setRedirectPath(const string& sRedirectpath) {_redirectPath = sRedirectpath;}
 
@@ -202,6 +208,8 @@ private:
 private:
     bool    _termSignal;               //非tars服务脚本运行超时停止信号
     string  _redirectPath;               //标准输出和错误输出重定向目录
+    ServerObject *_server = NULL;       //
+
 };
 
 typedef TC_AutoPtr<Activator> ActivatorPtr;

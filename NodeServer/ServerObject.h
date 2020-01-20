@@ -415,6 +415,8 @@ public:
     void setLibPath(const string &sLibPath){_libPath = sLibPath;}
     void setServerDir(const  string &sServerDir){_serverDir = sServerDir;}
     void setNodeInfo(const NodeInfo &tNodeInfo){_nodeInfo = tNodeInfo;}
+    const NodeInfo & getNodeInfo() { return _nodeInfo;}
+
     void setServerType( const string &sType ){ _serverType = TC_Common::lower(TC_Common::trim(sType));_serverType == "not_tars"?_tarsServer = false:_tarsServer=true;}
     void setMacro(const map<string,string>& mMacro);
     void setScript(const string &sStartScript,const string &sStopScript,const string &sMonitorScript);
@@ -520,7 +522,6 @@ private:
 	int64_t              _startTime;			//启动的时间,作为checkpid系统延迟判断的起点
 };
 
-typedef TC_AutoPtr<ServerObject> ServerObjectPtr;
 
 #endif
 

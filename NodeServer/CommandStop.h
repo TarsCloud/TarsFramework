@@ -155,14 +155,12 @@ inline int CommandStop::execute(string& sResult)
             sStopScript = sStopScript=="" ? _serverObjectPtr->getExePath() + "/tars_stop.sh" : sStopScript;
 
             map<string, string> mResult;
-            string sServerId     = _serverObjectPtr->getServerId();
-            _serverObjectPtr->getActivator()->doScript(sServerId, sStopScript, sResult, mResult);
+            _serverObjectPtr->getActivator()->doScript(sStopScript, sResult, mResult);
             needWait = true;
 
         }else if (!sStopScript.empty() || _serverObjectPtr->isTarsServer() == false) {
             map<string, string> mResult;
-            string sServerId     = _serverObjectPtr->getServerId();
-            _serverObjectPtr->getActivator()->doScript(sServerId, sStopScript, sResult, mResult);
+            _serverObjectPtr->getActivator()->doScript(sStopScript, sResult, mResult);
             needWait = true;
         }
         else

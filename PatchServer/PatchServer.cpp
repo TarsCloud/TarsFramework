@@ -25,8 +25,8 @@ void PatchServer::initialize()
     //增加对象
     addServant<PatchImp>(ServerConfig::Application + "." + ServerConfig::ServerName +".PatchObj");
     
-    size_t memMax   = TC_Common::toSize(g_conf->get("/tars<MemMax>", "100M"), 1024*1024);
-    size_t memMin   = TC_Common::toSize(g_conf->get("/tars<MemMin>", "1M"), 1024*1024);
+    size_t memMax   = TC_Common::toSize(g_conf->get("/tars<MemMax>", "300M"), 1024*1024);
+    size_t memMin   = TC_Common::toSize(g_conf->get("/tars<MemMin>", "10K"), 1024*1024);
     size_t memNum   = TC_Common::strto<size_t>(g_conf->get("/tars<MemNum>", "10"));
 
     g_PatchCache.setMemOption(memMax, memMin, memNum);

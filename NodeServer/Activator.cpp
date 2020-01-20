@@ -136,12 +136,12 @@ pid_t Activator::activate(const string& strExePath, const string& strPwdPath, co
 }
 
 
-pid_t Activator::activate(const string& strServerId, const string& strStartScript, const string& strMonitorScript, string& strResult)
+pid_t Activator::activate(const string& strStartScript, const string& strMonitorScript, string& strResult)
 {
     addActivatingRecord();
     if (isActivatingLimited() == true)
     {
-        TLOGERROR("Activator::activate The server " << strServerId << ":" << strStartScript  << " activating is limited! it will not auto start until after " + TC_Common::tostr(_punishInterval) + " seconds" << endl);
+        TLOGERROR("Activator::activate The server " << _server->getServerId() << ":" << strStartScript  << " activating is limited! it will not auto start until after " + TC_Common::tostr(_punishInterval) + " seconds" << endl);
     }
 
     if (strStartScript.empty())
@@ -155,7 +155,7 @@ pid_t Activator::activate(const string& strServerId, const string& strStartScrip
     }
 
     map<string, string> mResult;
-    if (doScript(strServerId, strStartScript, strResult, mResult) == false)
+    if (doScript(strStartScript, strResult, mResult) == false)
     {
         throw runtime_error("run script file " + strStartScript + " error :" + strResult);
     }
@@ -165,7 +165,7 @@ pid_t Activator::activate(const string& strServerId, const string& strStartScrip
     {
         string s;
         mResult.clear();
-        if (doScript(strServerId, strMonitorScript, s, mResult) == false)
+        if (doScript(strMonitorScript, s, mResult) == false)
         {
             throw runtime_error("run script " + strMonitorScript + " error :" + s);
         }
@@ -247,7 +247,7 @@ void Activator::addActivatingRecord()
     _activingRecord.push_back(tNow);
 }
 
-bool Activator::doScript(const string& strServerId, const string& strScript, string& strResult, map<string, string>& mResult, const string& sEndMark)
+bool Activator::doScript(const string& strScript, string& strResult, map<string, string>& mResult, const string& sEndMark)
 {
     TLOGINFO("Activator::activate doScript " << strScript << " begin----" << endl);
 
@@ -276,7 +276,7 @@ bool Activator::doScript(const string& strServerId, const string& strScript, str
         sRedirect =  " 2>&1 >>" + _redirectPath;
     }
 
-    string sCmd = strScript + sRedirect + " " + strServerId + " &";
+    string sCmd = strScript + sRedirect + " " + _server->getServerId() + " &";
     FILE  *fp =  popen2(sCmd.c_str(), "r");
     if (fp == NULL)
     {
@@ -326,11 +326,11 @@ bool Activator::doScript(const string& strServerId, const string& strScript, str
     fflush(fp);
     pclose2(fp);
 
-    mResult = parseScriptResult(strServerId, strResult);
+    mResult = parseScriptResult(strResult);
     return true;
 }
 
-map<string, string> Activator::parseScriptResult(const string& strServerId, const string& strResult)
+map<string, string> Activator::parseScriptResult(const string& strResult)
 {
     map<string, string> mResult;
     vector<string> vResult = TC_Common::sepstr<string>(strResult, "\n");
@@ -346,7 +346,8 @@ map<string, string> Activator::parseScriptResult(const string& strServerId, cons
             mResult[sName] = sValue;
             if (sName == "notify")
             {
-                g_app.reportServer(strServerId, sValue);
+                g_app.reportServer(_server->getServerId(), "", _server->getNodeInfo().nodeName, sValue); 
+                // g_app.reportServer(strServerId, sValue);
             }
         }
     }

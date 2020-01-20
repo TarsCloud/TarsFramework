@@ -373,15 +373,33 @@ bool NodeServer::isValid(const string& ip)
     return false;
 }
 
-void NodeServer::reportServer(const string& sServerId, const string& sResult)
+void NodeServer::reportServer(const string& sServerId, const string &sSet, const string &sNodeName, const string& sResult)
 {
     try
     {
         //上报到notify
         NotifyPrx pNotifyPrx = Application::getCommunicator()->stringToProxy<NotifyPrx>(ServerConfig::Notify);
+
         if (pNotifyPrx && sResult != "")
         {
-            pNotifyPrx->async_reportServer(NULL, sServerId, "", sResult);
+            ReportInfo ri;
+            ri.eType = REPORT;
+            ri.sApp = sServerId;
+            ri.sServer = sServerId;
+
+            vector<string> vModule = TC_Common::sepstr<string>(sServerId, ".");
+            if (vModule.size() >= 2)
+            {
+                ri.sApp = vModule[0];
+                ri.sServer = vModule[1];
+            }
+            ri.sSet = sSet;
+
+            ri.sMessage = sResult;
+            ri.eLevel   = NOTIFYERROR;
+            ri.sNodeName = sNodeName;
+
+            pNotifyPrx->async_reportNotifyInfo(NULL, ri);
         }
     }
     catch (exception& ex)

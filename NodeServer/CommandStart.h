@@ -124,7 +124,7 @@ inline bool CommandStart::startByScript(string& sResult)
     string sMonitorScript   = _serverObjectPtr->getMonitorScript();
 
     string sServerId    = _serverObjectPtr->getServerId();
-    iPid = _serverObjectPtr->getActivator()->activate(sServerId, sStartScript, sMonitorScript, sResult);
+    iPid = _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
 
     vector<string> vtServerName =  TC_Common::sepstr<string>(sServerId, ".");
     if (vtServerName.size() != 2)
@@ -249,7 +249,7 @@ inline bool CommandStart::startByScriptPHP(string& sResult)
     sStartScript = sStartScript=="" ? _serverObjectPtr->getExePath() + "/tars_start.sh" : sStartScript;
     string sMonitorScript   = _serverObjectPtr->getMonitorScript();
     string sServerId    = _serverObjectPtr->getServerId();
-    iPid = _serverObjectPtr->getActivator()->activate(sServerId, sStartScript, sMonitorScript, sResult);
+    iPid = _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
 
 
     vector<string> vtServerName =  TC_Common::sepstr<string>(sServerId, ".");

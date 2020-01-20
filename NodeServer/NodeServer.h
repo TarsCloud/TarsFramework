@@ -55,7 +55,7 @@ public:
      /*
     *   上报string至notify
     */
-    void reportServer(const string &sServerId,const string &sResult);
+    void reportServer(const string& sServerId, const string &sSet, const string &sNodeName,  const string &sResult);
 
 public:
     /*
