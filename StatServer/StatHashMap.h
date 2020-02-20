@@ -25,7 +25,7 @@
 #include "util/tc_file.h"
 #include "util/tc_config.h"
 #include "servant/TarsLogger.h"
-
+#include <ext/pool_allocator.h>
 using namespace tars;
 
 typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,ShmStorePolicy> HashMap;//FileStorePolicy

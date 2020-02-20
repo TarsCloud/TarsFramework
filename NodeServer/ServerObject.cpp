@@ -356,6 +356,26 @@ void ServerObject::keepAlive(pid_t pid,const string &adapter)
     }
 }
 
+
+void ServerObject::keepActiving(int64_t pid)
+{
+    Lock lock(*this);
+    if (pid <= 0)
+    {
+        LOG->error()<<FILE_FUN<< _application << "." << _serverName << " pid "<<pid<<" error, pid <= 0"<<endl;
+        return;
+    }
+    else
+    {
+        LOG->debug() << FILE_FUN<<_serverType<< "|pid|" << pid <<"|server|"<<_application << "." << _serverName << endl;
+    }
+    time_t now  = TNOW;
+    setLastKeepAliveTime(now);
+    setPid(pid);
+
+    setState(ServerObject::Activating);
+}
+
 void ServerObject::setLastKeepAliveTime(int t,const string& adapter)
 {
     Lock lock(*this);

@@ -21,6 +21,7 @@
 #include "jmem/jmem_hashmap.h"
 #include "servant/PropertyF.h"
 #include "servant/TarsLogger.h"
+#include <ext/pool_allocator.h>
 
 using namespace tars;
 
@@ -71,7 +72,7 @@ public:
 
                 PropBody stBody;
                 stBody.readFrom(is);
-                if(LOG->IsNeedLog(TarsRollLogger::INFO_LOG))
+                if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
                 {
                     ostringstream os;
                     head.displaySimple(os);
@@ -180,7 +181,7 @@ public:
                     ++it;
                 }
 
-                if(LOG->IsNeedLog(TarsRollLogger::INFO_LOG))
+                if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
                 {
                     ostringstream os;
                     head.displaySimple(os);

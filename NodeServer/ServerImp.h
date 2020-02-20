@@ -62,7 +62,15 @@ public:
      * 上报心跳
      */
     virtual int keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current ) ;
-    
+
+    /**
+     * 激活中状态
+     * @param serverInfo
+     * @param current
+     * @return
+     */
+    virtual int keepActiving( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current ) ;
+
     /**
      * 上报tars版本
      */

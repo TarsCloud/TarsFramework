@@ -302,7 +302,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
 
             bool rc = true;
             int ifail = 0;
-            while(_queryParam._atomic.get() != _queryParam._run_times)
+            while(_queryParam._atomic != _queryParam._run_times)
             {
                 {
                     TC_ThreadLock::Lock lock(_queryParam._monitor);
@@ -323,7 +323,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
             if(ifail >= 10)
             {
                 TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "wait for all thread query data timeout." << endl);
-                while(_queryParam._atomic.get() != _queryParam._run_times)
+                while(_queryParam._atomic != _queryParam._run_times)
                 {
                     {
                         TC_ThreadLock::Lock lock(_queryParam._monitor);
@@ -332,7 +332,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
                 }
             }
 
-            if(_queryParam._atomic.get() == _queryParam._run_times)
+            if(_queryParam._atomic == _queryParam._run_times)
                 rc = true;
             /*bool rc = false;
             {
@@ -419,9 +419,9 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
             TLOGERROR("query sUid:" << sUid << sRes << endl);
 
             queryParam._run_result = -1;
-            queryParam._atomic.inc();
+            queryParam._atomic++;
 
-            if(queryParam._atomic.get() == queryParam._run_times)
+            if(queryParam._atomic == queryParam._run_times)
             {
                 TC_ThreadLock::Lock lock(queryParam._monitor);
                 queryParam._monitor.notifyAll();
@@ -538,7 +538,6 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 
         sRes =  "ret:0 iDb:" + TC_Common::tostr(iThread)  + "\n";
 
-        //queryParam._atomic.inc();
     }
     catch(TC_Mysql_Exception & ex)
     {
@@ -546,7 +545,6 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
         TLOGERROR("query sUid:" << sUid << "query:" << sRes << endl);
 
         queryParam._run_result = -1;
-        //queryParam._atomic.inc();
     }
     catch(exception & ex)
     {
@@ -554,15 +552,14 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
         TLOGERROR("query sUid:" << sUid << "query:" << sRes << endl);
 
         queryParam._run_result = -1;
-        //queryParam._atomic.inc();
     }
     int64_t tEnd = TNOWMS;
 
     TLOGDEBUG("query sUid:" << sUid << "exit query iDb:" << iThread <<"|timecost(ms):" << (tEnd - tStart) << "|res:" << sRes << endl);
 
-    queryParam._atomic.inc();
+    queryParam._atomic++;
 
-    if(queryParam._atomic.get() == queryParam._run_times)
+    if(queryParam._atomic == queryParam._run_times)
     {
         {
             TC_ThreadLock::Lock lock(queryParam._monitor);
@@ -679,8 +676,8 @@ void selectLastMinTime(const string& sUid, int iThread , const string& tbname, c
         //queryParam._atomic.inc();
     }
 
-    queryParam._atomic.inc();
-    if(queryParam._atomic.get() == queryParam._run_times)
+    queryParam._atomic++;
+    if(queryParam._atomic == queryParam._run_times)
     {
         TC_ThreadLock::Lock lock(queryParam._monitor);
         queryParam._monitor.notifyAll();
@@ -726,7 +723,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
             
             bool rc = true;
             int ifail = 0;
-            while(_queryParam._atomic.get() != _queryParam._run_times)
+            while(_queryParam._atomic != _queryParam._run_times)
             {
                 {
                     TC_ThreadLock::Lock lock(_queryParam._monitor);
@@ -747,7 +744,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
             if(ifail >= 10)
             {
                 TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "wait for getLastTime timeout." << endl);
-                while(_queryParam._atomic.get() != _queryParam._run_times)
+                while(_queryParam._atomic != _queryParam._run_times)
                 {
                     {
                         TC_ThreadLock::Lock lock(_queryParam._monitor);
@@ -756,7 +753,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
                 }
             }
 
-            if(_queryParam._atomic.get() == _queryParam._run_times)
+            if(_queryParam._atomic == _queryParam._run_times)
                 rc = true;
             /*bool rc = false;
             {

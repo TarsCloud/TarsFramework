@@ -24,25 +24,25 @@ QueryServer g_app;
 TC_Config * g_pconf;
 /////////////////////////////////////////////////////////////////
 
-struct JsonProtocol
-{
+// struct JsonProtocol
+// {
     
-    static int parse(string &in, string &out)
-    {
-        TLOGINFO("JsonProtocol parse:" << in << endl);
+//     static int parse(string &in, string &out)
+//     {
+//         TLOGINFO("JsonProtocol parse:" << in << endl);
 
-        string::size_type jsonEnd = in.find("}");
+//         string::size_type jsonEnd = in.find("}");
 
-        if (jsonEnd != string::npos )
-        {
-            out = in;
-            in = "";
-            return TC_EpollServer::PACKET_FULL;   //返回1表示收到的包已经完全
-        }
+//         if (jsonEnd != string::npos )
+//         {
+//             out = in;
+//             in = "";
+//             return TC_EpollServer::PACKET_FULL;   //返回1表示收到的包已经完全
+//         }
 
-        return TC_EpollServer::PACKET_ERR;        //返回-1表示收到包协议错误，框架会自动关闭当前连接
-    }
-};
+//         return TC_EpollServer::PACKET_ERR;        //返回-1表示收到包协议错误，框架会自动关闭当前连接
+//     }
+// };
 
 
 
@@ -113,7 +113,8 @@ void  QueryServer::initialize()
         TLOGDEBUG("QueryServer::initialize i:" << i << "|notarsslavename:" << vIpGroup[i] << endl);
     }
     addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj");
-    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &JsonProtocol::parse);
+    // addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &JsonProtocol::parse);
+    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &TC_NetWorkBuffer::parseHttp);
 }
 /////////////////////////////////////////////////////////////////
 

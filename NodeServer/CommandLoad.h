@@ -254,7 +254,7 @@ inline int CommandLoad::updateConfigFile(string& sResult)
         for (itAdapters = _desc.adapters.rbegin(); itAdapters != _desc.adapters.rend(); itAdapters++)
         {
             TLOGINFO("CommandLoad::updateConfigFile get adapter " << itAdapters->first << endl);
-            if (LOG->IsNeedLog(TarsRollLogger::INFO_LOG))
+            if (LOG->isNeedLog(TarsRollLogger::INFO_LOG))
             {
                 _desc.display(LOG->info());
             }

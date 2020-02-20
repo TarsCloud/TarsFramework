@@ -223,6 +223,12 @@ public:
     void keepAlive( pid_t pid, const string &adapter="");
 
     /**
+     * 启动中状态
+     * @param pid
+     */
+    void keepActiving(int64_t pid);
+
+    /**
     * 取的server最近keepAlive时间
     * @return int
     */

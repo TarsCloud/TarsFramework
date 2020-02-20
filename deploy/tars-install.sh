@@ -182,6 +182,7 @@ cp -rf ${WORKDIR}/framework/sql ${WORKDIR}/sql.tmp
 
 sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WORKDIR}/sql.tmp/*`
 sed -i "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${WORKDIR}/sql.tmp/*`
+sed -i "s/3306/${PORT}/g" `grep 3306 -rl ${WORKDIR}/sql.tmp/*`
 
 if [ "$REBUILD" == "true" ]; then
     exec_mysql_script "drop database if exists db_tars"
@@ -271,7 +272,7 @@ if [ $? != 0 ]; then
         do
             echo $template_name #在此处处理文件即可
 
-            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" ) 
+            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" ) 
 
             parent_template="tars.default"
             if [ "$template_name" == "tars.springboot" ]; then
@@ -333,6 +334,8 @@ function update_conf() {
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+
     else
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
@@ -373,12 +376,15 @@ if [ "$SLAVE" != "true" ]; then
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
+    sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
     sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
     sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
 
     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
+    sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
+
     sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
 
     cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd; 

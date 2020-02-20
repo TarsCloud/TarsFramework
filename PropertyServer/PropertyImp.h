@@ -28,11 +28,11 @@
 
 using namespace tars;
 
-class PropertyImpThreadData : public TC_ThreadPool::ThreadData
+class PropertyImpThreadData //: public TC_ThreadPool::ThreadData
 {
 public:
-    static TC_ThreadMutex _mutex;        //全局互斥锁
-    static pthread_key_t  _key;            //线程私有数据key
+    // static TC_ThreadMutex _mutex;        //全局互斥锁
+    // static pthread_key_t  _key;            //线程私有数据key
     static size_t         _no;         
 
     /**
@@ -40,11 +40,11 @@ public:
      */
     PropertyImpThreadData();
 
-    /**
-     * 数据资源释放
-     * @param p
-     */
-    static void destructor(void* p);
+    // /**
+    //  * 数据资源释放
+    //  * @param p
+    //  */
+    // static void destructor(void* p);
 
     /**
      * 获取线程数据，没有的话会自动创建
@@ -53,7 +53,8 @@ public:
     static PropertyImpThreadData * getData();
 
 public:
-    size_t                _threadIndex;
+    static thread_local shared_ptr<PropertyImpThreadData>  _data;
+    size_t _threadIndex;
 };
 
 class PropertyImp : public PropertyF,public TC_ThreadLock

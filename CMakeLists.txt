@@ -4,31 +4,17 @@ project(framework)
 
 set(CMAKE_VERBOSE_MAKEFILE off)
 
-set(MYSQL_DIR_INC "/usr/local/mysql/include")
-set(MYSQL_DIR_LIB "/usr/local/mysql/lib")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -O2 -Wall -Wno-deprecated")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall -Wno-deprecated")
-
-#set(CMAKE_BUILD_TYPE "Debug")
-
-set(TARS_VERSION "1.4.0")
-add_definitions(-DTARS_VERSION="${TARS_VERSION}")
-
-set(INSTALL_PREFIX "/usr/local/tars/cpp")
-
-set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
+include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Common.cmake")
 
 add_subdirectory(tarscpp)
-set(TARS2CPP "${tools_BINARY_DIR}/tars2cpp/tars2cpp")
 
 include_directories(${util_SOURCE_DIR}/include)
 include_directories(${servant_SOURCE_DIR})
-include_directories(${MYSQL_DIR_INC})
+#include_directories(${MYSQL_DIR_INC})
 include_directories("thirdparty/rapidjson/include")
 
 link_libraries(tarsservant tarsutil)
-link_libraries(${MYSQL_DIR_LIB}/libmysqlclient.a)
+link_libraries(mysqlclient)
 link_libraries(pthread z dl rt)
 
 macro(complice_module MODULE)

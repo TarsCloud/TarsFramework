@@ -48,6 +48,33 @@ int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentP
     return -1;
 }
 
+int ServerImp::keepActiving( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current )
+{
+    try
+    {
+        string sApp     = serverInfo.application;
+        string sName    = serverInfo.serverName;
+
+        ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( sApp, sName );
+        if ( pServerObjectPtr )
+        {
+            LOG->debug()<<FILE_FUN<< "server " << serverInfo.application << "." << serverInfo.serverName << " keep activing"<< endl;
+            pServerObjectPtr->keepActiving(serverInfo.pid);
+            return 0;
+        }
+        LOG->debug()<<FILE_FUN<< "server " << serverInfo.application << "." << serverInfo.serverName << " is not exist"<< endl;
+    }
+    catch ( exception& e )
+    {
+        LOG->error()<<FILE_FUN << "catch exception :" << e.what() << endl;
+    }
+    catch ( ... )
+    {
+        LOG->error()<<FILE_FUN << "unkown exception catched" << endl;
+    }
+    return -1;
+}
+
 int ServerImp::reportVersion( const string &app,const string &serverName,const string &version,tars::TarsCurrentPtr current)
 {
     try

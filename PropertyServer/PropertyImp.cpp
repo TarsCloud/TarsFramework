@@ -18,56 +18,71 @@
 #include "PropertyServer.h"
 
 ///////////////////////////////////////////////////////////
-TC_ThreadMutex PropertyImpThreadData::_mutex;
-pthread_key_t PropertyImpThreadData::_key = 0;
+// TC_ThreadMutex PropertyImpThreadData::_mutex;
+// pthread_key_t PropertyImpThreadData::_key = 0;
 size_t PropertyImpThreadData::_no=0;
+thread_local shared_ptr<PropertyImpThreadData>  PropertyImpThreadData::_data;
 
 ///////////////////////////////////////////////////////////
 PropertyImpThreadData::PropertyImpThreadData()
 : _threadIndex(0)
 {
 }
-void PropertyImpThreadData::destructor(void* p)
-{
-    PropertyImpThreadData * pSptd = (PropertyImpThreadData*)p;
-    if(pSptd)
-    {    
-        delete pSptd;
-        pSptd = NULL;
-    }
-}
+
+// void PropertyImpThreadData::destructor(void* p)
+// {
+//     PropertyImpThreadData * pSptd = (PropertyImpThreadData*)p;
+//     if(pSptd)
+//     {    
+//         delete pSptd;
+//         pSptd = NULL;
+//     }
+// }
 PropertyImpThreadData * PropertyImpThreadData::getData()
 {
-    if(_key == 0)
+    if(_data)
     {
-        TC_LockT<TC_ThreadMutex> lock(_mutex);
-        if(_key == 0)
-        {
-            int iRet = ::pthread_key_create(&_key, PropertyImpThreadData::destructor);
-
-            if (iRet != 0)
-            {
-                TLOGERROR("PropertyImpThreadData pthread_key_create fail:"<< errno << ":" << strerror(errno) << endl);
-                return NULL;
-            }
-        }
+        return _data.get();
     }
 
-    PropertyImpThreadData * pSptd = (PropertyImpThreadData*)pthread_getspecific(_key);
+    _data = std::make_shared<PropertyImpThreadData>(); 
 
-    if(!pSptd)
-    {
-        TC_LockT<TC_ThreadMutex> lock(_mutex);
 
-        pSptd = new PropertyImpThreadData();
-        pSptd->_threadIndex = _no;
-        ++_no;
+    _data->_threadIndex = _no;
+    ++_no;
 
-        int iRet = pthread_setspecific(_key, (void *)pSptd);
+    return _data.get();
+    // if(_key == 0)
+    // {
+    //     TC_LockT<TC_ThreadMutex> lock(_mutex);
+    //     if(_key == 0)
+    //     {
+    //         int iRet = ::pthread_key_create(&_key, PropertyImpThreadData::destructor);
 
-        assert(iRet == 0);
-    }
-    return pSptd;
+    //         if (iRet != 0)
+    //         {
+    //             TLOGERROR("PropertyImpThreadData pthread_key_create fail:"<< errno << ":" << strerror(errno) << endl);
+    //             return NULL;
+    //         }
+    //     }
+    // }
+
+//    PropertyImpThreadData * pSptd = (PropertyImpThreadData*)pthread_getspecific(_key);
+
+    // if(!pSptd)
+    // {
+    //     TC_LockT<TC_ThreadMutex> lock(_mutex);
+
+    //     pSptd = new PropertyImpThreadData();
+    //     pSptd->_threadIndex = _no;
+    //     ++_no;
+
+    //     int iRet = pthread_setspecific(_key, (void *)pSptd);
+
+    //     assert(iRet == 0);
+    // }
+
+    // return pSptd;
 }
 ///////////////////////////////////////////////////////////
 void PropertyImp::initialize()
@@ -150,7 +165,7 @@ int PropertyImp::handlePropMsg(const map<StatPropMsgHead, StatPropMsgBody> &prop
             TLOGERROR("PropertyImp::handlePropMsg add hashmap recourd iRet:" << iRet << endl);
         }
 
-        if(LOG->IsNeedLog(TarsRollLogger::INFO_LOG))
+        if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
         {
             ostringstream os;
             os.str("");

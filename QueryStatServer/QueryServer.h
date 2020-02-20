@@ -23,7 +23,7 @@
 #include "util/tc_thread_mutex.h"
 #include "util/tc_lock.h"
 #include "util/tc_thread_pool.h"
-#include "util/tc_atomic.h"
+// #include "util/tc_atomic.h"
 #include "DbThread.h"
 #include "QueryDbThread.h"
 
@@ -36,7 +36,7 @@ class QueryParam
 public:
     int _run_times;
     int _run_result;
-    TC_Atomic _atomic;
+    std::atomic<int> _atomic;
     TC_ThreadLock _monitor;
 
     QueryParam()
