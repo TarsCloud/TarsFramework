@@ -74,7 +74,7 @@ public:
 private:
     bool                            _terminate;
 
-    ReapSSDThread *                    _proc;
+    // ReapSSDThread *                    _proc;
 
     TC_ThreadQueue<QueueItem>        _queue;
 };

@@ -316,7 +316,7 @@ int StatDbManager::insert2Db(const StatMsg &statmsg, const string &sDate, const 
                 {
                     strIntervCount += ",";
                 }
-                strIntervCount = strIntervCount;
+                // strIntervCount = strIntervCount;
                 strIntervCount += TC_Common::tostr(it->first);
                 strIntervCount += "|";
                 strIntervCount += TC_Common::tostr(it->second);
@@ -327,7 +327,8 @@ int StatDbManager::insert2Db(const StatMsg &statmsg, const string &sDate, const 
             if ( body.count != 0 )
             {
                 iAveTime = body.totalRspTime/body.count;
-                iAveTime == 0?iAveTime=1:iAveTime=iAveTime;
+                if(iAveTime == 0)
+                    iAveTime=1;
             }
 
             //组织sql语句

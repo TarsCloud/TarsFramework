@@ -21,7 +21,6 @@
 #include "jmem/jmem_hashmap.h"
 #include "servant/PropertyF.h"
 #include "servant/TarsLogger.h"
-#include <ext/pool_allocator.h>
 
 using namespace tars;
 
@@ -29,7 +28,12 @@ typedef StatPropMsgBody PropBody;
 typedef StatPropMsgHead PropHead;
 typedef TarsHashMap<PropHead,PropBody, ThreadLockPolicy, FileStorePolicy> PropHashMap;
 
+#if TARGET_PLAFFORM_LINUX
+#include <ext/pool_allocator.h>
 typedef std::map<PropHead, PropBody, std::less<PropHead>, __gnu_cxx::__pool_alloc<std::pair<PropHead const, PropBody> > > PropertyMsg;
+#else
+typedef std::map<PropHead, PropBody, std::less<PropHead>> PropertyMsg;
+#endif
 
 class PropertyHashMap : public PropHashMap
 {

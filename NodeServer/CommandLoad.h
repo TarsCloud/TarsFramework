@@ -307,7 +307,7 @@ inline int CommandLoad::updateConfigFile(string& sResult)
 
         tLocalEndpoint.setPort(p);
         tLocalEndpoint.setHost("127.0.0.1");
-        tLocalEndpoint.setTcp(true);
+        tLocalEndpoint.setType(TC_Endpoint::TCP);
         tLocalEndpoint.setTimeout(3000);
 
         //需要宏替换部分配置

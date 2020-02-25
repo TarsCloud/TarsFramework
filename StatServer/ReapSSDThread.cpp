@@ -21,7 +21,7 @@
 
 ReapSSDProcThread::ReapSSDProcThread(ReapSSDThread * proc)
 : _terminate(false)
-, _proc(proc)
+// , _proc(proc)
 {
 }
 

@@ -77,7 +77,12 @@ pid_t Activator::activate(const string& strExePath, const string& strPwdPath, co
         if (_redirectPath != "")
         {
             TC_File::makeDirRecursive(TC_File::extractFilePath(_redirectPath));
+#if TARGET_PLATFORM_IOS
+            if ((freopen(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen(_redirectPath.c_str(), "ab", stderr)) != NULL)
+#else
             if ((freopen64(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen64(_redirectPath.c_str(), "ab", stderr)) != NULL)
+#endif
+            // if ((freopen64(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen64(_redirectPath.c_str(), "ab", stderr)) != NULL)
             {
                 cout << argv[0] << " redirect stdout and stderr  to " << _redirectPath << endl;
             }
@@ -92,7 +97,12 @@ pid_t Activator::activate(const string& strExePath, const string& strPwdPath, co
         else if (!strRollLogPath.empty())
         {
             TC_File::makeDirRecursive(TC_File::extractFilePath(strRollLogPath));
+#if TARGET_PLATFORM_IOS
+            if ((freopen(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen(strRollLogPath.c_str(), "ab", stderr)) != NULL)
+#else
             if ((freopen64(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen64(strRollLogPath.c_str(), "ab", stderr)) != NULL)
+#endif
+            // if ((freopen64(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen64(strRollLogPath.c_str(), "ab", stderr)) != NULL)
             {
                 cout << argv[0] << " redirect stdout and stderr  to " << strRollLogPath << endl;
             }

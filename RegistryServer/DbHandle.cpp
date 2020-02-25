@@ -1180,14 +1180,14 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 // 所以istcp字段作为int类型使用
                 if (!ep.isTcp()) 
                 { 
-                    epf.istcp = EndpointInfo::UDP; 
+                    epf.istcp = TC_Endpoint::UDP; 
                 } 
                 else 
                 { 
                     if (ep.isSSL()) 
-                        epf.istcp = EndpointInfo::SSL; 
+                        epf.istcp = TC_Endpoint::SSL; 
                     else 
-                        epf.istcp = EndpointInfo::TCP; 
+                        epf.istcp = TC_Endpoint::TCP; 
                 }
 
                 epf.authType    = ep.getAuthType();

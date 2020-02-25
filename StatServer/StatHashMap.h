@@ -25,12 +25,19 @@
 #include "util/tc_file.h"
 #include "util/tc_config.h"
 #include "servant/TarsLogger.h"
-#include <ext/pool_allocator.h>
+// #include <ext/pool_allocator.h>
 using namespace tars;
 
 typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,ShmStorePolicy> HashMap;//FileStorePolicy
 
+// typedef std::map<tars::StatMicMsgHead, tars::StatMicMsgBody, std::less<tars::StatMicMsgHead>, __gnu_cxx::__pool_alloc<std::pair<tars::StatMicMsgHead const, tars::StatMicMsgBody> > > StatMsg;
+
+#if TARGET_PLAFFORM_LINUX
+#include <ext/pool_allocator.h>
 typedef std::map<tars::StatMicMsgHead, tars::StatMicMsgBody, std::less<tars::StatMicMsgHead>, __gnu_cxx::__pool_alloc<std::pair<tars::StatMicMsgHead const, tars::StatMicMsgBody> > > StatMsg;
+#else
+typedef std::map<tars::StatMicMsgHead, tars::StatMicMsgBody, std::less<tars::StatMicMsgHead>> StatMsg;
+#endif
 
 class StatHashMap : public HashMap
 {

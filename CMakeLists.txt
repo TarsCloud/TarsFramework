@@ -4,18 +4,25 @@ project(framework)
 
 set(CMAKE_VERBOSE_MAKEFILE off)
 
+set(TARS_CPP_COMMON "1")
+
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Common.cmake")
+
+include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/BuildTarsCpp.cmake")
+
+include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Thirdparty.cmake")
+
+include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
 add_subdirectory(tarscpp)
 
 include_directories(${util_SOURCE_DIR}/include)
 include_directories(${servant_SOURCE_DIR})
-#include_directories(${MYSQL_DIR_INC})
 include_directories("thirdparty/rapidjson/include")
 
 link_libraries(tarsservant tarsutil)
 link_libraries(mysqlclient)
-link_libraries(pthread z dl rt)
+link_libraries(pthread z dl)
 
 macro(complice_module MODULE)
 
