@@ -1,4 +1,4 @@
-name: C/C++ linux
+name: C/C++ mac
 
 on: 
   push:
@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install
-      run: sudo apt-get install -y bison flex cmake ; cmake --version
+      run: brew install bison flex cmake;  cmake --version
     - name: git
       run: git submodule update --init --recursive
     - name: configure
@@ -22,3 +22,4 @@ jobs:
       run: cd build; make
     - name: make run
       run: cd build; make run-all
+
