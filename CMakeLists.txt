@@ -36,7 +36,11 @@ macro(complice_module MODULE)
     if(TARS_SSL)
         target_link_libraries(${MODULE} ${LIB_SSL} ${LIB_CRYPTO})
     endif()
-    target_link_libraries(${MODULE} tarsservant tarsutil ${LIB_SSL} ${LIB_CRYPTO} mysqlclient pthread z dl)
+
+    if(TARS_HTTP2)
+        target_link_libraries(${MODULE} ${LIB_HTTP2})
+    endif()
+    target_link_libraries(${MODULE} tarsservant tarsutil mysqlclient pthread z dl)
 endmacro()
 
 #调用tars2cpp, 生成tars对应的文件
