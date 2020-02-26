@@ -34,7 +34,7 @@ public:
     int execute(string &sResult);
     
 private:
-    bool                _byNode;
+//    bool                _byNode;
     string              _msg;
     ServerDescriptor    _desc;
     ServerObjectPtr     _serverObjectPtr;     
@@ -43,8 +43,7 @@ private:
 //////////////////////////////////////////////////////////////
 //
 inline CommandNotify::CommandNotify(const ServerObjectPtr &pServerObjectPtr,const string &sMsg,bool bByNode)
-:_byNode(bByNode)
-,_msg(sMsg)
+: _msg(sMsg)
 ,_serverObjectPtr(pServerObjectPtr)
 { 
     _desc  = _serverObjectPtr->getServerDescriptor();

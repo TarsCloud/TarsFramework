@@ -32,7 +32,7 @@ public:
     int execute(string &sResult);
 private:
     int getScriptFile(string &sResult);
-    bool                _byNode;
+//    bool                _byNode;
     string              _file; 
     string              _serverId;               
     ServerDescriptor    _desc;
@@ -43,8 +43,7 @@ private:
 //////////////////////////////////////////////////////////////
 //
 inline CommandAddFile::CommandAddFile(const ServerObjectPtr &pServerObjectPtr,const string &sFile,bool bByNode)
-:_byNode(bByNode)
-,_file(sFile)
+: _file(sFile)
 ,_serverObjectPtr(pServerObjectPtr)
 { 
     _desc      = _serverObjectPtr->getServerDescriptor();

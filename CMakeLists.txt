@@ -37,6 +37,9 @@ macro(complice_module MODULE)
     add_dependencies(${MODULE} FRAMEWORK-PROTOCOL)
     add_dependencies(${MODULE} tars2cpp)
 
+    if(TARS_SSL)
+        target_link_libraries(${MODULE} ${LIB_SSL} ${LIB_CRYPTO})
+    endif()
 endmacro()
 
 #调用tars2cpp, 生成tars对应的文件

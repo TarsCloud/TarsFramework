@@ -34,7 +34,7 @@ public:
     int execute(string &sResult);
 
 private:
-    bool    _byNode;
+//    bool    _byNode;
     ServerDescriptor    _desc;
     ServerObjectPtr     _serverObjectPtr;
 };
@@ -42,8 +42,7 @@ private:
 //////////////////////////////////////////////////////////////
 //
 inline CommandDestroy::CommandDestroy(const ServerObjectPtr &pServerObjectPtr,bool bByNode)
-: _byNode(bByNode)
-, _serverObjectPtr(pServerObjectPtr)
+: _serverObjectPtr(pServerObjectPtr)
 {
     _desc      = _serverObjectPtr->getServerDescriptor();
 }
