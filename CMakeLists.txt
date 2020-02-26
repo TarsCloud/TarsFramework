@@ -20,10 +20,6 @@ include_directories(${util_SOURCE_DIR}/include)
 include_directories(${servant_SOURCE_DIR})
 include_directories("thirdparty/rapidjson/include")
 
-link_libraries(tarsservant tarsutil)
-link_libraries(mysqlclient)
-link_libraries(pthread z dl)
-
 macro(complice_module MODULE)
 
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/servers/${MODULE}/bin)
@@ -40,6 +36,7 @@ macro(complice_module MODULE)
     if(TARS_SSL)
         target_link_libraries(${MODULE} ${LIB_SSL} ${LIB_CRYPTO})
     endif()
+    target_link_libraries(${MODULE} tarsservant tarsutil ${LIB_SSL} ${LIB_CRYPTO} mysqlclient pthread z dl)
 endmacro()
 
 #调用tars2cpp, 生成tars对应的文件
