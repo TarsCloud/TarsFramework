@@ -156,7 +156,7 @@ endforeach ()
 
 ############################################################################################
 
-install(DIRECTORY build/servers/ DESTINATION deploy/framework/servers
+install(DIRECTORY ${CMAKE_BINARY_DIR}/servers/ DESTINATION deploy/framework/servers
         PATTERN "tars*"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
         
