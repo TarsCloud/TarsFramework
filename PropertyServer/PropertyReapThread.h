@@ -76,7 +76,7 @@ public:
 private:
     bool                            _bTerminate;
 
-    PropertyReapThread *            _proc;
+    // PropertyReapThread *            _proc;
 
     TC_ThreadQueue<QueueItem>        _queue;
 };

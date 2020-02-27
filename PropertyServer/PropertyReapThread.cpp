@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////
 ReapSSDProcThread::ReapSSDProcThread(PropertyReapThread * proc)
 : _bTerminate(false)
-, _proc(proc)
+// , _proc(proc)
 {
 }
 

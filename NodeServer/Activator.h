@@ -104,7 +104,7 @@ public:
     : _maxCount(iMaxCount)
     , _timeInterval(iTimeInterval)
     , _punishInterval(iPunishInterval)
-    , _termSignal(false)
+    // , _termSignal(false)
     , _redirectPath("")
     , _server(server)
     {
@@ -206,7 +206,7 @@ private:
     int     _punishInterval;           //惩罚受限时间间隔,单位分钟,配置
     
 private:
-    bool    _termSignal;               //非tars服务脚本运行超时停止信号
+    // bool    _termSignal;               //非tars服务脚本运行超时停止信号
     string  _redirectPath;               //标准输出和错误输出重定向目录
     ServerObject *_server = NULL;       //
 
