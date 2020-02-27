@@ -22,7 +22,7 @@ include_directories("thirdparty/rapidjson/include")
 
 macro(complice_module MODULE)
 
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/servers/${MODULE}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/servers/${MODULE}/bin)
 
     include_directories(${PROJECT_SOURCE_DIR}/tarscpp/servant/protocol/framework)
     include_directories(${servant_SOURCE_DIR}/servant)
