@@ -89,6 +89,7 @@ public:
      * @return int 
      */
     virtual int setTaskItemInfo(const string & itemNo, const map<string, string> &info, tars::TarsCurrentPtr current);
+	virtual int setTaskItemInfo_inner(const string & itemNo, const map<string, string> &info);
 
     /***********application****************/
     /**
@@ -102,6 +103,7 @@ public:
      * @return int 
      */
     virtual int undeploy(const string & application, const string & serverName, const string & nodeName, const string &user, string &log, tars::TarsCurrentPtr current);
+	virtual int undeploy_inner(const string & application, const string & serverName, const string & nodeName, const string &user, string &log);
 
     /**
      * 获取application列表
@@ -200,7 +202,10 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int startServer(const string & application, const string & serverName, const string & nodeName, string &result, tars::TarsCurrentPtr current);
+    virtual int startServer(const string & application, const string & serverName, const string & nodeName,
+            string &result, tars::TarsCurrentPtr current);
+	virtual int startServer_inner(const string & application, const string & serverName, const string & nodeName,
+		string &result);
 
     /**
      * 停止特定server
@@ -212,7 +217,10 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int stopServer(const string & application, const string & serverName, const string & nodeName, string &result, tars::TarsCurrentPtr current);
+    virtual int stopServer(const string & application, const string & serverName, const string & nodeName,
+            string &result, tars::TarsCurrentPtr current);
+	virtual int stopServer_inner(const string & application, const string & serverName, const string & nodeName,
+		string &result);
 
     /**
      * 重启特定server
@@ -224,8 +232,10 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int restartServer(const string & application, const string & serverName, const string & nodeName, string &result, tars::TarsCurrentPtr current);
-
+    virtual int restartServer(const string & application, const string & serverName, const string & nodeName,
+            string &result, tars::TarsCurrentPtr current);
+	virtual int restartServer_inner(const string & application, const string & serverName, const string & nodeName,
+		string &result);
     /**
      * 通知服务
      * @param application
@@ -237,7 +247,8 @@ public:
      *
      * @return int
      */
-    virtual int notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string &result, tars::TarsCurrentPtr current);
+    virtual int notifyServer(const string & application, const string & serverName, const string & nodeName,
+            const string &command, string &result, tars::TarsCurrentPtr current);
 
     /**
      * 批量发布
@@ -248,6 +259,7 @@ public:
      * @return : 0-成功 others-失败
      */
     virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::TarsCurrentPtr current);
+	virtual int batchPatch_inner(const tars::PatchRequest & req, string &result);
 
     /**
      * 发布成功
@@ -259,6 +271,7 @@ public:
      * @return int 
      */
     virtual int updatePatchLog(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ, tars::TarsCurrentPtr current);
+	virtual int updatePatchLog_inner(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ);
 
     /**
     * 获取服务发布进度
@@ -268,8 +281,10 @@ public:
     * @out tPatchInfo  :发布百分比
     * @return :0-成功 others-失败
     */
-    virtual int getPatchPercent(const string &application, const string &serverName,const string & nodeName, PatchInfo &tPatchInfo, tars::TarsCurrentPtr current);
-
+    virtual int getPatchPercent(const string &application, const string &serverName,const string & nodeName,
+            PatchInfo &tPatchInfo, tars::TarsCurrentPtr current);
+	virtual int getPatchPercent_inner(const string &application, const string &serverName, const string & nodeName,
+		PatchInfo &tPatchInfo);
     /**
      * 加载特定server
      *
@@ -314,7 +329,7 @@ public:
      */
     virtual int getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current);
 
-    virtual int gridPatchServer(const vector<ServerGridDesc> &gridDescList, vector<ServerGridDesc> &gridFailDescList, std::string & resultDesc, tars::TarsCurrentPtr current);
+//    virtual int gridPatchServer(const vector<ServerGridDesc> &gridDescList, vector<ServerGridDesc> &gridFailDescList, std::string & resultDesc, tars::TarsCurrentPtr current);
 
     virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,tars::TarsCurrentPtr current);
 
@@ -323,7 +338,7 @@ public:
 protected:
 
     //数据库操作类对象
-    DbProxy _db;
+    //DbProxy _db;
 
     PatchPrx _patchPrx;
 };

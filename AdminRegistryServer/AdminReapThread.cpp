@@ -40,7 +40,8 @@ int AdminReapThread::init()
     TLOGDEBUG("begin AdminReapThread init"<<endl);
 
     //初始化配置db连接
-    _db.init(g_pconf);
+    extern TC_Config * g_pconf;
+    //_db.init(g_pconf);
 
     //服务心跳更新时间间隔
     _updateInterval = TC_Common::strto<int>((*g_pconf).get("/tars/reap<updateHeartInterval>", "10"));
@@ -54,8 +55,8 @@ int AdminReapThread::init()
     //是否关闭更新管理主控心跳时间,一般需要迁移时，设置此项为Y
     _heartBeatOff = (*g_pconf).get("/tars/reap<heartbeatoff>", "N") == "Y"?true:false;
 
-    _db.updateRegistryInfo2Db(_heartBeatOff);
-    _db.loadIPPhysicalGroupInfo();
+    DBPROXY->updateRegistryInfo2Db(_heartBeatOff);
+	DBPROXY->loadIPPhysicalGroupInfo();
 
     TLOGDEBUG("AdminReapThread init ok."<<endl);
 
@@ -83,15 +84,15 @@ void AdminReapThread::run()
             if(tNow - tLastUpdateTime >= _updateInterval)
             {
                 tLastUpdateTime = tNow;
-                _db.updateRegistryInfo2Db(_heartBeatOff);
-                _db.loadIPPhysicalGroupInfo();
+				DBPROXY->updateRegistryInfo2Db(_heartBeatOff);
+				DBPROXY->loadIPPhysicalGroupInfo();
             }
 
             //轮询心跳超时的主控
             if(tNow - tLastQueryServer >= _timeout)
             {
                 tLastQueryServer = tNow;
-                _db.checkRegistryTimeout(_timeout);
+				DBPROXY->checkRegistryTimeout(_timeout);
             }
 
             TC_ThreadLock::Lock lock(*this);

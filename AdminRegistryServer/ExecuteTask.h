@@ -21,6 +21,7 @@
 #include "util/tc_thread_pool.h"
 #include "util/tc_singleton.h"
 #include "AdminReg.h"
+#include "AdminRegistryImp.h"
 
 using namespace tars;
 
@@ -32,9 +33,8 @@ public:
      */
     TaskList(const TaskReq &taskReq);
 
-    /**
-     * 得到返回任务
-     */
+    ~TaskList();
+
     TaskRsp getTaskRsp();
 
 
@@ -59,7 +59,7 @@ protected:
     EMTaskItemStatus stop    (const TaskItemReq &req, string &log);
     EMTaskItemStatus patch   (const TaskItemReq &req, string &log);
     EMTaskItemStatus undeploy(const TaskItemReq &req, string &log);
-    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
+//    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);
 
 protected:
@@ -71,8 +71,8 @@ protected:
     //返回任务
     TaskRsp         _taskRsp;
 
-    AdminRegPrx     _adminPrx;
-
+    //AdminRegPrx     _adminPrx;
+	AdminRegistryImp*	_adminPrx;
     time_t          _createTime;
 };
 
@@ -102,13 +102,9 @@ class ExecuteTask : public TC_Singleton<ExecuteTask>, public TC_ThreadLock, publ
 {
 public:
 
-    ExecuteTask();
 
-    ~ExecuteTask();
 
-    virtual void run();
 
-    void terminate();
 
     /**
      * 添加任务请求
@@ -137,10 +133,22 @@ public:
      */
     void checkTaskRspStatus(TaskRsp &taskRsp);
 
+    void terminate();
+public:
+     ExecuteTask();
+	 void init();
+	 AdminRegistryImp* getAdminImp()
+	 {
+		 return _adminImp;
+	 }
+    ~ExecuteTask();
+    virtual void run();
 protected:
 
+	TC_ThreadMutex	_initLock;
     map<string, TaskList*> _task;
 
+	AdminRegistryImp*	_adminImp;
     //线程结束标志
     bool _terminate;
 };

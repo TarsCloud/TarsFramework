@@ -67,7 +67,7 @@ int RegistryImp::updateServerBatch(const std::vector<tars::ServerStateInfo> & ve
     return _db.updateServerStateBatch(vecStateInfo);
 }
 
-int RegistryImp::destroy(const string & name, tars::TarsCurrentPtr current)
+int RegistryImp::destroyNode(const string & name, tars::TarsCurrentPtr current)
 {
     return _db.destroyNode(name);
 }

@@ -16,6 +16,8 @@
 
 #include "AdminRegistryServer.h"
 #include "AdminRegistryImp.h"
+#include "DbProxy.h"
+#include "ExecuteTask.h"
 
 TC_Config * g_pconf;
 AdminRegistryServer g_app;
@@ -23,7 +25,7 @@ AdminRegistryServer g_app;
 extern TC_Config * g_pconf;
 
 //内部版本
-const string SERVER_VERSION = "B002";
+const string SERVER_VERSION = "B003";
 
 void AdminRegistryServer::initialize()
 {
@@ -31,6 +33,7 @@ void AdminRegistryServer::initialize()
 
     try
     {
+        extern TC_Config * g_pconf;
         string size = Application::getCommunicator()->getProperty("timeout-queue-size", "");
         if(size.empty())
         {
@@ -39,6 +42,7 @@ void AdminRegistryServer::initialize()
 
         loadServantEndpoint();
 
+		DBPROXY->init(g_pconf);
         //轮询线程
         _reapThread.init();
         _reapThread.start();
@@ -49,6 +53,7 @@ void AdminRegistryServer::initialize()
         {
             addServant<AdminRegistryImp>(adminObj);
         }
+		ExecuteTask::getInstance()->init();
     }
     catch(TC_Exception & ex)
     {
@@ -85,11 +90,45 @@ void AdminRegistryServer::destroyApp()
     TLOGDEBUG("AdminRegistryServer::destroyApp ok" << endl);
 }
 
+void doMonitor(const string &configFile)
+{
+	TC_Config conf;
+	conf.parseFile(configFile);
 
+	string obj = "AdminObj@" + conf["/tars/application/server<local>"];
+	ServantPrx prx = Application::getCommunicator()->stringToProxy<ServantPrx>(obj);
+	prx->tars_ping();
+}
+void doCommand(int argc, char *argv[])
+{
+	TC_Option tOp;
+	tOp.decode(argc, argv);
+	if (tOp.hasParam("version"))
+	{
+		cout << "TARS:" << Application::getTarsVersion() << endl;
+		exit(0);
+	}
+	if (tOp.hasParam("monitor"))
+	{
+		try
+		{
+			string configFile = tOp.getValue("config");
+			doMonitor(configFile);
+		}
+		catch (exception &ex)
+		{
+			cout << "doMonitor failed:" << ex.what() << endl;
+			exit(-1);
+		}
+		exit(0);
+		return;
+	}
+}
 int main(int argc, char *argv[])
 {
     try
     {
+		doCommand(argc, argv);
         g_pconf =  & g_app.getConfig();
         g_app.main(argc, argv);
 
