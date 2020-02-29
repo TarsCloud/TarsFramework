@@ -15,15 +15,18 @@
  */
 
 #include "ExecuteTask.h"
-#include "servant/Application.h"
+#include "servant/Communicator.h"
+#include "servant/TarsLogger.h"
 #include "util/tc_timeprovider.h"
-
+#include <thread>
 extern TC_Config * g_pconf;
 
 TaskList::TaskList(const TaskReq &taskReq)
 : _taskReq(taskReq)
 {
-    _adminPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<AdminRegPrx>(g_pconf->get("/tars/objname<AdminRegObjName>", ""));
+    //_adminPrx = Communicator::getInstance()->stringToProxy<AdminRegPrx>(g_pconf->get("/tars/objname<AdminRegObjName>", ""));
+	_adminPrx = ExecuteTask::getInstance()->getAdminImp();
+	TLOGDEBUG("adminPrx is NULL:" << (_adminPrx == NULL ? "yes":"no") << endl);
 
     _taskRsp.taskNo   = _taskReq.taskNo;
     _taskRsp.serial   = _taskReq.serial;
@@ -44,6 +47,11 @@ TaskList::TaskList(const TaskReq &taskReq)
     _createTime = TC_TimeProvider::getInstance()->getNow();
 }
 
+TaskList::~TaskList()
+{
+    TLOGDEBUG("TaskList::TaskList stop thread ========================= " << endl);
+    _pool.stop();
+}
 
 TaskRsp TaskList::getTaskRsp()
 {
@@ -81,7 +89,7 @@ void TaskList::setRspInfo(size_t index, bool start, EMTaskItemStatus status)
 
     try
     {
-        _adminPrx->setTaskItemInfo(rsp.req.itemNo, info);
+        _adminPrx->setTaskItemInfo_inner(rsp.req.itemNo, info);
     }
     catch (exception &ex)
     {
@@ -106,7 +114,7 @@ void TaskList::setRspLog(size_t index, const string &log)
 
     try
     {
-        _adminPrx->setTaskItemInfo(rsp.req.itemNo, info);
+        _adminPrx->setTaskItemInfo_inner(rsp.req.itemNo, info);
     }
     catch (exception &ex)
     {
@@ -120,7 +128,7 @@ EMTaskItemStatus TaskList::start(const TaskItemReq &req, string &log)
     int ret = -1;
     try
     {
-        ret = _adminPrx->startServer(req.application, req.serverName, req.nodeName, log);
+		ret = _adminPrx->startServer_inner(req.application, req.serverName, req.nodeName, log);
         if (ret == 0)
             return EM_I_SUCCESS;
     }
@@ -140,7 +148,8 @@ EMTaskItemStatus TaskList::restart(const TaskItemReq &req, string &log)
     int ret = -1;
     try
     {
-        ret = _adminPrx->restartServer(req.application, req.serverName, req.nodeName, log);
+		TLOGDEBUG("_adminPrx:" << _adminPrx << ", null?" << (_adminPrx == NULL ? "yes" : "no") << endl);
+		ret = _adminPrx->restartServer_inner(req.application, req.serverName, req.nodeName, log);
         if (ret == 0)
             return EM_I_SUCCESS;
     }
@@ -159,7 +168,7 @@ EMTaskItemStatus TaskList::undeploy(const TaskItemReq &req, string &log)
     int ret = -1;
     try
     {
-        ret = _adminPrx->undeploy(req.application, req.serverName, req.nodeName, req.userName, log);
+		ret = _adminPrx->undeploy_inner(req.application, req.serverName, req.nodeName, req.userName, log);
         if (ret == 0)
             return EM_I_SUCCESS;
     }
@@ -179,7 +188,7 @@ EMTaskItemStatus TaskList::stop(const TaskItemReq &req, string &log)
     int ret = -1;
     try
     {
-        ret = _adminPrx->stopServer(req.application, req.serverName, req.nodeName, log);
+		ret = _adminPrx->stopServer_inner(req.application, req.serverName, req.nodeName, log);
         if (ret == 0)
             return EM_I_SUCCESS;
     }
@@ -228,7 +237,7 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
 
         try
         {
-            ret = _adminPrx->batchPatch(patchReq, log);
+            ret = _adminPrx->batchPatch_inner(patchReq, log);
         }
         catch (exception &ex)
         {
@@ -245,13 +254,14 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
             return EM_I_FAILED;
         }
 
-        while (true)
+		time_t tNow = TNOW;
+        while (TNOW < tNow + 60)
         {
             PatchInfo pi;
 
             try
             {
-                ret = _adminPrx->getPatchPercent(req.application, req.serverName, req.nodeName, pi);
+				ret = _adminPrx->getPatchPercent_inner(req.application, req.serverName, req.nodeName, pi);
             }
             catch (exception &ex)
             {
@@ -261,21 +271,21 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
 
             if (ret != 0)
             {
-                _adminPrx->updatePatchLog(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
+				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
                 TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
                 return EM_I_FAILED;
             }
 
             if(pi.iPercent == 100 && pi.bSucc)
             {
-                _adminPrx->updatePatchLog(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
+				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
                 TLOGDEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl); 
                 break;
             }
             
             TLOGDEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl); 
 
-            sleep(1);
+			std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
     }
@@ -286,47 +296,47 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
     }
     return EM_I_SUCCESS; 
 }
-
-EMTaskItemStatus TaskList::gridPatchServer(const TaskItemReq &req, string &log)
-{
-    int ret = -1;
-    try
-    {
-        TLOGDEBUG("TaskList::grid_server:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
-        
-        string status   = get("grid_status", req.parameters);
-
-        vector<ServerGridDesc> gridDescList;
-        
-        tars::ServerGridDesc serverGridDesc;
-        serverGridDesc.application    = req.application;
-        serverGridDesc.servername = req.serverName;
-        serverGridDesc.nodename   = req.nodeName;
-        
-        if(TC_Common::strto<int>(status) == tars::NORMAL)
-            serverGridDesc.status    = tars::NORMAL;
-        else if(TC_Common::strto<int>(status) == tars::NO_FLOW)
-            serverGridDesc.status    = tars::NO_FLOW;
-        else if(TC_Common::strto<int>(status) == tars::GRID)
-            serverGridDesc.status    = tars::GRID;
-        else
-            serverGridDesc.status    = tars::NORMAL;
-        
-        gridDescList.push_back(serverGridDesc);
-        
-        vector<ServerGridDesc> gridFailDescList;
-        ret = _adminPrx->gridPatchServer(gridDescList, gridFailDescList,log);
-        if (ret == 0)
-            return EM_I_SUCCESS;
-    }
-    catch (exception &ex)
-    {
-        log = ex.what();
-        TLOGERROR("TaskList::gridPatchServer error:" << log << endl);
-    }
-
-    return EM_I_FAILED;    
-}
+//
+//EMTaskItemStatus TaskList::gridPatchServer(const TaskItemReq &req, string &log)
+//{
+//    int ret = -1;
+//    try
+//    {
+//        TLOGDEBUG("TaskList::grid_server:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
+//
+//        string status   = get("grid_status", req.parameters);
+//
+//        vector<ServerGridDesc> gridDescList;
+//
+//        tars::ServerGridDesc serverGridDesc;
+//        serverGridDesc.application    = req.application;
+//        serverGridDesc.servername = req.serverName;
+//        serverGridDesc.nodename   = req.nodeName;
+//
+//        if(TC_Common::strto<int>(status) == tars::NORMAL)
+//            serverGridDesc.status    = tars::NORMAL;
+//        else if(TC_Common::strto<int>(status) == tars::NO_FLOW)
+//            serverGridDesc.status    = tars::NO_FLOW;
+//        else if(TC_Common::strto<int>(status) == tars::GRID)
+//            serverGridDesc.status    = tars::GRID;
+//        else
+//            serverGridDesc.status    = tars::NORMAL;
+//
+//        gridDescList.push_back(serverGridDesc);
+//
+//        vector<ServerGridDesc> gridFailDescList;
+//        ret = _adminPrx->gridPatchServer_inner(gridDescList, gridFailDescList,log);
+//        if (ret == 0)
+//            return EM_I_SUCCESS;
+//    }
+//    catch (exception &ex)
+//    {
+//        log = ex.what();
+//        TLOGERROR("TaskList::gridPatchServer error:" << log << endl);
+//    }
+//
+//    return EM_I_FAILED;
+//}
 EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &req)
 {
     TLOGDEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo 
@@ -363,10 +373,10 @@ EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &re
     {
         ret = undeploy(req, log);
     }
-    else if (req.command == "grid_server")
-    {
-        ret = gridPatchServer(req,log);
-    }
+//    else if (req.command == "grid_server")
+//    {
+//        ret = gridPatchServer(req,log);
+//    }
     else 
     {
         ret = EM_I_FAILED;
@@ -473,6 +483,7 @@ void TaskListParallel::doTask(TaskItemReq req, size_t index)
 
 ExecuteTask::ExecuteTask()
 {
+	_adminImp = NULL;
     _terminate = false;
     start();
 }
@@ -633,5 +644,10 @@ void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp)
 
 }
 
+void ExecuteTask::init()
+{
+	_adminImp = new AdminRegistryImp();
+	_adminImp->initialize();
+}
 
 

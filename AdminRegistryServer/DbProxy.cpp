@@ -28,15 +28,33 @@ vector<map<string, string> >DbProxy::_serverGroupRule;
 //key-ip, value-组编号
 map<string, int> DbProxy::_serverGroupCache;
 
+vector<tars::TC_Mysql*> DbProxy::_mysqlReg;
+vector<TC_ThreadMutex*> DbProxy::_mysqlLocks;
+static std::atomic<int>	g_index(0);
 
+#define MYSQL_LOCK	size_t nowIndex = ++g_index; TC_LockT<TC_ThreadMutex> Lock(*(_mysqlLocks[nowIndex % _mysqlLocks.size()]));
+#define MYSQL_INDEX	_mysqlReg[nowIndex % _mysqlReg.size()]
 int DbProxy::init(TC_Config *pconf)
 {
     try
     {
+		int connNums = TC_Common::strto<int>(pconf->get("/tars/db<conn_num>", "5"));
+		connNums = (connNums < 1 ? 5 : connNums);
+		connNums = (connNums > 100 ? 5 : connNums);
+	    TLOGDEBUG("connNums=" << connNums << endl);
 
         TC_DBConf tcDBConf;
         tcDBConf.loadFromMap(pconf->getDomainMap("/tars/db"));
-        _mysqlReg.init(tcDBConf);
+	    TLOGDEBUG("mysql param:" << TC_Common::tostr(pconf->getDomainMap("/tars/db")) << endl);
+
+		for (int i = 0; i < connNums; ++i)
+		{
+			TC_Mysql* pMysql = new TC_Mysql(tcDBConf);
+			_mysqlReg.push_back(pMysql);
+			_mysqlLocks.push_back(new TC_ThreadMutex());
+		}
+	    TLOGDEBUG("init finish, mysql num:" << _mysqlReg.size() << ", _mysqllock num:" << _mysqlLocks.size() << endl);
+		assert((_mysqlLocks.size() == _mysqlReg.size()) && (_mysqlReg.size() > 0));
     }
     catch (TC_Config_Exception& ex)
     {
@@ -65,7 +83,8 @@ int DbProxy::addTaskReq(const TaskReq &taskReq)
             data["command"]     = make_pair(TC_Mysql::DB_STR, taskReq.taskItemReq[i].command);
             data["parameters"]  = make_pair(TC_Mysql::DB_STR, TC_Parsepara(taskReq.taskItemReq[i].parameters).tostr());
 
-            _mysqlReg.insertRecord("t_task_item", data);
+			MYSQL_LOCK;
+			MYSQL_INDEX->insertRecord("t_task_item", data);
         }
 
         {
@@ -75,7 +94,8 @@ int DbProxy::addTaskReq(const TaskReq &taskReq)
             data["create_time"] = make_pair(TC_Mysql::DB_INT, "now()");
             data["user_name"]   = make_pair(TC_Mysql::DB_STR, taskReq.userName);
 
-            _mysqlReg.insertRecord("t_task", data);
+			MYSQL_LOCK;
+			MYSQL_INDEX->insertRecord("t_task", data);
         }
     }
     catch (exception &ex)
@@ -92,10 +112,15 @@ int DbProxy::getTaskRsp(const string &taskNo, TaskRsp &taskRsp)
 
     try
     {
-        string sql = "select * from t_task as t1, t_task_item as t2 where t1.task_no=t2.task_no and t2.task_no='" 
-            + _mysqlReg.escapeString(taskNo) + "'";
+		tars::TC_Mysql::MysqlData item;
+		{
+			MYSQL_LOCK;
+        	string sSql = "select * from t_task as t1, t_task_item as t2 where t1.task_no=t2.task_no and t2.task_no='"
+            + MYSQL_INDEX->escapeString(taskNo) + "'";
 
-        tars::TC_Mysql::MysqlData item = _mysqlReg.queryRecord(sql);
+			item = MYSQL_INDEX->queryRecord(sSql);
+		}
+
         if (item.size() == 0)
         {
             TLOGERROR("DbProxy::getTaskRsp 't_task' not task: " << taskNo << endl);
@@ -140,15 +165,20 @@ int DbProxy::getTaskRsp(const string &taskNo, TaskRsp &taskRsp)
 
 int DbProxy::getTaskHistory(const string & application, const string & serverName, const string & command, vector<TaskRsp> &taskRsp)
 {
-    string sql = "select t1.`create_time`, t1.`serial`, t1.`user_name`, t2.* from t_task as t1, t_task_item as t2 where t1.task_no=t2.task_no and t2.application='" 
-        + _mysqlReg.escapeString(application) + "' and t2.server_name='" 
-        + _mysqlReg.escapeString(serverName) +  "' and t2.command='" 
-        + _mysqlReg.escapeString(command) +     "' order by create_time desc, task_no";
 
     try
     {
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
-        TLOGDEBUG("DbProxy::getTaskHistory size:" << res.size() << ", sql:" << sql << endl);
+		tars::TC_Mysql::MysqlData res;
+
+		{
+			MYSQL_LOCK;
+			string sSql = "select t1.`create_time`, t1.`serial`, t1.`user_name`, t2.* from t_task as t1, t_task_item as t2 where t1.task_no=t2.task_no and t2.application='"
+				+ MYSQL_INDEX->escapeString(application) + "' and t2.server_name='"
+				+ MYSQL_INDEX->escapeString(serverName) + "' and t2.command='"
+				+ MYSQL_INDEX->escapeString(command) + "' order by create_time desc, task_no";
+			res = MYSQL_INDEX->queryRecord(sSql);
+			TLOGDEBUG(__FUNCTION__ << " size:" << res.size() << ", sql:" << sSql << endl);
+		}
         for (unsigned i = 0; i < res.size(); i++)
         {
             string taskNo = res[i]["task_no"];
@@ -224,7 +254,10 @@ int DbProxy::setTaskItemInfo(const string & itemNo, const map<string, string> &i
             data["log"] = make_pair(TC_Mysql::DB_STR, it->second);
         }
 
-        _mysqlReg.updateRecord("t_task_item", data, where);
+		{
+			MYSQL_LOCK;
+			MYSQL_INDEX->updateRecord("t_task_item", data, where);
+		}
     }
     catch (exception &ex)
     {
@@ -242,9 +275,10 @@ int DbProxy::undeploy(const string & application, const string & serverName, con
     try
     {
 
-        _mysqlReg.deleteRecord("t_server_conf", where);
+		MYSQL_LOCK;
+        MYSQL_INDEX->deleteRecord("t_server_conf", where);
 
-        _mysqlReg.deleteRecord("t_adapter_conf", where);
+		MYSQL_INDEX->deleteRecord("t_adapter_conf", where);
 
     }
     catch (exception &ex)
@@ -262,11 +296,16 @@ map<string, string> DbProxy::getActiveNodeList(string& result)
     map<string, string> mapNodeList;
     try
     {
-        string sql =
+        string sSql =
                       "select node_name, node_obj from t_node_info "
                       "where present_state='active'";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+		tars::TC_Mysql::MysqlData res;
+
+		{
+			MYSQL_LOCK;
+			res = MYSQL_INDEX->queryRecord(sSql);
+		}
         TLOGDEBUG("DbProxy::getActiveNodeList (present_state='active') affected:" << res.size() << endl);
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -286,18 +325,19 @@ int DbProxy::setPatchInfo(const string& app, const string& serverName, const str
 {
     try
     {
-        string sql =
+		MYSQL_LOCK;
+        string sSql =
                       "update t_server_conf "
-                      "set patch_version = '" + _mysqlReg.escapeString(version) + "', "
-                      "   patch_user = '"     + _mysqlReg.escapeString(user) + "', "
+                      "set patch_version = '" + MYSQL_INDEX->escapeString(version) + "', "
+                      "   patch_user = '" + MYSQL_INDEX->escapeString(user) + "', "
                       "   patch_time = now() "
-                      "where application='"   + _mysqlReg.escapeString(app) + "' "
-                      "    and server_name='" + _mysqlReg.escapeString(serverName) + "' "
-                      "    and node_name='"   + _mysqlReg.escapeString(nodeName) + "' ";
+                      "where application='" + MYSQL_INDEX->escapeString(app) + "' "
+                      "    and server_name='" + MYSQL_INDEX->escapeString(serverName) + "' "
+                      "    and node_name='" + MYSQL_INDEX->escapeString(nodeName) + "' ";
          
-        _mysqlReg.execute(sql);
-        TLOGDEBUG("DbProxy::setPatchInfo " << app << "." << serverName << "_" << nodeName
-                  << " affected:" << _mysqlReg.getAffectedRows() << endl);
+        MYSQL_INDEX->execute(sSql);
+        TLOGDEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+                  << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
 
         return 0;
     }
@@ -314,11 +354,12 @@ int DbProxy::getNodeVersion(const string& nodeName, string& version, string& res
 {
     try
     {
-        string sql =
+		MYSQL_LOCK;
+        string sSql =
                       "select tars_version from t_node_info "
-                      "where node_name='" + _mysqlReg.escapeString(nodeName) + "'";
+                      "where node_name='" + MYSQL_INDEX->escapeString(nodeName) + "'";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+        tars::TC_Mysql::MysqlData res = MYSQL_INDEX->queryRecord(sSql);
         TLOGDEBUG(__FUNCTION__ << " (node_name='" << nodeName << "') affected:" << res.size() << endl);
         if (res.size() > 0)
         {
@@ -352,16 +393,17 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
         string sProcessIdSql = (stateFields == "present_state" ?
                                 (", process_id = " + TC_Common::tostr<int>(processId) + " ") : "");
 
-        string sql =
+		MYSQL_LOCK;
+        string sSql =
                       "update t_server_conf "
                       "set " + stateFields + " = '" + etos(state) + "' " + sProcessIdSql +
-                      "where application='" + _mysqlReg.escapeString(app) + "' "
-                      "    and server_name='" + _mysqlReg.escapeString(serverName) + "' "
-                      "    and node_name='" + _mysqlReg.escapeString(nodeName) + "' ";
+                      "where application='" + MYSQL_INDEX->escapeString(app) + "' "
+                      "    and server_name='" + MYSQL_INDEX->escapeString(serverName) + "' "
+                      "    and node_name='" + MYSQL_INDEX->escapeString(nodeName) + "' ";
 
-        _mysqlReg.execute(sql);
+        MYSQL_INDEX->execute(sSql);
         TLOGDEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
-                  << " affected:" << _mysqlReg.getAffectedRows()
+			<< " affected:" << MYSQL_INDEX->getAffectedRows()
                   << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
         return 0;
 
@@ -378,23 +420,24 @@ int DbProxy::gridPatchServer(const string& app, const string& servername, const 
 {
     try
     {
-        string sql("update t_server_conf");
-        sql += " set grid_flag='";
-        sql += status;
-        sql += "' where application='";
-        sql += _mysqlReg.escapeString(app);
-        sql += "' and server_name='";
-        sql += _mysqlReg.escapeString(servername);
-        sql += "' and node_name='";
-        sql += _mysqlReg.escapeString(nodename);
-        sql += "'";
+		MYSQL_LOCK;
+        string sSql("update t_server_conf");
+        sSql += " set grid_flag='";
+        sSql += status;
+        sSql += "' where application='";
+        sSql += MYSQL_INDEX->escapeString(app);
+        sSql += "' and server_name='";
+        sSql += MYSQL_INDEX->escapeString(servername);
+        sSql += "' and node_name='";
+        sSql += MYSQL_INDEX->escapeString(nodename);
+        sSql += "'";
 
         int64_t iStart = TC_TimeProvider::getInstance()->getNowMs();
 
-        _mysqlReg.execute(sql);
+        MYSQL_INDEX->execute(sSql);
 
         TLOGDEBUG(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
-                  << "|affected:" << _mysqlReg.getAffectedRows() << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
+                  << "|affected:" << MYSQL_INDEX->getAffectedRows() << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
 
         return 0;
 
@@ -409,23 +452,26 @@ int DbProxy::gridPatchServer(const string& app, const string& servername, const 
 
 vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& serverName, const string& nodeName, bool withDnsServer)
 {
-    string sql;
+    string sSql;
     vector<ServerDescriptor>  vServers;
     unsigned num = 0;
     int64_t iStart = TC_TimeProvider::getInstance()->getNowMs();
 
     try
     {
+		tars::TC_Mysql::MysqlData res;
+		{
+			MYSQL_LOCK;
         //server详细配置
         string sCondition;
-        sCondition += "server.node_name='" + _mysqlReg.escapeString(nodeName) + "'";
-        if (app != "")        sCondition += " and server.application='" + _mysqlReg.escapeString(app) + "' ";
-        if (serverName != "") sCondition += " and server.server_name='" + _mysqlReg.escapeString(serverName) + "' ";
-        if (withDnsServer == false) sCondition += " and server.server_type !='tars_dns' "; //不获取dns服务
+			sCondition += "server.node_name='" + MYSQL_INDEX->escapeString(nodeName) + "'";
+			if (app != "")        sCondition += " and server.application='" + MYSQL_INDEX->escapeString(app) + "' ";
+			if (serverName != "") sCondition += " and server.server_name='" + MYSQL_INDEX->escapeString(serverName) + "' ";
+			if (withDnsServer == false) sCondition += " and server.server_type !='tars_dns' "; //不获取dns服务
 
 //        "    allow_ip, max_connections, servant, queuecap, queuetimeout,protocol,handlegroup,shmkey,shmcap,"
 
-        sql =
+			sSql =
                "select server.application, server.server_name, server.node_name, base_path, "
                "    exe_path, setting_state, present_state, adapter_name, thread_num, async_thread_num, endpoint,"
                "    profile,template_name, "
@@ -437,7 +483,9 @@ vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& se
                "    left join t_adapter_conf as adapter using(application, server_name, node_name) "
                "where " + sCondition;
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+			res = MYSQL_INDEX->queryRecord(sSql);
+		}
+
         num = res.size();
         //对应server在vector的下标
         map<string, int> mapAppServerTemp;
@@ -528,7 +576,7 @@ vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& se
     catch (TC_Mysql_Exception& ex)
     {
         TLOGERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
-                  << " exception: " << ex.what() << "|" << sql << endl);
+                  << " exception: " << ex.what() << "|" << sSql << endl);
         return vServers;
     }
     catch (TC_Config_Exception& ex)
@@ -552,9 +600,10 @@ int DbProxy::getNodeList(const string& app, const string& serverName, vector<str
     nodeNames.clear();
     try
     {
-        string sql = "select node_name from t_server_conf where application='" + _mysqlReg.escapeString(app) + "' and server_name='" + _mysqlReg.escapeString(serverName) + "'";
+		MYSQL_LOCK;
+        string sSql = "select node_name from t_server_conf where application='" + MYSQL_INDEX->escapeString(app) + "' and server_name='" + MYSQL_INDEX->escapeString(serverName) + "'";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+        tars::TC_Mysql::MysqlData res = MYSQL_INDEX->queryRecord(sSql);
 
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -580,10 +629,14 @@ string DbProxy::getProfileTemplate(const string& sTemplateName, map<string, int>
 {
     try
     {
-        string sql = "select template_name, parents_name, profile from t_profile_template "
-                      "where template_name='" + _mysqlReg.escapeString(sTemplateName) + "'";
+		tars::TC_Mysql::MysqlData res;
+		{
+			MYSQL_LOCK;
+			string sSql = "select template_name, parents_name, profile from t_profile_template "
+				"where template_name='" + MYSQL_INDEX->escapeString(sTemplateName) + "'";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+			res = MYSQL_INDEX->queryRecord(sSql);
+		}
 
         if (res.size() == 0)
         {
@@ -626,9 +679,14 @@ vector<string> DbProxy::getAllApplicationNames(string& result)
     vector<string> vApps;
     try
     {
-        string sql = "select distinct application from t_server_conf";
+		tars::TC_Mysql::MysqlData res;
+		{
+			MYSQL_LOCK;
+			string sSql = "select distinct application from t_server_conf";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+			res = MYSQL_INDEX->queryRecord(sSql);
+		}
+
         TLOGDEBUG(__FUNCTION__ << " affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
@@ -651,10 +709,11 @@ vector<vector<string> > DbProxy::getAllServerIds(string& result)
     vector<vector<string> > vServers;
     try
     {
-        string sql =
-                      "select application, server_name, node_name, setting_state, present_state,server_type from t_server_conf";
+		tars::TC_Mysql::MysqlData res;
+		MYSQL_LOCK;
+        string sSql = "select application, server_name, node_name, setting_state, present_state,server_type from t_server_conf";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+        res = MYSQL_INDEX->queryRecord(sSql);
         TLOGDEBUG(__FUNCTION__ << " affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
@@ -763,12 +822,15 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
             return _mapNodePrxCache[nodeName];
         }
 
-        string sql =
-                      "select node_obj "
+		tars::TC_Mysql::MysqlData res;
+		{
+			MYSQL_LOCK;
+			string sSql = "select node_obj "
                       "from t_node_info "
-                      "where node_name='" + _mysqlReg.escapeString(nodeName) + "' and present_state='active'";
+				"where node_name='" + MYSQL_INDEX->escapeString(nodeName) + "' and present_state='active'";
 
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+			res = MYSQL_INDEX->queryRecord(sSql);
+		}
         TLOGDEBUG(__FUNCTION__ << " '" << nodeName << "' affected:" << res.size() << endl);
 
         if (res.size() == 0)
@@ -801,15 +863,15 @@ int DbProxy::checkRegistryTimeout(unsigned uTimeout)
 {
     try
     {
-        string sql =
-                      "update t_registry_info "
+		MYSQL_LOCK;
+        string sSql = "update t_registry_info "
                       "set present_state='inactive' "
                       "where last_heartbeat < date_sub(now(), INTERVAL " + tars::TC_Common::tostr(uTimeout) + " SECOND)";
 
-        _mysqlReg.execute(sql);
-        TLOGDEBUG(__FUNCTION__ << " (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << endl);
+        MYSQL_INDEX->execute(sSql);
+        TLOGDEBUG(__FUNCTION__ << " (" << uTimeout  << "s) affected:" << MYSQL_INDEX->getAffectedRows() << endl);
 
-        return _mysqlReg.getAffectedRows();
+        return MYSQL_INDEX->getAffectedRows();
 
     }
     catch (TC_Mysql_Exception& ex)
@@ -838,26 +900,23 @@ int DbProxy::updateRegistryInfo2Db(bool bRegHeartbeatOff)
 
     try
     {
-        string sql = "replace into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version) "
-                      "values ";
+		MYSQL_LOCK;
+        string sSql = "replace into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version)  values ";
 
-        string sVersion = TARS_VERSION;
-        sVersion += "_";
-        sVersion += SERVER_VERSION;
-
+        string sVersion = Application::getTarsVersion() + "_" + SERVER_VERSION;
         for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
         {
             TC_Endpoint locator;
             locator.parse(iter->second);
 
-            sql += (iter == mapServantEndpoint.begin() ? string("") : string(", ")) +
+            sSql += (iter == mapServantEndpoint.begin() ? string("") : string(", ")) +
                     "('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) + "', "
                     "'" + iter->first + "', '" + iter->second + "', now(), 'active', " +
-                    "'" + _mysqlReg.escapeString(sVersion) + "')";
+                    "'" + MYSQL_INDEX->escapeString(sVersion) + "')";
         }
 
-        _mysqlReg.execute(sql);
-        TLOGDEBUG(__FUNCTION__ << " affected:" << _mysqlReg.getAffectedRows() << endl);
+        MYSQL_INDEX->execute(sSql);
+        TLOGDEBUG(__FUNCTION__ << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
@@ -877,9 +936,13 @@ int DbProxy::loadIPPhysicalGroupInfo()
 {
     try
     {
-        string sql = "select group_id,ip_order,allow_ip_rule,denny_ip_rule,group_name from t_server_group_rule "
+		tars::TC_Mysql::MysqlData res;
+		{
+			MYSQL_LOCK;
+			string sSql = "select group_id,ip_order,allow_ip_rule,denny_ip_rule,group_name from t_server_group_rule "
                       "order by group_id";
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+			res = MYSQL_INDEX->queryRecord(sSql);
+		}
         TLOGDEBUG(__FUNCTION__ << " get server group from db, records affected:" << res.size() << endl);
 
 
@@ -904,8 +967,9 @@ int DbProxy::getInfoByPatchId(const string &patchId, string &patchFile, string &
 {
     try
     {
-        string sql = "select tgz, md5 from t_server_patchs where id=" + patchId;
-        tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sql);
+		MYSQL_LOCK;
+        string sSql = "select tgz, md5 from t_server_patchs where id=" + patchId;
+        tars::TC_Mysql::MysqlData res = MYSQL_INDEX->queryRecord(sSql);
 
         if (res.size() == 0)
         {
@@ -933,10 +997,11 @@ int DbProxy::updatePatchByPatchId(const string &application, const string & serv
 {
     try
     {
+		MYSQL_LOCK;
         string sql = "update t_server_patchs set publish='1',publish_user='" + user 
             + "',publish_time=now(),lastuser='"+ user +"' where id=" + patchId;
 
-        _mysqlReg.execute(sql);
+        MYSQL_INDEX->execute(sql);
 
         return 0;
     }
