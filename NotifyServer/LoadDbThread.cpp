@@ -115,7 +115,7 @@ void LoadDbThread::loadData()
 
             iOffset += mysqlData.size();
 
-        } while (iOffset % 1000 == 0);
+        } while (iOffset % 1000 == 0 || mysqlData.data().empty());
 
         _data.swap();
 
