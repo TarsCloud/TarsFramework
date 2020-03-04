@@ -47,22 +47,26 @@ MIRROR=http://mirrors.cloud.tencent.com
 
 export TARS_INSTALL=$(cd $(dirname $0); pwd)
 
-# TARS_INSTALL=$(cd $(dirname $0); pwd)
+OS=`uname`
 
-OS=`cat /etc/os-release`
-if [[ "$OS" =~ "CentOS" ]]; then
-  OS=1
-elif [[ "$OS" =~ "Ubuntu" ]]; then
-  OS=2
+if [[ "$OS" =~ "Darwin" ]]; then
+    OS=3
 else
-  echo "OS not support:"
-  echo $OS
-  exit 1
+    OS=`cat /etc/os-release`
+    if [[ "$OS" =~ "CentOS" ]]; then
+      OS=1
+    elif [[ "$OS" =~ "Ubuntu" ]]; then
+      OS=2
+    else
+      echo "OS not support:"
+      echo $OS
+      exit 1
+    fi
 fi
 
 function bash_rc()
 {
-  if [ $OS == 1 ]; then
+  if [ $OS == 1 ] || [ $OS == 3 ]; then
     echo ".bashrc"
   else
     echo ".profile"
@@ -71,7 +75,7 @@ function bash_rc()
 
 function exec_profile()
 {
-  if [ $OS == 1 ]; then
+  if [ $OS == 1 ] || [ $OS == 3 ]; then
     source ~/.bashrc
   else
     source ~/.profile
@@ -83,29 +87,31 @@ function get_host_ip()
   if [ $OS == 1 ]; then
     IP=`ifconfig | grep $1 -A3 | grep inet | grep broad | awk '{print $2}'`
   else
-    #ubuntu16.04 & ubuntu18.04
     IP=`ifconfig | sed 's/addr//g' | grep $1 -A3 | grep "inet " | awk -F'[ :]+' '{print $3}'`
-#    IP=`ifconfig | grep $1 -A3 | grep inet | awk -F' ' '{print $2}' | awk '{print $1}'`
   fi
   echo "$IP"
 }
 
-now_user=`whoami`
+if [ $OS != 3 ]; then
 
-if [ $now_user != "root" ]; then
-  echo "User error, must be root user! Now user is:"$now_user;
-  exit 1;
-fi
+    now_user=`whoami`
 
-if [ $OS == 1 ]; then
+    if [ $now_user != "root" ]; then
+      echo "User error, must be root user! Now user is:"$now_user;
+      exit 1;
+    fi
 
-  cp centos7_base.repo /etc/yum.repos.d/
-  yum makecache fast
+    if [ $OS == 1 ]; then
 
-  yum install -y yum-utils psmisc mysql telnet net-tools wget unzip
-else
-  apt-get update
-  apt-get install -y psmisc mysql-client telnet net-tools wget unzip
+      cp centos7_base.repo /etc/yum.repos.d/
+      yum makecache fast
+
+      yum install -y yum-utils psmisc mysql telnet net-tools wget unzip
+    else
+      apt-get update
+      apt-get install -y psmisc mysql-client telnet net-tools wget unzip
+    fi
+
 fi
 
 #获取主机hostip
@@ -205,6 +211,6 @@ cp ${TARS_INSTALL}/tools/install.sh ${TARS_INSTALL}/web/files/
 
 cd ${TARS_INSTALL}
 
-./tars-install.sh ${MYSQLIP} ${PORT} ${USER} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT}
 
 exec_profile
