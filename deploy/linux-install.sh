@@ -86,8 +86,10 @@ function get_host_ip()
 {
   if [ $OS == 1 ]; then
     IP=`ifconfig | grep $1 -A3 | grep inet | grep broad | awk '{print $2}'`
-  else
+  elif [ $OS == 2 ]; then
     IP=`ifconfig | sed 's/addr//g' | grep $1 -A3 | grep "inet " | awk -F'[ :]+' '{print $3}'`
+  elif [ $OS == 3 ]; then
+    IP=`ifconfig | grep $1 -A3 | grep inet | awk '{print $2}'`
   fi
   echo "$IP"
 }

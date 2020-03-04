@@ -164,7 +164,14 @@ install(DIRECTORY deploy DESTINATION ./
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
 
+############################################################################################
+#for debug
 
+add_custom_target(cp-querystat
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
+        COMMAND sh /usr/local/app/tars/tarsquerystat/util/start.sh
+        COMMENT "cp querystat & restart")
 
 
 
