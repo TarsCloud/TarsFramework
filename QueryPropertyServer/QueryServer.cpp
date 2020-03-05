@@ -74,9 +74,9 @@ void  QueryServer::initialize()
 
     _activeDbInfo = _dbStatInfo;
 
-    _dBThread = new DBThread();
-
-    _dBThread->start();
+//    _dBThread = new DBThread();
+//
+//    _dBThread->start();
 
 //    _queryFlag.insert("f_date");
 //    _queryFlag.insert("f_tflag");
@@ -148,31 +148,31 @@ vector<TC_DBConf> QueryServer::getActiveDbInfo() const
     return _activeDbInfo;
 }
 
-uint32_t QueryServer::genUid()
-{
-    TC_LockT<TC_ThreadMutex> lock(*this);
-
-    while (++_uniqId == 0);
-
-    return _uniqId;
-}
-
-string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
-{
-    ostringstream os;
-
-    os <<endl;
-    for(size_t i = 0; i < vDbInfo.size();i++)
-    {
-        os << "[charset]=[" <<vDbInfo[i]._charset <<"] "
-           << "[dbhost]=[" <<vDbInfo[i]._host <<"] "
-           << "[dbpass]=[" <<vDbInfo[i]._password <<"] "
-           << "[dbport]=[" <<TC_Common::tostr(vDbInfo[i]._port) <<"] "
-           << "[dbuser]=[" <<vDbInfo[i]._user <<"]"
-           <<endl;
-    }
-    return os.str();
-}
+//uint32_t QueryServer::genUid()
+//{
+//    TC_LockT<TC_ThreadMutex> lock(*this);
+//
+//    while (++_uniqId == 0);
+//
+//    return _uniqId;
+//}
+//
+//string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
+//{
+//    ostringstream os;
+//
+//    os <<endl;
+//    for(size_t i = 0; i < vDbInfo.size();i++)
+//    {
+//        os << "[charset]=[" <<vDbInfo[i]._charset <<"] "
+//           << "[dbhost]=[" <<vDbInfo[i]._host <<"] "
+//           << "[dbpass]=[" <<vDbInfo[i]._password <<"] "
+//           << "[dbport]=[" <<TC_Common::tostr(vDbInfo[i]._port) <<"] "
+//           << "[dbuser]=[" <<vDbInfo[i]._user <<"]"
+//           <<endl;
+//    }
+//    return os.str();
+//}
 //
 //bool QueryServer::searchQueryFlag(const string &sKey)
 //{
@@ -195,11 +195,11 @@ QueryServer::destroyApp()
 {
     //destroy application here:
     //...
-    if(_dBThread)
-    {
-        delete _dBThread;
-        _dBThread = NULL;
-    }
+//    if(_dBThread)
+//    {
+//        delete _dBThread;
+//        _dBThread = NULL;
+//    }
 
     if(_tpoolQueryDb)
     {

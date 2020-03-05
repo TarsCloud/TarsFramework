@@ -98,19 +98,13 @@ void DBThread::tryConnect()
 
         size_t iDbCountInfoSize = vDbCountInfo.size();
 
-
-
         vector<TC_DBConf> vAtivedbCountInfo;
-
-        
 
         for(size_t i = 0; i < vDbCountInfo.size(); i++)
         {
              TC_DBConf tcDBConf = vDbCountInfo[i];
 
-        
-
-            MYSQL* _pstMql = NULL;
+             MYSQL* _pstMql = NULL;
 
             int iRet = connect(&_pstMql,tcDBConf);
 

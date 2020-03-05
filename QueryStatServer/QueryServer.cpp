@@ -74,9 +74,9 @@ void  QueryServer::initialize()
 
     _activeDbInfo = _dbStatInfo;
 
-    _dBThread = new DBThread();
-
-    _dBThread->start();
+//    _dBThread = new DBThread();
+//
+//    _dBThread->start();
 
     _queryFlag.insert("f_date");
     _queryFlag.insert("f_tflag");
@@ -147,14 +147,14 @@ vector<TC_DBConf> QueryServer::getActiveDbInfo() const
     return _activeDbInfo;
 }
 
-uint32_t QueryServer::genUid()
-{
-    TC_LockT<TC_ThreadMutex> lock(*this);
-
-    while (++_uniqId == 0);
-
-    return _uniqId;
-}
+//uint32_t QueryServer::genUid()
+//{
+//    TC_LockT<TC_ThreadMutex> lock(*this);
+//
+//    while (++_uniqId == 0);
+//
+//    return _uniqId;
+//}
 
 string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
 {
@@ -172,16 +172,16 @@ string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
     }
     return os.str();
 }
-
-bool QueryServer::searchQueryFlag(const string &sKey)
-{
-    set<string>::const_iterator it = _queryFlag.find(sKey);
-    if(it != _queryFlag.end())
-    {
-        return true;
-    }
-    return false;
-}
+//
+//bool QueryServer::searchQueryFlag(const string &sKey)
+//{
+//    set<string>::const_iterator it = _queryFlag.find(sKey);
+//    if(it != _queryFlag.end())
+//    {
+//        return true;
+//    }
+//    return false;
+//}
 
 set<string>& QueryServer::getNotTarsSlaveName()
 {
@@ -194,11 +194,11 @@ QueryServer::destroyApp()
 {
     //destroy application here:
     //...
-    if(_dBThread)
-    {
-        delete _dBThread;
-        _dBThread = NULL;
-    }
+//    if(_dBThread)
+//    {
+//        delete _dBThread;
+//        _dBThread = NULL;
+//    }
 
     if(_tpoolQueryDb)
     {

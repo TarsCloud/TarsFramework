@@ -68,7 +68,7 @@ public:
 
     size_t getDbNumber() const { return _dbStatInfo.size(); }
 
-    size_t getActiveDbSize() const { return _activeDbInfo.size(); }
+//    size_t getActiveDbSize() const { return _activeDbInfo.size(); }
 
     void setActiveDb( const vector<TC_DBConf> &vDbInfo);
 
@@ -79,10 +79,10 @@ public:
     vector<TC_DBConf> getActiveDbInfo() const;
 
     TC_DBConf getDbInfo(int iIndex) { return _dbStatInfo[iIndex]; }
-
-    string dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const;
-
-    uint32_t genUid();
+//
+//    string dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const;
+//
+//    uint32_t genUid();
 
     TC_ThreadPool & getThreadPoolTimeCheck() { return _timeCheck; }
 
@@ -96,11 +96,11 @@ public:
     set<string>& getNotTarsSlaveName();
 
 private:
-    uint32_t            _uniqId;                //唯一id
+//    uint32_t            _uniqId;                //唯一id
 
     int                    _insertInterval;        //查询最后入库时间使用，入库耗时不会超过入库间隔,单位为分钟
 
-    DBThread *            _dBThread;                //定时检查数据库实例是否存活
+//    DBThread *            _dBThread;                //定时检查数据库实例是否存活
 
     QueryDbThread *_tpoolQueryDb;         //用于处理数据库的查询操作
 
@@ -114,7 +114,6 @@ private:
 
     TC_ThreadPool        _poolDb;             //具体查询压缩维度后的数据库实例数据的线程池
 
-    
     set<string>            _notTarsSlaveName;        //匹配非tars被调服务名
 };
 
