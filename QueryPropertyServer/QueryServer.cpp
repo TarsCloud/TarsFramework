@@ -78,12 +78,12 @@ void  QueryServer::initialize()
 
     _dBThread->start();
 
-    _queryFlag.insert("f_date");
-    _queryFlag.insert("f_tflag");
-    _queryFlag.insert("master_name");
-    _queryFlag.insert("slave_name");
-    _queryFlag.insert("slave_ip");
-    _queryFlag.insert("interface_name");
+//    _queryFlag.insert("f_date");
+//    _queryFlag.insert("f_tflag");
+//    _queryFlag.insert("master_name");
+//    _queryFlag.insert("slave_name");
+//    _queryFlag.insert("slave_ip");
+//    _queryFlag.insert("interface_name");
 
     _insertInterval = TC_Common::strto<int>(g_pconf->get("/tars<interval>","5"));
 
@@ -112,9 +112,9 @@ void  QueryServer::initialize()
         _notTarsSlaveName.insert(vIpGroup[i]);
         TLOGDEBUG("QueryServer::initialize i:" << i << "|notarsslavename:" << vIpGroup[i] << endl);
     }
-    addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj");
+    addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".QueryObj");
     // addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &JsonProtocol::parse);
-    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &TC_NetWorkBuffer::parseHttp);
+//    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &TC_NetWorkBuffer::parseHttp);
 }
 /////////////////////////////////////////////////////////////////
 
@@ -173,16 +173,16 @@ string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
     }
     return os.str();
 }
-
-bool QueryServer::searchQueryFlag(const string &sKey)
-{
-    set<string>::const_iterator it = _queryFlag.find(sKey);
-    if(it != _queryFlag.end())
-    {
-        return true;
-    }
-    return false;
-}
+//
+//bool QueryServer::searchQueryFlag(const string &sKey)
+//{
+//    set<string>::const_iterator it = _queryFlag.find(sKey);
+//    if(it != _queryFlag.end())
+//    {
+//        return true;
+//    }
+//    return false;
+//}
 
 set<string>& QueryServer::getNotTarsSlaveName()
 {

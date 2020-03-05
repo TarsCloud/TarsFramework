@@ -53,7 +53,7 @@ public:
 
 //    virtual int doRequest(tars::TarsCurrentPtr current, vector<char>& response);
 //private:
-    int doQuery(const string sUid, const string &sIn, bool bTarsProtocol, tars::TarsCurrentPtr current);
+//    int doQuery(const string sUid, const string &sIn, bool bTarsProtocol, tars::TarsCurrentPtr current);
 
 private:
     DbProxy _proxy;

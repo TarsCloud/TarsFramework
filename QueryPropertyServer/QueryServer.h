@@ -90,7 +90,7 @@ public:
 
     QueryDbThread * getThreadPoolQueryDb() { return _tpoolQueryDb; }
 
-    bool searchQueryFlag(const string &sKey);
+//    bool searchQueryFlag(const string &sKey);
 
     //匹配非tars被调服务名
     set<string>& getNotTarsSlaveName();
@@ -108,7 +108,7 @@ private:
 
     vector<TC_DBConf>    _activeDbInfo;        //存活的数据库信息
 
-    set<string>            _queryFlag;             //数据库字段
+//    set<string>            _queryFlag;             //数据库字段
 
     TC_ThreadPool        _timeCheck;                //处理timecheck操作的线程池
 

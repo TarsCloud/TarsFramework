@@ -17,6 +17,7 @@
 #include "QueryDbThread.h"
 #include "QueryServer.h"
 #include "DbProxy.h"
+#include "MonitorQuery.h"
 
 /////////////////////////////////////////////////////////////////////////
 QueryDbThread::QueryDbThread()
@@ -105,7 +106,7 @@ void HandleThreadRunner::terminate()
 
 void HandleThreadRunner::run()
 {
-    string sRes("");
+//    string sRes("");
     DbProxy    _dbproxy;
     int64_t tStart    = 0;
     int64_t tEnd    = 0;
@@ -114,19 +115,21 @@ void HandleThreadRunner::run()
     {
         QueryItem* pQueryItem = NULL;
 
-        if(!_terminate && _proc->pop(pQueryItem))
+	    MonitorQueryRsp rsp;
+
+	    if(!_terminate && _proc->pop(pQueryItem))
         {
             try
             {
                 tStart    = TNOWMS;
 
-                _dbproxy.queryData(pQueryItem->mQuery, sRes, pQueryItem->bFlag);
+                _dbproxy.queryData(pQueryItem->mQuery, rsp);//, pQueryItem->bFlag);
 
                 tEnd    = TNOWMS;
 
-                sRes += "endline\n";
-
-                pQueryItem->current->sendResponse(sRes.c_str(), sRes.length());
+//                sRes += "endline\n";
+	            MonitorQuery::async_response_query(pQueryItem->current, 0, rsp);
+//                pQueryItem->current->sendResponse(sRes.c_str(), sRes.length());
 
                 FDLOG("inout") << "HandleThreadRunner::run sUid:" << pQueryItem->sUid << "queryData  timecost(ms):" << (tEnd - tStart) << endl;
             }
@@ -134,8 +137,10 @@ void HandleThreadRunner::run()
             {
                 TLOGERROR("HandleThreadRunner::run exception:" << ex.what() << endl);
 
-                string sResult = "Ret:-1\n" +  string(ex.what()) + "\nendline\n";
-                pQueryItem->current->sendResponse(sResult.c_str(), sResult.length());
+                rsp.msg = ex.what();
+	            MonitorQuery::async_response_query(pQueryItem->current, -1, rsp);
+//                string sResult = "Ret:-1\n" +  string(ex.what()) + "\nendline\n";
+//                pQueryItem->current->sendResponse(sResult.c_str(), sResult.length());
 
                 FDLOG("inout") << "HandleThreadRunner::run sUid:" << pQueryItem->sUid << "exception:" << ex.what() << endl;
             }
@@ -143,13 +148,16 @@ void HandleThreadRunner::run()
             {
                 TLOGERROR("HandleThreadRunner::run exception." << endl);
 
-                string sResult = "Ret:-1\nunknown exception\nendline\n";
-                pQueryItem->current->sendResponse(sResult.c_str(), sResult.length());
+	            rsp.msg = "unknown error";
+	            MonitorQuery::async_response_query(pQueryItem->current, -1, rsp);
+
+//	            string sResult = "Ret:-1\nunknown exception\nendline\n";
+//                pQueryItem->current->sendResponse(sResult.c_str(), sResult.length());
 
                 FDLOG("inout") << "HandleThreadRunner::run sUid:" << pQueryItem->sUid << "unknown exception." << endl;
             }
 
-            sRes = "";
+//            sRes = "";
 
             delete pQueryItem;
             pQueryItem = NULL;

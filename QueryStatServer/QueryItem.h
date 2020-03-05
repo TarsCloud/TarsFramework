@@ -28,14 +28,12 @@ using namespace tars;
 class QueryItem
 {
 public:
-    bool                bFlag;
     string                sUid;
     map<string,string>    mQuery;
     tars::TarsCurrentPtr    current;
 
     QueryItem()
-    : bFlag(false)
-    , sUid("")
+    : sUid("")
     , current(NULL)
     {}
 };

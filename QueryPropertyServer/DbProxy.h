@@ -25,6 +25,7 @@
 #include "util/tc_config.h"
 #include "servant/TarsLogger.h"
 #include "QueryServer.h"
+#include "MonitorQuery.h"
 
 using namespace tars;
 
@@ -36,17 +37,23 @@ public:
 
     ~DbProxy();
 
-    void queryData(map<string, string>& mSqlPart, string &sResult, bool bDbCountFlag);
+	void queryData(map<string, string>& mSqlPart, MonitorQueryRsp &rsp);//, bool bDbCountFlag);
+
+//	void queryData(map<string, string>& mSqlPart, string &sResult, bool bDbCountFlag);
 
     string getLastTime(const map<string,string>& mSqlPart);
 
 private:
 
-    int createRespHead(const vector<string> &res, const string& sLasttime ,string& result, bool bDbCountFlag);
+	int createRespHead(const vector<pair<int, string>> &res, const string& sLasttime ,MonitorQueryRsp& rsp);//, bool bDbCountFlag);
 
-    int createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string, vector<double> > >& vDataList, const string& sHead,  string &result, string& sPolicy);
+	int createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string,vector<double> > >  &vDataList, MonitorQueryRsp& rsp, string& sPolicy);
 
-    string makeResult(int iRet, const string& sRes);
+//    int createRespHead(const vector<string> &res, const string& sLasttime ,string& result, bool bDbCountFlag);
+
+//    int createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string, vector<double> > >& vDataList, const string& sHead,  string &result, string& sPolicy);
+
+//    string makeResult(int iRet, const string& sRes);
 
 private:
     QueryParam _queryParam;
