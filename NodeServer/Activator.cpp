@@ -17,6 +17,8 @@
 #include <sys/wait.h>
 #include "Activator.h"
 #include "NodeServer.h"
+#include "NodeRollLogger.h"
+
 
 static pid_t *childpid = NULL; /* ptr to array allocated at run-time */
 #define SHELL   "/bin/sh"
@@ -188,7 +190,14 @@ int Activator::deactivate(int pid)
 {
     if (pid != 0)
     {
-        return sendSignal(pid, SIGKILL);
+        int ret = sendSignal(pid, SIGKILL);
+
+        if(ret == 0)
+        {
+	        waitpid(pid,NULL,0);
+        }
+
+        return ret;
     }
 
     return -1;
@@ -208,9 +217,15 @@ int Activator::sendSignal(int pid, int signal) const
 {
     assert(pid);
     int ret = ::kill(static_cast<pid_t>(pid), signal);
-    if (ret != 0 && errno != ESRCH)
+
+	if(signal == SIGKILL) {
+		NODE_LOG("stopServer")->debug() << "sendSignal send signal " << signal << " to pid " << pid << ", ret:" << ret
+		                                << ", errno:" << errno << endl;
+	}
+
+	if (ret != 0 && errno != ESRCH && errno != ENOENT )
     {
-        TLOGERROR("Activator::activate send signal " << signal << " to pid " << pid << " catch exception|" << errno << endl);
+        TLOGERROR("Activator::activate send signal " << signal << " to pid, pid not exsits, pid:" << pid << ", catch exception|" << errno << endl);
         return -1;
     }
 

@@ -4,7 +4,19 @@ bin="/usr/local/app/tars/tarsAdminRegistry/bin/tarsAdminRegistry"
 
 chmod a+x $bin
 
+OS=`uname`
+
+if [[ "$OS" =~ "Darwin" ]]; then
+    OS=1
+else
+    OS=0
+fi
+
+if [[ $OS == 1 ]]; then
+PID=`ps -eopid,comm | grep "$bin"| grep "tarsAdminRegistry" |  grep -v "grep" |awk '{print $1}'`
+else
 PID=`ps -eopid,cmd | grep "$bin"| grep "tarsAdminRegistry" |  grep -v "grep" |awk '{print $1}'`
+fi
 
 echo $PID
 

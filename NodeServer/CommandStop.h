@@ -113,7 +113,7 @@ inline int CommandStop::execute(string& sResult)
     bool needWait = false;
     try
     {
-        pid_t pid = _serverObjectPtr->getPid();
+	    pid_t pid = _serverObjectPtr->getPid();
         NODE_LOG("stopServer")->debug() << FILE_FUN << "pid:" << pid << endl;
         if (pid != 0)
         {
@@ -172,7 +172,7 @@ inline int CommandStop::execute(string& sResult)
                 NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName
                     << " call " << sAdminPrx << endl;
                 pAdminPrx = Application::getCommunicator()->stringToProxy<AdminFPrx>(sAdminPrx);
-                pAdminPrx->async_shutdown(NULL);
+                pAdminPrx->tars_set_timeout(500)->shutdown();
                 needWait = true;
             }
         }
@@ -253,9 +253,12 @@ inline int CommandStop::execute(string& sResult)
             _serverObjectPtr->setPid(0);
             _serverObjectPtr->setState(ServerObject::Inactive);
             _serverObjectPtr->setStarted(false);
-            return 0;
+
+	        NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", not exists."  << endl;
+
+	        return 0;
         }
-        usleep(STOP_SLEEP_INTERVAL);
+        TC_Common::msleep(10 + STOP_SLEEP_INTERVAL/1000);
     }
     sResult = "server pid " + TC_Common::tostr(pid) + " is still exist";
 

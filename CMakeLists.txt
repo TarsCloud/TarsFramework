@@ -167,11 +167,27 @@ install(DIRECTORY deploy DESTINATION ./
 ############################################################################################
 #for debug
 
-add_custom_target(cp-querystat
+add_custom_target(cp-tarsnode
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
-        COMMAND ${CMAKE_COMMAND} -E copy bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
-        COMMAND sh /usr/local/app/tars/tarsquerystat/util/start.sh
-        COMMENT "cp querystat & restart")
+        DEPENDS tarsnode
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsnode/bin/tarsnode /usr/local/app/tars/tarsnode/bin/tarsnode
+        COMMAND killall -9 tarsnode
+        COMMAND sh /usr/local/app/tars/tarsnode/util/start.sh
+        COMMENT "cp tarsnode & restart")
+
+add_custom_target(cp-tarsstat
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsstat
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsstat/bin/tarsstat /usr/local/app/tars/tarsstat/bin/tarsstat
+        COMMAND killall -9 tarsstat
+        COMMAND sh /usr/local/app/tars/tarsstat/util/start.sh
+        COMMENT "cp tarsstat & restart")
+
+add_custom_target(cp-tarsquerystat
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsquerystat/bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
+        COMMAND killall -9 tarsquerystat
+        COMMENT "cp tarsquerystat & restart")
 
 
 

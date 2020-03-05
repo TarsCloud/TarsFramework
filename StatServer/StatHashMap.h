@@ -28,9 +28,11 @@
 // #include <ext/pool_allocator.h>
 using namespace tars;
 
+#if TARGET_PLATFORM_IOS
+typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,MemStorePolicy> HashMap;//FileStorePolicy
+#else
 typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,ShmStorePolicy> HashMap;//FileStorePolicy
-
-// typedef std::map<tars::StatMicMsgHead, tars::StatMicMsgBody, std::less<tars::StatMicMsgHead>, __gnu_cxx::__pool_alloc<std::pair<tars::StatMicMsgHead const, tars::StatMicMsgBody> > > StatMsg;
+#endif
 
 #if TARGET_PLAFFORM_LINUX
 #include <ext/pool_allocator.h>

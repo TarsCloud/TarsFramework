@@ -48,7 +48,7 @@ public:
 
     string getRandOrder(void);
 
-    string getClonePath(void);
+//    string getClonePath(void);
 
     int getInserInterv(void);
 

@@ -22,12 +22,13 @@
 #include "util/tc_mysql.h"
 #include "util/tc_config.h"
 #include "DbProxy.h"
+#include "MonitorQuery.h"
 
 /**
  *
  *
  */
-class QueryImp : public tars::Servant
+class QueryImp : public tars::MonitorQuery
 {
 public:
     /**
@@ -48,12 +49,10 @@ public:
     /**
      *
      */
-    
+    virtual int query(const tars::MonitorQueryReq &req, tars::MonitorQueryRsp &rsp, tars::TarsCurrentPtr current);
 
-    virtual int doRequest(tars::TarsCurrentPtr current, vector<char>& response);
-
-
-private:
+//    virtual int doRequest(tars::TarsCurrentPtr current, vector<char>& response);
+//private:
     int doQuery(const string sUid, const string &sIn, bool bTarsProtocol, tars::TarsCurrentPtr current);
 
 private:

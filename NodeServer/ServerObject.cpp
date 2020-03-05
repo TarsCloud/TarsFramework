@@ -309,11 +309,11 @@ int ServerObject::checkPid()
         int iRet = _activatorPtr->sendSignal(_pid, 0);
         if (iRet == 0)
         {
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< _serverId << "|" << _pid << "|" << iRet << endl;
+            NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists" << endl;
             return 0;
         }
     }
-    NODE_LOG("KeepAliveThread")->error() <<FILE_FUN<< _serverId << "|" << _pid << "|-1" << endl;
+    NODE_LOG("KeepAliveThread")->error() <<FILE_FUN<< _serverId << "|" << _pid << "| pid not exists" << endl;
     return -1;
 }
 
@@ -609,7 +609,7 @@ void ServerObject::checkServer(int iTimeout)//checkServer时对服务所占用�
     try
     {
         string sResult;
-        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId <<"|"<<toStringState(_state)<< endl;
+        NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<<_serverId <<"|"<<toStringState(_state)<< endl;
         //pid不存在属于服务异常
         if( _state != ServerObject::Inactive && _state != ServerObject::Deactivating && (checkPid() != 0))
         {
@@ -744,7 +744,7 @@ void ServerObject::checkCoredumpLimit()
 {
     if(_state != ServerObject::Active || !_limitStateInfo.bEnableCoreLimit)
     {
-        TLOGINFO(FILE_FUN<<"checkCoredumpLimit:server is inactive or disable corelimit"<<endl);
+        TLOGINFO(FILE_FUN << ", " << getServerId() <<", server is inactive or disable corelimit"<<endl);
         return;
     }
 

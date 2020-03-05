@@ -29,12 +29,13 @@ struct JsonProtocol
 
 	static TC_NetWorkBuffer::PACKET_TYPE parse(TC_NetWorkBuffer &in, vector<char> &out)
 	{
-		//TLOGINFO("JsonProtocol parse:" << in << endl);
-		in.mergeBuffers();
+		auto it = in.find("}", 1);
+//		in.mergeBuffers();
+		TLOGDEBUG("JsonProtocol parse:" << in.getBuffersString() << endl);
 
-		const char *p = strstr(in.mergeBuffers(), "}");
+//		const char *p = strstr(in.mergeBuffers(), "}");
 
-		if (p != NULL)
+		if (it != in.end())
 		{
 			out = in.getBuffers();
 			in.clearBuffers();
