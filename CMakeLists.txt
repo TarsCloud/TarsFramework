@@ -18,7 +18,7 @@ add_subdirectory(tarscpp)
 
 include_directories(${util_SOURCE_DIR}/include)
 include_directories(${servant_SOURCE_DIR})
-include_directories("thirdparty/rapidjson/include")
+#include_directories("thirdparty/rapidjson/include")
 
 macro(complice_module MODULE)
 

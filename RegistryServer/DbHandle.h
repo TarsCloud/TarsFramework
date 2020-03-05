@@ -489,7 +489,7 @@ private:
     /**
      * 数据库访问异常上报
      */
-    void sendSqlErrorAlarmSMS();
+    void sendSqlErrorAlarmSMS(const string &err);
 
     /**
      * 建立ip分组map
