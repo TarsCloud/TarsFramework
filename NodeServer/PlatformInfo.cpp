@@ -28,7 +28,7 @@ NodeInfo PlatformInfo::getNodeInfo() const
     tNodeInfo.endpointIp    = tEndPoint.getHost();
     tNodeInfo.endpointPort  = tEndPoint.getPort();
     tNodeInfo.timeOut       = tEndPoint.getTimeout();
-    tNodeInfo.version       = TARS_VERSION+string("_")+NODE_VERSION;
+    tNodeInfo.version       = TARS_VERSION+string(".")+NODE_VERSION;
 
     return tNodeInfo;
 }

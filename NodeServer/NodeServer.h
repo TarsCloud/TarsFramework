@@ -27,7 +27,7 @@
 
 using namespace tars;
 
-const string NODE_VERSION=".20200305";
+const string NODE_VERSION="20200305";
 
 class NodeServer;
 

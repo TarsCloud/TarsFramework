@@ -29,7 +29,7 @@
       notify=tars.tarsnotify.NotifyObj
       mainclass=com.qq.tars.server.startup.Main
       classpath=${basepath}/conf:${basepath}/WEB-INF/classes:${basepath}/WEB-INF/lib
-      jvmparams=-Dcom.sun.management.jmxremote.ssl\=false -Dcom.sun.management.jmxremote.authenticate\=false -Xms2000m -Xmx2000m -Xmn1000m -Xss1000k -XX:PermSize\=128M -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction\=60 -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDateStamps -XX:+CMSParallelRemarkEnabled -XX:+CMSScavengeBeforeRemark -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction\=0 -verbosegc -XX:+PrintGCDetails -XX:ErrorFile\=${logpath}/${app}/${server}/jvm_error.log
+      jvmparams=-Dcom.sun.management.jmxremote.ssl\=false -Dcom.sun.management.jmxremote.authenticate\=false -Xms2000m -Xmx2000m -Xmn1000m -Xss1000k -XX:CMSInitiatingOccupancyFraction\=60 -XX:+CMSParallelRemarkEnabled -XX:+CMSScavengeBeforeRemark -verbosegc -XX:+PrintGCDetails -XX:ErrorFile\=${logpath}/${app}/${server}/jvm_error.log
       sessiontimeout=120000
       sessioncheckinterval=60000
       tcpnodelay=true

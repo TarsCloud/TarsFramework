@@ -47,8 +47,15 @@ int QueryImp::query(const tars::MonitorQueryReq &req, tars::MonitorQueryRsp &rsp
 	pItem->sUid     = req.uid;
 	pItem->current  = current;
 
+	TLOGDEBUG("query:" << req.writeToJsonString() << endl);
+
+	pItem->mQuery["uid"]    = req.uid;
 	pItem->mQuery["dataid"] = req.dataid;
 	pItem->mQuery["method"] = req.method;
+	pItem->mQuery["date1"]  = req.date;
+	pItem->mQuery["date2"]  = req.date;
+	pItem->mQuery["tflag1"] = req.tflag1;
+	pItem->mQuery["tflag2"] = req.tflag2;
 
 	string where = " where ";
 	for(size_t i = 0; i < req.conditions.size(); i++)
@@ -77,7 +84,7 @@ int QueryImp::query(const tars::MonitorQueryReq &req, tars::MonitorQueryRsp &rsp
 			default:
 				continue;
 		}
-		where += req.conditions[i].field + op + "'" + TC_Mysql::escapeString(req.conditions[i].val) + "'";
+		where += req.conditions[i].field + " " + op + " '" + TC_Mysql::escapeString(req.conditions[i].val) + "'";
 	}
 	pItem->mQuery["whereCond"] = where;
 
@@ -86,10 +93,10 @@ int QueryImp::query(const tars::MonitorQueryReq &req, tars::MonitorQueryRsp &rsp
 	string sumField;
 	for(size_t i = 0; i < req.indexs.size(); i++)
 	{
-		sumField = " sum(" + req.indexs[i] + ")";
+		sumField += " sum(" + req.indexs[i] + ")";
 		if(i != req.indexs.size() - 1)
 		{
-			sumField = ", ";
+			sumField += ", ";
 		}
 	}
 	if(!sumField.empty()) {

@@ -131,7 +131,7 @@ void HandleThreadRunner::run()
 	            MonitorQuery::async_response_query(pQueryItem->current, 0, rsp);
 //                pQueryItem->current->sendResponse(sRes.c_str(), sRes.length());
 
-                FDLOG("inout") << "HandleThreadRunner::run sUid:" << pQueryItem->sUid << "queryData  timecost(ms):" << (tEnd - tStart) << endl;
+	            TLOGDEBUG("HandleThreadRunner::run sUid:" << pQueryItem->sUid << ", queryData  timecost(ms):" << (tEnd - tStart) << endl);
             }
             catch(exception& ex)
             {
@@ -142,7 +142,7 @@ void HandleThreadRunner::run()
 //                string sResult = "Ret:-1\n" +  string(ex.what()) + "\nendline\n";
 //                pQueryItem->current->sendResponse(sResult.c_str(), sResult.length());
 
-                FDLOG("inout") << "HandleThreadRunner::run sUid:" << pQueryItem->sUid << "exception:" << ex.what() << endl;
+	            TLOGDEBUG("HandleThreadRunner::run sUid:" << pQueryItem->sUid << ", exception:" << ex.what() << endl);
             }
             catch(...)
             {
@@ -154,7 +154,7 @@ void HandleThreadRunner::run()
 //	            string sResult = "Ret:-1\nunknown exception\nendline\n";
 //                pQueryItem->current->sendResponse(sResult.c_str(), sResult.length());
 
-                FDLOG("inout") << "HandleThreadRunner::run sUid:" << pQueryItem->sUid << "unknown exception." << endl;
+	            TLOGDEBUG("HandleThreadRunner::run sUid:" << pQueryItem->sUid << ", unknown exception." << endl);
             }
 
 //            sRes = "";

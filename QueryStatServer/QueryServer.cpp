@@ -87,9 +87,9 @@ void  QueryServer::initialize()
 
     _insertInterval = TC_Common::strto<int>(g_pconf->get("/tars<interval>","5"));
 
-    size_t iDbThreadPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<count_db_tpoolsize>","8"));
+    size_t iDbThreadPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<count_db_tpoolsize>","4"));
 
-    size_t iTimeCheckPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<time_check_tpoolsize>","8"));
+    size_t iTimeCheckPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<time_check_tpoolsize>","4"));
 
     size_t iQueryDbPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<query_countdb_tpoolsize>","4"));
 

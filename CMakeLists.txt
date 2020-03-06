@@ -185,10 +185,17 @@ add_custom_target(cp-tarsstat
 
 add_custom_target(cp-tarsquerystat
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsquerystat
         COMMAND ${CMAKE_COMMAND} -E copy servers/tarsquerystat/bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
-        COMMAND killall -9 tarsquerystat
+        COMMAND killall -9 tarsquerystat && /usr/local/app/tars/tarsquerystat/util/start.sh
         COMMENT "cp tarsquerystat & restart")
 
+add_custom_target(cp-tarsqueryproperty
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsqueryproperty
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsqueryproperty/bin/tarsqueryproperty /usr/local/app/tars/tarsqueryproperty/bin/tarsqueryproperty
+        COMMAND killall -9 tarsqueryproperty && /usr/local/app/tars/tarsqueryproperty/util/start.sh
+        COMMENT "cp tarsqueryproperty & restart")
 
 
 
