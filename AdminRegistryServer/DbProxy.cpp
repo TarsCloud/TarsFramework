@@ -72,6 +72,13 @@ int DbProxy::addTaskReq(const TaskReq &taskReq)
 {
     try
     {
+	    for (size_t i = 0; i < taskReq.taskItemReq.size(); i++)
+	    {
+	    	//不是发布, 不需要记录
+	    	if(taskReq.taskItemReq[i].command != "patch_tars")
+	    		return 0;
+	    }
+
         for (size_t i = 0; i < taskReq.taskItemReq.size(); i++)
         {
             map<string, pair<TC_Mysql::FT, string> > data;
@@ -130,6 +137,7 @@ int DbProxy::getTaskRsp(const string &taskNo, TaskRsp &taskRsp)
         taskRsp.taskNo = item[0]["task_no"];
         taskRsp.serial = TC_Common::strto<int>(item[0]["serial"]);
         taskRsp.userName = item[0]["user_name"];
+        taskRsp.createTime = item[0]["create_time"];
 
 
         for (unsigned i = 0; i < item.size(); i++) 
@@ -857,6 +865,44 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
         throw ex;
     }
 
+}
+
+int DbProxy::getFramework(vector<tars::FrameworkServer> &servers)
+{
+	try
+	{
+		MYSQL_LOCK;
+		string sSql = "select * from t_adapter_conf where application = 'tars'";
+
+		TC_Mysql::MysqlData data = MYSQL_INDEX->queryRecord(sSql);
+		for(size_t i = 0; i < data.size(); i++)
+		{
+			FrameworkServer server;
+			server.serverName   = data[i]["server_name"];
+			server.nodeName     = data[i]["node_name"];
+			server.objName      = data[i]["servant"] + "@" + data[i]["endpoint"];
+
+			servers.push_back(server);
+		}
+
+		sSql = "select * from t_node_info";
+		data = MYSQL_INDEX->queryRecord(sSql);
+		for(size_t i = 0; i < data.size(); i++)
+		{
+			FrameworkServer server;
+			server.serverName   = "tarsnode";
+			server.nodeName     = data[i]["node_name"];
+			server.objName      = data[i]["node_obj"];
+
+			servers.push_back(server);
+		}
+		return 0;
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOGERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+		return -1;
+	}
 }
 
 int DbProxy::checkRegistryTimeout(unsigned uTimeout)

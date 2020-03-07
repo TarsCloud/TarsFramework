@@ -167,6 +167,14 @@ install(DIRECTORY deploy DESTINATION ./
 ############################################################################################
 #for debug
 
+add_custom_target(cp-tarsAdminRegistry
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsAdminRegistry
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsAdminRegistry/bin/tarsAdminRegistry /usr/local/app/tars/tarsAdminRegistry/bin/tarsAdminRegistry
+        COMMAND killall -9 tarsAdminRegistry
+        COMMAND sh /usr/local/app/tars/tarsAdminRegistry/util/start.sh
+        COMMENT "cp tarsAdminRegistry & restart")
+
 add_custom_target(cp-tarsnode
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsnode

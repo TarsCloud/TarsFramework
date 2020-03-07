@@ -511,7 +511,7 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 
 	            tars::TC_Mysql::MysqlData res = tcMysql.queryRecord(sSql);
 
-                TLOGINFO(sUid << "res.size:" << res.size() << "|sSql:" << sSql << endl);
+                TLOGINFO(sUid << ", res.size:" << res.size() << "|sSql:" << sSql << endl);
 
                 // result is key:value pair;
                 //sKey 由groupby生成

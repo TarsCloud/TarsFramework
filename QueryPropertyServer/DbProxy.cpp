@@ -350,7 +350,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, MonitorQueryRsp &rsp)
             }
 
             //等待线程结束
-            TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "wait for all thread query data done." << endl);
+            TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", wait for all thread query data done." << endl);
 
             bool rc = true;
             int ifail = 0;
@@ -374,7 +374,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, MonitorQueryRsp &rsp)
 
             if(ifail >= 10)
             {
-                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "wait for all thread query data timeout." << endl);
+                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", wait for all thread query data timeout." << endl);
                 while(_queryParam._atomic != _queryParam._run_times)
                 {
                     {
@@ -400,7 +400,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, MonitorQueryRsp &rsp)
                 _queryParam._run_result = 0;
                 _queryParam._atomic = 0;
 
-                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "all thread done return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd - tStart) << endl);
+                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", all thread done return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd - tStart) << endl);
 
                 // 返回ret code
 //                string sHead;
@@ -425,7 +425,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, MonitorQueryRsp &rsp)
             	rsp.ret = -1;
             	rsp.msg = "query timeout";
 
-                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "Ret:-1|query timeout." << endl);
+                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", Ret:-1|query timeout." << endl);
             }
         }
         else
@@ -450,7 +450,7 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 {
     string sUid = mSqlPart.find("uid")->second;
 
-    TLOGDEBUG("queryData " << sUid << "thread iIndex:"  << iThread << endl);
+    TLOGDEBUG("queryData " << sUid << ", thread iIndex:"  << iThread << endl);
 
     int64_t tStart = TNOWMS;
     try
@@ -472,7 +472,7 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
         	sRes.first = -1;
         	sRes.second = "iDb:" + TC_Common::tostr(iThread) + "|wrong tflag:" + tflagFrom + "-" + tflagTo;
 
-//            TLOGERROR("query sUid:" << sUid << sRes << endl);
+            TLOGERROR("query sUid:" << sUid << ", " << sRes.second << endl);
 
             queryParam._run_result = -1;
             queryParam._atomic++;
@@ -487,9 +487,9 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
         }
 
         //groupCond =>> "where slave_name like 'MTTsh2.BrokerServer' and f_tflag >='0000'  and f_tflag <='2360'  and f_date = '20111120'"
-          string whereCond = mSqlPart["whereCond"];
+        string whereCond = mSqlPart["whereCond"];
 
-          string::size_type position;
+        string::size_type position;
         if((position =whereCond.find("policy")) != string::npos)
         {
             string temp = whereCond.substr(position);
@@ -557,7 +557,7 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
                 //table name:tars_2012060723
                 sTbName = sTbNamePre + day + tflag.substr(0,2);
 
-                sSql = "select " + selectCond + " from " + sTbName + " " + ignoreKey  + whereCond   + " order by null;";
+                sSql = "select " + selectCond + " from " + sTbName + " " + ignoreKey  + whereCond + groupCond  + " order by null;";
 
                 tars::TC_Mysql::MysqlData res = tcMysql.queryRecord(sSql);
 
@@ -607,7 +607,7 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
     {
 	    sRes.first = -1;
 	    sRes.second = "iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what();
-//        TLOGERROR("query sUid:" << sUid << "query:" << sRes << endl);
+        TLOGERROR("query sUid:" << sUid << ", query:" << sRes.second << endl);
 
         queryParam._run_result = -1;
     }
@@ -615,13 +615,13 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
     {
     	sRes.first = -1;
     	sRes.second = "iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what() + "\n";
-//        TLOGERROR("query sUid:" << sUid << "query:" << sRes << endl);
+        TLOGERROR("query sUid:" << sUid << ", query:" << sRes.second << endl);
 
         queryParam._run_result = -1;
     }
     int64_t tEnd = TNOWMS;
 
-    TLOGDEBUG("query sUid:" << sUid << "exit query iDb:" << iThread <<"|timecost(ms):" << (tEnd - tStart) << "|res:" << sRes.second << endl);
+    TLOGDEBUG("query sUid:" << sUid << ", exit query iDb:" << iThread <<"|timecost(ms):" << (tEnd - tStart) << "|res:" << sRes.second << endl);
 
     queryParam._atomic++;
 
@@ -632,7 +632,7 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
             queryParam._monitor.notifyAll();
         }
 
-        TLOGDEBUG("query sUid:" << sUid << "notify query finish." << endl);
+        TLOGDEBUG("query sUid:" << sUid << ", notify query finish." << endl);
     }
 }
 
@@ -732,14 +732,14 @@ void selectLastMinTime(const string& sUid, int iThread , const string& tbname, c
     }
     catch(TC_Mysql_Exception & ex)
     {
-        TLOGERROR("selectLastTime sUid="<< sId <<"exception:"<< ex.what() << endl);
+        TLOGERROR("selectLastTime sUid="<< sId <<", exception:"<< ex.what() << endl);
         ret = "";
         queryParam._run_result = -1;
         //queryParam._atomic.inc();
     }
     catch(exception& e)
     {
-        TLOGERROR("selectLastTime sUid="<< sId <<"exception:"<< e.what() << endl);
+        TLOGERROR("selectLastTime sUid="<< sId <<", exception:"<< e.what() << endl);
         ret = "";
         queryParam._run_result = -1;
         //queryParam._atomic.inc();
@@ -750,7 +750,7 @@ void selectLastMinTime(const string& sUid, int iThread , const string& tbname, c
     {
         TC_ThreadLock::Lock lock(queryParam._monitor);
         queryParam._monitor.notifyAll();
-        TLOGDEBUG("query sUid:" << sId << "notify checktime finish." << endl);
+        TLOGDEBUG("query sUid:" << sId << ", notify checktime finish." << endl);
     }
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -788,7 +788,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
                 g_app.getThreadPoolTimeCheck().exec(fwrapper);
             }
 
-            TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "wait for getLastTime done." << endl);
+            TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", wait for getLastTime done." << endl);
             
             bool rc = true;
             int ifail = 0;
@@ -812,7 +812,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
 
             if(ifail >= 10)
             {
-                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "wait for getLastTime timeout." << endl);
+                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", wait for getLastTime timeout." << endl);
                 while(_queryParam._atomic != _queryParam._run_times)
                 {
                     {
@@ -835,7 +835,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
 
             if(rc)
             {
-                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "getLastTime all done|return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd-tStart) << endl);
+                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", getLastTime all done|return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd-tStart) << endl);
 
                 for(int i = 0; i < iThreads; ++i)
                 {
@@ -848,7 +848,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
             else
             {
                 min = "";
-                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "getLastTime timeout." << endl);
+                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", getLastTime timeout." << endl);
             }
         }
         else
@@ -856,7 +856,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
             min = "";
         }
 
-        TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "final lasttime:" << min << endl);
+        TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", final lasttime:" << min << endl);
     }
     catch (exception &ex)
     {

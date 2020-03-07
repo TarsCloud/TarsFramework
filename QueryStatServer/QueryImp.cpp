@@ -57,7 +57,7 @@ int QueryImp::query(const tars::MonitorQueryReq &req, tars::MonitorQueryRsp &rsp
 	pItem->mQuery["tflag1"] = req.tflag1;
 	pItem->mQuery["tflag2"] = req.tflag2;
 
-	string where = " where ";
+	string where = " where 1=1 ";
 	for(size_t i = 0; i < req.conditions.size(); i++)
 	{
 		string op;
@@ -84,7 +84,7 @@ int QueryImp::query(const tars::MonitorQueryReq &req, tars::MonitorQueryRsp &rsp
 			default:
 				continue;
 		}
-		where += req.conditions[i].field + " " + op + " '" + TC_Mysql::escapeString(req.conditions[i].val) + "'";
+		where += " and " + req.conditions[i].field + " " + op + " '" + TC_Mysql::escapeString(req.conditions[i].val) + "'";
 	}
 	pItem->mQuery["whereCond"] = where;
 

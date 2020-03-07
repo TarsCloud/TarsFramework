@@ -1104,6 +1104,47 @@ int AdminRegistryImp::getLogData(const std::string & application, const std::str
     return -1;
 }
 
+int AdminRegistryImp::deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::TarsCurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << ":" << application << ", " << serverName << ", " << patchFile << endl);
+
+	return _patchPrx->deletePatchFile(application, serverName, patchFile);
+}
+
+int AdminRegistryImp::getServers(vector<tars::FrameworkServer> &servers, tars::TarsCurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << endl);
+
+	int ret = DBPROXY->getFramework(servers);
+
+	if(ret != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+int AdminRegistryImp::checkServer(const FrameworkServer &server, tars::TarsCurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << ", " << server.objName << endl);
+
+	ServantPrx prx = Application::getCommunicator()->stringToProxy<ServantPrx>(server.objName);
+
+	try
+	{
+		prx->tars_ping();
+	}
+	catch(exception &ex)
+	{
+		TLOGERROR(__FUNCTION__ << ", ping: " << server.objName << ", failed:" << ex.what() << endl);
+		return -1;
+	}
+
+	return 0;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
         const std::string& result)

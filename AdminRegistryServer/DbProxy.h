@@ -64,6 +64,11 @@ public:
     NodePrx getNodePrx(const string & nodeName);
 
     /**
+     * 获取框架服务
+     */
+    int getFramework(vector<tars::FrameworkServer> &servers);
+
+    /**
      * 增加异步任务
      * 
      * @param taskNo 

@@ -66,6 +66,16 @@ public:
      */
     int preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current);
 
+    /**
+     * delete patch file
+     * @param app
+     * @param serverName
+     * @param patchFile
+     * @param current
+     * @return
+     */
+	int deletePatchFile(const string & app, const string & serverName, const string & patchFile, TarsCurrentPtr current);
+
 protected:
     int __listFileInfo(const string &path, vector<FileInfo> &vf);
     

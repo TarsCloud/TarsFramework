@@ -293,9 +293,11 @@ if [ $? != 0 ]; then
     exec_mysql_script "create database tars_stat"
     exec_mysql_script "create database tars_property"
     exec_mysql_script "create database db_tars_web"
+    exec_mysql_script "create database db_cache_web"
 
     exec_mysql_sql db_tars db_tars.sql
     exec_mysql_sql db_tars_web db_tars_web.sql
+    exec_mysql_sql db_cache_web db_cache_web.sql
 
     LOG_INFO "create t_profile_template";
 
