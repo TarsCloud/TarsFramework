@@ -1,0 +1,36 @@
+<tars>
+    #framework database
+	<db>
+        dbhost=db.tars.com
+        dbname=db_tars
+        dbuser=tars
+        dbpass=tars2015
+        dbport=3306
+        charset=utf8
+        dbflag=CLIENT_MULTI_STATEMENTS
+    </db>
+
+    <propertydb>
+       <db1>
+         dbhost=db.tars.com
+          dbname=tars_property
+          tbname=tars_property_
+         dbuser=tars
+         dbpass=tars2015
+         dbport=3306
+         charset=utf8
+        </db1>
+    </propertydb>
+
+    <statdb>
+       <db1>
+         dbhost=db.tars.com
+         dbname=tars_stat
+         tbname=tars_stat_
+         dbuser=tars
+         dbpass=tars2015
+         dbport=3306
+         charset=utf8
+        </db1>
+    </statdb>
+</tars>

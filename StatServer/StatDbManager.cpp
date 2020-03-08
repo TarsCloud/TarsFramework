@@ -63,11 +63,11 @@ StatDbManager::StatDbManager()
         _eCutType = CUT_BY_HOUR;
     }
 
-    vector<string> vDb =g_pconf->getDomainVector("/tars/multidb");
+    vector<string> vDb =g_pconf->getDomainVector("/tars/statdb");
 
     _dbNumber = vDb.size();
 
-    TLOGDEBUG("StatDbManager init multidb size:" <<_dbNumber  << endl);
+    TLOGDEBUG("StatDbManager init statdb size:" <<_dbNumber  << endl);
 
     map<string, size_t> mIp;
     vector<string> vIp;
@@ -77,9 +77,9 @@ StatDbManager::StatDbManager()
     for (int i=0; i< _dbNumber; i++)
     {
         TC_DBConf tConf;
-        tConf.loadFromMap(g_pconf->getDomainMap("/tars/multidb/" + vDb[i]));
+        tConf.loadFromMap(g_pconf->getDomainMap("/tars/statdb/" + vDb[i]));
 
-        _vsTbNamePre.push_back(g_pconf->get("/tars/multidb/" + vDb[i] + "<tbname>", "t_stat_0" + TC_Common::tostr(i) + "_"));
+        _vsTbNamePre.push_back(g_pconf->get("/tars/statdb/" + vDb[i] + "<tbname>", "t_stat_0" + TC_Common::tostr(i) + "_"));
 
         sIp = tConf._host;
 
@@ -110,7 +110,7 @@ StatDbManager::StatDbManager()
         vIp.push_back(sIp);
 
         //默认值为1
-        _vDbWeighted.push_back(TC_Common::strto<int>(g_pconf->get("/tars/multidb/" + vDb[i] + "<weighted>","1")));
+        _vDbWeighted.push_back(TC_Common::strto<int>(g_pconf->get("/tars/statdb/" + vDb[i] + "<weighted>","1")));
 
          TC_Mysql *pMysql = new TC_Mysql();
          pMysql->init(tConf);

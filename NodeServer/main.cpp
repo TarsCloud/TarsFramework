@@ -26,122 +26,127 @@ using namespace tars;
 
 NodeServer g_app;
 TC_Config* g_pconf;
-
-static string outfill(const string& s, char c = ' ', int n = 29)
-{
-    return (s + string(abs(n - (int)s.length()), c));
-}
-
-bool getConfig(const string &sLocator,const string &sRegistryObj,string &sNodeId,string &sLocalIp, string &sConfigFile, bool bCloseCout)
-{
-    try
-    {
-        //string          sLocalIp;
-        string          sResult;
-        string          sTemplate;
-        TC_Config       tConf;
-        CommunicatorFactory::getInstance()->getCommunicator()->setProperty("locator",sLocator);
-        RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(sRegistryObj);
-
-        int count = 0;
-        do
-        {
-            try
-            {
-                if( sLocalIp.empty() && pRegistryPrx->getClientIp(sLocalIp) != 0)
-                {
-                    cerr<<"cannot get localip: " <<sLocalIp << endl;
-                    return false;
-                }
-            }
-            catch(exception &ex)
-            {
-                if(++count > 10)
-                    break;
-                    
-                sleep(1);
-                continue;
-            }
-
-            break;
-        }while(true);
-
-        if(sNodeId != "" )
-        {
-            // sNodeId = sLocalIp;
-            sLocalIp = sNodeId;
-        }
-
-        pRegistryPrx->getNodeTemplate(sNodeId,sTemplate);
-        if(TC_Common::trim(sTemplate) == "" )
-        {
-            cerr << "cannot get node Template nodeid:"<<sNodeId <<",Template:"<<sTemplate<< endl;
-            return false;
-        }
-
-        sTemplate = TC_Common::replace(sTemplate, "${locator}",sLocator);
-        sTemplate = TC_Common::replace(sTemplate, "${registryObj}",sRegistryObj);
-        sTemplate = TC_Common::replace(sTemplate, "${localip}",sLocalIp);
-        //sTemplate = TC_Common::replace(sTemplate, "${nodeid}",sNodeId);
-        tConf.parseString(sTemplate);
-        if (!bCloseCout)
-        {
-            string sCloseCoutValue = tConf.get("/tars/application/server<closecout>");
-            if (sCloseCoutValue == "1")
-            {
-                sTemplate = TC_Common::replace(sTemplate, "closecout=1", "closecout=0");
-                tConf.parseString(sTemplate);
-            }
-            else if (sCloseCoutValue.empty())
-            {
-                map<string, string> m;
-                m["closecout"] = "0";
-                tConf.insertDomainParam("/tars/application/server", m,true);
-            }
-            else
-            {
-                cerr << "failed to set closeout value" << endl;
-            }
-        }
-
-        // cout << sLocalIp << ", " << sRegistryObj << ", " << sLocator << endl;
-
-        string sConfigPath    = TC_File::extractFilePath(sConfigFile);
-        if(!TC_File::makeDirRecursive( sConfigPath ))
-        {
-            cerr<<"cannot create dir: " <<sConfigPath << endl;
-            exit( 0 );
-        }
-        string sFileTemp    = sConfigPath + "/config.conf.tem";
-        ofstream configfile(sFileTemp.c_str());
-        if(!configfile.good())
-        {
-            cerr << "cannot create configuration file: "<<sConfigFile<< endl;
-            return false;
-        }
-        configfile <<TC_Common::replace(tConf.tostr(),"\\s"," ") << endl;
-        configfile.close();
-
-        string sFileBak     = sConfigFile+"."+TC_Common::now2str() + ".bak";
-        if(TC_File::isFileExist(sConfigFile))
-        {
-            TC_File::copyFile(sConfigFile,sFileBak,true);
-        }
-
-        TC_File::copyFile(sFileTemp,sConfigFile,true);
-        TC_File::removeFile(sFileTemp,false);
-
-        // cout << TC_File::load2str(sConfigFile) << endl;
-        // cout << sFileTemp << endl;
-
-        return true;
-    }
-    catch(exception &e)
-    {
-       cerr<< "load config  erro:" <<e.what()<< endl;
-    }
-    return false;
-}
+//
+//static string outfill(const string& s, char c = ' ', int n = 29)
+//{
+//    return (s + string(abs(n - (int)s.length()), c));
+//}
+//
+//bool getConfig(const string &sLocator,const string &sRegistryObj,string &sNodeId,string &sLocalIp, string &sConfigFile, bool bCloseCout)
+//{
+//    try
+//    {
+//        //string          sLocalIp;
+//        string          sResult;
+//        string          sTemplate;
+//        TC_Config       tConf;
+//        CommunicatorFactory::getInstance()->getCommunicator()->setProperty("locator",sLocator);
+//        RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(sRegistryObj);
+//
+//        int count = 0;
+//        do
+//        {
+//            try
+//            {
+//                if( sLocalIp.empty() && pRegistryPrx->getClientIp(sLocalIp) != 0)
+//                {
+//                    cerr<<"cannot get localip: " <<sLocalIp << endl;
+//                    return false;
+//                }
+//            }
+//            catch(exception &ex)
+//            {
+//                if(++count > 10)
+//                    break;
+//
+//                sleep(1);
+//                continue;
+//            }
+//
+//            break;
+//        }while(true);
+//
+//        if(sNodeId != "" )
+//        {
+//            // sNodeId = sLocalIp;
+//            sLocalIp = sNodeId;
+//        }
+//
+//        pRegistryPrx->getNodeTemplate(sNodeId,sTemplate);
+//        if(TC_Common::trim(sTemplate) == "" )
+//        {
+//            cerr << "cannot get node Template nodeid:"<<sNodeId <<",Template:"<<sTemplate<< endl;
+//            return false;
+//        }
+//
+//	    sTemplate = TC_Common::replace(sTemplate, "${app}", "tars");
+//	    sTemplate = TC_Common::replace(sTemplate, "${server}", "tarsnode");
+//	    sTemplate = TC_Common::replace(sTemplate, "${basepath}", ServerConfig::BasePath);
+//	    sTemplate = TC_Common::replace(sTemplate, "${datapath}", ServerConfig::DataPath);
+//	    sTemplate = TC_Common::replace(sTemplate, "${logpath}", ServerConfig::LogPath);
+//	    sTemplate = TC_Common::replace(sTemplate, "${locator}",sLocator);
+//        sTemplate = TC_Common::replace(sTemplate, "${registryObj}",sRegistryObj);
+//        sTemplate = TC_Common::replace(sTemplate, "${localip}",sLocalIp);
+//        //sTemplate = TC_Common::replace(sTemplate, "${nodeid}",sNodeId);
+//        tConf.parseString(sTemplate);
+//        if (!bCloseCout)
+//        {
+//            string sCloseCoutValue = tConf.get("/tars/application/server<closecout>");
+//            if (sCloseCoutValue == "1")
+//            {
+//                sTemplate = TC_Common::replace(sTemplate, "closecout=1", "closecout=0");
+//                tConf.parseString(sTemplate);
+//            }
+//            else if (sCloseCoutValue.empty())
+//            {
+//                map<string, string> m;
+//                m["closecout"] = "0";
+//                tConf.insertDomainParam("/tars/application/server", m,true);
+//            }
+//            else
+//            {
+//                cerr << "failed to set closeout value" << endl;
+//            }
+//        }
+//
+//        // cout << sLocalIp << ", " << sRegistryObj << ", " << sLocator << endl;
+//
+//        string sConfigPath    = TC_File::extractFilePath(sConfigFile);
+//        if(!TC_File::makeDirRecursive( sConfigPath ))
+//        {
+//            cerr<<"cannot create dir: " <<sConfigPath << endl;
+//            exit( 0 );
+//        }
+//        string sFileTemp    = sConfigPath + "/config.conf.tmp";
+//        ofstream configfile(sFileTemp.c_str());
+//        if(!configfile.good())
+//        {
+//            cerr << "cannot create configuration file: "<<sConfigFile<< endl;
+//            return false;
+//        }
+//        configfile <<TC_Common::replace(tConf.tostr(),"\\s"," ") << endl;
+//        configfile.close();
+//
+//        string sFileBak     = sConfigFile+"."+TC_Common::now2str() + ".bak";
+//        if(TC_File::isFileExist(sConfigFile))
+//        {
+//            TC_File::copyFile(sConfigFile,sFileBak,true);
+//        }
+//
+//        TC_File::copyFile(sFileTemp,sConfigFile,true);
+//        TC_File::removeFile(sFileTemp,false);
+//
+//        // cout << TC_File::load2str(sConfigFile) << endl;
+//        // cout << sFileTemp << endl;
+//
+//        return true;
+//    }
+//    catch(exception &e)
+//    {
+//       cerr<< "load config  erro:" <<e.what()<< endl;
+//    }
+//    return false;
+//}
 
 void monitorNode(const string &configFile)
 {
@@ -156,13 +161,12 @@ void monitorNode(const string &configFile)
 
 void parseConfig(int argc, char *argv[])
 {
-
-    TC_Option tOp;//consider
+    TC_Option tOp;
     tOp.decode(argc, argv);
 
      if (tOp.hasParam("nodeversion"))
     {
-        cout << "Node:" << TARS_VERSION << "_" << NODE_VERSION << endl;
+        cout << "Node:" << TARS_VERSION << "." << NODE_VERSION << endl;
         exit(0);
     }
 
@@ -180,20 +184,20 @@ void parseConfig(int argc, char *argv[])
             exit(-1);
         }
         exit(0);
-        return;
     }
 
-    string sLocator         = tOp.getValue("locator");
     string sNodeId          = tOp.getValue("nodeid");
     string sConfigFile      = tOp.getValue("config");
-    string sRegistryObj     = tOp.getValue("registryObj");
-    string sLocalIp         = tOp.getValue("localip");
 
-    if(sConfigFile == "")
+    cout << endl;
+    cout << TC_Common::outfill("", '-') << endl;
+    cout << TC_Common::outfill("nodeid", ' ', 10) << sNodeId << endl;
+	cout << TC_Common::outfill("config", ' ', 10) << sConfigFile << endl;
+	if(sConfigFile == "")
     {
         cerr << endl;
-        cerr <<"start server with locator config, for example: "<<endl;
-        cerr << argv[0] << " --locator=tars.tarsregistry.QueryObj@tcp -h 172.25.38.67 -p 17890"  " --config=config.conf [--nodeid = 172.25.38.67 --registryObj=tars.tarsregistry.RegistryObj]" << endl;
+        cerr <<"start server with config, for example: "<<endl;
+        cerr << argv[0] << " --config=config.conf --nodeid=172.25.38.67" << endl;
         cerr << argv[0] << " --config=config.conf" << endl;
         exit(0);
     }
@@ -202,44 +206,51 @@ void parseConfig(int argc, char *argv[])
     {
         sNodeId = "";
     }
-    
-    if(!TC_File::isAbsolute(sConfigFile))
+
+	int ret = NodeServer::onUpdateConfig(sNodeId, sConfigFile);
+
+    if(ret < 0)
     {
-        char sCwd[PATH_MAX];
-        if ( getcwd( sCwd, PATH_MAX ) == NULL )
-        {
-            TLOGERROR("cannot get the current directory:\n" << endl);
-            exit( 0 );
-        }
-        sConfigFile = string(sCwd) +"/"+ sConfigFile;
+    	exit(-1);
     }
-    sConfigFile = TC_File::simplifyDirectory(sConfigFile);
-    if(sLocator != "")
-    {
-        if(sRegistryObj == "")
-        {
-            sRegistryObj = "tars.tarsregistry.RegistryObj";
-        }
-        bool bCloseOut=true;
-        if(tOp.hasParam("closecout"))
-        {
-            if(TC_Common::lower(tOp.getValue("closecout"))=="n")
-            {
-                bCloseOut = false;
-            }
-        }
-        bool bRet = getConfig(sLocator,sRegistryObj,sNodeId, sLocalIp, sConfigFile, bCloseOut);
-        if(bRet == false)
-        {
-            cerr<<"reload config erro. use old config";
-        }
-    }
-    cout <<endl;
-    map<string,string> mOp = tOp.getMulti();
-    for(map<string,string>::const_iterator it = mOp.begin(); it != mOp.end(); ++it)
-    {
-        cout << outfill( it->first)<< it->second << endl;
-    }
+//
+//    if(!TC_File::isAbsolute(sConfigFile))
+//    {
+//        char sCwd[PATH_MAX];
+//        if ( getcwd( sCwd, PATH_MAX ) == NULL )
+//        {
+//            TLOGERROR("cannot get the current directory:\n" << endl);
+//            exit( 0 );
+//        }
+//        sConfigFile = string(sCwd) +"/"+ sConfigFile;
+//    }
+//    sConfigFile = TC_File::simplifyDirectory(sConfigFile);
+//    if(sLocator != "")
+//    {
+//        if(sRegistryObj == "")
+//        {
+//            sRegistryObj = "tars.tarsregistry.RegistryObj";
+//        }
+//        bool bCloseOut=true;
+//        if(tOp.hasParam("closecout"))
+//        {
+//            if(TC_Common::lower(tOp.getValue("closecout"))=="n")
+//            {
+//                bCloseOut = false;
+//            }
+//        }
+//        bool bRet = getConfig(sLocator,sRegistryObj,sNodeId, sLocalIp, sConfigFile, bCloseOut);
+//        if(bRet == false)
+//        {
+//            cerr<<"reload config erro. use old config";
+//        }
+//    }
+//    cout <<endl;
+//    map<string,string> mOp = tOp.getMulti();
+//    for(map<string,string>::const_iterator it = mOp.begin(); it != mOp.end(); ++it)
+//    {
+//        cout << outfill( it->first)<< it->second << endl;
+//    }
 
 }
 
@@ -257,10 +268,10 @@ int main( int argc, char* argv[] )
             }
         }
 
-        if (!bNoDaemon)
-        {
-            TC_Common::daemon();
-        }
+//        if (!bNoDaemon)
+//        {
+//            TC_Common::daemon();
+//        }
 
         parseConfig(argc,argv);
 

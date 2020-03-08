@@ -53,7 +53,7 @@ void  QueryServer::initialize()
     vector<string> v_dblist;
     vector<string> v_dbcountlist;
 
-    g_pconf->getDomainVector("/tars/countdb", v_dbcountlist);
+    g_pconf->getDomainVector("/tars/propertydb", v_dbcountlist);
 
     size_t iDbNumber = v_dblist.size();
 
@@ -65,7 +65,7 @@ void  QueryServer::initialize()
     {
         TC_DBConf tcDBConf;
 
-        string path= "/tars/countdb/" + v_dbcountlist[i];
+        string path= "/tars/propertydb/" + v_dbcountlist[i];
 
         tcDBConf.loadFromMap(g_pconf->getDomainMap(path));
 

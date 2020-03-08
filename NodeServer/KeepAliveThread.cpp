@@ -73,12 +73,20 @@ void KeepAliveThread::run()
     bool bLoaded        = false;
     bool bRegistered    = false;
 
+    int64_t updateConfigTime = TNOW;
+
     while (!_terminate)
     {
         int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
 
         try
         {
+        	if(TNOW - updateConfigTime > 60 )
+	        {
+		        updateConfigTime = TNOW;
+        		NodeServer::onUpdateConfig(NodeServer::NODE_ID, NodeServer::CONFIG);
+	        }
+
             //获取主控代理
             if (!_registryPrx)
             {

@@ -451,6 +451,12 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 	int iRet = EM_TARS_UNKNOWN_ERR;
 	try
 	{
+		if(application == "tars" && serverName == "tarsAdminRegistry")
+		{
+			result = "can not stop " + application + "." + serverName;
+			TarsRemoteNotify::getInstance()->report(result);
+			return EM_TARS_CAN_NOT_EXECUTE;
+		}
 		DBPROXY->updateServerState(application, serverName, nodeName, "setting_state", tars::Inactive);
 		vector<ServerDescriptor> server;
 		server = DBPROXY->getServers(application, serverName, nodeName, true);

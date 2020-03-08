@@ -1,66 +1,58 @@
 <tars>
-    <application>
-    #是否启用SET分组
-    enableset=${enableset}
-    #SET分组的全名.(mtt.s.1)
-    setdivision=${setdivision}
-    <client>
-        #地址
+  <application>
+      #enable set
+      enableset=${enableset}
+      #SET name: .(mtt.s.1)
+      setdivision=${setdivision}
+      <client>
+        #registry address
         locator =${locator}
-        #同步调用超时时间,缺省3s(毫秒)
+        #sync invoke timeout(millseconds)
         sync-invoke-timeout = 3000
-        #异步超时时间,缺省5s(毫秒)
+        #async invoke timeout (millseconds)
         async-invoke-timeout =5000
-        #重新获取服务列表时间间隔(毫秒)
+        #refresh endpoint interval(millseconds)
         refresh-endpoint-interval = 60000
-        #模块间调用服务[可选]
-        stat            = tars.tarsstat.StatObj
-        #属性上报服务[可选]
-        property                    = tars.tarsproperty.PropertyObj
-        #上报间隔时间,默认60s(毫秒)
-        report-interval            = 60000
-        #stat采样比1:n 例如sample-rate为1000时 采样比为千分之一
-        sample-rate = 100000
-        #1分钟内stat最大采样条数
-        max-sample-count = 50
+        #report to stat[optional]
+        stat      = tars.tarsstat.StatObj
+        #report property[optional]
+        property          = tars.tarsproperty.PropertyObj
+        #report time interval (millseconds)
+        report-interval      = 60000
+        #callback async thread num
+        asyncthread    = ${asyncthread}
+        #module name
+        modulename    = ${modulename}
+      </client>
 
-        #网络异步回调线程个数
-        asyncthread      = ${asyncthread}
-        #模块名称
-        modulename      = ${modulename}
-    </client>
-        
-    #定义所有绑定的IP
-    <server>
-        #应用名称
-        app      = ${app}
-        #服务名称
+      <server>
+        #app name
+        app    = ${app}
+        #server name
         server  = ${server}
-        #本地ip
+        #local ip
         localip  = ${localip}
-        #本地管理套接字[可选]
+        #local endpoint, for tars-node comunication(optional)
         local  = ${local}
-        #服务的数据目录,可执行文件,配置文件等
+        #server base path
         basepath = ${basepath}
-        #
+        #server data path
         datapath = ${datapath}
-        #日志路径
+        #log path
         logpath  = ${logpath}
-        #日志大小
+        #roll log size
         logsize = 10M
-        #日志数量
-        #   lognum = 10
-        #配置中心的地址[可选]
+        #roll log num
+        lognum = 10
+        #roll log level
+        logLevel=DEBUG
+        #config obj[optional]
         config  = tars.tarsconfig.ConfigObj
-        #信息中心的地址[可选]
+        #notify obj[optional]
         notify  = tars.tarsnotify.NotifyObj
-        #远程LogServer[可选]
+        #remote log[optional]
         log = tars.tarslog.LogObj
-        #关闭服务时等待时间
-         deactivating-timeout = 3000
-        #滚动日志等级默认值
-       logLevel=DEBUG
-    </server>          
+    </server>
   </application>
 </tars>
 

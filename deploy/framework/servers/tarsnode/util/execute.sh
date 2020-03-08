@@ -29,5 +29,4 @@ fi
 ulimit -c 409600
 # ulimit -a
 
-#$bin --locator="tars.tarsregistry.QueryObj@tcp -h registry.tars.com -p 17890" --config=/usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf &
-$bin --locator="tars.tarsregistry.QueryObj@registryAddress" --nodeid="localip.tars.com" --config=/usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf &
+$bin --nodeid="localip.tars.com" --config=/usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf &

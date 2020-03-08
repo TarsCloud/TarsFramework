@@ -106,12 +106,12 @@ if [ "${SLAVE}" != "true" ]; then
 fi
 
 if [ "${SLAVE}" != "true" ]; then
-    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarspatch tarsconfig tarsnode tarslog  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch)
 else
-    TARS=(tarsnotify tarsregistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat)
 fi
 
-TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig   tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 TARS_PATH=/usr/local/app/tars
 mkdir -p ${TARS_PATH}
 
@@ -227,6 +227,7 @@ if [ "$REBUILD" == "true" ]; then
     exec_mysql_script "drop database if exists tars_property"
     exec_mysql_script "drop database if exists db_tars_web"    
     exec_mysql_script "drop database if exists db_user_system"    
+    exec_mysql_script "drop database if exists db_cache_web"
 fi
 
 cd ${WORKDIR}/sql.tmp
@@ -293,12 +294,21 @@ if [ $? != 0 ]; then
     exec_mysql_script "create database tars_stat"
     exec_mysql_script "create database tars_property"
     exec_mysql_script "create database db_tars_web"
-    exec_mysql_script "create database db_cache_web"
 
     exec_mysql_sql db_tars db_tars.sql
     exec_mysql_sql db_tars_web db_tars_web.sql
-    exec_mysql_sql db_cache_web db_cache_web.sql
+fi
 
+exec_mysql_script "use db_cache_web"
+if [ $? != 0 ]; then
+    LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
+    exec_mysql_script "create database db_cache_web"
+
+    exec_mysql_sql db_cache_web db_cache_web.sql
+fi
+
+function update_template()
+{
     LOG_INFO "create t_profile_template";
 
     sqlFile="tmp.sql"
@@ -311,11 +321,27 @@ if [ $? != 0 ]; then
         do
             echo $template_name #在此处处理文件即可
 
-            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" ) 
+            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" )
 
             parent_template="tars.default"
             if [ "$template_name" == "tars.springboot" ]; then
                 parent_template="tars.tarsjava.default"
+            elif [ "$template_name" == "tars.tarsAdminRegistry" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsconfig" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsnotify" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsproperty" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsqueryproperty" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsstat" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsquerystat" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsregistry" ]; then
+                parent_template="tars.framework-db"
             fi
             LOG_INFO "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');"
             echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile}
@@ -326,7 +352,9 @@ if [ $? != 0 ]; then
     read_dir
 
     exec_mysql_sql db_tars $sqlFile;
-fi
+}
+
+update_template
 
 exec_mysql_script "use db_user_system"
 if [ $? != 0 ]; then

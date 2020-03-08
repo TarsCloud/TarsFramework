@@ -1,13 +1,3 @@
 <tars>
-<countdb>
-<db1>
-     dbhost=db.tars.com
-     dbname=tars_stat
-     tbname=tars_stat_
-     dbuser=tars
-     dbpass=tars2015
-     dbport=3306
-     charset=utf8
-    </db1>
-</countdb>
+
 </tars>

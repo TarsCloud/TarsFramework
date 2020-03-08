@@ -36,7 +36,15 @@ extern NodeServer g_app;
 class NodeServer : public Application
 {
 public:
-     /**
+	static string NODE_ID;
+	static string CONFIG;
+
+	/**
+	 * update config
+	 */
+	static int onUpdateConfig(const string &nodeId, const string &sConfigFile);
+
+	/**
      * 获取Adapter Endpoint
      */
     TC_Endpoint getAdapterEndpoint(const string& name ) const;
@@ -101,6 +109,7 @@ private:
 
     static string       g_sNodeIp;
 };
+
 #endif
 
 

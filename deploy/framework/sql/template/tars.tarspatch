@@ -1,10 +1,10 @@
 <tars>
-    <application>
+  <application>
     <server>
         log    = tars.tarslog.LogObj
         logLevel = DEBUG
     </server>          
-    </application>
+  </application>
 
     directory=/usr/local/app/patchs/tars
     uploadDirectory=/usr/local/app/patchs/tars.upload

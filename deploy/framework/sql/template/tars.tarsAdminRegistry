@@ -3,15 +3,6 @@
 		    AdminRegObjName=tars.tarsAdminRegistry.AdminRegObj
 		    patchServerObj=tars.tarspatch.PatchObj
 	  </objname>
-	  <db>
-        dbhost=db.tars.com
-        dbname=db_tars
-        dbuser=tars
-        dbpass=tars2015
-        dbport=3306
-        charset=utf8
-        dbflag=CLIENT_MULTI_STATEMENTS
-    </db>
 	  <nodeinfo>
 		    defaultTemplate=tars.tarsnode
 		    sync_node_timeout=4000

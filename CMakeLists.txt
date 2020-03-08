@@ -171,7 +171,6 @@ add_custom_target(cp-tarsAdminRegistry
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsAdminRegistry
         COMMAND ${CMAKE_COMMAND} -E copy servers/tarsAdminRegistry/bin/tarsAdminRegistry /usr/local/app/tars/tarsAdminRegistry/bin/tarsAdminRegistry
-        COMMAND killall -9 tarsAdminRegistry
         COMMAND sh /usr/local/app/tars/tarsAdminRegistry/util/start.sh
         COMMENT "cp tarsAdminRegistry & restart")
 
@@ -179,7 +178,6 @@ add_custom_target(cp-tarsnode
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsnode
         COMMAND ${CMAKE_COMMAND} -E copy servers/tarsnode/bin/tarsnode /usr/local/app/tars/tarsnode/bin/tarsnode
-        COMMAND killall -9 tarsnode
         COMMAND sh /usr/local/app/tars/tarsnode/util/start.sh
         COMMENT "cp tarsnode & restart")
 
@@ -187,7 +185,6 @@ add_custom_target(cp-tarsstat
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsstat
         COMMAND ${CMAKE_COMMAND} -E copy servers/tarsstat/bin/tarsstat /usr/local/app/tars/tarsstat/bin/tarsstat
-        COMMAND killall -9 tarsstat
         COMMAND sh /usr/local/app/tars/tarsstat/util/start.sh
         COMMENT "cp tarsstat & restart")
 
@@ -195,14 +192,14 @@ add_custom_target(cp-tarsquerystat
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsquerystat
         COMMAND ${CMAKE_COMMAND} -E copy servers/tarsquerystat/bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
-        COMMAND killall -9 tarsquerystat && /usr/local/app/tars/tarsquerystat/util/start.sh
+        COMMAND /usr/local/app/tars/tarsquerystat/util/start.sh
         COMMENT "cp tarsquerystat & restart")
 
 add_custom_target(cp-tarsqueryproperty
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsqueryproperty
         COMMAND ${CMAKE_COMMAND} -E copy servers/tarsqueryproperty/bin/tarsqueryproperty /usr/local/app/tars/tarsqueryproperty/bin/tarsqueryproperty
-        COMMAND killall -9 tarsqueryproperty && /usr/local/app/tars/tarsqueryproperty/util/start.sh
+        COMMAND /usr/local/app/tars/tarsqueryproperty/util/start.sh
         COMMENT "cp tarsqueryproperty & restart")
 
 

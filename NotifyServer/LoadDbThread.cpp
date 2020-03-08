@@ -90,8 +90,8 @@ void LoadDbThread::loadData()
     try
     {
         TC_Mysql::MysqlData mysqlData;
-        map<string, string> &mTmep = _data.getWriter();
-        mTmep.clear();
+        map<string, string> &mTemp = _data.getWriter();
+        mTemp.clear();
         size_t iOffset(0);
 
         do
@@ -110,7 +110,7 @@ void LoadDbThread::loadData()
                 }
 
                 string sKey = mysqlData[i]["application"] + "." +  mysqlData[i]["server_name"] + mysqlData[i]["node_name"];
-                mTmep.insert(map<string, string>::value_type(sKey, sValue));
+                mTemp.insert(map<string, string>::value_type(sKey, sValue));
             }
 
             iOffset += mysqlData.size();
@@ -119,7 +119,7 @@ void LoadDbThread::loadData()
 
         _data.swap();
 
-        TLOGDEBUG("LoadDbThread::loadData load data finish, _mSetApp size:" << mTmep.size() << endl);
+        TLOGDEBUG("LoadDbThread::loadData load data finish, _mSetApp size:" << mTemp.size() << endl);
 
     }
     catch (exception &ex)
