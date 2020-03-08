@@ -470,7 +470,7 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
         sTemplate = TC_Common::replace(sTemplate, "${localip}",sLocalIp);
 		sTemplate = TC_Common::replace(sTemplate, "${local}", config.get("/tars/application/server<local>", ""));
 
-		cout << TC_Common::outfill("", '-') << endl;
+//		cout << TC_Common::outfill("", '-') << endl;
 
 		TC_Config newConf;
 
@@ -488,7 +488,7 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
 		ofstream configfile(sFileTemp.c_str());
 		if(!configfile.good())
 		{
-			TLOGERROR("NodeServer::onUpdateConfig cannot create config:" << sFileTemp << endl);
+			TLOGERROR("NodeServer::onUpdateConfig can not create config:" << sFileTemp << endl);
 			return -1;
 		}
 
@@ -496,13 +496,13 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
 
 		configfile.close();
 
-		string sFileBak     = CONFIG + "." + TC_Common::now2str() + ".bak";
+		string sFileBak     = CONFIG + ".bak";
 		if(TC_File::isFileExist(CONFIG))
 		{
 			TC_File::copyFile(CONFIG, sFileBak,true);
 		}
 
-		TC_File::copyFile(sFileTemp,CONFIG,true);
+		TC_File::copyFile(sFileTemp, CONFIG,true);
 		TC_File::removeFile(sFileTemp,false);
 	}
 	catch(exception &e)

@@ -953,7 +953,7 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS(ex.what());
+        sendSqlErrorAlarmSMS(string("CDbHandle::loadIPPhysicalGroupInfo:") + ex.what());
         TLOGERROR("CDbHandle::loadIPPhysicalGroupInfo exception: " << ex.what() << endl);
         if (fromInit)
         {
@@ -963,7 +963,7 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
     }
     catch (exception& ex)
     {
-	    sendSqlErrorAlarmSMS(ex.what());
+	    sendSqlErrorAlarmSMS(string("CDbHandle::loadIPPhysicalGroupInfo:") + ex.what());
         TLOGDEBUG("CDbHandle::loadIPPhysicalGroupInfo " << ex.what() << endl);
         if (fromInit)
         {
@@ -1024,7 +1024,7 @@ int CDbHandle::loadGroupPriority(bool fromInit)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS(ex.what());
+        sendSqlErrorAlarmSMS(string("CDbHandle::loadGroupPriority:") + ex.what());
         TLOGERROR("CDbHandle::loadGroupPriority exception: " << ex.what() << endl);
         if (fromInit)
         {
@@ -1034,7 +1034,7 @@ int CDbHandle::loadGroupPriority(bool fromInit)
     }
     catch (exception& ex)
     {
-	    sendSqlErrorAlarmSMS(ex.what());
+	    sendSqlErrorAlarmSMS(string("CDbHandle::loadGroupPriority:") + ex.what());
         TLOGDEBUG("CDbHandle::loadGroupPriority " << ex.what() << endl);
         if (fromInit)
         {
@@ -1076,13 +1076,13 @@ int CDbHandle::computeInactiveRate()
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS(ex.what());
+        sendSqlErrorAlarmSMS(string("CDbHandle::computeInactiveRate:") + ex.what());
         TLOGERROR("CDbHandle::computeInactiveRate exception: " << ex.what() << endl);
         return -3;
     }
     catch (exception& ex)
     {
-	    sendSqlErrorAlarmSMS(ex.what());
+	    sendSqlErrorAlarmSMS(string("CDbHandle::computeInactiveRate:") + ex.what());
         TLOGERROR("CDbHandle::computeInactiveRate " << ex.what() << endl);
         return -4;
     }
@@ -1298,7 +1298,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     {
         TLOGERROR("CDbHandle::loadObjectIdCache exception: " << ex.what() << endl);
 
-        sendSqlErrorAlarmSMS(ex.what());
+        sendSqlErrorAlarmSMS(string("CDbHandle::loadObjectIdCache:") + ex.what());
         if (fromInit)
         {
             //初始化是出现异常，退出
@@ -1308,7 +1308,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     }
     catch (exception& ex)
     {
-	    sendSqlErrorAlarmSMS(ex.what());
+	    sendSqlErrorAlarmSMS(string("CDbHandle::loadObjectIdCache:") + ex.what());
         TLOGDEBUG("CDbHandle::loadObjectIdCache " << ex.what() << endl);
         if (fromInit)
         {
@@ -1357,13 +1357,13 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
     }
     catch (TC_Mysql_Exception& ex)
     {
-	    sendSqlErrorAlarmSMS(ex.what());
+	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
         TLOGERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
         return -1;
     }
     catch (exception& ex)
     {
-	    sendSqlErrorAlarmSMS(ex.what());
+	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
         TLOGERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
         return -1;
     }

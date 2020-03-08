@@ -165,7 +165,7 @@ void ServerObject::synState()
         //防止主控超时导致阻塞服务上报心跳
         if(_noticeFailTimes < 3)
         {
-            AdminProxy::getInstance()->getRegistryProxy()->updateServer( _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
+            AdminProxy::getInstance()->getRegistryProxy()->tars_set_timeout(1000)->updateServer( _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
         }
         else
         {

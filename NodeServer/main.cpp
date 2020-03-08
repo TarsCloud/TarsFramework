@@ -268,10 +268,10 @@ int main( int argc, char* argv[] )
             }
         }
 
-//        if (!bNoDaemon)
-//        {
-//            TC_Common::daemon();
-//        }
+        if (!bNoDaemon)
+        {
+            TC_Common::daemon();
+        }
 
         parseConfig(argc,argv);
 
