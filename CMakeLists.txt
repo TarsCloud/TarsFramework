@@ -15,7 +15,9 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Thirdparty.cmake")
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
 include_directories(${util_SOURCE_DIR}/include)
+if(WIN32)
 include_directories(${util_SOURCE_DIR}/src/epoll_windows)
+endif()
 
 add_subdirectory(tarscpp)
 
