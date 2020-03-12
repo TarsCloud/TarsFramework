@@ -23,28 +23,6 @@ QueryServer g_app;
 
 TC_Config * g_pconf;
 /////////////////////////////////////////////////////////////////
-//
-//struct JsonProtocol
-//{
-//
-//	static TC_NetWorkBuffer::PACKET_TYPE parse(TC_NetWorkBuffer &in, vector<char> &out)
-//	{
-//		auto it = in.find("}", 1);
-////		in.mergeBuffers();
-//		TLOGDEBUG("JsonProtocol parse:" << in.getBuffersString() << endl);
-//
-////		const char *p = strstr(in.mergeBuffers(), "}");
-//
-//		if (it != in.end())
-//		{
-//			out = in.getBuffers();
-//			in.clearBuffers();
-//			return TC_NetWorkBuffer::PACKET_FULL;   //返回1表示收到的包已经完全
-//		}
-//
-//		return TC_NetWorkBuffer::PACKET_ERR;        //返回-1表示收到包协议错误，框架会自动关闭当前连接
-//	}
-//};
 
 void  QueryServer::initialize()
 {
@@ -113,7 +91,6 @@ void  QueryServer::initialize()
         TLOGDEBUG("QueryServer::initialize i:" << i << "|notarsslavename:" << vIpGroup[i] << endl);
     }
     addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".QueryObj");
-//    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &JsonProtocol::parse);
 }
 /////////////////////////////////////////////////////////////////
 
