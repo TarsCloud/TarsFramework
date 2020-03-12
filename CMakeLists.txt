@@ -14,11 +14,6 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Thirdparty.cmake")
 
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
-include_directories(${util_SOURCE_DIR}/include)
-if(WIN32)
-include_directories(${util_SOURCE_DIR}/src/epoll_windows)
-endif()
-
 add_subdirectory(tarscpp)
 
 include_directories(${servant_SOURCE_DIR})
@@ -30,6 +25,11 @@ macro(complice_module MODULE)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/servers/${MODULE}/bin)
 
     include_directories(${PROJECT_SOURCE_DIR}/tarscpp/servant/protocol/framework)
+    include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/include)
+    if(WIN32)
+        include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/src/epoll_windows)
+    endif()
+
     include_directories(${servant_SOURCE_DIR}/servant)
 
     aux_source_directory(. DIR_SRCS)
