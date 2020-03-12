@@ -20,7 +20,7 @@ jobs:
       - name: git
         run: git submodule update --init --recursive
       - name: configure
-        run: cd build; cmake --version; cmake .. -A X64 -DTARS_MYSQL=ON
+        run: cd build; cmake --version; cmake .. -A X64
       - name: make
         run: cd build; cmake --build . --config release --target run-all
 

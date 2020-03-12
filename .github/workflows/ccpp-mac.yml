@@ -17,7 +17,7 @@ jobs:
     - name: git
       run: git submodule update --init --recursive
     - name: configure
-      run: cd build;cmake .. -DTARS_MYSQL=ON -DTARS_SSL=ON -DTARS_HTTP2=ON -DTARS_PROTOBUF=ON
+      run: cd build;cmake ..
     - name: make
       run: cd build; make
 
