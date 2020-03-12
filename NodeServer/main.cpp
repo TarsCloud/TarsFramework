@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -16,6 +16,7 @@
 
 #include "NodeServer.h"
 #include "servant/Communicator.h"
+#include "util/tc_platform.h"
 #include "util/tc_option.h"
 #include "util/tc_file.h"
 #include "util/tc_config.h"
@@ -267,12 +268,12 @@ int main( int argc, char* argv[] )
                 break;
             }
         }
-
+#if !TARGET_PLATFORM_WINDOWS
         if (!bNoDaemon)
         {
             TC_Common::daemon();
         }
-
+#endif
         parseConfig(argc,argv);
 
         g_pconf = &g_app.getConfig();

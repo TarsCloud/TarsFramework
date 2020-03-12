@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -40,7 +40,7 @@ void NodeServer::initialize()
 
     initRegistryObj();
 
-    addConfig("tarsnode.conf");
+ //   addConfig("tarsnode.conf");
 
     //增加对象
     string sNodeObj     = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj";
@@ -133,7 +133,7 @@ void NodeServer::initHashMap()
 {
     TLOGDEBUG("NodeServer::initHashMap " << endl);
 
-    string sFile        = ServerConfig::DataPath + "/" + g_pconf->get("/tars/node/hashmap<file>", "__tarsnode_servers");
+    string sFile        = ServerConfig::DataPath + FILE_SEP + g_pconf->get("/tars/node/hashmap<file>", "__tarsnode_servers");
     string sPath        = TC_File::extractFilePath(sFile);
     int iMinBlock       = TC_Common::strto<int>(g_pconf->get("/tars/node/hashmap<minBlock>", "500"));
     int iMaxBlock       = TC_Common::strto<int>(g_pconf->get("/tars/node/hashmap<maxBlock>", "500"));
@@ -205,18 +205,19 @@ bool NodeServer::cmdReLoadConfig(const string& command, const string& params, st
 {
     TLOGDEBUG("NodeServer::cmdReLoadConfig " << endl);
 
-    bool bRet = false;
-
-    if (addConfig("tarsnode.conf"))
+//    bool bRet = false;
+/*
+    if (addConfig("tafnode.conf"))
     {
+
         bRet = ServerFactory::getInstance()->loadConfig();
+
     }
 
     string s = bRet ? "OK" : "failure";
-
-    result = "cmdReLoadConfig " + s;
-
-    return bRet;
+*/
+    result = "cmdReLoadConfig not support!";
+    return false;
 }
 
 void NodeServer::destroyApp()
@@ -245,7 +246,7 @@ void NodeServer::destroyApp()
         _removeLogThread = NULL;
     }
 
-    TLOGDEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
+  //  TLOGDEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
 }
 
 string tostr(const set<string>& setStr)
@@ -317,7 +318,7 @@ bool NodeServer::isValid(const string& ip)
         for (size_t i = 0; i < vIp.size(); i++)
         {
             g_ipSet.insert(vIp[i]);
-            // TLOGDEBUG(ips << ", ,g_ipSet insert ip:" << vIp[i] << endl);
+            LOG->debug() << ips << "g_ipSet insert ip:" << vIp[i] << endl;
         }
 
         for (size_t i = 0; i < vObj.size(); i++)

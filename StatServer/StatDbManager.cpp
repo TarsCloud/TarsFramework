@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -387,7 +387,7 @@ int StatDbManager::insert2Db(const StatMsg &statmsg, const string &sDate, const 
             iCount ++;
             if ( iCount >= _maxInsertCount )
             {
-                usleep(100);
+                TC_Common::msleep(10);
                 pMysql->execute(sSql);
                 TLOGDEBUG("insert " << sTbName << " affected:" << iCount  << endl);
 

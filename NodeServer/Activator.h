@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -17,8 +17,8 @@
 #ifndef __ACTIVATOR_H_
 #define __ACTIVATOR_H_
 #include "Node.h"
-#include <unistd.h>
-// #include "ServerObject.h"
+//#include <unistd.h>
+#include "util/tc_platform.h"
 #include "util/tc_file.h"
 #include "util/tc_monitor.h"
 #include <iostream>
@@ -81,10 +81,12 @@ struct EnvVal : std::unary_function<string, string>
 
             start += str.size();
         }
-
-        //此处需要马上设置，否则以上宏替换中获取的环境变量为空
-        setenv((value.substr(0, pos)).c_str(), v.c_str(), true);
-
+#if TARGET_PLATFORM_WINDOWS
+		SetEnvironmentVariable((value.substr(0, pos)).c_str(), v.c_str());
+#else
+		//此处需要马上设置，否则以上宏替换中获取的环境变量为空
+		setenv((value.substr(0, pos)).c_str(),v.c_str(),true);
+#endif
         return value.substr(0, pos) + "=" + v;
     }
 };
@@ -126,7 +128,7 @@ public:
      * @return pid_t 生成子进程id 
      *
      */
-    pid_t activate(const string& strExePath, const string& strPwdPath, const string &strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs);
+    int64_t activate(const string& strExePath, const string& strPwdPath, const string &strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs);
 
     /**
      * 脚本启动服务
@@ -139,7 +141,7 @@ public:
      *
      */
     // pid_t activate(const string &strServerId, const string& strStartScript, const string &strMonitorScript, string &strResult);
-    pid_t activate(const string& strStartScript, const string &strMonitorScript, string &strResult);
+    int64_t activate(const string& strStartScript, const string &strMonitorScript, string &strResult);
 
     /**
      * 停止服务
@@ -147,7 +149,7 @@ public:
      * @param pid 进程id
      * @return int 0 成功  其它失败
      */
-    int deactivate( int pid );
+    int deactivate(int64_t pid );
 
     /**
      * 停止服务 并生成core文件
@@ -155,7 +157,7 @@ public:
      * @param pid 进程id
      * @return int 0 成功  其它失败
      */
-    int deactivateAndGenerateCore( int pid );
+    int deactivateAndGenerateCore( int64_t pid );
     
     /**
      * 发送信号
@@ -164,7 +166,7 @@ public:
      * @param signal 信号
      * @return int 0 成功  其它失败
      */
-    int sendSignal( int pid, int signal ) const;
+    int kill(int64_t pid ) const;
 public:
     
     bool isActivatingLimited (); //启动限制,用来防止问题服务不断重启影响其它服务
@@ -194,9 +196,11 @@ public:
     }
 
 private:
+#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
+
     int pclose2(FILE *fp);
     FILE* popen2(const char *cmdstring, const char *type);
-       
+#endif
 private:
     vector <time_t> _activingRecord;   //运行时
     bool    _limited;                  //是否启动受限，运行时
@@ -214,4 +218,3 @@ private:
 
 typedef TC_AutoPtr<Activator> ActivatorPtr;
 #endif
-

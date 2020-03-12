@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -375,7 +375,7 @@ int PropertyDbManager::insert2Db(const PropertyMsg &mPropMsg, const string &sDat
             }
             if ( iCount >= _maxInsertCount )
             {
-                usleep(100);
+                TC_Common::msleep(10);
                 pMysql->execute(osSql.str());    
 
                 TLOGDEBUG("insert " << strTbName << " affected:" << iCount  << endl);

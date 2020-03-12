@@ -108,7 +108,7 @@ fi
 if [ "${SLAVE}" != "true" ]; then
     TARS=(tarsnotify tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch)
 else
-    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat)
+    TARS=(tarsnotify tarsregistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat)
 fi
 
 TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)

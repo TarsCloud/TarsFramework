@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -28,7 +28,7 @@
 // #include <ext/pool_allocator.h>
 using namespace tars;
 
-#if TARGET_PLATFORM_IOS
+#if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
 typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,MemStorePolicy> HashMap;//FileStorePolicy
 #else
 typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,ShmStorePolicy> HashMap;//FileStorePolicy

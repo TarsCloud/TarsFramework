@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -16,7 +16,7 @@
 
 #include "DbProxy.h"
 #include <time.h>
-
+#include "util/tc_port.h"
 ///////////////////////////////////////////////////////////
 string tFlagInc(const string& stflag);
 
@@ -612,17 +612,18 @@ string dateInc(const string& sDate)
         int mon  = TC_Common::strto<int>(sDate.substr(4, 2));
         int day  = TC_Common::strto<int>(sDate.substr(6, 2));
 
-        struct tm *p = NULL;
-        time_t timep;
-        struct tm tt = {0};
+	    time_t timep;
+	    struct tm tt = {0};
 
-        time(&timep);
-        p=localtime_r(&timep, &tt);
-        p->tm_mon  = mon -1;
-        p->tm_mday = day +1;
-        p->tm_year = year -1900 ;
+	    time(&timep);
+	    TC_Port::localtime_r(&timep, &tt);
 
-        timep = mktime(p);
+	    tt.tm_mon  = mon -1;
+	    tt.tm_mday = day +1;
+	    tt.tm_year = year -1900 ;
+
+	    timep = mktime(&tt);
+
         ret = TC_Common::tm2str(timep, "%Y%m%d");
     }
     catch(exception & ex)

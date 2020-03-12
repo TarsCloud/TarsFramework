@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -39,6 +39,7 @@ LoadInfo PlatformInfo::getLoadInfo() const
     info.avg1   = -1.0f;
     info.avg5   = -1.0f;
     info.avg15  = -1.0f;
+#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
 
     double loadAvg[3];
     if ( getloadavg( loadAvg, 3 ) != -1 )
@@ -47,7 +48,7 @@ LoadInfo PlatformInfo::getLoadInfo() const
         info.avg5   = static_cast<float>( loadAvg[1] );
         info.avg15  = static_cast<float>( loadAvg[2] );
     }
-
+#endif
     return  info;
 }
 
@@ -63,17 +64,17 @@ string PlatformInfo::getDataDir() const
 
     if ( TC_File::isAbsolute(sDataDir) == false)
     {
-        char cwd[PATH_MAX];
-        if ( getcwd( cwd, PATH_MAX ) == NULL )
+        char cwd[256] = "\0";
+        if ( getcwd( cwd, sizeof(cwd) ) == NULL )
         {
             TLOGERROR("PlatformInfo::getDataDir cannot get the current directory:\n" << endl);
             exit( 0 );
         }
-        sDataDir = string(cwd) + '/' + sDataDir;
+        sDataDir = string(cwd) + FILE_SEP + sDataDir;
     }
 
     sDataDir = TC_File::simplifyDirectory(sDataDir);
-    if ( sDataDir[sDataDir.length() - 1] == '/' )
+    if ( sDataDir[sDataDir.length() - 1] == FILE_SEP[0] )
     {
         sDataDir = sDataDir.substr( 0, sDataDir.length() - 1 );
     }
@@ -90,10 +91,10 @@ string PlatformInfo::getDownLoadDir() const
         if(sDownLoadDir == "")
         {
             string sDataDir       = getDataDir();   
-            string::size_type pos =  sDataDir.find_last_of("/");
+            string::size_type pos =  sDataDir.find_last_of(FILE_SEP);
             if(pos != string::npos)
             {
-                sDownLoadDir    = sDataDir.substr(0,pos)+"/tmp/download/";
+                sDownLoadDir    = sDataDir.substr(0,pos) + FILE_SEP + "tmp" + FILE_SEP + "download" + FILE_SEP;
             }
         }
 

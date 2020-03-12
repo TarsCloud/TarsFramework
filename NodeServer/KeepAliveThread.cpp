@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -54,6 +54,7 @@ void KeepAliveThread::terminate()
         getThreadControl().join();
     }
 
+    getThreadControl().join();
 }
 
 bool KeepAliveThread::timedWait(int millsecond)
@@ -217,7 +218,7 @@ int KeepAliveThread::reportAlive()
         {
             tReport = tNow;
 
-            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node keep alive  ----------------------------------------------------|" << time(0) << "|" << pthread_self() << '\n' << endl;
+            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node keep alive  ----------------------------------------------------|" << TNOW << "|" << TC_Thread::CURRENT_THREADID() << '\n' << endl;
             
             int iRet = _registryPrx->keepAlive(_nodeInfo.nodeName, _platformInfo.getLoadInfo());
 
@@ -241,7 +242,7 @@ int KeepAliveThread::synStat()
         vector<ServerStateInfo> v;
         _stat.swap(v);
 
-        NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node syn stat  size|" << v.size() << "|" << _synStatBatch << "|" << pthread_self() << endl;
+        NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node syn stat  size|" << v.size() << "|" << _synStatBatch << "|" << TC_Thread::CURRENT_THREADID() << endl;
 
         if (v.size() > 0)
         {

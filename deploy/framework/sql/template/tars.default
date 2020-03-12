@@ -52,6 +52,8 @@
         notify  = tars.tarsnotify.NotifyObj
         #remote log[optional]
         log = tars.tarslog.LogObj
+        #tarsnode close server waiting time
+        deactivating-timeout = 3000
     </server>
   </application>
 </tars>

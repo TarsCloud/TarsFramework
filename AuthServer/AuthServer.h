@@ -1,4 +1,4 @@
-#ifndef _AUTH_SERVER_H_
+ï»¿#ifndef _AUTH_SERVER_H_
 #define _AUTH_SERVER_H_
 
 #include "servant/Application.h"
@@ -9,12 +9,12 @@ class AuthServer : public Application
 {
 protected:
     /**
-     * ³õÊ¼»¯, Ö»»á½ø³Ìµ÷ÓÃÒ»´Î
+     * ï¿½ï¿½Ê¼ï¿½ï¿½, Ö»ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½Ò»ï¿½ï¿½
      */
     virtual void initialize();
 
     /**
-     * Îö¹¹, Ã¿¸ö½ø³Ì¶¼»áµ÷ÓÃÒ»´Î
+     * ï¿½ï¿½ï¿½ï¿½, Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
      */
     virtual void destroyApp();
 };

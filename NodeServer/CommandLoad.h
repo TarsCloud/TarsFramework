@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -128,18 +128,22 @@ inline int CommandLoad::execute(string& sResult)
     //若serverDir不合法采用默认路径
     if (_serverDir.empty() || TC_File::isAbsolute(_serverDir) ==  false)
     {
-        _serverDir = TC_File::simplifyDirectory(_nodeInfo.dataDir + "/" +  _desc.application + "." + _desc.serverName);
+        _serverDir = TC_File::simplifyDirectory(_nodeInfo.dataDir + FILE_SEP +  _desc.application + "." + _desc.serverName);
     }
 
     //若exePath不合法采用默认路径
     //注意java服务启动方式特殊 可执行文件为java 须特殊处理
     if (_exePath.empty())
     {
-        _exePath =  _serverDir + "/bin/";
+        _exePath =  _serverDir + FILE_SEP + "bin" + FILE_SEP;
         if (_serverType == "tars_java")
         {
             _exeFile = "java";
-        }                      
+        }
+        else if (_serverType == "tars_node")
+        {
+            _exeFile = "node";
+        }
         else
         {
             _exeFile = _exePath + _desc.serverName; 
@@ -149,7 +153,7 @@ inline int CommandLoad::execute(string& sResult)
     {
         //此时_desc.exePath为手工指定，手工指定时_desc.exePath为文件 所以路径要扣除可执行文件名
         //而且可执行文件名可以不等于_strServerName 用来用同一可执行文件，不同配置启动多个服务
-        _exeFile =  _serverDir + "/bin/" + _exePath;
+        _exeFile =  _serverDir + FILE_SEP + "bin" + FILE_SEP + _exePath;
         _exePath = TC_File::extractFilePath(_exeFile);
     }
     else
@@ -157,12 +161,12 @@ inline int CommandLoad::execute(string& sResult)
         //此时_desc.exePath为手工指定，手工指定时_desc.exePath为文件 所以路径要扣除可执行文件名
         //而且可执行文件名可以不等于_strServerName 用来用同一可执行文件，不同配置启动多个服务
         _exeFile   = _desc.exePath;
-        _exePath   = _serverType == "tars_java" ? _serverDir + "/bin/" : TC_File::extractFilePath(_desc.exePath);
+        _exePath   = _serverType == "tars_java" ? _serverDir + FILE_SEP + "bin" + FILE_SEP : TC_File::extractFilePath(_desc.exePath);
     }
 
     _exeFile = TC_File::simplifyDirectory(_exeFile);
 
-    _exePath = TC_File::simplifyDirectory(_exePath) + "/";
+    _exePath = TC_File::simplifyDirectory(_exePath) + FILE_SEP;
 
     //启动脚本处理
     _startScript   = TC_Common::trim(_desc.startScript);
@@ -190,10 +194,10 @@ inline int CommandLoad::execute(string& sResult)
     _monitorScript = TC_File::simplifyDirectory(_monitorScript);
 
     //创建配置lib文件目录
-    _libPath       = _nodeInfo.dataDir + "/lib/";
+    _libPath       = _nodeInfo.dataDir + FILE_SEP + "lib" + FILE_SEP;
 
     //获取服务框架配置文件
-    _confPath      = _serverDir + "/conf/";
+    _confPath      = _serverDir + FILE_SEP + "conf" + FILE_SEP;
 
     _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
 
@@ -356,8 +360,8 @@ inline int CommandLoad::updateConfigFile(string& sResult)
         mMacro["serverid"]   = _serverObjectPtr->getServerId();
         mMacro["localip"]    = g_app.getAdapterEndpoint("ServerAdapter").getHost();
         mMacro["exe"]        = TC_File::simplifyDirectory(_exeFile);
-        mMacro["basepath"]   = TC_File::simplifyDirectory(_exePath) + "/";
-        mMacro["datapath"]   = TC_File::simplifyDirectory(_serverDir) + "/data/";
+        mMacro["basepath"]   = TC_File::simplifyDirectory(_exePath) + FILE_SEP;
+        mMacro["datapath"]   = TC_File::simplifyDirectory(_serverDir) + FILE_SEP + "data" + FILE_SEP;
         mMacro["logpath"]    = ServerConfig::LogPath;
         mMacro["local"]      = tLocalEndpoint.toString();
 
@@ -381,7 +385,7 @@ inline int CommandLoad::updateConfigFile(string& sResult)
         //创建目录
         TC_File::makeDirRecursive(mMacro["basepath"]);
         TC_File::makeDirRecursive(mMacro["datapath"]);
-        TC_File::makeDirRecursive(_logPath + "/" + _desc.application + "/" + _desc.serverName + "/");
+        TC_File::makeDirRecursive(_logPath + FILE_SEP + _desc.application + FILE_SEP + _desc.serverName + FILE_SEP);
 
         //合并两类配置
         _serverObjectPtr->setMacro(mMacro);
@@ -501,9 +505,9 @@ inline void CommandLoad::getRemoteConf()
             if (_serverObjectPtr->isTarsServer() != true)
             {
 
-                TarsRemoteConfig tTarsRemoteConfig;
-                tTarsRemoteConfig.setConfigInfo(Application::getCommunicator(),ServerConfig::Config,_desc.application, _desc.serverName, _exePath,_desc.setId);
-                tTarsRemoteConfig.addConfig(vf[i], sResult);
+                TarsRemoteConfig remoteConfig;
+                remoteConfig.setConfigInfo(Application::getCommunicator(),ServerConfig::Config,_desc.application, _desc.serverName, _exePath,_desc.setId);
+                remoteConfig.addConfig(vf[i], sResult);
                 g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
                 // g_app.reportServer(_serverObjectPtr->getServerId(), sResult);
             }

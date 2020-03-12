@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -1289,8 +1289,8 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
         TLOGDEBUG("loaded objects to cache  size:" << objectsCache.size() << endl);
         TLOGDEBUG("loaded server status to cache size:" << mapStatus.size() << endl);
         TLOGDEBUG("loaded set server to cache size:" << setDivisionCache.size() << endl);
-        FDLOG() << "loaded objects to cache size:" << objectsCache.size() << endl;
-        FDLOG() << "loaded set server to cache size:" << setDivisionCache.size() << endl;
+        // FDLOG() << "loaded objects to cache size:" << objectsCache.size() << endl;
+        // FDLOG() << "loaded set server to cache size:" << setDivisionCache.size() << endl;
 
         TLOGDEBUG("CDbHandle::loadObjectIdCache parse " << (bLoadAll ? "all " : "") << "|cost:" << (TNOWMS - iStart) << endl);
     }

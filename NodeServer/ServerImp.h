@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -17,7 +17,7 @@
 #ifndef __SERVER_IMP_H_
 #define __SERVER_IMP_H_
 #include "Node.h"
-#include <unistd.h>
+//#include <unistd.h>
 #include "ServerFactory.h"
 #include "util/tc_common.h"
 

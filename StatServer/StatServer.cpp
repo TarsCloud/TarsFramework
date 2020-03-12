@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -266,16 +266,17 @@ void StatServer::initHashMap()
 //                    }
 //                }
 
+
+                //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
+#if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+	            _hashmap[i][k].create(new char[iSize], iSize);
+#else
                 key_t key = ftok(sHashMapFile.c_str(), a[iChar%26]);
 
                 iChar++;
 
                 TLOGDEBUG("init hash mem，shm key: 0x" << hex << key << dec << endl);
 
-                //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
-#if TARGET_PLATFORM_IOS
-	            _hashmap[i][k].create(new char[iSize], iSize);
-#else
                 _hashmap[i][k].initStore(key, iSize);
 #endif
                 _hashmap[i][k].setAutoErase(false);

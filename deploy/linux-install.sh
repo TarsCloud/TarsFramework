@@ -66,7 +66,9 @@ fi
 
 function bash_rc()
 {
-  if [ $OS == 1 ] || [ $OS == 3 ]; then
+  if [ $OS == 3 ]; then
+    echo ".bash_profile"
+  elif [ $OS == 1 ]; then
     echo ".bashrc"
   else
     echo ".profile"

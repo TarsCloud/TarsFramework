@@ -14,10 +14,13 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Thirdparty.cmake")
 
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
+include_directories(${util_SOURCE_DIR}/include)
+include_directories(${util_SOURCE_DIR}/src/epoll_windows)
+
 add_subdirectory(tarscpp)
 
-include_directories(${util_SOURCE_DIR}/include)
 include_directories(${servant_SOURCE_DIR})
+
 #include_directories("thirdparty/rapidjson/include")
 
 macro(complice_module MODULE)
@@ -33,7 +36,7 @@ macro(complice_module MODULE)
     add_dependencies(${MODULE} FRAMEWORK-PROTOCOL)
     add_dependencies(${MODULE} tars2cpp)
 
-    target_link_libraries(${MODULE} tarsservant tarsutil mysqlclient)
+    target_link_libraries(${MODULE} tarsservant tarsutil ${LIB_MYSQL})
 
     if(TARS_SSL)
         target_link_libraries(${MODULE} ${LIB_SSL} ${LIB_CRYPTO})
