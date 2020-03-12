@@ -1,5 +1,30 @@
 #!/bin/bash
 
+OS=`uname`
+
+if [[ "$OS" =~ "Darwin" ]]; then
+    OS=2
+else
+    OS=1
+fi
+
+function kill_all()
+{
+  if [ $OS == 2 ]; then
+    killall -9 $1
+  else
+    killall -9 -q $1
+  fi
+}
+
+function netstat_port()
+{
+  if [ $OS == 2 ]; then
+    netstat -anL
+  else
+    netstat -lpn
+  fi
+}
 
 #公共函数
 function LOG_ERROR()
@@ -9,7 +34,7 @@ function LOG_ERROR()
 		echo -e "\033[33m usesage: LOG_ERROR msg \033[0m";
 	fi
 	
-	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
+	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 
     msg="${msg} $@";
 
@@ -23,7 +48,7 @@ function LOG_WARNING()
 		echo -e "\033[33m usesage: LOG_WARNING msg \033[0m";
 	fi
 	
-	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
+	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 
     msg="${msg} $@";
 
@@ -37,7 +62,7 @@ function LOG_DEBUG()
 		LOG_WARNING "Usage: LOG_DEBUG logmsg";
 	fi
 	
-	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
+	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 
     msg="${msg} $@";
 
@@ -51,7 +76,7 @@ function LOG_INFO()
 		LOG_WARNING "Usage: LOG_INFO logmsg";
 	fi
 	
-	local msg=$(date -d -0day +%Y-%m-%d" "%H:%M:%S);
+	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 	
 	for p in $@
 	do
@@ -63,30 +88,30 @@ function LOG_INFO()
 
 if (( $# < 7 ))
 then
-    echo "$0 MYSQL_IP MYSQL_PORT MYSQL_USER MYSQL_PASSWORD HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true)";
+    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT";
     echo "you should not call this script directly, you should call linux-install.sh or in docker by call docker-init.sh"
     exit 1
 fi
 
 MYSQLIP=$1
-PORT=$2
-USER=$3
-PASS=$4
-HOSTIP=$5
-REBUILD=$6
-SLAVE=$7
+PASS=$2
+HOSTIP=$3
+REBUILD=$4
+SLAVE=$5
+USER=$6
+PORT=$7
 
 if [ "${SLAVE}" != "true" ]; then
     SLAVE="false"
 fi
 
 if [ "${SLAVE}" != "true" ]; then
-    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarspatch tarsconfig tarsnode tarslog  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch)
 else
-    TARS=(tarsnotify tarsregistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+    TARS=(tarsnotify tarsregistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat)
 fi
 
-TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig   tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 TARS_PATH=/usr/local/app/tars
 mkdir -p ${TARS_PATH}
 
@@ -113,11 +138,13 @@ LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.
 #killall all tars-servers
 for var in ${TARSALL[@]};
 do
-  killall -9 -q ${var}
+    kill_all ${var}
+#  killall -9 -q ${var}
 done
 for var in ${TARSALL[@]};
 do
-  killall -9 -q ${var}
+    kill_all ${var}
+#  killall -9 -q ${var}
 done
 
 ################################################################################
@@ -125,12 +152,15 @@ done
 PORTS=(18993 18793 18693 18193 18593 18493 18393 18293 12000 19385 17890 17891 3000 3001)
 for P in ${PORTS[@]};
 do
-    RESULT=`netstat -lpn | grep ${HOSTIP}:${P} | grep tcp`
+    NETINFO=$(netstat_port)
+
+    RESULT=`echo ${NETINFO} | grep ${HOSTIP}:${P}`
     if [ "$RESULT" != "" ]; then
         LOG_ERROR ${HOSTIP}:${P}" confict!!"
         exit 1
     fi
-    RESULT=`netstat -lpn | grep 127.0.0.1:${P} | grep tcp`
+
+    RESULT=`echo ${NETINFO} | grep 127.0.0.1:${P}`
     if [ "$RESULT" != "" ]; then
         LOG_ERROR 127.0.0.1:${P}" confict!!"
         exit 1
@@ -180,9 +210,16 @@ function exec_mysql_sql()
 #check db_tars
 cp -rf ${WORKDIR}/framework/sql ${WORKDIR}/sql.tmp
 
-sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WORKDIR}/sql.tmp/*`
-sed -i "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${WORKDIR}/sql.tmp/*`
-sed -i "s/3306/${PORT}/g" `grep 3306 -rl ${WORKDIR}/sql.tmp/*`
+if [ $OS == 2 ]; then
+    #mac
+    sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WORKDIR}/sql.tmp/*`
+    sed -i "" "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${WORKDIR}/sql.tmp/*`
+    sed -i "" "s/3306/${PORT}/g" `grep 3306 -rl ${WORKDIR}/sql.tmp/*`
+else
+    sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WORKDIR}/sql.tmp/*`
+    sed -i "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${WORKDIR}/sql.tmp/*`
+    sed -i "s/3306/${PORT}/g" `grep 3306 -rl ${WORKDIR}/sql.tmp/*`
+fi
 
 if [ "$REBUILD" == "true" ]; then
     exec_mysql_script "drop database if exists db_tars"
@@ -190,6 +227,7 @@ if [ "$REBUILD" == "true" ]; then
     exec_mysql_script "drop database if exists tars_property"
     exec_mysql_script "drop database if exists db_tars_web"    
     exec_mysql_script "drop database if exists db_user_system"    
+    exec_mysql_script "drop database if exists db_cache_web"
 fi
 
 cd ${WORKDIR}/sql.tmp
@@ -259,7 +297,18 @@ if [ $? != 0 ]; then
 
     exec_mysql_sql db_tars db_tars.sql
     exec_mysql_sql db_tars_web db_tars_web.sql
+fi
 
+exec_mysql_script "use db_cache_web"
+if [ $? != 0 ]; then
+    LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
+    exec_mysql_script "create database db_cache_web"
+
+    exec_mysql_sql db_cache_web db_cache_web.sql
+fi
+
+function update_template()
+{
     LOG_INFO "create t_profile_template";
 
     sqlFile="tmp.sql"
@@ -272,13 +321,30 @@ if [ $? != 0 ]; then
         do
             echo $template_name #在此处处理文件即可
 
-            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" ) 
+            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" )
 
             parent_template="tars.default"
             if [ "$template_name" == "tars.springboot" ]; then
                 parent_template="tars.tarsjava.default"
+            elif [ "$template_name" == "tars.tarsAdminRegistry" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsconfig" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsnotify" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsproperty" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsqueryproperty" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsstat" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsquerystat" ]; then
+                parent_template="tars.framework-db"
+            elif [ "$template_name" == "tars.tarsregistry" ]; then
+                parent_template="tars.framework-db"
             fi
-            echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile};
+            LOG_INFO "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');"
+            echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile}
 
         done
     }
@@ -286,7 +352,9 @@ if [ $? != 0 ]; then
     read_dir
 
     exec_mysql_sql db_tars $sqlFile;
-fi
+}
+
+update_template
 
 exec_mysql_script "use db_user_system"
 if [ $? != 0 ]; then
@@ -330,17 +398,35 @@ done
 function update_conf() {
 
     LOG_INFO "update server config: [${TARS_PATH}/$1/conf/tars.$1.config.conf]";
-    if [ "tarsnode" != "$1" ]; then
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+
+    if [ $OS == 2 ]; then
+        #mac
+        if [ "tarsnode" != "$1" ]; then
+            sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "" "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+
+        else
+            sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
+            sed -i "" "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "" "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/util/execute.sh`
+        fi
 
     else
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
-        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/util/execute.sh`
+        if [ "tarsnode" != "$1" ]; then
+            sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+
+        else
+            sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
+            sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+            sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/util/execute.sh`
+        fi
     fi
 }
 
@@ -374,18 +460,35 @@ if [ "$SLAVE" != "true" ]; then
 
     LOG_INFO "update web config";
 
-    sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
-    sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
-    sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
-    sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
+    if [ $OS == 2 ]; then
+        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
+        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
+        sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
 
-    sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
-    sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
+        sed -i "" "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
+        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
 
-    sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
-    sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
+        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
+        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
 
-    sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+    else
+        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
+        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
+        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
+
+        sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
+        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
+
+        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
+        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
+
+        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+    fi
+
+    LOG_INFO "start web";
 
     cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd; 
     cd /usr/local/app/web/demo; pm2 stop tars-user-system; npm run prd

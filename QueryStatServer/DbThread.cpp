@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -98,19 +98,13 @@ void DBThread::tryConnect()
 
         size_t iDbCountInfoSize = vDbCountInfo.size();
 
-
-
         vector<TC_DBConf> vAtivedbCountInfo;
-
-        
 
         for(size_t i = 0; i < vDbCountInfo.size(); i++)
         {
              TC_DBConf tcDBConf = vDbCountInfo[i];
 
-        
-
-            MYSQL* _pstMql = NULL;
+             MYSQL* _pstMql = NULL;
 
             int iRet = connect(&_pstMql,tcDBConf);
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -90,8 +90,8 @@ void LoadDbThread::loadData()
     try
     {
         TC_Mysql::MysqlData mysqlData;
-        map<string, string> &mTmep = _data.getWriter();
-        mTmep.clear();
+        map<string, string> &mTemp = _data.getWriter();
+        mTemp.clear();
         size_t iOffset(0);
 
         do
@@ -110,16 +110,16 @@ void LoadDbThread::loadData()
                 }
 
                 string sKey = mysqlData[i]["application"] + "." +  mysqlData[i]["server_name"] + mysqlData[i]["node_name"];
-                mTmep.insert(map<string, string>::value_type(sKey, sValue));
+                mTemp.insert(map<string, string>::value_type(sKey, sValue));
             }
 
             iOffset += mysqlData.size();
 
-        } while (iOffset % 1000 == 0);
+        } while (iOffset % 1000 == 0 || mysqlData.data().empty());
 
         _data.swap();
 
-        TLOGDEBUG("LoadDbThread::loadData load data finish, _mSetApp size:" << mTmep.size() << endl);
+        TLOGDEBUG("LoadDbThread::loadData load data finish, _mSetApp size:" << mTemp.size() << endl);
 
     }
     catch (exception &ex)

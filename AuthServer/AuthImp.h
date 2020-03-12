@@ -1,4 +1,4 @@
-#ifndef _AUTHIMP_H_
+ï»¿#ifndef _AUTHIMP_H_
 #define _AUTHIMP_H_
 
 #include "Auth.h"
@@ -13,14 +13,14 @@ public:
     ~AuthImp();
 
     /**
-     * ³õÊ¼»¯
+     * ï¿½ï¿½Ê¼ï¿½ï¿½
      *
      * @return int
      */
     virtual void initialize();
 
     /**
-     * ÍË³ö
+     * ï¿½Ë³ï¿½
      */
     virtual void destroy() {}
 

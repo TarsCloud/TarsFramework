@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -27,7 +27,7 @@
 
 using namespace tars;
 
-const string NODE_VERSION="B001";
+const string NODE_VERSION="20200305";
 
 class NodeServer;
 
@@ -36,7 +36,15 @@ extern NodeServer g_app;
 class NodeServer : public Application
 {
 public:
-     /**
+	static string NODE_ID;
+	static string CONFIG;
+
+	/**
+	 * update config
+	 */
+	static int onUpdateConfig(const string &nodeId, const string &sConfigFile);
+
+	/**
      * 获取Adapter Endpoint
      */
     TC_Endpoint getAdapterEndpoint(const string& name ) const;
@@ -101,6 +109,7 @@ private:
 
     static string       g_sNodeIp;
 };
+
 #endif
 
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -17,7 +17,7 @@
 #ifndef __REPORT_MEM_THREAD_H_
 #define __REPORT_MEM_THREAD_H_
 
-#include <unistd.h>
+// #include <unistd.h>
 #include "ServerFactory.h"
 #include "util/tc_monitor.h"
 #include "util/tc_thread.h"

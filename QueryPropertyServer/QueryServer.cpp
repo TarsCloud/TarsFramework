@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -53,7 +53,7 @@ void  QueryServer::initialize()
     vector<string> v_dblist;
     vector<string> v_dbcountlist;
 
-    g_pconf->getDomainVector("/tars/countdb", v_dbcountlist);
+    g_pconf->getDomainVector("/tars/propertydb", v_dbcountlist);
 
     size_t iDbNumber = v_dblist.size();
 
@@ -65,7 +65,7 @@ void  QueryServer::initialize()
     {
         TC_DBConf tcDBConf;
 
-        string path= "/tars/countdb/" + v_dbcountlist[i];
+        string path= "/tars/propertydb/" + v_dbcountlist[i];
 
         tcDBConf.loadFromMap(g_pconf->getDomainMap(path));
 
@@ -74,16 +74,16 @@ void  QueryServer::initialize()
 
     _activeDbInfo = _dbStatInfo;
 
-    _dBThread = new DBThread();
+//    _dBThread = new DBThread();
+//
+//    _dBThread->start();
 
-    _dBThread->start();
-
-    _queryFlag.insert("f_date");
-    _queryFlag.insert("f_tflag");
-    _queryFlag.insert("master_name");
-    _queryFlag.insert("slave_name");
-    _queryFlag.insert("slave_ip");
-    _queryFlag.insert("interface_name");
+//    _queryFlag.insert("f_date");
+//    _queryFlag.insert("f_tflag");
+//    _queryFlag.insert("master_name");
+//    _queryFlag.insert("slave_name");
+//    _queryFlag.insert("slave_ip");
+//    _queryFlag.insert("interface_name");
 
     _insertInterval = TC_Common::strto<int>(g_pconf->get("/tars<interval>","5"));
 
@@ -112,9 +112,9 @@ void  QueryServer::initialize()
         _notTarsSlaveName.insert(vIpGroup[i]);
         TLOGDEBUG("QueryServer::initialize i:" << i << "|notarsslavename:" << vIpGroup[i] << endl);
     }
-    addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj");
+    addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".QueryObj");
     // addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &JsonProtocol::parse);
-    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &TC_NetWorkBuffer::parseHttp);
+//    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &TC_NetWorkBuffer::parseHttp);
 }
 /////////////////////////////////////////////////////////////////
 
@@ -148,41 +148,41 @@ vector<TC_DBConf> QueryServer::getActiveDbInfo() const
     return _activeDbInfo;
 }
 
-uint32_t QueryServer::genUid()
-{
-    TC_LockT<TC_ThreadMutex> lock(*this);
-
-    while (++_uniqId == 0);
-
-    return _uniqId;
-}
-
-string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
-{
-    ostringstream os;
-
-    os <<endl;
-    for(size_t i = 0; i < vDbInfo.size();i++)
-    {
-        os << "[charset]=[" <<vDbInfo[i]._charset <<"] "
-           << "[dbhost]=[" <<vDbInfo[i]._host <<"] "
-           << "[dbpass]=[" <<vDbInfo[i]._password <<"] "
-           << "[dbport]=[" <<TC_Common::tostr(vDbInfo[i]._port) <<"] "
-           << "[dbuser]=[" <<vDbInfo[i]._user <<"]"
-           <<endl;
-    }
-    return os.str();
-}
-
-bool QueryServer::searchQueryFlag(const string &sKey)
-{
-    set<string>::const_iterator it = _queryFlag.find(sKey);
-    if(it != _queryFlag.end())
-    {
-        return true;
-    }
-    return false;
-}
+//uint32_t QueryServer::genUid()
+//{
+//    TC_LockT<TC_ThreadMutex> lock(*this);
+//
+//    while (++_uniqId == 0);
+//
+//    return _uniqId;
+//}
+//
+//string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
+//{
+//    ostringstream os;
+//
+//    os <<endl;
+//    for(size_t i = 0; i < vDbInfo.size();i++)
+//    {
+//        os << "[charset]=[" <<vDbInfo[i]._charset <<"] "
+//           << "[dbhost]=[" <<vDbInfo[i]._host <<"] "
+//           << "[dbpass]=[" <<vDbInfo[i]._password <<"] "
+//           << "[dbport]=[" <<TC_Common::tostr(vDbInfo[i]._port) <<"] "
+//           << "[dbuser]=[" <<vDbInfo[i]._user <<"]"
+//           <<endl;
+//    }
+//    return os.str();
+//}
+//
+//bool QueryServer::searchQueryFlag(const string &sKey)
+//{
+//    set<string>::const_iterator it = _queryFlag.find(sKey);
+//    if(it != _queryFlag.end())
+//    {
+//        return true;
+//    }
+//    return false;
+//}
 
 set<string>& QueryServer::getNotTarsSlaveName()
 {
@@ -195,11 +195,11 @@ QueryServer::destroyApp()
 {
     //destroy application here:
     //...
-    if(_dBThread)
-    {
-        delete _dBThread;
-        _dBThread = NULL;
-    }
+//    if(_dBThread)
+//    {
+//        delete _dBThread;
+//        _dBThread = NULL;
+//    }
 
     if(_tpoolQueryDb)
     {

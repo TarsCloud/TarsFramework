@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -28,14 +28,12 @@ using namespace tars;
 class QueryItem
 {
 public:
-    bool                bFlag;
     string                sUid;
     map<string,string>    mQuery;
     tars::TarsCurrentPtr    current;
 
     QueryItem()
-    : bFlag(false)
-    , sUid("")
+    : sUid("")
     , current(NULL)
     {}
 };

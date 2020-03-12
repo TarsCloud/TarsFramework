@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -150,7 +150,6 @@ int PropertyImp::handlePropMsg(const map<StatPropMsgHead, StatPropMsgBody> &prop
         PropertyHashMap *pHashMap = g_app.getHashMapBuff(iBufferIndex, iHashKey);
         
         //////////////////////////////////////////////////////////////////////////////////////
-
         float rate =  (pHashMap->getMapHead()._iUsedChunk) * 1.0/pHashMap->allBlockChunkCount();
 
         if(rate >0.9)

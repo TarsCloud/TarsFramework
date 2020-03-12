@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -26,11 +26,11 @@ TaskList::TaskList(const TaskReq &taskReq)
 {
     //_adminPrx = Communicator::getInstance()->stringToProxy<AdminRegPrx>(g_pconf->get("/tars/objname<AdminRegObjName>", ""));
 	_adminPrx = ExecuteTask::getInstance()->getAdminImp();
-	TLOGDEBUG("adminPrx is NULL:" << (_adminPrx == NULL ? "yes":"no") << endl);
 
     _taskRsp.taskNo   = _taskReq.taskNo;
     _taskRsp.serial   = _taskReq.serial;
     _taskRsp.userName = _taskReq.userName;
+	_taskRsp.createTime = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
 
     for (size_t i=0; i < taskReq.taskItemReq.size(); i++)
     {

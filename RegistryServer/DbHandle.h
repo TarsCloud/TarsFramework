@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -489,7 +489,7 @@ private:
     /**
      * 数据库访问异常上报
      */
-    void sendSqlErrorAlarmSMS();
+    void sendSqlErrorAlarmSMS(const string &err);
 
     /**
      * 建立ip分组map

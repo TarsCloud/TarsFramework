@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -165,7 +165,7 @@ void ServerObject::synState()
         //防止主控超时导致阻塞服务上报心跳
         if(_noticeFailTimes < 3)
         {
-            AdminProxy::getInstance()->getRegistryProxy()->updateServer( _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
+            AdminProxy::getInstance()->getRegistryProxy()->tars_set_timeout(1000)->updateServer( _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
         }
         else
         {
@@ -306,18 +306,29 @@ int ServerObject::checkPid()
     Lock lock(*this);
     if(_pid != 0)
     {
-        int iRet = _activatorPtr->sendSignal(_pid, 0);
+#if TARGET_PLATFORM_WINDOWS
+        int iRet = 0;
+        HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, _pid);
+        if (hProcess == NULL)
+        {
+            iRet = -1;
+        }
+		CloseHandle(hProcess);
+#else        
+        int iRet = ::kill(static_cast<pid_t>(_pid), 0);
+#endif
+        // int iRet = _pActivatorPtr->sendSignal(_pid, 0);
         if (iRet == 0)
         {
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< _serverId << "|" << _pid << "|" << iRet << endl;
+            NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists" << endl;
             return 0;
         }
     }
-    NODE_LOG("KeepAliveThread")->error() <<FILE_FUN<< _serverId << "|" << _pid << "|-1" << endl;
+    NODE_LOG("KeepAliveThread")->error() <<FILE_FUN<< _serverId << "|" << _pid << "| pid not exists" << endl;
     return -1;
 }
 
-void ServerObject::keepAlive(pid_t pid,const string &adapter)
+void ServerObject::keepAlive(int64_t pid,const string &adapter)
 {
     Lock lock(*this);
     if (pid <= 0)
@@ -376,7 +387,8 @@ void ServerObject::keepActiving(int64_t pid)
     setState(ServerObject::Activating);
 }
 
-void ServerObject::setLastKeepAliveTime(int t,const string& adapter)
+
+void ServerObject::setLastKeepAliveTime(time_t t,const string& adapter)
 {
     Lock lock(*this);
     _keepAliveTime = t;
@@ -443,7 +455,7 @@ bool ServerObject::isStartTimeOut()
 	Lock lock(*this);
 	int64_t now = TNOWMS;
 
-	if (now - _startTime >= 100)//默认为100ms,_timeout
+	if (now - _startTime >= 1000)//默认为1000ms,_timeout
 	{
 		NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"server start time  out "<<now - _startTime<<"|>|"<<100<<endl;
 		return true;
@@ -467,7 +479,7 @@ void ServerObject::setVersion( const string & version )
     }
 }
 
-void ServerObject::setPid(pid_t pid)
+void ServerObject::setPid(int64_t pid)
 {
     Lock lock(*this);
     if (pid == _pid)
@@ -533,7 +545,7 @@ string ServerObject::decodeMacro(const string& value) const
     map<string,string>::const_iterator it = _macro.begin();
     while(it != _macro.end())
     {
-        tmp = TC_Common::replace(tmp, "${" + it->first + "}", it->second);
+        tmp = TC_Common::replace(tmp, "${" + it->first + "}", TC_ConfigDomain::reverse_parse(it->second));
         ++it;
     }
     return tmp;
@@ -609,9 +621,9 @@ void ServerObject::checkServer(int iTimeout)//checkServer时对服务所占用�
     try
     {
         string sResult;
-        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId <<"|"<<toStringState(_state)<< endl;
+        NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<<_serverId <<"|"<<toStringState(_state)<< endl;
         //pid不存在属于服务异常
-        if( _state != ServerObject::Inactive && _state != ServerObject::Deactivating && (checkPid() != 0))
+        if( _state != ServerObject::Inactive && _state != ServerObject::Deactivating  && _state != ServerObject::Activating && (checkPid() != 0))
         {
 			bool bShouldStop = false;
 			if (_state == ServerObject::Activating)
@@ -692,7 +704,7 @@ void ServerObject::reportMemProperty()
     try
     {
         char sTmp[64] ={0};
-        snprintf(sTmp,sizeof(sTmp), "%u", _pid);
+        snprintf(sTmp,sizeof(sTmp), "%llu", _pid);
         string spid = string(sTmp);
 
         string filename = "/proc/" + spid + "/statm";
@@ -744,7 +756,7 @@ void ServerObject::checkCoredumpLimit()
 {
     if(_state != ServerObject::Active || !_limitStateInfo.bEnableCoreLimit)
     {
-        TLOGINFO(FILE_FUN<<"checkCoredumpLimit:server is inactive or disable corelimit"<<endl);
+        TLOGINFO(FILE_FUN << ", " << getServerId() <<", server is inactive or disable corelimit"<<endl);
         return;
     }
 

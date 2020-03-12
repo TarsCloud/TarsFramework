@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -108,13 +108,13 @@ int RegistryServer::loadServantEndpoint()
     return 0;
 }
 
-TC_Endpoint RegistryServer::getAdapterEndpoint(const string& name) const
+TC_Endpoint RegistryServer::getAdapterEndpoint() const
 {
     TC_Endpoint locator;
 
     try
     {
-        locator = getEpollServer()->getBindAdapter(name)->getEndpoint();
+        locator = getEpollServer()->getBindAdapter("tars.tarsregistry.RegistryObjAdapter")->getEndpoint();
     }
     catch (exception& ex)
     {

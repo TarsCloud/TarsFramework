@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -62,11 +62,13 @@ inline ServerCommand::ExeStatus CommandAddFile::canExecute(string &sResult)
     
     if(_desc.application == "" || _desc.serverName == "" )
     {
+	 	sResult = FILE_FUN_STR+"app or server name is empty";
         TLOGERROR("CommandAddFile::canExecute app or server name is empty"<<endl);
         return DIS_EXECUTABLE;
     }
     if(_file.empty())
     {
+		sResult = FILE_FUN_STR+"file is empty. ";
         TLOGERROR("CommandAddFile::canExecute file is empty. file:"<<_file<<endl);
         return DIS_EXECUTABLE;
     }
@@ -85,7 +87,7 @@ inline int CommandAddFile::execute(string &sResult)
         //若File不合法采用默认路径
         if( TC_File::isAbsolute(_file ) ==  false )
         {
-            _file = _serverObjectPtr->getExePath()+"/"+_file;
+            _file = _serverObjectPtr->getExePath()+FILE_SEP+_file;
         }
         _file               = TC_File::simplifyDirectory(TC_Common::trim(_file));
 
@@ -96,6 +98,7 @@ inline int CommandAddFile::execute(string &sResult)
         if(!TC_File::makeDirRecursive(sFilePath ) )
         {
 
+ 			sResult =  FILE_FUN_STR+"cannot create dir:" + sFilePath + " erro:"+ strerror(errno);
             TLOGERROR("CommandAddFile::execute cannot create dir:"<<sFilePath<<" erro:"<<strerror(errno)<<endl);
             return -1;
         }
@@ -106,16 +109,17 @@ inline int CommandAddFile::execute(string &sResult)
         }  
         else
         {
-            TarsRemoteConfig tTarsRemoteConfig;
-            tTarsRemoteConfig.setConfigInfo(Application::getCommunicator(), ServerConfig::Config,_desc.application, _desc.serverName, sFilePath,_desc.setId);
-//            tTarsRemoteConfig.setConfigInfo(ServerConfig::Config,_desc.application, _desc.serverName, sFilePath,_desc.setId);
-            bRet = tTarsRemoteConfig.addConfig(sFileName,sResult);
+            TarsRemoteConfig remoteConfig;
+            remoteConfig.setConfigInfo(Application::getCommunicator(), ServerConfig::Config,_desc.application, _desc.serverName, sFilePath,_desc.setId);
+
+            bRet = remoteConfig.addConfig(sFileName,sResult);
             g_app.reportServer(_serverId, "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
         }
         return bRet;               
   } 
   catch(exception &e)
   {
+      sResult = FILE_FUN_STR+"get file:"+_file+" from configServer fail."+ e.what();
       TLOGERROR("CommandAddFile::execute get file: "<<_file<<" from configServer fail."<<e.what());
   }
   return -1;
@@ -174,6 +178,7 @@ inline int CommandAddFile::getScriptFile(string &sResult)
         ofstream out(_file.c_str());
         if(!out.good())
         {
+		    sResult =FILE_FUN_STR+ "cannot create file: " + _file + " erro:"+ strerror(errno);
             TLOGERROR("CommandAddFile::getScriptFile cannot create file: "<<(_file + " erro:"+ strerror(errno))<<endl);
             return -1;
         }
@@ -187,7 +192,7 @@ inline int CommandAddFile::getScriptFile(string &sResult)
   } 
   catch(exception &e)
   {
-
+      sResult = FILE_FUN_STR+"get file:"+_file+" from configServer fail."+ e.what();
       TLOGERROR("CommandAddFile::getScriptFile get file"<<(_file+" from configServer fail."+ e.what())<<endl);
   }  
   return -1; 

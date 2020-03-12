@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -113,14 +113,15 @@ inline int CommandStop::execute(string& sResult)
     bool needWait = false;
     try
     {
-        pid_t pid = _serverObjectPtr->getPid();
+        int64_t pid = _serverObjectPtr->getPid();
         NODE_LOG("stopServer")->debug() << FILE_FUN << "pid:" << pid << endl;
+#if TARGET_PLATFORM_LINUX 
         if (pid != 0)
         {
             string f = "/proc/" + TC_Common::tostr(pid) + "/status";
             NODE_LOG("stopServer")->debug() << FILE_FUN << "print the server status :" << f << "|" << TC_File::load2str(f) << endl;
         }
-
+#endif
         string sStopScript   = _serverObjectPtr->getStopScript();
         //配置了脚本或者非tars服务
         if( TC_Common::lower(TC_Common::trim(_desc.serverType)) == "tars_php" ){
@@ -181,13 +182,13 @@ inline int CommandStop::execute(string& sResult)
     catch (exception& e)
     {
         NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down result:|" << e.what() << "|use kill -9 for check" << endl;
-        pid_t pid = _serverObjectPtr->getPid();
+        int64_t pid = _serverObjectPtr->getPid();
         _serverObjectPtr->getActivator()->deactivate(pid);
     }
     catch (...)
     {
         NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down fail:|" << "|use kill -9 for check" << endl;
-        pid_t pid = _serverObjectPtr->getPid();
+		int64_t pid = _serverObjectPtr->getPid();
         _serverObjectPtr->getActivator()->deactivate(pid);
     }
 
@@ -224,18 +225,18 @@ inline int CommandStop::execute(string& sResult)
             {
                 _serverObjectPtr->setPid(0);
                 _serverObjectPtr->setState(ServerObject::Inactive);
-                _serverObjectPtr->setStarted(false);
-                NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "server already stop" << endl;
+				_serverObjectPtr->setStarted(false);
+				NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "server already stop, stop_cost:" << TNOW - tNow << endl;
                 return 0;
             }
-            NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " deactivating usleep " << int(STOP_SLEEP_INTERVAL) << endl;
-            usleep(STOP_SLEEP_INTERVAL);
+            //NODE_LOG("stopServer")->debug() << FILE_FUN << _tDesc.application << "." << _tDesc.serverName << " deactivating usleep " << int(STOP_SLEEP_INTERVAL) << endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(STOP_SLEEP_INTERVAL / 1000));
         }
         NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down timeout ( used " << iStopWaitInterval << "'s), use kill -9" << endl;
     }
 
     //仍然失败。用kill -9，再等待STOP_WAIT_INTERVAL秒。
-    pid_t pid = _serverObjectPtr->getPid();
+	int64_t pid = _serverObjectPtr->getPid();
     if (_generateCore == true)
     {
         _serverObjectPtr->getActivator()->deactivateAndGenerateCore(pid);
@@ -253,9 +254,12 @@ inline int CommandStop::execute(string& sResult)
             _serverObjectPtr->setPid(0);
             _serverObjectPtr->setState(ServerObject::Inactive);
             _serverObjectPtr->setStarted(false);
-            return 0;
+
+	        NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", not exists."  << endl;
+
+	        return 0;
         }
-        usleep(STOP_SLEEP_INTERVAL);
+        TC_Common::msleep(10 + STOP_SLEEP_INTERVAL/1000);
     }
     sResult = "server pid " + TC_Common::tostr(pid) + " is still exist";
 

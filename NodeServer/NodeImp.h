@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -17,7 +17,7 @@
 #ifndef __NODE_IMP_H_
 #define __NODE_IMP_H_
 #include "Node.h"
-#include <unistd.h>
+//#include <unistd.h>
 #include "PlatformInfo.h"
 #include "Activator.h"
 #include "KeepAliveThread.h"
@@ -25,8 +25,6 @@
 
 using namespace tars;
 using namespace std;
-
-#define FILE_SEP "/"
 
 class NodeImp : public Node
 {
@@ -202,6 +200,16 @@ public:
     */
     int getLogData(const string& application, const string& serverName,const string& logFile, const string& cmd, string& fileData, tars::TarsCurrentPtr current);
 
+    /**
+     * 获取节点的负载
+     * @param application
+     * @param serverName
+     * @param pid
+     * @param fileData
+     * @param current
+     * @return
+     */
+	int getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current);
 
 private:
     string keyToStr(key_t key_value);

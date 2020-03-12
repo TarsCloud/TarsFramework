@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -66,11 +66,11 @@ PropertyDbManager::PropertyDbManager()
 
     TLOGDEBUG("PropertyDbManager init iInsertThreadByMachine:" << iInsertThreadByMachine << "|iInsertThreadByDB:" << iInsertThreadByDB << endl);
 
-    vector<string> vDb =g_pconf->getDomainVector("/tars/multidb");
+    vector<string> vDb =g_pconf->getDomainVector("/tars/propertydb");
 
     _dbNumber = vDb.size();
 
-    TLOGDEBUG("PropertyDbManager init multidb size:" <<_dbNumber  << endl);
+    TLOGDEBUG("PropertyDbManager init propertydb size:" <<_dbNumber  << endl);
 
     //map<string, size_t> mIp;
     map<string, pair<size_t, size_t> > mIp;
@@ -81,8 +81,8 @@ PropertyDbManager::PropertyDbManager()
     for (int i=0; i< _dbNumber; i++)
     {
         TC_DBConf tConf;
-        tConf.loadFromMap(g_pconf->getDomainMap("/tars/multidb/" + vDb[i]));
-        _sTbNamePre.push_back(g_pconf->get("/tars/multidb/" + vDb[i] + "<tbname>",
+        tConf.loadFromMap(g_pconf->getDomainMap("/tars/propertydb/" + vDb[i]));
+        _sTbNamePre.push_back(g_pconf->get("/tars/propertydb/" + vDb[i] + "<tbname>",
                                               "t_propert_0" + TC_Common::tostr(i) + "_"));
 
         sIp = tConf._host;
@@ -120,7 +120,7 @@ PropertyDbManager::PropertyDbManager()
         vIp.push_back(sIp);
 
         //默认值为1
-        _dbWeighted.push_back(TC_Common::strto<int>(g_pconf->get("/tars/multidb/" + vDb[i] + "<weighted>","1")));
+        _dbWeighted.push_back(TC_Common::strto<int>(g_pconf->get("/tars/propertydb/" + vDb[i] + "<weighted>","1")));
 
          TC_Mysql *pMysql = new TC_Mysql();
          pMysql->init(tConf);
@@ -375,7 +375,7 @@ int PropertyDbManager::insert2Db(const PropertyMsg &mPropMsg, const string &sDat
             }
             if ( iCount >= _maxInsertCount )
             {
-                usleep(100);
+                TC_Common::msleep(10);
                 pMysql->execute(osSql.str());    
 
                 TLOGDEBUG("insert " << strTbName << " affected:" << iCount  << endl);

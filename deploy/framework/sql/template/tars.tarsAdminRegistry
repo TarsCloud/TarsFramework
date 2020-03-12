@@ -1,0 +1,14 @@
+<tars>
+	  <objname>
+		    AdminRegObjName=tars.tarsAdminRegistry.AdminRegObj
+		    patchServerObj=tars.tarspatch.PatchObj
+	  </objname>
+	  <nodeinfo>
+		    defaultTemplate=tars.tarsnode
+		    sync_node_timeout=4000
+	  </nodeinfo>
+	  <reap>
+		    updateHeartInterval=15
+		    registryTimeout=150
+	  </reap>
+</tars>

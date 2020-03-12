@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -65,6 +65,16 @@ public:
      * @return int, 0: 成功, <0: 失败
      */
     int preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current);
+
+    /**
+     * delete patch file
+     * @param app
+     * @param serverName
+     * @param patchFile
+     * @param current
+     * @return
+     */
+	int deletePatchFile(const string & app, const string & serverName, const string & patchFile, TarsCurrentPtr current);
 
 protected:
     int __listFileInfo(const string &path, vector<FileInfo> &vf);

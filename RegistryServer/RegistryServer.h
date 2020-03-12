@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -57,9 +57,9 @@ public:
     RegistryProcThread * getRegProcThread();
 
     /**
-     * 根据name获取对应的ip、端口等信息
+     * 获取对应的ip、端口等信息
      */
-    TC_Endpoint getAdapterEndpoint(const string& name ) const;
+    TC_Endpoint getAdapterEndpoint() const;
 
 protected:
 

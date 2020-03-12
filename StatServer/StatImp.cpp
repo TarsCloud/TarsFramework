@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -172,7 +172,7 @@ int StatImp::reportSampleMsg(const vector<StatSampleMsg> &msg,tars::TarsCurrentP
 
         ostringstream os;
         sample.displaySimple(os);
-        FDLOG()<<os.str()<<endl;
+        TLOGINFO(os.str()<<endl);
     }
 
     return 0;

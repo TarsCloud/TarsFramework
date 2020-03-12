@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -63,7 +63,7 @@ public:
     bool pop_front(string& logPath);
 
 private:
-    tars::TC_ThreadLock                  _queueMutex;
+    TC_ThreadLock                  _queueMutex;
 
     TC_ThreadQueue<string>               _reqQueue;
 

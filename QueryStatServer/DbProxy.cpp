@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -16,7 +16,7 @@
 
 #include "DbProxy.h"
 #include <time.h>
-
+#include "util/tc_port.h"
 ///////////////////////////////////////////////////////////
 string tFlagInc(const string& stflag);
 
@@ -24,7 +24,7 @@ string dateInc(const string& sDate);
 
 void selectLastMinTime(const string& sUid, int iThread , const string& tbname, const TC_DBConf& tcDbInfo, string & ret, QueryParam &queryParam);
 
-void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, map<string, vector<Int64> > &result, string &sRes, QueryParam &queryParam);
+void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, map<string, vector<double> > &result, pair<int, string> &sRes, QueryParam &queryParam);
 
 DbProxy::DbProxy()
 {
@@ -34,56 +34,61 @@ DbProxy::~DbProxy()
 {
 }
 
-int DbProxy::createRespHead(const vector<string> &res, const string& sLasttime, string& result, bool bDbCountFlag)
+int DbProxy::createRespHead(const vector<pair<int, string>> &res, const string& sLasttime, MonitorQueryRsp& rsp)//, bool bDbCountFlag)
 {
-    int iRet = 0;
-    string sRes;
+	rsp.ret = 0;
 
     //检查查询返回值，如果一个线程失败，就返回失败。
     for(size_t i=0; i< res.size(); i++)
     {
-        sRes += res[i] ;
-        if ( res[i][4] != '0' && iRet == 0)
+	    rsp.retThreads.push_back(res[i].first);
+//        sRes += res[i] ;
+        if ( res[i].first != 0 && rsp.ret == 0)
         {
-            iRet = -1;
+            rsp.ret = -1;
         }
     }
 
     //int total = bDbCountFlag ? g_app.getDbNumber() : g_app.getDbNumber();
     int total = g_app.getDbNumber();
-    result = "Ret:";
-    result += TC_Common::tostr(iRet);
-    result += "\nlasttime:";
-    result += sLasttime;
-    result += "\nActiveDb:";
-    result += TC_Common::tostr(res.size());
-    result += "\nTotalDb:";
-    result += TC_Common::tostr(total);
-    result += "\n";
-    result += sRes;
+//    result = "Ret:";
+//    result += TC_Common::tostr(iRet);
+	rsp.lastTime = sLasttime;
+//    result += "\nlasttime:";
+//    result += sLasttime;
+	rsp.activeDb = res.size();
+	rsp.totalDb = total;
+//    result += "\nActiveDb:";
+//
+//    result += TC_Common::tostr(res.size());
+//    result += "\nTotalDb:";
+//    result += TC_Common::tostr(total);
+//    result += "\n";
+//    result += sRes;
 
-    return iRet;
+    return rsp.ret;
 }
-int DbProxy::createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string, vector<Int64> > >& vDataList, const string& sHead,  string &result)
+
+int DbProxy::createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string, vector<double> > >& vDataList, MonitorQueryRsp& rsp)
 {
     // 组合多线程结果
     //map  first由goupby生成
     //map second 由index生成
-    int64_t tStart = TNOWMS;
-    vector<map<string, vector<Int64> > >::const_iterator dataItr = vDataList.begin();
-    map<string, vector<Int64> > mStatData;
-    map<string, vector<Int64> >::iterator _it;
+//    int64_t tStart = TNOWMS;
+    vector<map<string, vector<double> > >::const_iterator dataItr = vDataList.begin();
+    map<string, vector<double> > mStatData;
+    map<string, vector<double> >::iterator _it;
 
     for(size_t i = 0; dataItr != vDataList.end(); dataItr++, i++)
     {
         TLOGINFO(sUid << "sum["<<i<<"].size"<< ":" << dataItr->size() << endl);
-        for(map<string, vector<Int64> >::const_iterator it = dataItr->begin(); it != dataItr->end(); it++)
+        for(map<string, vector<double> >::const_iterator it = dataItr->begin(); it != dataItr->end(); it++)
         {
             _it = mStatData.find(it->first);
             if (_it != mStatData.end())
             {
-                const vector<Int64> &number1 = it->second;
-                vector<Int64> &number2 = _it->second;
+                const vector<double> &number1 = it->second;
+                vector<double> &number2 = _it->second;
                 // 相同key的值 求和,number1和number1的大小是一样的
                 for (size_t j=0; j<number1.size(); j++)
                 {
@@ -97,52 +102,52 @@ int DbProxy::createRespData(const string& sUid, const map<string,string>& mSqlPa
         }
     }
 
-    int iIndex = -1;
-    size_t iGroupFieldSize = 0;
-    bool bTars  = false;
-    string sIsTars("");
-    string groupField("");
-
-    map<string,string>::const_iterator const_it = mSqlPart.find("istars");
-    if(const_it != mSqlPart.end())
-    {
-        TLOGDEBUG("DbProxy::createRespData istars:" << const_it->second << endl);
-
-        bTars = true;
-
-        sIsTars = const_it->second;
-
-        map<string,string>::const_iterator const_it_inner = mSqlPart.find("groupField");
-        if(const_it_inner != mSqlPart.end())
-        {
-            groupField = const_it_inner->second;
-
-            vector<string> vGroupField = TC_Common::sepstr<string>(groupField, ", ");
-
-            iGroupFieldSize = vGroupField.size();
-        
-            for(size_t i = 0; i < vGroupField.size(); ++i)
-            {
-                if(vGroupField[i] == "slave_name")
-                {
-                    iIndex = i;
-                    break;
-                }
-            }
-        }
-
-        if(iIndex < 0)
-        {
-            bTars = false;
-        }
-    }
+//    int iIndex = -1;
+//    size_t iGroupFieldSize = 0;
+//    bool bTars  = false;
+//    string sIsTars("");
+//    string groupField("");
+//
+//    map<string,string>::const_iterator const_it = mSqlPart.find("istars");
+//    if(const_it != mSqlPart.end())
+//    {
+//        TLOGDEBUG("DbProxy::createRespData istars:" << const_it->second << endl);
+//
+//        bTars = true;
+//
+//        sIsTars = const_it->second;
+//
+//        map<string,string>::const_iterator const_it_inner = mSqlPart.find("groupField");
+//        if(const_it_inner != mSqlPart.end())
+//        {
+//            groupField = const_it_inner->second;
+//
+//            vector<string> vGroupField = TC_Common::sepstr<string>(groupField, ", ");
+//
+//            iGroupFieldSize = vGroupField.size();
+//
+//            for(size_t i = 0; i < vGroupField.size(); ++i)
+//            {
+//                if(vGroupField[i] == "slave_name")
+//                {
+//                    iIndex = i;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if(iIndex < 0)
+//        {
+//            bTars = false;
+//        }
+//    }
     /*else
     {
         TLOGDEBUG("DbProxy::createRespData no set istars." << endl);
     }*/
 
-    string sTemp("");
-    int iLineNum = 0;
+//    string sTemp("");
+//    int iLineNum = 0;
 
     //把 查询结果转换成一行一行的串
     /*
@@ -152,101 +157,106 @@ int DbProxy::createRespData(const string& sUid, const map<string,string>& mSqlPa
      * string =>>  f_date, f_tflag
      * vector<Int64>  =>> succ_count, timeout_count
      */
-    _it = mStatData.begin();
-    while(_it != mStatData.end())
-    {
-        bool bFilter = false;
-        if(bTars)
-        {
-            vector<string> vGroupField = TC_Common::sepstr<string>(_it->first, ",", true);
+    rsp.result.swap(mStatData);
+//
+//    _it = mStatData.begin();
+//    while(_it != mStatData.end())
+//    {
+//        bool bFilter = false;
+//        if(bTars)
+//        {
+//            vector<string> vGroupField = TC_Common::sepstr<string>(_it->first, ",", true);
+//
+//            if(sIsTars == "1")
+//            {
+//                set<string>::iterator it;
+//                it =  g_app.getNotTarsSlaveName().find(vGroupField[iIndex]);
+//                if(it != g_app.getNotTarsSlaveName().end())
+//                {
+//                    bFilter = true;
+//                }
+//            }
+//            else
+//            {
+//                if(vGroupField.size() != iGroupFieldSize)
+//                {
+//                    TLOGERROR("DbProxy::createRespData vGroupField.size:" << vGroupField.size() << "|iGroupFieldSize:" << iGroupFieldSize << "|key:" << _it->first << "|keyFiled:" << groupField << endl);
+//                }
+//                else if(vGroupField[iIndex] == "" || vGroupField[iIndex].size() == 0)
+//                {
+//                    TLOGERROR("DbProxy::createRespData iIndex:" << iIndex << "|vGroupField[iIndex]:" << vGroupField[iIndex] << endl);
+//                }
+//
+//                set<string>::iterator it;
+//                it =  g_app.getNotTarsSlaveName().find(vGroupField[iIndex]);
+//                if(it == g_app.getNotTarsSlaveName().end())
+//                {
+//                    bFilter = true;
+//                }
+//            }
+//
+//            if(!bFilter)
+//            {
+//                ++iLineNum;
+//
+//	            rsp.result[_it->first] = _it->second;
+////                string valueBuffer = "";
+////                vector<Int64>::iterator valueIt = _it->second.begin();
+////                while(valueIt != _it->second.end()) // value is vector int, need transfer to string;
+////                {
+////                    valueBuffer += TC_Common::tostr(*valueIt);
+////                    valueBuffer += ",";
+////                    valueIt++;
+////                }
+////
+////                sTemp += _it->first;
+////                sTemp += ",";
+////                sTemp += valueBuffer;
+////                sTemp += "\n";
+//            }
+//        }
+//        else
+//        {
+//            ++iLineNum;
 
-            if(sIsTars == "1")
-            {
-                set<string>::iterator it;
-                it =  g_app.getNotTarsSlaveName().find(vGroupField[iIndex]);
-                if(it != g_app.getNotTarsSlaveName().end())
-                {
-                    bFilter = true;
-                }
-            }
-            else
-            {
-                if(vGroupField.size() != iGroupFieldSize)
-                {
-                    TLOGERROR("DbProxy::createRespData vGroupField.size:" << vGroupField.size() << "|iGroupFieldSize:" << iGroupFieldSize << "|key:" << _it->first << "|keyFiled:" << groupField << endl);
-                }
-                else if(vGroupField[iIndex] == "" || vGroupField[iIndex].size() == 0)
-                {
-                    TLOGERROR("DbProxy::createRespData iIndex:" << iIndex << "|vGroupField[iIndex]:" << vGroupField[iIndex] << endl);
-                }
+//	        rsp.result[_it->first] = _it->second;
+//
+//	        string valueBuffer = "";
+//            vector<Int64>::iterator valueIt = _it->second.begin();
+//            while(valueIt != _it->second.end()) // value is vector int, need transfer to string;
+//            {
+//                valueBuffer += TC_Common::tostr(*valueIt);
+//                valueBuffer += ",";
+//                valueIt++;
+//            }
+//
+//            sTemp += _it->first;
+//            sTemp += ",";
+//            sTemp += valueBuffer;
+//            sTemp += "\n";
+//        }
 
-                set<string>::iterator it;
-                it =  g_app.getNotTarsSlaveName().find(vGroupField[iIndex]);
-                if(it == g_app.getNotTarsSlaveName().end())
-                {
-                    bFilter = true;
-                }
-            }
+//        _it++;
+//    }
+//
+//    result += sHead;
+//    result += "linecount:";
+//    result += TC_Common::tostr(iLineNum);
+//    result += "\n";
+//    result += sTemp;
 
-            if(!bFilter)
-            {
-                ++iLineNum;
+//    TLOGINFO("DbProxy::createRespData result:"<<result<<endl);
 
-                string valueBuffer = "";
-                vector<Int64>::iterator valueIt = _it->second.begin();
-                while(valueIt != _it->second.end()) // value is vector int, need transfer to string;
-                {
-                    valueBuffer += TC_Common::tostr(*valueIt);
-                    valueBuffer += ",";
-                    valueIt++;
-                }
+//    int64_t tEnd = TNOWMS;
 
-                sTemp += _it->first;
-                sTemp += ",";
-                sTemp += valueBuffer;
-                sTemp += "\n";
-            }
-        }
-        else
-        {
-            ++iLineNum;
-
-            string valueBuffer = "";
-            vector<Int64>::iterator valueIt = _it->second.begin();
-            while(valueIt != _it->second.end()) // value is vector int, need transfer to string;
-            {
-                valueBuffer += TC_Common::tostr(*valueIt);
-                valueBuffer += ",";
-                valueIt++;
-            }
-
-            sTemp += _it->first;
-            sTemp += ",";
-            sTemp += valueBuffer;
-            sTemp += "\n";
-        }
-
-        _it++;
-    }
-
-    result += sHead;
-    result += "linecount:";
-    result += TC_Common::tostr(iLineNum);
-    result += "\n";
-    result += sTemp;
-
-    TLOGINFO("DbProxy::createRespData result:"<<result<<endl);
-
-    int64_t tEnd = TNOWMS;
-
-    TLOGDEBUG("DbProxy::createRespData "<< sUid << "createRespData size:"<< result.length() << "|timecost(ms):" << (tEnd-tStart) << endl);
+//    TLOGDEBUG("DbProxy::createRespData "<< sUid << "createRespData size:"<< result.length() << "|timecost(ms):" << (tEnd-tStart) << endl);
     return 0;
 }
 
 /**
  * 通过线程池进行并发查询
  */
-void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDbCountFlag)
+void DbProxy::queryData(map<string, string> &mSqlPart, MonitorQueryRsp &rsp)//, bool bDbCountFlag)
 {
     try
     {
@@ -254,26 +264,27 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
 
         vector<TC_DBConf> vActive;
 
-        if(bDbCountFlag)
-        {
+//        if(bDbCountFlag)
+//        {
             vActive = g_app.getActiveDbInfo();
-        }
-        else
-        {
-            //vActive = g_app.getActiveDbInfo();
-        }
+//        }
+//        else
+//        {
+//            //vActive = g_app.getActiveDbInfo();
+//        }
 
         int iThreads = vActive.size();
 
         if(iThreads > 0)
         {
-            vector<string> res(iThreads);
+        	vector<pair<int, string>> res(iThreads);
+//            vector<string> res(iThreads);
 
-            vector<map<string, vector<Int64> > >  vDataList(iThreads);
+            vector<map<string, vector<double> > >  vDataList(iThreads);
 
             _queryParam._run_times = iThreads;
 
-            //TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "all thread query data begin." << endl);
+            TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", all thread query data begin." << endl);
 
             int64_t tStart    = TC_TimeProvider::getInstance()->getNowMs();
 
@@ -287,18 +298,18 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
                                           std::ref(res[i]),
                                           std::ref(_queryParam));
 
-                if(bDbCountFlag)
-                {
+//                if(bDbCountFlag)
+//                {
                     g_app.getThreadPoolDb().exec(fwrapper);
-                }
-                else
-                {
-                    //g_app.getThreadPoolDb().exec(fwrapper);                
-                }
+//                }
+//                else
+//                {
+//                    //g_app.getThreadPoolDb().exec(fwrapper);
+//                }
             }
 
             //等待线程结束
-            TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "wait for all thread query data done." << endl);
+            TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", wait for all thread query data done." << endl);
 
             bool rc = true;
             int ifail = 0;
@@ -322,7 +333,7 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
 
             if(ifail >= 10)
             {
-                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "wait for all thread query data timeout." << endl);
+                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", wait for all thread query data timeout." << endl);
                 while(_queryParam._atomic != _queryParam._run_times)
                 {
                     {
@@ -348,42 +359,48 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
                 _queryParam._run_result = 0;
                 _queryParam._atomic = 0;
 
-                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "all thread done return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd - tStart) << endl);
+                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", all thread done return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd - tStart) << endl);
 
                 // 返回ret code
-                string sHead;
+//                string sHead;
 
                 string sLasttime = getLastTime(mSqlPart);
 
-                if(createRespHead(res, sLasttime, sHead, bDbCountFlag) != 0)
+                if(createRespHead(res, sLasttime, rsp) != 0)
                 {
                     _queryParam._run_times = 0;
                     _queryParam._run_result = 0;
                     _queryParam._atomic = 0;
 
-                    sResult = sHead;
-                    TLOGERROR("DbProxy::queryData query error:" << sHead << endl);
+//                    sResult = sHead;
+//                    TLOGERROR("DbProxy::queryData query error:" << sHead << endl);
                     return;
                 }
 
-                createRespData(sUid, mSqlPart, vDataList, sHead, sResult);
+                createRespData(sUid, mSqlPart, vDataList, rsp);
             }
             else
             {
-                sResult ="Ret:-1\nquery timeout\n";
+            	rsp.ret = -1;
+            	rsp.msg = "query timeout";
+//                sResult ="Ret:-1\nquery timeout\n";
 
-                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << "Ret:-1|query timeout." << endl);
+                TLOGDEBUG("DbProxy::queryData sUid:" << sUid << ", Ret:-1|query timeout." << endl);
             }
         }
         else
         {
-            sResult ="Ret:-1\nno active db\n";
+        	rsp.ret = -1;
+        	rsp.msg = "no active db";
+//            sResult ="Ret:-1\nno active db\n";
         }
     }
     catch (exception &ex)
     {
         TLOGERROR("DbProxy::queryData exception:" << ex.what() << endl);
-        sResult ="Ret:-1\n" + string(ex.what()) + "\n";        
+        rsp.ret = -1;
+        rsp.msg = ex.what();
+//        sResult ="Ret:-1\n" + string(ex.what()) + "\n";
     }
 
     _queryParam._run_times = 0;
@@ -391,15 +408,16 @@ void DbProxy::queryData(map<string, string> &mSqlPart, string &sResult, bool bDb
     _queryParam._atomic = 0;
 }
 
-void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, map<string, vector<Int64> > &result, string &sRes, QueryParam &queryParam)
+void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, map<string, vector<double> > &result, pair<int, string> &sRes, QueryParam &queryParam)
 {
     string sUid = mSqlPart.find("uid")->second;
 
-    TLOGDEBUG("queryData " << sUid << "thread iIndex:"  << iThread << endl);
+    TLOGDEBUG("queryData " << sUid << ", thread iIndex:"  << iThread << endl);
 
     int64_t tStart = TNOWMS;
     try
     {
+
         //dateFrom =>> 20111120
           string dateFrom  = mSqlPart["date1"];
           string dateTo    = mSqlPart["date2"];
@@ -410,13 +428,15 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 
         // 输入tflag 条件检查
         if (dateFrom.length() != 8 || dateTo.length() != 8  || tflagFrom.length()  != 4 ||
-            tflagTo.length()              != 4     ||
+            tflagTo.length() != 4 ||
             TC_Common::isdigit(tflagFrom) == false ||
             TC_Common::isdigit(tflagTo)   == false)
         {
-            sRes += "ret:-1|iDb:" + TC_Common::tostr(iThread) + "|wrong tflag:" + tflagFrom + "-" + tflagTo +  "\n";
+        	sRes.first  = -1;
+        	sRes.second = "iDb:" + TC_Common::tostr(iThread) + ", wrong tflag:" + tflagFrom + "-" + tflagTo;
+//            sRes += "ret:-1|iDb:" + TC_Common::tostr(iThread) + "|wrong tflag:" + tflagFrom + "-" + tflagTo +  "\n";
 
-            TLOGERROR("query sUid:" << sUid << sRes << endl);
+            TLOGERROR("query sUid:" << sUid << "," << sRes.second << endl);
 
             queryParam._run_result = -1;
             queryParam._atomic++;
@@ -431,16 +451,16 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
         }
 
         //groupCond =>> "where slave_name like 'MTTsh2.BrokerServer' and f_tflag >='0000'  and f_tflag <='2360'  and f_date = '20111120'"
-          string whereCond = mSqlPart["whereCond"];
+        string whereCond = mSqlPart["whereCond"];
 
         //groupCond =>> "group by f_date, f_tflag"
-          string groupCond = mSqlPart["groupCond"];
+        string groupCond = mSqlPart["groupCond"];
 
         //sumField    =>> "succ_count, timeout_count";
-          string sumField  = mSqlPart["sumField"];
+        string sumField  = mSqlPart["sumField"];
 
         //groupField  =>> "f_date, f_tflag"
-          string groupField = mSqlPart["groupField"];
+        string groupField = mSqlPart["groupField"];
 
         //selectCond =>> "succ_count, timeout_count, f_date, f_tflag"
         string selectCond = sumField +"," + groupField;
@@ -468,14 +488,6 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
         TC_Mysql tcMysql;
 
         TC_DBConf tcDbConf = conf;
-        /*if(bFlag)
-        {
-            tcDbConf = g_app.getDbInfo(iThread);
-        }
-        else
-        {
-            tcDbConf = g_app.getDbInfo(iThread);
-        }*/
 
         tcDbConf._database = sDbName;
 
@@ -495,15 +507,17 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 
                 sSql = "select " + selectCond + " from " + sTbName + " " + ignoreKey  + whereCond  + groupCond + " order by null;";
 
-                tars::TC_Mysql::MysqlData res = tcMysql.queryRecord(sSql);
+	            TLOGDEBUG(sUid << ", sSql:" << sSql << endl);
 
-                TLOGINFO(sUid << "res.size:" << res.size() << "|sSql:" << sSql << endl);
+	            tars::TC_Mysql::MysqlData res = tcMysql.queryRecord(sSql);
+
+                TLOGINFO(sUid << ", res.size:" << res.size() << "|sSql:" << sSql << endl);
 
                 // result is key:value pair;
                 //sKey 由groupby生成
                 //value由index生成
                 //int64_t t2Start = TNOWMS;
-                for(size_t    iRow = 0; iRow < res.size(); iRow++)
+                for(size_t iRow = 0; iRow < res.size(); iRow++)
                 {
                     string sKey = "";
                     for(size_t j = 0; j < vGroupField.size(); j++)
@@ -512,21 +526,21 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
                         sKey += res[iRow][vGroupField[j]];
                     }
 
-                    map<string,vector<Int64> >::iterator itResult = result.find(sKey);
+                    map<string,vector<double> >::iterator itResult = result.find(sKey);
                     if (itResult != result.end())
                     {
-                        vector<Int64>& data = itResult->second;
+                        vector<double>& data = itResult->second;
                         for (size_t j = 0; j < vSumField.size() && j < data.size(); j++)
                         {
-                            data[j] += TC_Common::strto<Int64>(res[iRow][vSumField[j]]);// 相同key的值 求和
+                            data[j] += TC_Common::strto<double>(res[iRow][vSumField[j]]);// 相同key的值 求和
                         }
                     }
                     else
                     {
-                        vector<Int64>& vRes = result[sKey];
+                        vector<double>& vRes = result[sKey];
                         for(size_t j = 0; j < vSumField.size(); j++)
                         {
-                            vRes.push_back( TC_Common::strto<Int64>(res[iRow][vSumField[j]]));;
+                            vRes.push_back( TC_Common::strto<double>(res[iRow][vSumField[j]]));;
                         }
                     }
                     TLOGINFO("query iDb:" << iThread <<" {"<< sKey << ":" << TC_Common::tostr(result[sKey]) << "}" << endl);
@@ -536,26 +550,31 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
             }
         }  //day
 
-        sRes =  "ret:0 iDb:" + TC_Common::tostr(iThread)  + "\n";
+        sRes.first  = 0;
+        sRes.second = "iDb:" + TC_Common::tostr(iThread);
 
     }
     catch(TC_Mysql_Exception & ex)
     {
-        sRes = "ret:-1|iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what() + "\n";
-        TLOGERROR("query sUid:" << sUid << "query:" << sRes << endl);
+        sRes.first = -1;
+        sRes.second = "iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what() + "\n";
+        TLOGERROR("query sUid:" << sUid << ", query:" << ex.what() << endl);
 
         queryParam._run_result = -1;
     }
     catch(exception & ex)
     {
-        sRes = "ret:-1|iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what() + "\n";
-        TLOGERROR("query sUid:" << sUid << "query:" << sRes << endl);
+	    sRes.first = -1;
+	    sRes.second = "iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what() + "\n";
+
+//        sRes = "ret:-1|iDb:" + TC_Common::tostr(iThread) + string("|exception:") + ex.what() + "\n";
+        TLOGERROR("query sUid:" << sUid << ", query:" << ex.what() << endl);
 
         queryParam._run_result = -1;
     }
     int64_t tEnd = TNOWMS;
 
-    TLOGDEBUG("query sUid:" << sUid << "exit query iDb:" << iThread <<"|timecost(ms):" << (tEnd - tStart) << "|res:" << sRes << endl);
+    TLOGDEBUG("query sUid:" << sUid << ", exit query iDb:" << iThread <<"|timecost(ms):" << (tEnd - tStart) << "|res:" << sRes.second << endl);
 
     queryParam._atomic++;
 
@@ -566,10 +585,8 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
             queryParam._monitor.notifyAll();
         }
 
-        TLOGDEBUG("query sUid:" << sUid << "notify query finish." << endl);
+        TLOGDEBUG("query sUid:" << sUid << ", notify query finish." << endl);
     }
-
-    
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -595,17 +612,18 @@ string dateInc(const string& sDate)
         int mon  = TC_Common::strto<int>(sDate.substr(4, 2));
         int day  = TC_Common::strto<int>(sDate.substr(6, 2));
 
-        struct tm *p = NULL;
-        time_t timep;
-        struct tm tt = {0};
+	    time_t timep;
+	    struct tm tt = {0};
 
-        time(&timep);
-        p=localtime_r(&timep, &tt);
-        p->tm_mon  = mon -1;
-        p->tm_mday = day +1;
-        p->tm_year = year -1900 ;
+	    time(&timep);
+	    TC_Port::localtime_r(&timep, &tt);
 
-        timep = mktime(p);
+	    tt.tm_mon  = mon -1;
+	    tt.tm_mday = day +1;
+	    tt.tm_year = year -1900 ;
+
+	    timep = mktime(&tt);
+
         ret = TC_Common::tm2str(timep, "%Y%m%d");
     }
     catch(exception & ex)
@@ -647,7 +665,9 @@ void selectLastMinTime(const string& sUid, int iThread , const string& tbname, c
 
         string sSql = "select min(lasttime) as lasttime  from "+ sTbNamePre+" where appname like '" +"%' and lasttime > '" + sLast + "'" ;
 
-        tars::TC_Mysql::MysqlData res = tcMysql.queryRecord(sSql);
+	    TLOGDEBUG(sUid << ", sSql:" << sSql << endl);
+
+	    tars::TC_Mysql::MysqlData res = tcMysql.queryRecord(sSql);
 
         if (res.size() > 0)
         {
@@ -663,14 +683,14 @@ void selectLastMinTime(const string& sUid, int iThread , const string& tbname, c
     }
     catch(TC_Mysql_Exception & ex)
     {
-        TLOGERROR("selectLastTime sUid="<< sId <<"exception:"<< ex.what() << endl);
+        TLOGERROR("selectLastTime sUid="<< sId <<", exception:"<< ex.what() << endl);
         ret = "";
         queryParam._run_result = -1;
         //queryParam._atomic.inc();
     }
     catch(exception& e)
     {
-        TLOGERROR("selectLastTime sUid="<< sId <<"exception:"<< e.what() << endl);
+        TLOGERROR("selectLastTime sUid="<< sId <<", exception:"<< e.what() << endl);
         ret = "";
         queryParam._run_result = -1;
         //queryParam._atomic.inc();
@@ -681,7 +701,7 @@ void selectLastMinTime(const string& sUid, int iThread , const string& tbname, c
     {
         TC_ThreadLock::Lock lock(queryParam._monitor);
         queryParam._monitor.notifyAll();
-        TLOGDEBUG("query sUid:" << sId << "notify checktime finish." << endl);
+        TLOGDEBUG("query sUid:" << sId << ", notify checktime finish." << endl);
     }
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -719,7 +739,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
                 g_app.getThreadPoolTimeCheck().exec(fwrapper);
             }
 
-            TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "wait for getLastTime done." << endl);
+            TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", wait for getLastTime done." << endl);
             
             bool rc = true;
             int ifail = 0;
@@ -743,7 +763,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
 
             if(ifail >= 10)
             {
-                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "wait for getLastTime timeout." << endl);
+                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", wait for getLastTime timeout." << endl);
                 while(_queryParam._atomic != _queryParam._run_times)
                 {
                     {
@@ -766,7 +786,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
 
             if(rc)
             {
-                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "getLastTime all done|return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd-tStart) << endl);
+                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", getLastTime all done|return:" << _queryParam._run_result <<"|timecost(ms):" << (tEnd-tStart) << endl);
 
                 for(int i = 0; i < iThreads; ++i)
                 {
@@ -779,7 +799,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
             else
             {
                 min = "";
-                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "getLastTime timeout." << endl);
+                TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", getLastTime timeout." << endl);
             }
         }
         else
@@ -787,7 +807,7 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
             min = "";
         }
 
-        TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << "final lasttime:" << min << endl);
+        TLOGDEBUG("DbProxy::getLastTime sUid:" << sUid << ", final lasttime:" << min << endl);
     }
     catch (exception &ex)
     {
@@ -802,14 +822,14 @@ string DbProxy::getLastTime(const map<string,string>& mSqlPart)
     return min;
 }
 
-
-string DbProxy::makeResult(int iRet, const string& sRes)
-{
-    size_t act    = g_app.getActiveDbInfo().size();
-    int total     = g_app.getDbInfo().size();
-    string result = "Ret:" + TC_Common::tostr(iRet) + "\n"
-           + "ActiveDb:" + TC_Common::tostr(act) + "\n"
-           + "TotalDb:" + TC_Common::tostr(total) + "\n"
-           + sRes;
-    return result;
-}
+//
+//string DbProxy::makeResult(int iRet, const string& sRes)
+//{
+//    size_t act    = g_app.getActiveDbInfo().size();
+//    int total     = g_app.getDbInfo().size();
+//    string result = "Ret:" + TC_Common::tostr(iRet) + "\n"
+//           + "ActiveDb:" + TC_Common::tostr(act) + "\n"
+//           + "TotalDb:" + TC_Common::tostr(total) + "\n"
+//           + sRes;
+//    return result;
+//}

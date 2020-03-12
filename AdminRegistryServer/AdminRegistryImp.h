@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -76,7 +76,7 @@ public:
      */
     virtual int getTaskHistory(const string & application, const string & serverName, const string & command, vector<TaskRsp> &taskRsp, tars::TarsCurrentPtr current);
 
-    /**
+	/**
      * 设置任务状态
      * 
      * @param itemNo 
@@ -335,10 +335,12 @@ public:
 
     virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::TarsCurrentPtr current);
 
-protected:
+	virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::TarsCurrentPtr current);
 
-    //数据库操作类对象
-    //DbProxy _db;
+	virtual int getServers(vector<FrameworkServer> &servers, tars::TarsCurrentPtr current);
+
+	virtual int checkServer(const FrameworkServer &server, tars::TarsCurrentPtr current);
+protected:
 
     PatchPrx _patchPrx;
 };

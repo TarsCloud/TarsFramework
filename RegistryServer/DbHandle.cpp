@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -953,7 +953,7 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS();
+        sendSqlErrorAlarmSMS(string("CDbHandle::loadIPPhysicalGroupInfo:") + ex.what());
         TLOGERROR("CDbHandle::loadIPPhysicalGroupInfo exception: " << ex.what() << endl);
         if (fromInit)
         {
@@ -963,6 +963,7 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
     }
     catch (exception& ex)
     {
+	    sendSqlErrorAlarmSMS(string("CDbHandle::loadIPPhysicalGroupInfo:") + ex.what());
         TLOGDEBUG("CDbHandle::loadIPPhysicalGroupInfo " << ex.what() << endl);
         if (fromInit)
         {
@@ -1023,7 +1024,7 @@ int CDbHandle::loadGroupPriority(bool fromInit)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS();
+        sendSqlErrorAlarmSMS(string("CDbHandle::loadGroupPriority:") + ex.what());
         TLOGERROR("CDbHandle::loadGroupPriority exception: " << ex.what() << endl);
         if (fromInit)
         {
@@ -1033,6 +1034,7 @@ int CDbHandle::loadGroupPriority(bool fromInit)
     }
     catch (exception& ex)
     {
+	    sendSqlErrorAlarmSMS(string("CDbHandle::loadGroupPriority:") + ex.what());
         TLOGDEBUG("CDbHandle::loadGroupPriority " << ex.what() << endl);
         if (fromInit)
         {
@@ -1074,12 +1076,13 @@ int CDbHandle::computeInactiveRate()
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS();
+        sendSqlErrorAlarmSMS(string("CDbHandle::computeInactiveRate:") + ex.what());
         TLOGERROR("CDbHandle::computeInactiveRate exception: " << ex.what() << endl);
         return -3;
     }
     catch (exception& ex)
     {
+	    sendSqlErrorAlarmSMS(string("CDbHandle::computeInactiveRate:") + ex.what());
         TLOGERROR("CDbHandle::computeInactiveRate " << ex.what() << endl);
         return -4;
     }
@@ -1286,8 +1289,8 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
         TLOGDEBUG("loaded objects to cache  size:" << objectsCache.size() << endl);
         TLOGDEBUG("loaded server status to cache size:" << mapStatus.size() << endl);
         TLOGDEBUG("loaded set server to cache size:" << setDivisionCache.size() << endl);
-        FDLOG() << "loaded objects to cache size:" << objectsCache.size() << endl;
-        FDLOG() << "loaded set server to cache size:" << setDivisionCache.size() << endl;
+        // FDLOG() << "loaded objects to cache size:" << objectsCache.size() << endl;
+        // FDLOG() << "loaded set server to cache size:" << setDivisionCache.size() << endl;
 
         TLOGDEBUG("CDbHandle::loadObjectIdCache parse " << (bLoadAll ? "all " : "") << "|cost:" << (TNOWMS - iStart) << endl);
     }
@@ -1295,7 +1298,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     {
         TLOGERROR("CDbHandle::loadObjectIdCache exception: " << ex.what() << endl);
 
-        sendSqlErrorAlarmSMS();
+        sendSqlErrorAlarmSMS(string("CDbHandle::loadObjectIdCache:") + ex.what());
         if (fromInit)
         {
             //初始化是出现异常，退出
@@ -1305,6 +1308,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     }
     catch (exception& ex)
     {
+	    sendSqlErrorAlarmSMS(string("CDbHandle::loadObjectIdCache:") + ex.what());
         TLOGDEBUG("CDbHandle::loadObjectIdCache " << ex.what() << endl);
         if (fromInit)
         {
@@ -1353,12 +1357,13 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        sendSqlErrorAlarmSMS();
+	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
         TLOGERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
         return -1;
     }
     catch (exception& ex)
     {
+	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
         TLOGERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
         return -1;
     }
@@ -1755,9 +1760,9 @@ void CDbHandle::updateDivisionCache(const SetDivisionCache& setDivisionCache, bo
         _setDivisionCache.swap();
     }
 }
-void CDbHandle::sendSqlErrorAlarmSMS()
+void CDbHandle::sendSqlErrorAlarmSMS(const string &err)
 {
-    string errInfo = " ERROR:" + g_app.getAdapterEndpoint("QueryAdapter").getHost() +  ":主控访问数据库异常，请及时处理";
+    string errInfo = " ERROR:" + g_app.getAdapterEndpoint().getHost() +  ": registry error: " + err + ", please check!";
     TARS_NOTIFY_ERROR(errInfo);
 
     TLOGERROR("TARS_NOTIFY_ERROR " << errInfo << endl);

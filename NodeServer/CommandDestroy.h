@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -90,7 +90,7 @@ inline int CommandDestroy::execute(string &sResult)
         }
         else
         {
-            sLogPath += vtServerNames[0] + "/" + vtServerNames[1];
+            sLogPath += vtServerNames[0] + FILE_SEP + vtServerNames[1];
             sLogPath = TC_File::simplifyDirectory(sLogPath);
 
             g_RemoveLogThread->push_back(sLogPath);

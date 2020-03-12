@@ -14,11 +14,14 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Thirdparty.cmake")
 
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
+include_directories(${util_SOURCE_DIR}/include)
+include_directories(${util_SOURCE_DIR}/src/epoll_windows)
+
 add_subdirectory(tarscpp)
 
-include_directories(${util_SOURCE_DIR}/include)
 include_directories(${servant_SOURCE_DIR})
-include_directories("thirdparty/rapidjson/include")
+
+#include_directories("thirdparty/rapidjson/include")
 
 macro(complice_module MODULE)
 
@@ -33,7 +36,7 @@ macro(complice_module MODULE)
     add_dependencies(${MODULE} FRAMEWORK-PROTOCOL)
     add_dependencies(${MODULE} tars2cpp)
 
-    target_link_libraries(${MODULE} tarsservant tarsutil mysqlclient)
+    target_link_libraries(${MODULE} tarsservant tarsutil ${LIB_MYSQL})
 
     if(TARS_SSL)
         target_link_libraries(${MODULE} ${LIB_SSL} ${LIB_CRYPTO})
@@ -164,8 +167,43 @@ install(DIRECTORY deploy DESTINATION ./
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
 
+############################################################################################
+#for debug
 
+add_custom_target(cp-tarsAdminRegistry
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsAdminRegistry
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsAdminRegistry/bin/tarsAdminRegistry /usr/local/app/tars/tarsAdminRegistry/bin/tarsAdminRegistry
+        COMMAND sh /usr/local/app/tars/tarsAdminRegistry/util/start.sh
+        COMMENT "cp tarsAdminRegistry & restart")
 
+add_custom_target(cp-tarsnode
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsnode
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsnode/bin/tarsnode /usr/local/app/tars/tarsnode/bin/tarsnode
+        COMMAND sh /usr/local/app/tars/tarsnode/util/start.sh
+        COMMENT "cp tarsnode & restart")
+
+add_custom_target(cp-tarsstat
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsstat
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsstat/bin/tarsstat /usr/local/app/tars/tarsstat/bin/tarsstat
+        COMMAND sh /usr/local/app/tars/tarsstat/util/start.sh
+        COMMENT "cp tarsstat & restart")
+
+add_custom_target(cp-tarsquerystat
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsquerystat
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsquerystat/bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
+        COMMAND /usr/local/app/tars/tarsquerystat/util/start.sh
+        COMMENT "cp tarsquerystat & restart")
+
+add_custom_target(cp-tarsqueryproperty
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsqueryproperty
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsqueryproperty/bin/tarsqueryproperty /usr/local/app/tars/tarsqueryproperty/bin/tarsqueryproperty
+        COMMAND /usr/local/app/tars/tarsqueryproperty/util/start.sh
+        COMMENT "cp tarsqueryproperty & restart")
 
 
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -62,6 +62,11 @@ public:
      * @return :  对象代理的智能指针
      */
     NodePrx getNodePrx(const string & nodeName);
+
+    /**
+     * 获取框架服务
+     */
+    int getFramework(vector<tars::FrameworkServer> &servers);
 
     /**
      * 增加异步任务

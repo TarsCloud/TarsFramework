@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -88,7 +88,7 @@ int PatchImp::listFileInfo(const string &path, vector<FileInfo> & vf, TarsCurren
 {
     TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getIp() << "|path:" << path << endl);
 
-    string dir = tars::TC_File::simplifyDirectory(_directory + "/" + path);
+    string dir = tars::TC_File::simplifyDirectory(_directory + FILE_SEP + path);
 
     int ret = __listFileInfo(dir, vf);
 
@@ -105,7 +105,7 @@ int PatchImp::download(const string & file, int pos, vector<char> & vb, TarsCurr
 {
     TLOGDEBUG("PatchImp::download ip:" << current->getIp() << "|file:" << file << "|pos:" << pos << endl);
 
-    string path = tars::TC_File::simplifyDirectory(_directory + "/" + file);
+    string path = tars::TC_File::simplifyDirectory(_directory + FILE_SEP + file);
     
     int iRet = -1;
 
@@ -124,9 +124,9 @@ int PatchImp::download(const string & file, int pos, vector<char> & vb, TarsCurr
 
 int PatchImp::preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current)
 {
-    string upfile = _uploadDirectory + "/" + app + "/" + serverName + "/" + patchFile;
-    string dstDirectory = _directory + "/TARSBatchPatching/" + app + "/" + serverName;
-    string dstfile = dstDirectory + "/" + app +"." + serverName + ".tgz";
+    string upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName + FILE_SEP + patchFile;
+    string dstDirectory = _directory + "/TARSBatchPatching/" + app + FILE_SEP + serverName;
+    string dstfile = dstDirectory + FILE_SEP + app +"." + serverName + ".tgz";
 
     TLOGDEBUG("PatchImp::preparePatchFile upfile:" << upfile << "|dstfile:" << dstfile << endl);
 
@@ -146,6 +146,15 @@ int PatchImp::preparePatchFile(const string &app, const string &serverName, cons
     TC_File::copyFile(upfile, dstfile, true);
 
     return 0;
+}
+
+int PatchImp::deletePatchFile(const string & app, const string & serverName, const string & patchFile, TarsCurrentPtr current)
+{
+	string upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName + FILE_SEP + patchFile;
+
+	TLOGDEBUG("PatchImp::deletePatchFile upfile:" << upfile << endl);
+
+	return TC_File::removeFile(upfile, false);
 }
 
 /**************************************************************************************************

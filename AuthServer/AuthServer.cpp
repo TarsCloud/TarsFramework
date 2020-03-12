@@ -1,9 +1,9 @@
-#include "AuthServer.h"
+ï»¿#include "AuthServer.h"
 #include "AuthImp.h"
 
 void AuthServer::initialize()
 {
-    //Ôö¼Ó¶ÔÏó
+    //ï¿½ï¿½ï¿½Ó¶ï¿½ï¿½ï¿½
     addServant<AuthImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".AuthObj");
 }
 

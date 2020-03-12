@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -15,7 +15,8 @@
  */
 
 #include <sys/stat.h>
-#include <unistd.h>
+// #include <unistd.h>
+#include "util/tc_port.h"
 #include "PatchCache.h"
 #include "PatchServer.h"
 
@@ -31,10 +32,10 @@ int PatchCache::load(const std::string & sFile, std::pair<char *, size_t> & mem)
     
     try
     {
-        struct stat st;
+        TC_Port::stat_t st;
         memset(&st, 0, sizeof(struct stat));
 
-        if (lstat(sFile.c_str(), &st) != 0)
+        if (TC_Port::lstat(sFile.c_str(), &st) != 0)
         {
             TLOGERROR("PatchCache::load sFile:" << sFile << "|lstat file error:" << strerror(errno) << endl);
             return -1;

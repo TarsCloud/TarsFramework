@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -23,28 +23,28 @@ QueryServer g_app;
 
 TC_Config * g_pconf;
 /////////////////////////////////////////////////////////////////
-
-// struct JsonProtocol
-// {
-    
-//     static int parse(string &in, string &out)
-//     {
-//         TLOGINFO("JsonProtocol parse:" << in << endl);
-
-//         string::size_type jsonEnd = in.find("}");
-
-//         if (jsonEnd != string::npos )
-//         {
-//             out = in;
-//             in = "";
-//             return TC_EpollServer::PACKET_FULL;   //返回1表示收到的包已经完全
-//         }
-
-//         return TC_EpollServer::PACKET_ERR;        //返回-1表示收到包协议错误，框架会自动关闭当前连接
-//     }
-// };
-
-
+//
+//struct JsonProtocol
+//{
+//
+//	static TC_NetWorkBuffer::PACKET_TYPE parse(TC_NetWorkBuffer &in, vector<char> &out)
+//	{
+//		auto it = in.find("}", 1);
+////		in.mergeBuffers();
+//		TLOGDEBUG("JsonProtocol parse:" << in.getBuffersString() << endl);
+//
+////		const char *p = strstr(in.mergeBuffers(), "}");
+//
+//		if (it != in.end())
+//		{
+//			out = in.getBuffers();
+//			in.clearBuffers();
+//			return TC_NetWorkBuffer::PACKET_FULL;   //返回1表示收到的包已经完全
+//		}
+//
+//		return TC_NetWorkBuffer::PACKET_ERR;        //返回-1表示收到包协议错误，框架会自动关闭当前连接
+//	}
+//};
 
 void  QueryServer::initialize()
 {
@@ -53,7 +53,7 @@ void  QueryServer::initialize()
     vector<string> v_dblist;
     vector<string> v_dbcountlist;
 
-    g_pconf->getDomainVector("/tars/countdb", v_dbcountlist);
+    g_pconf->getDomainVector("/tars/statdb", v_dbcountlist);
 
     size_t iDbNumber = v_dblist.size();
 
@@ -65,7 +65,7 @@ void  QueryServer::initialize()
     {
         TC_DBConf tcDBConf;
 
-        string path= "/tars/countdb/" + v_dbcountlist[i];
+        string path= "/tars/statdb/" + v_dbcountlist[i];
 
         tcDBConf.loadFromMap(g_pconf->getDomainMap(path));
 
@@ -74,9 +74,9 @@ void  QueryServer::initialize()
 
     _activeDbInfo = _dbStatInfo;
 
-    _dBThread = new DBThread();
-
-    _dBThread->start();
+//    _dBThread = new DBThread();
+//
+//    _dBThread->start();
 
     _queryFlag.insert("f_date");
     _queryFlag.insert("f_tflag");
@@ -87,9 +87,9 @@ void  QueryServer::initialize()
 
     _insertInterval = TC_Common::strto<int>(g_pconf->get("/tars<interval>","5"));
 
-    size_t iDbThreadPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<count_db_tpoolsize>","8"));
+    size_t iDbThreadPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<count_db_tpoolsize>","4"));
 
-    size_t iTimeCheckPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<time_check_tpoolsize>","8"));
+    size_t iTimeCheckPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<time_check_tpoolsize>","4"));
 
     size_t iQueryDbPoolSize = TC_Common::strto<int>(g_pconf->get("/tars/threadpool<query_countdb_tpoolsize>","4"));
 
@@ -112,8 +112,8 @@ void  QueryServer::initialize()
         _notTarsSlaveName.insert(vIpGroup[i]);
         TLOGDEBUG("QueryServer::initialize i:" << i << "|notarsslavename:" << vIpGroup[i] << endl);
     }
-    addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj");
-    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &TC_NetWorkBuffer::parseHttp);
+    addServant<QueryImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".QueryObj");
+//    addServantProtocol(ServerConfig::Application + "." + ServerConfig::ServerName + ".NoTarsObj", &JsonProtocol::parse);
 }
 /////////////////////////////////////////////////////////////////
 
@@ -147,14 +147,14 @@ vector<TC_DBConf> QueryServer::getActiveDbInfo() const
     return _activeDbInfo;
 }
 
-uint32_t QueryServer::genUid()
-{
-    TC_LockT<TC_ThreadMutex> lock(*this);
-
-    while (++_uniqId == 0);
-
-    return _uniqId;
-}
+//uint32_t QueryServer::genUid()
+//{
+//    TC_LockT<TC_ThreadMutex> lock(*this);
+//
+//    while (++_uniqId == 0);
+//
+//    return _uniqId;
+//}
 
 string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
 {
@@ -172,16 +172,16 @@ string QueryServer::dumpDbInfo(const vector<TC_DBConf>& vDbInfo) const
     }
     return os.str();
 }
-
-bool QueryServer::searchQueryFlag(const string &sKey)
-{
-    set<string>::const_iterator it = _queryFlag.find(sKey);
-    if(it != _queryFlag.end())
-    {
-        return true;
-    }
-    return false;
-}
+//
+//bool QueryServer::searchQueryFlag(const string &sKey)
+//{
+//    set<string>::const_iterator it = _queryFlag.find(sKey);
+//    if(it != _queryFlag.end())
+//    {
+//        return true;
+//    }
+//    return false;
+//}
 
 set<string>& QueryServer::getNotTarsSlaveName()
 {
@@ -194,11 +194,11 @@ QueryServer::destroyApp()
 {
     //destroy application here:
     //...
-    if(_dBThread)
-    {
-        delete _dBThread;
-        _dBThread = NULL;
-    }
+//    if(_dBThread)
+//    {
+//        delete _dBThread;
+//        _dBThread = NULL;
+//    }
 
     if(_tpoolQueryDb)
     {

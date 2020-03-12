@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -27,7 +27,7 @@ using namespace std;
 using namespace tars;
 
 /**
- * Ë«buff»º´æ
+ * Ë«buffï¿½ï¿½ï¿½ï¿½
  */
 template <typename T>
 class DataWrapper
@@ -78,7 +78,7 @@ private:
 };
 
 /**
- * ´Ódb¼ÓÔØsetÏà¹ØÐÅÏ¢µÄÏß³ÌÀà
+ * ï¿½ï¿½dbï¿½ï¿½ï¿½ï¿½setï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½
  */
 class LoadDbThread : public TC_Thread, public tars::TC_ThreadLock
 {
@@ -86,22 +86,22 @@ public:
     typedef DataWrapper< map<string, string> > Data;
 
     /**
-     * ¹¹Ôìº¯Êý
+     * ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
      */
     LoadDbThread();
 
     /**
-     * Îö¹¹º¯Êý
+     * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      */
     ~LoadDbThread();
 
     /**
-     * ³õÊ¼»¯
+     * ï¿½ï¿½Ê¼ï¿½ï¿½
      */
     void init();
     
     /**
-     * ÔËÐÐ
+     * ï¿½ï¿½ï¿½ï¿½
      */
     void run();
 
@@ -111,7 +111,7 @@ public:
     void terminate();
 
     /**
-     * »ñÈ¡setÐÅÏ¢
+     * ï¿½ï¿½È¡setï¿½ï¿½Ï¢
      */
     string getSetName(const string &sAppName)
     {
@@ -130,21 +130,21 @@ public:
 private:
 
     /**
-     * ¼ÓÔØdbÊý¾Ý
+     * ï¿½ï¿½ï¿½ï¿½dbï¿½ï¿½ï¿½ï¿½
      */
     void loadData();
 
 private:
-    //¼ÓÔØdbÊý¾ÝµÄÊ±¼ä¼ä¸ô
+    //ï¿½ï¿½ï¿½ï¿½dbï¿½ï¿½ï¿½Ýµï¿½Ê±ï¿½ï¿½ï¿½ï¿½
     size_t   _interval;
 
     //Í£Ö¹
     bool     _terminate;
 
-    //·ÃÎÊÊý¾Ý¿â
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
     TC_Mysql _mysql;
     
-    //Ë«buff»º´æ
+    //Ë«buffï¿½ï¿½ï¿½ï¿½
     Data     _data;
 };
 

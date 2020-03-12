@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -21,6 +21,8 @@
 #include "NodeRollLogger.h"
 
 string NodeServer::g_sNodeIp;
+string NodeServer::NODE_ID = "";
+string NodeServer::CONFIG  = "";
 
 BatchPatch *g_BatchPatchThread;
 RemoveLogManager *g_RemoveLogThread;
@@ -38,7 +40,7 @@ void NodeServer::initialize()
 
     initRegistryObj();
 
-    addConfig("tarsnode.conf");
+ //   addConfig("tarsnode.conf");
 
     //增加对象
     string sNodeObj     = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj";
@@ -131,7 +133,7 @@ void NodeServer::initHashMap()
 {
     TLOGDEBUG("NodeServer::initHashMap " << endl);
 
-    string sFile        = ServerConfig::DataPath + "/" + g_pconf->get("/tars/node/hashmap<file>", "__tarsnode_servers");
+    string sFile        = ServerConfig::DataPath + FILE_SEP + g_pconf->get("/tars/node/hashmap<file>", "__tarsnode_servers");
     string sPath        = TC_File::extractFilePath(sFile);
     int iMinBlock       = TC_Common::strto<int>(g_pconf->get("/tars/node/hashmap<minBlock>", "500"));
     int iMaxBlock       = TC_Common::strto<int>(g_pconf->get("/tars/node/hashmap<maxBlock>", "500"));
@@ -203,18 +205,19 @@ bool NodeServer::cmdReLoadConfig(const string& command, const string& params, st
 {
     TLOGDEBUG("NodeServer::cmdReLoadConfig " << endl);
 
-    bool bRet = false;
-
-    if (addConfig("tarsnode.conf"))
+//    bool bRet = false;
+/*
+    if (addConfig("tafnode.conf"))
     {
+
         bRet = ServerFactory::getInstance()->loadConfig();
+
     }
 
     string s = bRet ? "OK" : "failure";
-
-    result = "cmdReLoadConfig " + s;
-
-    return bRet;
+*/
+    result = "cmdReLoadConfig not support!";
+    return false;
 }
 
 void NodeServer::destroyApp()
@@ -243,7 +246,7 @@ void NodeServer::destroyApp()
         _removeLogThread = NULL;
     }
 
-    TLOGDEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
+  //  TLOGDEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
 }
 
 string tostr(const set<string>& setStr)
@@ -315,7 +318,7 @@ bool NodeServer::isValid(const string& ip)
         for (size_t i = 0; i < vIp.size(); i++)
         {
             g_ipSet.insert(vIp[i]);
-            // TLOGDEBUG(ips << ", ,g_ipSet insert ip:" << vIp[i] << endl);
+            LOG->debug() << ips << "g_ipSet insert ip:" << vIp[i] << endl;
         }
 
         for (size_t i = 0; i < vObj.size(); i++)
@@ -406,4 +409,108 @@ void NodeServer::reportServer(const string& sServerId, const string &sSet, const
     {
         TLOGERROR("NodeServer::reportServer error:" << ex.what() << endl);
     }
+}
+
+int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
+{
+	try
+	{
+		NODE_ID = nodeId;
+		CONFIG  = sConfigFile;
+
+		TC_Config config;
+		config.parseFile(CONFIG);
+
+		string sLocator = config.get("/tars/application/client<locator>");
+		CommunicatorFactory::getInstance()->getCommunicator()->setProperty("locator", sLocator);
+		RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
+
+		string sLocalIp;
+
+		if(NODE_ID != "" )
+		{
+			sLocalIp = NODE_ID;
+		}
+		else
+		{
+			try
+			{
+				int ret = pRegistryPrx->getClientIp(sLocalIp);
+				if(ret != 0)
+				{
+					TLOGERROR("NodeServer::onUpdateConfig cannot get localip from registry"<< endl);
+					return -1;
+				}
+			}
+			catch(exception &ex)
+			{
+				TLOGERROR("NodeServer::onUpdateConfig cannot get localip from registry:" << ex.what() << endl);
+				return -1;
+			}
+
+			NODE_ID = sLocalIp;
+		}
+
+		string sTemplate;
+		pRegistryPrx->getNodeTemplate(NODE_ID, sTemplate);
+		if(TC_Common::trim(sTemplate) == "" )
+		{
+			TLOGERROR("NodeServer::onUpdateConfig cannot get node Template from registry, nodeId:" << NODE_ID << endl);
+			return -1;
+		}
+
+		sTemplate = TC_Common::replace(sTemplate, "${enableset}", config.get("/tars/application/server<enableset>", "n"));
+		sTemplate = TC_Common::replace(sTemplate, "${setdivision}", config.get("/tars/application/server<setdivision>", ""));
+		sTemplate = TC_Common::replace(sTemplate, "${locator}", sLocator);
+
+		sTemplate = TC_Common::replace(sTemplate, "${app}", config.get("/tars/application/server<app>", "tars"));
+	    sTemplate = TC_Common::replace(sTemplate, "${server}", config.get("/tars/application/server<server>", "tarsnode"));
+	    sTemplate = TC_Common::replace(sTemplate, "${basepath}", config.get("/tars/application/server<basepath>", ""));
+	    sTemplate = TC_Common::replace(sTemplate, "${datapath}", config.get("/tars/application/server<datapath>", "tars"));
+	    sTemplate = TC_Common::replace(sTemplate, "${logpath}", config.get("/tars/application/server<logpath>", "tars"));
+        sTemplate = TC_Common::replace(sTemplate, "${localip}",sLocalIp);
+		sTemplate = TC_Common::replace(sTemplate, "${local}", config.get("/tars/application/server<local>", ""));
+
+//		cout << TC_Common::outfill("", '-') << endl;
+
+		TC_Config newConf;
+
+		newConf.parseString(sTemplate);
+
+		config.joinConfig(newConf, true);
+
+		string sConfigPath    = TC_File::extractFilePath(CONFIG);
+		if(!TC_File::makeDirRecursive( sConfigPath ))
+		{
+			TLOGERROR("NodeServer::onUpdateConfig cannot create dir:" << sConfigPath << endl);
+			return -1;
+		}
+		string sFileTemp    = sConfigPath + FILE_SEP + "config.conf.tmp";
+		ofstream configfile(sFileTemp.c_str());
+		if(!configfile.good())
+		{
+			TLOGERROR("NodeServer::onUpdateConfig can not create config:" << sFileTemp << endl);
+			return -1;
+		}
+
+		configfile << TC_Common::replace(config.tostr(),"\\s"," ") << endl;
+
+		configfile.close();
+
+		string sFileBak     = CONFIG + ".bak";
+		if(TC_File::isFileExist(CONFIG))
+		{
+			TC_File::copyFile(CONFIG, sFileBak,true);
+		}
+
+		TC_File::copyFile(sFileTemp, CONFIG,true);
+		TC_File::removeFile(sFileTemp,false);
+	}
+	catch(exception &e)
+	{
+		TLOGERROR("NodeServer::onUpdateConfig error:" << e.what() << endl);
+		return -1;
+	}
+
+	return 0;
 }

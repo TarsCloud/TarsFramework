@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -13,7 +13,7 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the 
  * specific language governing permissions and limitations under the License.
  */
-
+#include "util/tc_platform.h"
 #include "util/tc_clientsocket.h"
 #include "BatchPatchThread.h"
 #include "NodeImp.h"
@@ -651,6 +651,9 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
 
 tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std :: string &result, TarsCurrentPtr current)
 {
+#if TARGET_PLATFORM_WINDOWS
+	 return -1;
+#else
     try
     {
         TLOGDEBUG("NodeImp::delCache "<<sFullCacheName << "|" << sBackupPath << "|" << sKey << endl);
@@ -727,9 +730,15 @@ tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &
     }
 
     return -1;
+#endif
+
+	 return -1;
 }
 
 tars::Int32 NodeImp::getUnusedShmKeys(tars::Int32 count,vector<tars::Int32> &shm_keys,tars::TarsCurrentPtr current) {
+#if TARGET_PLATFORM_WINDOWS
+	 return -1;
+#else
     int ret = 0;
     for(size_t i = 0; i < 256 && shm_keys.size() < (size_t)count; i++) 
     {
@@ -754,6 +763,9 @@ tars::Int32 NodeImp::getUnusedShmKeys(tars::Int32 count,vector<tars::Int32> &shm
     }
 
     return ret;
+#endif // TARGET_PLATFORM_WINDOWS
+
+	 return -1;	 
 }
 
 string NodeImp::keyToStr(key_t key_value)
@@ -793,7 +805,11 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 
     string newCmd = TC_Common::replace(cmd, "__log_file_name__", filePath);
     TLOGDEBUG("[NodeImp::getLogData]newcmd:" << newCmd << endl);
+#if TARGET_PLATFORM_WINDOWS
 
+    fileData = "not support!";
+
+#else
     FILE* fp = popen(newCmd.c_str(), "r");
 
     static size_t buf_len = 2 * 1024 * 1024;
@@ -804,9 +820,66 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 
     fileData = string(buf);
     delete []buf;
+#endif
 
     return 0;
 }
+
+string fillLine(int num)
+{
+	string str;
+	while (num -- > 0)
+	{
+		
+	}
+	return str;
+}
+
+int NodeImp::getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current)
+{	
+	TLOGDEBUG(application << "." << serverName << ", pid:" << pid << endl);
+#if TARGET_PLATFORM_WINDOWS
+	fileData = "not support!";	
+#else
+	string cmd = "top -c -bw 160 -n 1 -o '%CPU' -o '%MEM'";
+	FILE* fpTop = popen(cmd.c_str(), "r");
+	char   buf[1 * 1024 * 1024] = { 0 };
+	fread(buf, sizeof(char), sizeof(buf)-1, fpTop);
+	fclose(fpTop);
+	fileData = string(buf);
+	fileData += "#global-top-end#";
+
+	if (pid > 0)
+	{
+		memset(buf, 0, sizeof(buf));
+		cmd = "top -b -n 1 -o '%CPU' -o '%MEM' -H -p " + TC_Common::tostr(pid);
+		FILE* fpTop2 = popen(cmd.c_str(), "r");	
+		fread(buf, sizeof(char), sizeof(buf)-1, fpTop2);
+		fclose(fpTop2);
+		fileData += "\n\n";
+		fileData += "#this-top-begin#" + string(100, '-');
+		fileData += "\n";
+		fileData += string(buf);
+		fileData += "#this-top-end#";
+	}
+	
+	memset(buf, 0, sizeof(buf));
+	cmd = "cd /usr/local/app/taf/app_log/; ls -alth core.*";
+	FILE* fpLL = popen(cmd.c_str(), "r");
+	fread(buf, sizeof(char), sizeof(buf)-1, fpLL);
+	fclose(fpLL);
+	fileData += "\n\n";
+	fileData += "#core-file-begin#" + string(100, '-');
+	fileData += "\n";
+	fileData += string(buf);
+
+	TLOGDEBUG(fileData << endl);
+#endif
+	//LOG->debug() << "file-data==========\r\n" << fileData << endl;
+
+	return 0;
+}
+
 /*********************************************************************/
 
 

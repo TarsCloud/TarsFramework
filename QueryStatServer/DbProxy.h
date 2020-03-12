@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -25,6 +25,7 @@
 #include "util/tc_config.h"
 #include "servant/TarsLogger.h"
 #include "QueryServer.h"
+#include "MonitorQuery.h"
 
 using namespace tars;
 
@@ -36,17 +37,17 @@ public:
 
     ~DbProxy();
 
-    void queryData(map<string, string>& mSqlPart, string &sResult, bool bDbCountFlag);
+    void queryData(map<string, string>& mSqlPart, MonitorQueryRsp &rsp);//, bool bDbCountFlag);
 
     string getLastTime(const map<string,string>& mSqlPart);
 
 private:
 
-    int createRespHead(const vector<string> &res, const string& sLasttime ,string& result, bool bDbCountFlag);
+    int createRespHead(const vector<pair<int, string>> &res, const string& sLasttime ,MonitorQueryRsp& rsp);//, bool bDbCountFlag);
 
-    int createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string,vector<Int64> > >  &vDataList, const string& sHead,  string &result);
+    int createRespData(const string& sUid, const map<string,string>& mSqlPart, const vector<map<string,vector<double> > >  &vDataList, MonitorQueryRsp& rsp);
 
-    string makeResult(int iRet, const string& sRes);
+//    string makeResult(int iRet, const string& sRes);
 
 private:
     QueryParam _queryParam;

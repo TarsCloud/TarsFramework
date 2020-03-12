@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -102,10 +102,10 @@ string StatServer::getRandOrder(void)
     return _sRandOrder;
 }
 
-string StatServer::getClonePath(void)
-{
-    return _sClonePath;
-}
+//string StatServer::getClonePath(void)
+//{
+//    return _sClonePath;
+//}
 
 int StatServer::getInserInterv(void)
 {
@@ -187,13 +187,13 @@ void StatServer::initHashMap()
     float iFactor       = TC_Common::strto<float>(g_pconf->get("/tars/hashmap<factor>","2"));
     int iSize           = TC_Common::toSize(g_pconf->get("/tars/hashmap<size>"), 1024*1024*256);
 
-    _sClonePath         = ServerConfig::DataPath + "/" + g_pconf->get("/tars/hashmap<clonePatch>","clone");
-
-    if(!TC_File::makeDirRecursive(_sClonePath))
-    {
-        TLOGERROR("cannot create hashmap file " << _sClonePath << endl);
-        exit(0);
-    }
+//    _sClonePath         = ServerConfig::DataPath + "/" + g_pconf->get("/tars/hashmap<clonePatch>","clone");
+//
+//    if(!TC_File::makeDirRecursive(_sClonePath))
+//    {
+//        TLOGERROR("cannot create hashmap file " << _sClonePath << endl);
+//        exit(0);
+//    }
 
     TLOGDEBUG("StatServer::initHashMap init multi hashmap begin..." << endl);
 
@@ -221,13 +221,13 @@ void StatServer::initHashMap()
 
             string sHashMapFile = ServerConfig::DataPath + "/" + g_pconf->get(sFileConf, sFileDefault);
 
-            string sPath        = TC_File::extractFilePath(sHashMapFile);
-            
-            if(!TC_File::makeDirRecursive(sPath))
-            {
-                TLOGERROR("cannot create hashmap file " << sPath << endl);
-                exit(0);
-            }
+//            string sPath        = TC_File::extractFilePath(sHashMapFile);
+//
+//            if(!TC_File::makeDirRecursive(sPath))
+//            {
+//                TLOGERROR("cannot create hashmap file " << sPath << endl);
+//                exit(0);
+//            }
 
             try
             {
@@ -235,48 +235,53 @@ void StatServer::initHashMap()
 
                 _hashmap[i][k].initDataBlockSize(iMinBlock,iMaxBlock,iFactor);
 
-                if(TC_File::isFileExist(sHashMapFile))
-                {
-                    iSize = TC_File::getFileSize(sHashMapFile);
-                }
-                else
-                {
-                    int fd = open(sHashMapFile.c_str(), O_CREAT|O_EXCL|O_RDWR, 0666);
-                    if(fd == -1)
-                    {
-                        if(errno != EEXIST)
-                        {
-                            throw TC_Exception("open1 file '" + sHashMapFile + "' error", errno);
-                        }
-                        else
-                        {
-                            fd = open(sHashMapFile.c_str(), O_CREAT|O_RDWR, 0666);
-                            if(fd == -1)
-                            {
-                                throw TC_Exception("open2 file '" + sHashMapFile + "' error", errno);
-                            }
-                        }
-                    }
+//                if(TC_File::isFileExist(sHashMapFile))
+//                {
+//                    iSize = TC_File::getFileSize(sHashMapFile);
+//                }
+//                else
+//                {
+//                    int fd = open(sHashMapFile.c_str(), O_CREAT|O_EXCL|O_RDWR, 0666);
+//                    if(fd == -1)
+//                    {
+//                        if(errno != EEXIST)
+//                        {
+//                            throw TC_Exception("open1 file '" + sHashMapFile + "' error", errno);
+//                        }
+//                        else
+//                        {
+//                            fd = open(sHashMapFile.c_str(), O_CREAT|O_RDWR, 0666);
+//                            if(fd == -1)
+//                            {
+//                                throw TC_Exception("open2 file '" + sHashMapFile + "' error", errno);
+//                            }
+//                        }
+//                    }
+//
+//                    lseek(fd, iSize-1, SEEK_SET);
+//                    write(fd,"\0",1);
+//                    if(fd != -1)
+//                    {
+//                       close(fd);
+//                    }
+//                }
 
-                    lseek(fd, iSize-1, SEEK_SET);
-                    write(fd,"\0",1);
-                    if(fd != -1)
-                    {
-                       close(fd); 
-                    }
-                }
 
+                //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
+#if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+	            _hashmap[i][k].create(new char[iSize], iSize);
+#else
                 key_t key = ftok(sHashMapFile.c_str(), a[iChar%26]);
 
                 iChar++;
 
                 TLOGDEBUG("init hash mem，shm key: 0x" << hex << key << dec << endl);
 
-                //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
                 _hashmap[i][k].initStore(key, iSize);
+#endif
                 _hashmap[i][k].setAutoErase(false);
 
-                TLOGINFO("\n" <<  _hashmap[i][k].desc() << endl);
+	            TLOGDEBUG("\n" <<  _hashmap[i][k].desc() << endl);
             }
             catch(TC_HashMap_Exception &e)
             {

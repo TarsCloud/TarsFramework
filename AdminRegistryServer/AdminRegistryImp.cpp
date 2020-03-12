@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -451,6 +451,12 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 	int iRet = EM_TARS_UNKNOWN_ERR;
 	try
 	{
+		if(application == "tars" && serverName == "tarsAdminRegistry")
+		{
+			result = "can not stop " + application + "." + serverName;
+			TarsRemoteNotify::getInstance()->report(result);
+			return EM_TARS_CAN_NOT_EXECUTE;
+		}
 		DBPROXY->updateServerState(application, serverName, nodeName, "setting_state", tars::Inactive);
 		vector<ServerDescriptor> server;
 		server = DBPROXY->getServers(application, serverName, nodeName, true);
@@ -459,7 +465,7 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 			TLOGINFO( "|" << " '" + application + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
 			iRet = DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Inactive);
 			TLOGDEBUG( "|" << application << "." << serverName << "_" << nodeName << "|" << iRet << endl);
-    }
+        }
 		else
 		{
 			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
@@ -1103,6 +1109,47 @@ int AdminRegistryImp::getLogData(const std::string & application, const std::str
     }
     return -1;
 }
+
+int AdminRegistryImp::deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::TarsCurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << ":" << application << ", " << serverName << ", " << patchFile << endl);
+
+	return _patchPrx->deletePatchFile(application, serverName, patchFile);
+}
+
+int AdminRegistryImp::getServers(vector<tars::FrameworkServer> &servers, tars::TarsCurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << endl);
+
+	int ret = DBPROXY->getFramework(servers);
+
+	if(ret != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+int AdminRegistryImp::checkServer(const FrameworkServer &server, tars::TarsCurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << ", " << server.objName << endl);
+
+	ServantPrx prx = Application::getCommunicator()->stringToProxy<ServantPrx>(server.objName);
+
+	try
+	{
+		prx->tars_ping();
+	}
+	catch(exception &ex)
+	{
+		TLOGERROR(__FUNCTION__ << ", ping: " << server.objName << ", failed:" << ex.what() << endl);
+		return -1;
+	}
+
+	return 0;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
