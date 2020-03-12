@@ -47,8 +47,10 @@ macro(complice_module MODULE)
     if(TARS_HTTP2)
         target_link_libraries(${MODULE} ${LIB_HTTP2})
     endif()
-   
-    link_libraries(pthread z dl) 
+
+    if(NOT WIN32)
+        link_libraries(pthread z dl)
+    endif()
 endmacro()
 
 #调用tars2cpp, 生成tars对应的文件

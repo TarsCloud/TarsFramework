@@ -1,0 +1,26 @@
+name: C/C++ win
+
+on: 
+  push:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Setup perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - run: perl -V
+      - uses: actions/checkout@v2
+      - name: git
+        run: git submodule update --init --recursive
+      - name: configure
+        run: cd build; cmake --version; cmake .. -A X64 -DTARS_MYSQL=ON
+      - name: make
+        run: cd build; cmake --build . --config release --target run-all
+
