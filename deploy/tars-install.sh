@@ -390,6 +390,8 @@ rm -rf ${WORKDIR}/sql.tmp
 LOG_INFO "copy ${WORKDIR}/framework/servers/* to tars path:${TARS_PATH}";
 
 cp -rf ${WORKDIR}/framework/servers/*.sh ${TARS_PATH}
+chmod a+x ${TARS_PATH}/*.sh
+
 for var in ${TARS[@]};
 do
     cp -rf ${WORKDIR}/framework/servers/${var} ${TARS_PATH}
@@ -490,8 +492,8 @@ if [ "$SLAVE" != "true" ]; then
 
     LOG_INFO "start web";
 
-    cd /usr/local/app/web; pm2 stop tars-node-web; npm run prd; 
-    cd /usr/local/app/web/demo; pm2 stop tars-user-system; npm run prd
+    cd /usr/local/app/web; pm2 stop tars-node-web; pm2 delete tars-node-web; npm run prd; 
+    cd /usr/local/app/web/demo; pm2 stop tars-user-system;  pm2 delete tars-user-system; npm run prd
 
     LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
     LOG_INFO "If in Docker, please check you host ip and port."

@@ -33,10 +33,10 @@ do
   read -p "Please input your tars web url (like this: http://172.17.0.4:3000):" weburl
 
   echo "weburl:"$weburl
-  echo "download tarsnode from ${weburl}/tarsnode.tgz:"
+  echo "download tarsnode from ${weburl}/files/tarsnode.tgz:"
 
   rm -rf tarsnode.tgz
-  wget ${weburl}/tarsnode.tgz 
+  wget ${weburl}/files/tarsnode.tgz 
 
   if [ ! -f tarsnode.tgz ]; then
     echo "download tarsnode.tgz failed, please input tars web again!"
