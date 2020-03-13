@@ -181,6 +181,13 @@ add_custom_target(cp-tarsAdminRegistry
         COMMAND sh /usr/local/app/tars/tarsAdminRegistry/util/start.sh
         COMMENT "cp tarsAdminRegistry & restart")
 
+add_custom_target(cp-tarsnotify
+        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+        DEPENDS tarsnotify
+        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsnotify/bin/tarsnotify /usr/local/app/tars/tarsnotify/bin/tarsnotify
+        COMMAND sh /usr/local/app/tars/tarsnotify/util/start.sh
+        COMMENT "cp tarsnotify & restart")
+
 add_custom_target(cp-tarsnode
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsnode

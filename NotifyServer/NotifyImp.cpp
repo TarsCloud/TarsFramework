@@ -133,7 +133,6 @@ bool NotifyImp::IsNeedFilte(const string& sServerName,const string& sResult)
 void NotifyImp::reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current)
 {
     TLOGDEBUG("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << current->getIp() << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl);
-    //DLOG << "NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << current->getIp() << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl;
 
     if(IsNeedFilte(sServerName,sResult))
     {
@@ -168,7 +167,6 @@ void NotifyImp::notifyServer(const string& sServerName, NOTIFYLEVEL level, const
     info.sApp    = sServerName;
     info.sServer = sServerName;
 
-
     vector<string> vModule = TC_Common::sepstr<string>(sServerName, ".");
     if (vModule.size() >= 2)
     {
@@ -202,20 +200,23 @@ int NotifyImp::getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stI
 
 void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurrentPtr current)
 {
+	string nodeId = info.sNodeName;
+	if(nodeId.empty())
+	{
+		nodeId = current->getIp();
+	}
+
     switch (info.eType)
     {
         case (REPORT):
         {
             TLOGDEBUG("NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
-                << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << endl);
-
-        //   DLOG << "NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
-           //    << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << endl;
+                << "|nodeName:" << info.sNodeName << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << endl);
 
             if (IsNeedFilte(info.sApp + info.sServer, info.sMessage))
             {
-                TLOGWARN("NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
-                    << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << "|filted" << endl);
+                TLOGWARN("NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp()
+	                         << "|nodeName:" << info.sNodeName << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << "|filted" << endl);
 
                 return;
             }
@@ -226,12 +227,8 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
             rd["application"]    = make_pair(TC_Mysql::DB_STR, info.sApp);
             rd["server_name"]    = make_pair(TC_Mysql::DB_STR, info.sServer);
             rd["container_name"] = make_pair(TC_Mysql::DB_STR, info.sContainer);
-            rd["server_id"]      = make_pair(TC_Mysql::DB_STR, info.sApp +"."+ info.sServer + "_" + current->getIp());
-            if(info.sNodeName.empty()) {
-                rd["node_name"]      = make_pair(TC_Mysql::DB_STR, current->getIp());
-            } else {
-                rd["node_name"]      = make_pair(TC_Mysql::DB_STR, info.sNodeName);
-            }
+            rd["server_id"]      = make_pair(TC_Mysql::DB_STR, info.sApp +"."+ info.sServer + "_" + info.sNodeName);
+            rd["node_name"]      = make_pair(TC_Mysql::DB_STR, nodeId);
             rd["thread_id"]      = make_pair(TC_Mysql::DB_STR, info.sThreadId);
 
             if (!info.sSet.empty())
@@ -286,25 +283,14 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
         }
         case (NOTIFY):
         {
-            TLOGDEBUG("NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
+            TLOGDEBUG("NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|nodeId:" << nodeId
                 << "|eLevel:" << tars::etos(info.eLevel) << "|sMessage:" << info.sMessage << endl);
 
-            if (info.eLevel == NOTIFYERROR)
-            {
-               // FDLOG("NOTIFYERROR") << "NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
-               //     << "|eLevel:" << tars::etos(info.eLevel) << "|sMessage:" << info.sMessage << endl;
-            }
-            else
-            {
-               // DLOG << "NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
-                //    << "|eLevel:" << tars::etos(info.eLevel) << "|sMessage:" << info.sMessage << endl;
-            }
-
-            string sServerId = info.sApp + info.sServer + "_" + current->getIp();
+            string sServerId = info.sApp + info.sServer + "_" + nodeId;
 
             NotifyKey stKey0;
             stKey0.name = info.sApp + info.sServer;
-            stKey0.ip   = current->getIp();
+            stKey0.ip   = nodeId;
             stKey0.page = 0;
 
             NotifyInfo stInfo0;

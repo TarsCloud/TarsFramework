@@ -594,7 +594,7 @@ vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& se
         throw TarsException(string("TC_Config_Exception exception: ") + ex.what());
     }
 
-    TLOGDEBUG(app << "." << serverName << "_" << nodeName
+    TLOGDEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
               << " getServers affected:" << num
               << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
 
