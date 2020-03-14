@@ -148,10 +148,10 @@ EMTaskItemStatus TaskList::restart(const TaskItemReq &req, string &log)
     int ret = -1;
     try
     {
-		TLOGDEBUG("_adminPrx:" << _adminPrx << ", null?" << (_adminPrx == NULL ? "yes" : "no") << endl);
 		ret = _adminPrx->restartServer_inner(req.application, req.serverName, req.nodeName, log);
-        if (ret == 0)
-            return EM_I_SUCCESS;
+        if (ret == 0) {
+	        return EM_I_SUCCESS;
+        }
     }
     catch (exception &ex)
     {

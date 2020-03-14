@@ -30,7 +30,9 @@ ServerFactory::ServerFactory()
 
 ServerObjectPtr ServerFactory::getServer( const string& application, const string& serverName )
 {
-    TLOGINFO("ServerFactory::getServer: "<<application << "." << serverName << endl);
+	string serverId = application + "." + serverName;
+
+    NODE_LOG(serverId)->debug() << "ServerFactory::getServer" << endl;
 
     Lock lock( *this );
 
@@ -100,8 +102,6 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
 
 vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& application, const string& serverName, string& result)
 {
-    TLOGDEBUG("ServerFactory::getServerFromRegistry"<<application <<"."<<serverName<<endl);
-
     vector<ServerDescriptor> vServerDescriptor;
     try
     {
@@ -109,17 +109,16 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
 
         if(!_pRegistryPrx)
         {
-            TLOGERROR("ServerFactory::getServerFromRegistry cann't get the proxy of registry. "<<endl);
+        	TLOGERROR("ServerFactory::getServerFromRegistry cann't get the proxy of registry" << endl);
             return vServerDescriptor;
         }
 
         vServerDescriptor =_pRegistryPrx->getServers( application, serverName, _tPlatformInfo.getNodeName());
         //清空cache
-        if( vServerDescriptor.size()> 0 && application == "" && serverName == "")
+        if( vServerDescriptor.size() > 0 && application == "" && serverName == "")
         {
             g_serverInfoHashmap.clear();
-            TLOGINFO("ServerFactory::getServerFromRegistry hashmap clear ok "<<endl);
-
+	        TLOGDEBUG("ServerFactory::getServerFromRegistry hashmap clear ok "<<endl);
         }
 
         //重置cache
@@ -131,21 +130,18 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
 
             g_serverInfoHashmap.set(tServerInfo,vServerDescriptor[i]);
 
-            TLOGINFO("ServerFactory::getServerFromRegistry hashmap set ok "<<tServerInfo.application<<"."<<tServerInfo.serverName<<endl);
+	        NODE_LOG(tServerInfo.application + "." + tServerInfo.serverName)->error() << "ServerFactory::getServerFromRegistry hashmap set ok "<<tServerInfo.application<<"."<<tServerInfo.serverName<<endl;
         }
-
     }
     catch(exception &e)
     {
-        TLOGERROR("ServerFactory::getServerFromRegistry exception"<<e.what()<<endl);
+	    TLOGERROR("ServerFactory::getServerFromRegistry exception" << e.what() << endl);
     }
     return  vServerDescriptor;
 }
 
 vector<ServerDescriptor> ServerFactory::getServerFromCache( const string& application, const string& serverName, string& result)
 {
-    TLOGDEBUG("ServerFactory::getServerFromCache: "<< application <<"."<<serverName<<endl);
-
     ServerInfo tServerInfo;
     ServerDescriptor tServerDescriptor;
     vector<ServerDescriptor> vServerDescriptor;
@@ -168,8 +164,8 @@ vector<ServerDescriptor> ServerFactory::getServerFromCache( const string& applic
             int ret = it->get(tServerInfo,tServerDescriptor);
             if(ret != TC_HashMap::RT_OK)
             {
-                result =result + "\n hashmap erro:"+TC_Common::tostr(ret);
-                TLOGERROR("ServerFactory::getServerFromCache "<<result<< endl);
+                result = result + "\n hashmap ret:"+TC_Common::tostr(ret);
+	            NODE_LOG(tServerInfo.application + "." + tServerInfo.serverName)->error() << "ServerFactory::getServerFromCache "<<result<< endl;
                 break;
             }
 
@@ -229,14 +225,16 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, strin
 
         if(tInfo.iMonitorIntervalMs < _iMinMonitorIntervalMs)
         {
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
+	        NODE_LOG(pServerObjectPtr->getServerId())->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
+	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
             _iMinMonitorIntervalMs = tInfo.iMonitorIntervalMs;
         }
 
         if (!tInfo.bReportLoadInfo)
         {
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "bReportLoadInfo:"<<tInfo.bReportLoadInfo<<"|"<<pServerObjectPtr->getServerId()<<endl;
-            _bReportLoadInfo=false;
+            NODE_LOG(pServerObjectPtr->getServerId())->debug() <<FILE_FUN<< "bReportLoadInfo:"<<tInfo.bReportLoadInfo<<"|"<<pServerObjectPtr->getServerId()<<endl;
+	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "bReportLoadInfo:"<<tInfo.bReportLoadInfo<<"|"<<pServerObjectPtr->getServerId()<<endl;
+	        _bReportLoadInfo=false;
         }
 
         _mmServerList[application][serverName] = pServerObjectPtr;
@@ -442,11 +440,13 @@ void ServerFactory::setAllServerResourceLimit()
                 loadLimitInfo(sAppId, sServerId, tInfo);
                 if(tInfo.iMonitorIntervalMs < _iMinMonitorIntervalMs)
                 {
-                    NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN << "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << sServerId << endl;
-                    _iMinMonitorIntervalMs = tInfo.iMonitorIntervalMs;
+                    NODE_LOG(pServerObjectPtr->getServerId())->debug()<<FILE_FUN << "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << sServerId << endl;
+	                NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN << "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << sServerId << endl;
+	                _iMinMonitorIntervalMs = tInfo.iMonitorIntervalMs;
                 }
 
-                TLOGDEBUG("ServerFactory::setAllServerResourceLimit setAllServerResourceLimit|" << sServerId <<"|"<<tInfo.eCoreType <<endl);
+	            NODE_LOG(pServerObjectPtr->getServerId())->debug() << "ServerFactory::setAllServerResourceLimit setAllServerResourceLimit|" << sServerId <<"|"<<tInfo.eCoreType <<endl;
+//	            TLOGDEBUG("ServerFactory::setAllServerResourceLimit setAllServerResourceLimit|" << sServerId <<"|"<<tInfo.eCoreType <<endl);
                 pServerObjectPtr->setServerLimitInfo(tInfo);
 
             }

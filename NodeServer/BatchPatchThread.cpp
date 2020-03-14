@@ -136,8 +136,10 @@ void BatchPatchThread::terminate()
 
 void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, ServerObjectPtr server)
 {
-    NODE_LOG("patchPro")->debug() << FILE_FUN
-    << request.appname + "." + request.servername + "_" + request.nodename << "|"
+	string serverId = request.appname + "." + request.servername;
+
+	NODE_LOG(serverId)->debug() << FILE_FUN
+    << serverId + "_" + request.nodename << "|"
     << request.groupname   << "|"
     << request.version     << "|"
     << request.user        << "|"
@@ -146,7 +148,6 @@ void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, Server
     << request.md5         << "|"
     << request.ostype       << endl;
 
-
     //设置发布状态
     try
     {
@@ -154,36 +155,41 @@ void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, Server
 
         if (!server)
         {
-            NODE_LOG("patchPro")->error() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|get server object fault:" << sError << endl;
-            return ;        
+	        NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|get server object fault:" << sError << endl;
+//	        NODE_LOG("patchPro")->error() << FILE_FUN << serverId << "|" << request.md5 << "|get server object fault:" << sError << endl;
+	        return ;
         }
 
         //查看本地硬盘是否已经存在该文件
-        NODE_LOG("patchPro")->debug() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch begin" << endl;
+//        NODE_LOG("patchPro")->debug() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch begin" << endl;
+	    NODE_LOG(serverId)->debug() <<FILE_FUN << serverId << "|" << request.md5 << "|patch begin" << endl;
 
-        CommandPatch command(server, _downloadPath, request);
+	    CommandPatch command(server, _downloadPath, request);
         if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
         {
-            NODE_LOG("patchPro")->error() << FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|canExecute error:" << sError << endl;
-            return ;
+//            NODE_LOG("patchPro")->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
+	        NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
+	        return ;
         }
 
         if (command.execute(sError) == 0)
         {
-            NODE_LOG("patchPro")->debug() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch succ" << endl;
+//            NODE_LOG("patchPro")->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
+	        NODE_LOG(serverId)->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
         }
         else
         {
-            NODE_LOG("patchPro")->error() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch fault:" << sError << endl;
+//            NODE_LOG("patchPro")->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
+	        NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
         }
     }
     catch (exception & e)
     {
-        NODE_LOG("patchPro")->error() << FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|Exception:" << e.what() << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN<< serverId << "|" << request.md5 << "|Exception:" << e.what() << endl;
     }
     catch (...)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|Unknown Exception" << endl;
+        NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|Unknown Exception" << endl;
     }
 }
 
@@ -191,15 +197,15 @@ void BatchPatchThread::run()
 {
     while (!_shutDown)
     {
-        try
+	    pair<tars::PatchRequest,ServerObjectPtr> item;
+
+	    try
         {
-    
-            pair<tars::PatchRequest,ServerObjectPtr> item;
             if (_batchPatch->pop_front(item))
             {
                 if (!(item.second))
                 {
-                    NODE_LOG("patchPro")->error() <<FILE_FUN<< " server error" << endl;
+                    NODE_LOG(item.first.appname + "." + item.first.servername)->error() <<FILE_FUN<< " server error" << endl;
                     throw TC_Exception("server error");
                 }
                 doPatchRequest(item.first,item.second);
@@ -211,11 +217,11 @@ void BatchPatchThread::run()
         }
         catch (exception& e)
         {
-            NODE_LOG("patchPro")->error()<<FILE_FUN<<"catch exception|"<<e.what()<<endl;
+            NODE_LOG(item.first.appname + "." + item.first.servername)->error()<<FILE_FUN<<"catch exception|"<<e.what()<<endl;
         }
         catch (...)
         {
-            NODE_LOG("patchPro")->error()<<FILE_FUN<<"catch unkown exception"<<endl;
+            NODE_LOG(item.first.appname + "." + item.first.servername)->error()<<FILE_FUN<<"catch unkown exception"<<endl;
         }
     }
 }

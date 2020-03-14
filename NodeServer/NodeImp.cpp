@@ -50,19 +50,21 @@ void NodeImp::initialize()
 int NodeImp::destroyServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
 {
     int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
+	string serverId = application + "." + serverName;
 
     int iRet = EM_TARS_SUCCESS;
     if ( g_app.isValid(current->getIp()) == false )
     {
         result += " erro:ip "+ current->getIp()+" is invalid";
         iRet    = EM_TARS_INVALID_IP_ERR;
-        NODE_LOG("destroyServer")->error() << FILE_FUN << "access_log|" << iRet << "|" << (TC_TimeProvider::getInstance()->getNowMs() - startMs)
-                << "|" << application << "." << serverName << "|" << result << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN << "access_log|" << iRet << "|" << (TC_TimeProvider::getInstance()->getNowMs() - startMs)
+                << "|" << serverId << "|" << result << endl;
         return iRet;
     }
 
-    result = " ["+application + "." + serverName+"] ";
-    NODE_LOG("destroyServer")->debug() << result << endl;
+    result = " [" + serverId + "] ";
+
+    NODE_LOG(serverId)->debug() << result << endl;
     ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
     if ( pServerObjectPtr )
     {
@@ -85,15 +87,17 @@ int NodeImp::destroyServer( const string& application, const string& serverName,
         iRet = -2;
     }
 
-    NODE_LOG("destroyServer")->error()  << FILE_FUN << "access_log|" << iRet << "|" << (TC_TimeProvider::getInstance()->getNowMs() - startMs)
+    NODE_LOG(serverId)->error()  << FILE_FUN << "access_log|" << iRet << "|" << (TC_TimeProvider::getInstance()->getNowMs() - startMs)
                 << "|" << application << "|" << serverName << "|" << result << endl;
     return iRet;
 }
 
 int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurrentPtr current)
 {
-    NODE_LOG("patchPro")->debug() << FILE_FUN
-                 << req.appname + "." + req.servername + "_" + req.nodename << "|"
+	string serverId = req.appname + "." + req.servername;
+
+    NODE_LOG(serverId)->debug() << FILE_FUN
+                 << serverId + "_" + req.nodename << "|"
                  << req.groupname   << "|"
                  << req.version     << "|"
                  << req.user        << "|"
@@ -105,7 +109,7 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
     if ( g_app.isValid(current->getIp()) == false )
     {
         result +=FILE_FUN_STR+ " erro:ip "+ current->getIp()+" is invalid";
-        NODE_LOG("patchPro")->error()<<FILE_FUN << result << endl;
+        NODE_LOG(serverId)->error()<<FILE_FUN << result << endl;
         return EM_TARS_INVALID_IP_ERR;
     }
 
@@ -116,8 +120,8 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
         ServerObjectPtr server = ServerFactory::getInstance()->loadServer(req.appname, req.servername, true, sError);
         if (!server)
         {
-            result =FILE_FUN_STR+ "load " + req.appname + "." + req.servername + "|" + sError;
-            NODE_LOG("patchPro")->error() <<FILE_FUN<<req.appname + "." + req.servername + "_" + req.nodename << "|" << result << endl;
+            result =FILE_FUN_STR+ "load " + serverId + "|" + sError;
+            NODE_LOG(serverId)->error() << FILE_FUN << serverId + "_" + req.nodename << "|" << result << endl;
             if(sError.find("server state") != string::npos)
                 return EM_TARS_SERVICE_STATE_ERR;
             else
@@ -132,14 +136,14 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
             if (server->toStringState(eState).find("ing") != string::npos && eState != ServerObject::Activating)
             {
                 result = FILE_FUN_STR+"cannot patch the server ,the server state is " + server->toStringState(eState);
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< req.appname + "." + req.servername << "|" << result << endl;
+                NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << result << endl;
                 return EM_TARS_SERVICE_STATE_ERR;
             }
 
             if(req.md5 == "")
             {
                 result = FILE_FUN_STR+"parameter error, md5 not setted.";
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< req.appname + "." + req.servername << "|" << result << endl;
+                NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << result << endl;
                 return EM_TARS_PARAMETER_ERR;
             }
 
@@ -149,26 +153,26 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
                 if(req.ostype != "" && req.ostype != osType)
                 {
                     result = FILE_FUN_STR+"parameter error, req.ostype=" + req.ostype + ", local osType:" + osType;
-                    NODE_LOG("patchPro")->error() <<FILE_FUN<< req.appname + "." + req.servername << "|" << result << endl;
+                    NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << result << endl;
                     return EM_TARS_PARAMETER_ERR;
                 }
             }
 
             //保存patching前的状态，patch完成后恢复
-            NODE_LOG("patchPro")->debug() <<FILE_FUN<<req.appname + "." + req.servername + "_" + req.nodename << "|saved state:" << server->toStringState(eState) << endl;
+            NODE_LOG(serverId)->debug() <<FILE_FUN<<serverId + "_" + req.nodename << "|saved state:" << server->toStringState(eState) << endl;
             server->setLastState(eState);
             server->setState(ServerObject::BatchPatching);
             //将百分比初始化为0，防止上次patch结果影响本次patch进度
             server->setPatchPercent(0);
 
-            NODE_LOG("patchPro")->debug()<<FILE_FUN << req.appname + "." + req.servername + "_" + req.nodename << "|" << req.groupname   << "|preset success" << endl;
+            NODE_LOG(serverId)->debug()<<FILE_FUN << serverId + "_" + req.nodename << "|" << req.groupname   << "|preset success" << endl;
         }
 
         g_BatchPatchThread->push_back(req,server);
     }
     catch (std::exception & ex)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< req.appname + "." + req.servername + "_" + req.nodename << "|Exception:" << ex.what() << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN << serverId + "_" + req.nodename << "|Exception:" << ex.what() << endl;
 
         result = FILE_FUN_STR+ex.what();
 
@@ -181,13 +185,13 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
     }
     catch (...)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< req.appname + "." + req.servername + "_" + req.nodename << "|Unknown Exception" << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN << serverId + "_" + req.nodename << "|Unknown Exception" << endl;
         result = FILE_FUN_STR+"Unknown Exception";
         return EM_TARS_UNKNOWN_ERR;
     }
 
-    NODE_LOG("patchPro")->debug() <<FILE_FUN
-             << req.appname + "." + req.servername + "_" + req.nodename << "|"
+    NODE_LOG(serverId)->debug() <<FILE_FUN
+             << serverId + "_" + req.nodename << "|"
              << req.groupname   << "|"
              << req.version     << "|"
              << req.user        << "|"
@@ -198,8 +202,11 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
 
 int NodeImp::addFile(const string &application,const string &serverName,const string &file, string &result, TarsCurrentPtr current)
 {
-    result = string(__FUNCTION__)+" server ["+application + "." + serverName+"] file:"+file;
-    TLOGDEBUG(FILE_FUN << result  << endl);
+	string serverId = application + "." + serverName;
+
+    result = string(__FUNCTION__)+" server ["+serverId+"] file:"+file;
+
+    NODE_LOG(serverId) ->debug() << FILE_FUN << result  << endl;
 
     ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
     if ( pServerObjectPtr )
@@ -276,6 +283,7 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
             TLOGERROR( result << endl);
             return -1;
         }
+
         map<string, ServerGroup> mmServerList;
         mmServerList.clear();
         mmServerList = ServerFactory::getInstance()->getAllServers();
@@ -283,11 +291,14 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
         {
             for ( map<string, ServerObjectPtr>::const_iterator p = it->second.begin(); p != it->second.end(); p++ )
             {
-                ServerObjectPtr pServerObjectPtr = p->second;
+	            string serverId = it->first+"."+ p->first;
+
+	            ServerObjectPtr pServerObjectPtr = p->second;
                 if ( pServerObjectPtr )
                 {
-                    result =result+"stop server ["+it->first+"."+ p->first+"] ";
-                    TLOGDEBUG(FILE_FUN << result << endl);
+                    result = result + "stop server ["+serverId+"] ";
+
+                    NODE_LOG(serverId) ->debug() << FILE_FUN << result << endl;
                     
                     bool bByNode = true;
                     string s;
@@ -301,6 +312,9 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
                     {
                         result = result+"error:"+s+"\n";
                     }
+
+	                NODE_LOG(serverId) ->debug() << FILE_FUN << result << endl;
+
                 }
             }
         }
@@ -322,14 +336,17 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
 
 int NodeImp::loadServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
 {
-    try
+	string serverId = application + "." + serverName;
+
+	try
     {
-        result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
-        TLOGDEBUG("NodeImp::loadServer"<<result<<endl);
+        result = string(__FUNCTION__)+" ["+serverId+"] ";
+        NODE_LOG(serverId)->debug() << "NodeImp::loadServer"<<result<<endl;
+
         if ( g_app.isValid(current->getIp()) == false )
         {
             result += " erro:ip "+ current->getIp()+" is invalid";
-            TLOGERROR(FILE_FUN << result << endl);
+	        NODE_LOG(serverId)->error() << FILE_FUN << result << endl;
             return -1;
         }
 
@@ -339,19 +356,24 @@ int NodeImp::loadServer( const string& application, const string& serverName,str
         if (!pServerObjectPtr)
         {
             result =result+" error::cannot load server description.\n"+s;
-            return EM_TARS_LOAD_SERVICE_DESC_ERR;
+	        NODE_LOG(serverId)->error() << FILE_FUN << result << endl;
+
+	        return EM_TARS_LOAD_SERVICE_DESC_ERR;
         }
         result = result + " succ" + s;
-        return 0;
+
+	    NODE_LOG(serverId)->debug() << "NodeImp::loadServer"<<result<<endl;
+
+	    return 0;
     }
     catch ( exception& e )
     {
-        TLOGERROR( FILE_FUN<<" catch exception :" << e.what() << endl);
+	    NODE_LOG(serverId)->error() << FILE_FUN<<" catch exception :" << e.what() << endl;
         result += e.what();
     }
     catch ( ... )
     {
-        TLOGERROR( FILE_FUN<<" catch unkown exception" << endl);
+	    NODE_LOG(serverId)->error() <<  FILE_FUN<<" catch unkown exception" << endl;
         result += "catch unkown exception";
     }
     return -1;
@@ -359,24 +381,26 @@ int NodeImp::loadServer( const string& application, const string& serverName,str
 
 int NodeImp::startServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
 {
-    int iRet = EM_TARS_UNKNOWN_ERR;
+	string serverId = application + "." + serverName;
+
+	int iRet = EM_TARS_UNKNOWN_ERR;
     try
     {
-        result = string(__FUNCTION__)+ " ["+application + "." + serverName+"] from "+ current->getIp()+" ";
-        NODE_LOG("startServer")->debug()<<FILE_FUN << result << endl;
+        result = string(__FUNCTION__)+ " ["+serverId+"] from "+ current->getIp()+" ";
+        NODE_LOG(serverId)->debug()<<FILE_FUN << result << endl;
         if ( g_app.isValid(current->getIp()) == false )
         {
             result += " erro:ip "+ current->getIp()+" is invalid";
-            NODE_LOG("startServer")->error()<<FILE_FUN << result << endl;
+            NODE_LOG(serverId)->error()<<FILE_FUN << result << endl;
             return EM_TARS_INVALID_IP_ERR;
         }
 
-        NODE_LOG("startServer")->debug()<<FILE_FUN<<result <<"|load begin"<< endl;
+        NODE_LOG(serverId)->debug()<<FILE_FUN<<result <<"|load begin"<< endl;
 
         string s;
 
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->loadServer( application, serverName,true,s);
-        NODE_LOG("startServer")->debug()<<FILE_FUN<<result<<"|load"<< endl;
+        NODE_LOG(serverId)->debug()<<FILE_FUN<<result<<"|load"<< endl;
 
         if ( pServerObjectPtr )
         {
@@ -391,7 +415,7 @@ int NodeImp::startServer( const string& application, const string& serverName,st
             {
                 result = result+"error:"+s;
             }
-            NODE_LOG("startServer")->debug()<<FILE_FUN <<result << endl;
+            NODE_LOG(serverId)->debug()<<FILE_FUN <<result << endl;
             return iRet;
         }
         
@@ -407,12 +431,12 @@ int NodeImp::startServer( const string& application, const string& serverName,st
     }
     catch ( exception& e )
     {
-        NODE_LOG("startServer")->error() << FILE_FUN << " catch exception:" << e.what() << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN << " catch exception:" << e.what() << endl;
         result += e.what();
     }
     catch ( ... )
     {
-        NODE_LOG("startServer")->error() << FILE_FUN <<" catch unkown exception" << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN <<" catch unkown exception" << endl;
         result += "catch unkown exception";
     }
     return iRet;
@@ -420,12 +444,14 @@ int NodeImp::startServer( const string& application, const string& serverName,st
 
 int NodeImp::stopServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
 {
-    int iRet = EM_TARS_UNKNOWN_ERR;
+	string serverId = application + "." + serverName;
+
+	int iRet = EM_TARS_UNKNOWN_ERR;
     try
     {
-        result = string(__FUNCTION__)+" ["+application + "." + serverName+"] from "+ current->getIp()+" ";
+        result = string(__FUNCTION__)+" ["+serverId+"] from "+ current->getIp()+" ";
 
-        NODE_LOG("stopServer")->debug() <<FILE_FUN<<result << endl;
+        NODE_LOG(serverId)->debug() <<FILE_FUN<<result << endl;
 
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
         if ( pServerObjectPtr )
@@ -442,24 +468,30 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
             {
                 result = result+"error:"+s;
             }
-            NODE_LOG("stopServer")->debug()<<FILE_FUN <<result << endl;
+            NODE_LOG(serverId)->debug()<<FILE_FUN <<result << endl;
         }
-        else
+        else {
+	        pServerObjectPtr = ServerFactory::getInstance()->loadServer(application, serverName, false, result);
+        }
+
+        if(!pServerObjectPtr)
         {
             result += "server is  not exist";
             iRet = EM_TARS_LOAD_SERVICE_DESC_ERR;
         }
 
-        return iRet;
+	    NODE_LOG(serverId)->debug() << FILE_FUN<< " ret:" << result << endl;
+
+	    return iRet;
     }
     catch ( exception& e )
     {
-        NODE_LOG("stopServer")->error() << FILE_FUN<<" catch exception :" << e.what() << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN<<" catch exception :" << e.what() << endl;
         result += e.what();
     }
     catch ( ... )
     {
-        NODE_LOG("stopServer")->error() << FILE_FUN<<" catch unkown exception" << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN<<" catch unkown exception" << endl;
         result += "catch unkown exception";
     }
     return EM_TARS_UNKNOWN_ERR;
@@ -467,14 +499,17 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
 
 int NodeImp::notifyServer( const string& application, const string& serverName, const string &sMsg, string &result, TarsCurrentPtr current )
 {
-    try
+	string serverId = application + "." + serverName;
+
+	try
     {
-        result = string(__FUNCTION__)+" ["+application + "." + serverName+"] '" + sMsg + "' ";
-        TLOGDEBUG(result<<endl);
+        result = string(__FUNCTION__)+" ["+serverId+"] '" + sMsg + "' ";
+        NODE_LOG(serverId)->debug() << result << endl;
+
         if ( g_app.isValid(current->getIp()) == false )
         {
             result += " erro:ip "+ current->getIp()+" is invalid";
-            TLOGERROR("NodeImp::notifyServer " << result << endl);
+	        NODE_LOG(serverId)->error() << "NodeImp::notifyServer " << result << endl;
             return EM_TARS_INVALID_IP_ERR;
         }
 
@@ -507,12 +542,12 @@ int NodeImp::notifyServer( const string& application, const string& serverName, 
     }
     catch ( exception& e )
     {
-        TLOGERROR( "NodeImp::notifyServer catch exception :" << e.what() << endl);
+	    NODE_LOG(serverId)->error() << "NodeImp::notifyServer catch exception :" << e.what() << endl;
         result += e.what();
     }
     catch ( ... )
     {
-        TLOGERROR( "NodeImp::notifyServer catch unkown exception" << endl);
+	    NODE_LOG(serverId)->error() <<  "NodeImp::notifyServer catch unkown exception" << endl;
         result += "catch unkown exception";
     }
     return -1;
@@ -520,8 +555,12 @@ int NodeImp::notifyServer( const string& application, const string& serverName, 
 
 int NodeImp::getServerPid( const string& application, const string& serverName,string &result,TarsCurrentPtr current )
 {
-    result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
-    TLOGDEBUG("NodeImp::getServerPid " <<result  << endl);
+	string serverId = application + "." + serverName;
+
+	result = string(__FUNCTION__)+" ["+serverId+"] ";
+
+    NODE_LOG(serverId)->debug() << "NodeImp::getServerPid " << result  << endl;
+
     ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
     if ( pServerObjectPtr )
     {
@@ -529,12 +568,17 @@ int NodeImp::getServerPid( const string& application, const string& serverName,s
         return pServerObjectPtr->getPid();
     }
     result += "server not exist";
+
+	NODE_LOG(serverId)->error() << "NodeImp::getServerPid " << result << endl;
+
     return -1;
 }
 
 ServerState NodeImp::getSettingState( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
 {
-    result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
+	string serverId = application + "." + serverName;
+
+	result = string(__FUNCTION__)+" ["+serverId+"] ";
     ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
     if ( pServerObjectPtr )
     {
@@ -542,13 +586,17 @@ ServerState NodeImp::getSettingState( const string& application, const string& s
         return pServerObjectPtr->isEnabled()==true?tars::Active:tars::Inactive;
     }
     result += "server not exist";
-    TLOGERROR( "NodeImp::getServerPid" <<" "<<result<< endl);
+
+	NODE_LOG(serverId)->error() << "NodeImp::getSettingState " << result << endl;
+
     return tars::Inactive;
 }
 
 ServerState NodeImp::getState( const string& application, const string& serverName, string &result, TarsCurrentPtr current )
 {
-    result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
+	string serverId = application + "." + serverName;
+
+	result = string(__FUNCTION__)+" ["+serverId+"] ";
     ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
     if ( pServerObjectPtr )
     {
@@ -556,13 +604,15 @@ ServerState NodeImp::getState( const string& application, const string& serverNa
         return pServerObjectPtr->getState();
     }
     result += "server not exist";
-    TLOGERROR("NodeImp::getState " << result << endl);
+	NODE_LOG(serverId)->error() << "NodeImp::getState " << result << endl;
     return tars::Inactive;
 }
 
 tars::Int32 NodeImp::getStateInfo(const std::string & application,const std::string & serverName,tars::ServerStateInfo &info,std::string &result,tars::TarsCurrentPtr current)
 {
-    result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
+	string serverId = application + "." + serverName;
+
+	result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
     ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
     if ( pServerObjectPtr )
     {
@@ -572,13 +622,13 @@ tars::Int32 NodeImp::getStateInfo(const std::string & application,const std::str
         info.processId = pServerObjectPtr->getPid();
         info.settingState = pServerObjectPtr->isEnabled()==true?tars::Active:tars::Inactive;
 
-        TLOGDEBUG("NodeImp::getStateInfo " <<result  << endl);
+	    NODE_LOG(serverId)->debug() << "NodeImp::getStateInfo " << result << endl;
 
         return EM_TARS_SUCCESS;
     }
 
     result += "server not exist";
-    TLOGERROR("NodeImp::getStateInfo " << result << endl);
+	NODE_LOG(serverId)->error() << "NodeImp::getStateInfo " << result << endl;
 
     info.serverState = tars::Inactive;
     info.processId = -1;
@@ -589,7 +639,9 @@ tars::Int32 NodeImp::getStateInfo(const std::string & application,const std::str
 
 int NodeImp::synState( const string& application, const string& serverName, string &result, TarsCurrentPtr current )
 {
-    try
+	string serverId = application + "." + serverName;
+
+	try
     {
         result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
@@ -600,16 +652,16 @@ int NodeImp::synState( const string& application, const string& serverName, stri
             return  0;
         }
         result += "server not exist";
-        TLOGERROR("NodeImp::synState "<<result<< endl);
+	    NODE_LOG(serverId)->debug() << "NodeImp::synState "<<result<< endl;
     }
     catch ( exception& e )
     {
-        TLOGERROR( "NodeImp::synState catch exception :" << e.what() << endl);
+	    NODE_LOG(serverId)->error() << "NodeImp::synState catch exception :" << e.what() << endl;
         result += e.what();
     }
     catch ( ... )
     {
-        TLOGERROR( "NodeImp::synState catch unkown exception" << endl);
+	    NODE_LOG(serverId)->error() << "NodeImp::synState catch unkown exception" << endl;
         result += "catch unkown exception";
     }
     return -1;
@@ -617,7 +669,9 @@ int NodeImp::synState( const string& application, const string& serverName, stri
 
 int NodeImp::getPatchPercent( const string& application, const string& serverName,PatchInfo &tPatchInfo, TarsCurrentPtr current)
 {
-    string &result =  tPatchInfo.sResult;
+	string serverId = application + "." + serverName;
+
+	string &result =  tPatchInfo.sResult;
     try
     {
         result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
@@ -626,22 +680,22 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
         if ( pServerObjectPtr )
         {
             result += "succ";
-            NODE_LOG("getPatchPercent")->debug()<<FILE_FUN << result << "|get ServerObj" << endl;
+	        NODE_LOG(serverId)->debug()<<FILE_FUN << result << "|get ServerObj" << endl;
             return pServerObjectPtr->getPatchPercent(tPatchInfo);
         }
 
         result += "server not exist";
-        NODE_LOG("getPatchPercent")->error() << FILE_FUN <<" "<< result<< endl;
+	    NODE_LOG(serverId)->error() << FILE_FUN <<" "<< result<< endl;
         return EM_TARS_LOAD_SERVICE_DESC_ERR;
     }
     catch ( exception& e )
     {
-        NODE_LOG("getPatchPercent")->error() << FILE_FUN << " catch exception :" << e.what() << endl;
+	    NODE_LOG(serverId)->error() << FILE_FUN << " catch exception :" << e.what() << endl;
         result += e.what();
     }
     catch ( ... )
     {
-        NODE_LOG("getPatchPercent")->error() << FILE_FUN <<" catch unkown exception" << endl;
+	    NODE_LOG(serverId)->error() << FILE_FUN <<" catch unkown exception" << endl;
         result += "catch unkown exception";
     }
 
@@ -778,8 +832,12 @@ string NodeImp::keyToStr(key_t key_value)
 
 int NodeImp::getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,tars::TarsCurrentPtr current)
 {
-    string logPath = ServerConfig::LogPath + FILE_SEP + application + FILE_SEP + serverName + FILE_SEP;
-    TLOGDEBUG("logpath:" << logPath << endl);
+	string serverId = application + "." + serverName;
+
+	string logPath = ServerConfig::LogPath + FILE_SEP + application + FILE_SEP + serverName + FILE_SEP;
+
+	NODE_LOG(serverId)->debug() << "logpath:" << logPath << endl;
+
     vector<string> logFileListTmp;
     TC_File::listDirectory(logPath, logFileListTmp, false);
 
@@ -796,15 +854,18 @@ int NodeImp::getLogFileList(const string& application, const string& serverName,
 
 int NodeImp::getLogData(const string& application, const string& serverName, const string& logFile, const string& cmd, string& fileData, tars::TarsCurrentPtr current)
 {
-    string filePath = ServerConfig::LogPath + FILE_SEP + application + FILE_SEP + serverName + FILE_SEP + logFile;
+	string serverId = application + "." + serverName;
+
+	string filePath = ServerConfig::LogPath + FILE_SEP + application + FILE_SEP + serverName + FILE_SEP + logFile;
     if (!TC_File::isFileExistEx(filePath))
     {
-        TLOGDEBUG("The log file: " << filePath << " is not exist" << endl);
+	    NODE_LOG(serverId)->debug() << "The log file: " << filePath << " is not exist" << endl;
         return -1;
     }
 
     string newCmd = TC_Common::replace(cmd, "__log_file_name__", filePath);
-    TLOGDEBUG("[NodeImp::getLogData]newcmd:" << newCmd << endl);
+
+	NODE_LOG(serverId)->debug() << "[NodeImp::getLogData]newcmd:" << newCmd << endl;
 #if TARGET_PLATFORM_WINDOWS
 
     fileData = "not support!";
@@ -824,20 +885,22 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 
     return 0;
 }
-
-string fillLine(int num)
-{
-	string str;
-	while (num -- > 0)
-	{
-		
-	}
-	return str;
-}
+//
+//string fillLine(int num)
+//{
+//	string str;
+//	while (num -- > 0)
+//	{
+//
+//	}
+//	return str;
+//}
 
 int NodeImp::getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current)
-{	
-	TLOGDEBUG(application << "." << serverName << ", pid:" << pid << endl);
+{
+	string serverId = application + "." + serverName;
+
+	NODE_LOG(serverId)->debug() << serverId << ", pid:" << pid << endl;
 #if TARGET_PLATFORM_WINDOWS
 	fileData = "not support!";	
 #else
@@ -873,9 +936,8 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	fileData += "\n";
 	fileData += string(buf);
 
-	TLOGDEBUG(fileData << endl);
+	NODE_LOG(serverId)->debug() << fileData << endl;
 #endif
-	//LOG->debug() << "file-data==========\r\n" << fileData << endl;
 
 	return 0;
 }

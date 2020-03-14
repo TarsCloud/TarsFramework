@@ -15,13 +15,13 @@
         registryObj = tars.tarsregistry.RegistryObj
         <keepalive>
             #业务心跳超时时间(s)
-            heartTimeout    = 60
+            heartTimeout    = 45
 
             #监控server状态间隔时间(s)
-            monitorInterval = 2
+            monitorInterval = 3
 
             #跟主控/本地cache同步服务状态间隔时间(s)
-            synStatInterval = 300
+            synStatInterval = 60
         </keepalive>
 
         <hashmap>

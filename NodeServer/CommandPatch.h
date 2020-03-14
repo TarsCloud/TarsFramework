@@ -143,7 +143,7 @@ inline ServerCommand::ExeStatus CommandPatch::canExecute(string & sResult)
 
     ServerObject::InternalServerState eCurrentState =_serverObjectPtr->getInternalState();
 
-    NODE_LOG("patchPro")->debug()<< FILE_FUN <<_patchRequest.appname+"."+_patchRequest.servername<<"|sResult:"<<sResult
+    NODE_LOG(_serverObjectPtr->getServerId())->debug()<< FILE_FUN <<_patchRequest.appname+"."+_patchRequest.servername<<"|sResult:"<<sResult
         <<"|current state"<<_serverObjectPtr->toStringState(eCurrentState)<<"|last state :"<< _serverObjectPtr->toStringState(eState)<< endl;
 
     _statExChange  = new StatExChange(_serverObjectPtr, ServerObject::BatchPatching, eState);
@@ -159,7 +159,7 @@ inline int CommandPatch::updatePatchResult(string & sResult)
 {
     try
     {
-        NODE_LOG("patchPro")->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << endl;
 
         //服务发布成功，向主控发送UPDDATE命令
         RegistryPrx proxy = AdminProxy::getInstance()->getRegistryProxy();
@@ -167,7 +167,7 @@ inline int CommandPatch::updatePatchResult(string & sResult)
         {
             sResult = "patch succ but update version and user fault, get registry proxy fail";
 
-            NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << sResult << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << sResult << endl;
 
             g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
 
@@ -185,11 +185,11 @@ inline int CommandPatch::updatePatchResult(string & sResult)
         patch.sUserName     = _patchRequest.user;
 
         int iRet = proxy->updatePatchResult(patch);
-        NODE_LOG("patchPro")->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Update:" << iRet << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Update:" << iRet << endl;
     }
     catch (exception& e)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
         sResult = _patchRequest.appname + "." + _patchRequest.servername + "|Exception:" + e.what();
         g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
         // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
@@ -197,7 +197,7 @@ inline int CommandPatch::updatePatchResult(string & sResult)
     }
     catch (...)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
         sResult = _patchRequest.appname + "." + _patchRequest.servername + "|Unknown Exception";
         g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
         // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
@@ -216,7 +216,7 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
     dtask.sLocalTgzFile   = sLocalTgzPath + FILE_SEP + sShortFileName;
     string sRemoteTgzFile = sRemoteTgzPath + FILE_SEP + sShortFileName;
 
-    NODE_LOG("patchPro")->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername
             << "|" << reqMd5
             << "|" << dtask.sLocalTgzFile
             << "|" << sRemoteTgzFile
@@ -227,12 +227,12 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
         string fileMd5 = TC_MD5::md5file(dtask.sLocalTgzFile);
         if(fileMd5 == reqMd5)
         {
-            NODE_LOG("patchPro")->debug() <<FILE_FUN<< dtask.sLocalTgzFile << " cached succ" << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< dtask.sLocalTgzFile << " cached succ" << endl;
             return iRet;
         }
     }
 
-    NODE_LOG("patchPro")->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername
             << "|" << reqMd5
             << "|" << dtask.sLocalTgzFile
             << "|" << sRemoteTgzFile
@@ -249,7 +249,7 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
             string fileMd5 = TC_MD5::md5file(dtask.sLocalTgzFile);
             if(fileMd5 == reqMd5)
             {
-                NODE_LOG("patchPro")->debug() <<FILE_FUN<< dtask.sLocalTgzFile << " cached succ" << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< dtask.sLocalTgzFile << " cached succ" << endl;
                 returned = true;
             }
         }
@@ -263,7 +263,7 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
                 {
                     string err = TC_Exception::parseError(TC_Exception::getSystemCode());
                     sResult = " mkdir \""+sLocalTgzPath+"\" failure,errno," + err;
-                    NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|"<<sResult<< endl;
+                    NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|"<<sResult<< endl;
                     iRet = -1;
                     returned = true;
                 }
@@ -292,14 +292,14 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
             {
                 sResult = "download from patch exception," + string(ex.what());
                 iRet = -3;
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << reqMd5 << "|Exception:" << ex.what() << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << reqMd5 << "|Exception:" << ex.what() << endl;
                 returned = true;
             }
             catch (...)
             {
                 sResult = "download from patch error,Unknown Exception";
                 iRet = -4;
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << reqMd5 << "|Unknown Exception" << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|" << reqMd5 << "|Unknown Exception" << endl;
                 returned = true;
             }
         }
@@ -333,7 +333,7 @@ inline int CommandPatch::download(const std::string & sRemoteTgzPath, const std:
 
 inline int CommandPatch::execute(string &sResult)
 {
-    NODE_LOG("patchPro")->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << endl;
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << endl;
 
     int iRet = -1;
     try
@@ -354,7 +354,7 @@ inline int CommandPatch::execute(string &sResult)
             iRet = download(sRemoteTgzPath, sLocalTgzPath, sShortFile, _patchRequest.md5, sResult);
             if(iRet != 0)
             {
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< sRemoteTgzPath << "|" <<  sLocalTgzPath << "|old download error:" << sShortFile
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< sRemoteTgzPath << "|" <<  sLocalTgzPath << "|old download error:" << sShortFile
                         <<"|"<<sResult << "|" << iRet << endl;
                 iRet -= 100;
             }
@@ -369,7 +369,7 @@ inline int CommandPatch::execute(string &sResult)
             iRet = download(sRemoteTgzPath, sLocalTgzPath, sShortFile, _patchRequest.md5, sResult);
             if(iRet != 0)
             {
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< sRemoteTgzPath << "|" <<  sLocalTgzPath << "|old download error:" << sShortFile
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< sRemoteTgzPath << "|" <<  sLocalTgzPath << "|old download error:" << sShortFile
                         <<"|"<<sResult << "|" << iRet << endl;
                 iRet -= 100;
             }
@@ -384,7 +384,7 @@ inline int CommandPatch::execute(string &sResult)
             if (!TC_File::isFileExist(sLocalTgzFile))
             {
                 sResult = sLocalTgzFile + " file not exist";
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< "file not exist:" << sLocalTgzFile << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< "file not exist:" << sLocalTgzFile << endl;
                 iRet = -2;
             }
         }
@@ -396,7 +396,7 @@ inline int CommandPatch::execute(string &sResult)
             {
                 string err = TC_Exception::parseError(TC_Exception::getSystemCode());
                 sResult = " removeFile \""+sLocalExtractPach+"\" failure,errno," + err;
-                NODE_LOG("patchPro")->error() <<FILE_FUN<<sResult<< endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
                 iRet = -4;
             }
         }
@@ -407,7 +407,7 @@ inline int CommandPatch::execute(string &sResult)
             {
                 string err = TC_Exception::parseError(TC_Exception::getSystemCode());
                 sResult = " makeDirRecursive \""+sLocalExtractPach+"\" failure,errno," + err;
-                NODE_LOG("patchPro")->error() <<FILE_FUN<<sResult<< endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
                 iRet = -5;
             }
         }
@@ -425,7 +425,7 @@ inline int CommandPatch::execute(string &sResult)
         string cmd,sLocalTgzFile_bak;
         if (_serverObjectPtr->getServerType() == "tars_java") //如果是tars_java，使用war 方法
         {
-            //NODE_LOG("patchPro")->error() <<"tgz file name"<<FILE_FUN<<sLocalTgzFile<<endl;
+            //NODE_LOG(_serverObjectPtr->getServerId())->error() <<"tgz file name"<<FILE_FUN<<sLocalTgzFile<<endl;
             if(packageFormat=="jar")
             {
                 sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".jar"); 
@@ -456,7 +456,7 @@ inline int CommandPatch::execute(string &sResult)
                 if(files.empty())
                 {
                    sResult = cmd + ",error!";
-                   NODE_LOG("patchPro")->error() <<FILE_FUN<<sResult<< endl;
+                   NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
                    iRet = -6;
                 }
             }
@@ -464,7 +464,7 @@ inline int CommandPatch::execute(string &sResult)
 
         if(iRet == 0)
         {
-            NODE_LOG("patchPro")->debug() << FILE_FUN << "unzip:" << cmd <<endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd <<endl;
 
             //移动目录重新命名文件
             if(packageFormat!="jar")
@@ -473,12 +473,12 @@ inline int CommandPatch::execute(string &sResult)
                 string sDstFile     = sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + _patchRequest.servername;
 
                 rename(sSrcFile.c_str(), sDstFile.c_str());
-                NODE_LOG("patchPro")->debug() <<FILE_FUN<< "rename:" << sSrcFile << " " << sDstFile << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "rename:" << sSrcFile << " " << sDstFile << endl;
 
                 //检查是否需要备份bin目录下的文件夹，针对java服务
                 if(backupfiles(sResult) != 0)
                 {
-                   NODE_LOG("patchPro")->error() << FILE_FUN << sResult << endl;
+                   NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
                    iRet = -7;
                 }
            }
@@ -492,7 +492,7 @@ inline int CommandPatch::execute(string &sResult)
                 if(TC_File::removeFile(_serverObjectPtr->getExePath(),true) != 0 || !TC_File::makeDirRecursive(_serverObjectPtr->getExePath())) 
                 { 
                     iRet = -8; //iRetCode = EM_ITEM_PERMISSION;
-                    NODE_LOG("patchPro")->error() <<FILE_FUN<<"|deal path fail:"<<_serverObjectPtr->getExePath()<<"|"<<strerror(errno)<<endl; 
+                    NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<"|deal path fail:"<<_serverObjectPtr->getExePath()<<"|"<<strerror(errno)<<endl;
                 } 
             } 
         }
@@ -522,27 +522,27 @@ inline int CommandPatch::execute(string &sResult)
             iRet = updatePatchResult(sResult);
             if(0 != iRet)
             {
-                NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|updatePatchResult fail:" << sResult << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|updatePatchResult fail:" << sResult << endl;
             }
             else
             {
                 sResult = "patch " + _patchRequest.appname + "." + _patchRequest.servername + " succ, version " + _patchRequest.version;
                 //发布成功
-                NODE_LOG("patchPro")->debug() <<FILE_FUN<< sResult << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< sResult << endl;
             }
-            NODE_LOG("patchPro")->debug() <<FILE_FUN<< "setPatched,iPercent=100%" << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "setPatched,iPercent=100%" << endl;
         }
     }
     catch (exception& e)
     {
         sResult += e.what();
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
         iRet = -8;
     }
     catch (...)
     {
         sResult += "catch unkwon exception";
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
         iRet = -9;
     }
 
@@ -573,7 +573,7 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 
             if (!TC_File::isFileExistEx(srcPath, S_IFDIR)) //不存在这个目录，先创建
             {
-                NODE_LOG("patchPro")->debug()  <<FILE_FUN<< srcPath << " is not exist,create it... "<<endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< srcPath << " is not exist,create it... "<<endl;
                 TC_File::makeDir(srcPath);
             }
 
@@ -584,7 +584,7 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 					string destPathBak = destPath + "bin_bak" + TC_Common::tostr<int>(i) + FILE_SEP;
                     if(!TC_File::isFileExistEx(destPathBak,S_IFDIR)) //不存在这个目录，可以继续循环
                     {
-                        NODE_LOG("patchPro")->debug()  <<FILE_FUN<< destPathBak << " is not exist,continue... "<<endl;
+                        NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< destPathBak << " is not exist,continue... "<<endl;
                         continue;
                     }
                     else //存在这个目录，进行替换:bak1-->bak2
@@ -593,17 +593,17 @@ inline int CommandPatch::backupfiles(std::string &sResult)
                         if(TC_File::isFileExistEx(newFile,S_IFDIR) && TC_File::removeFile(newFile, true) != 0)
                         {
                             string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-                            NODE_LOG("patchPro")->error()  <<FILE_FUN<< "removeFile:"<< newFile << " error,"<< err <<endl;
+                            NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "removeFile:"<< newFile << " error,"<< err <<endl;
                         }
 
                         if(TC_File::makeDir(newFile))
                         {
                             TC_File::copyFile(destPathBak,newFile);
-                            NODE_LOG("patchPro")->debug()  <<FILE_FUN<< "copyFile:"<< destPathBak << " to "<< newFile << " finished!"<<endl;
+                            NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "copyFile:"<< destPathBak << " to "<< newFile << " finished!"<<endl;
                         }
                         else
                         {
-                            NODE_LOG("patchPro")->debug()  <<FILE_FUN<< "makeDir:"<< newFile << "error..." <<endl;
+                            NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "makeDir:"<< newFile << "error..." <<endl;
                         }
                     }
                 }
@@ -616,25 +616,25 @@ inline int CommandPatch::backupfiles(std::string &sResult)
             if(TC_File::isFileExistEx(destPathBak,S_IFDIR) && TC_File::removeFile(destPathBak, true) != 0)
             {
                 string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-                NODE_LOG("patchPro")->error()  <<FILE_FUN<< "removeFile:"<< destPathBak << " error,"<< err <<endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "removeFile:"<< destPathBak << " error,"<< err <<endl;
             }
 
             if(TC_File::makeDir(destPathBak))
             {
                 if(!TC_File::isFileExistEx(existFile,S_IFDIR)) //不存在这个目录，先创建
                 {
-                    NODE_LOG("patchPro")->debug()  <<FILE_FUN<< existFile << " backup file is not exist,create it... "<<endl;
+                    NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< existFile << " backup file is not exist,create it... "<<endl;
                    TC_File::makeDir(existFile);
                 }
 
                 TC_File::copyFile(existFile,destPathBak);
-                NODE_LOG("patchPro")->debug()   <<FILE_FUN<< "copyFile:"<< existFile << " to "<< destPathBak << " finished!"<<endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug()   <<FILE_FUN<< "copyFile:"<< existFile << " to "<< destPathBak << " finished!"<<endl;
                 if(TC_File::removeFile(existFile,true) == 0)
                 {
-                    NODE_LOG("patchPro")->debug()  <<FILE_FUN<< "removeFile:"<< existFile << " finished!"<<endl;
+                    NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "removeFile:"<< existFile << " finished!"<<endl;
                     if(TC_File::makeDir(existFile))
                     {
-                        NODE_LOG("patchPro")->debug()  <<FILE_FUN<< "makeDir:"<< existFile << " finished!"<<endl;
+                        NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "makeDir:"<< existFile << " finished!"<<endl;
                     }
                 }
             }
@@ -651,11 +651,11 @@ inline int CommandPatch::backupfiles(std::string &sResult)
                     {
                         if(!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
                         {
-                            NODE_LOG("patchPro")->error()  <<FILE_FUN<< "failed to mkdir dest directory:" << sBackupDest << endl;
+                            NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "failed to mkdir dest directory:" << sBackupDest << endl;
                         }
                     }
                     TC_File::copyFile(sBackupSrc,sBackupDest,true);
-                    NODE_LOG("patchPro")->debug()  <<FILE_FUN<<"Backup:"<<sBackupSrc<<" to "<<sBackupDest<<" succ"<<endl;
+                    NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<<"Backup:"<<sBackupSrc<<" to "<<sBackupDest<<" succ"<<endl;
                 }
             }
         }
@@ -667,7 +667,7 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 			string binPath = srcPath + "bin" + FILE_SEP;
 			if (!TC_File::isFileExistEx(binPath, S_IFDIR)) //不存在这个目录，先创建
 			{
-				NODE_LOG("patchPro")->debug() << FILE_FUN << binPath << " is not exist,create it... " << endl;
+				NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << binPath << " is not exist,create it... " << endl;
 				TC_File::makeDir(binPath);
 			}
 			else
@@ -683,7 +683,7 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 					string destPathBak = destPath + "bin_bak" + TC_Common::tostr<int>(i) +FILE_SEP;
 					if (!TC_File::isFileExistEx(destPathBak, S_IFDIR)) //不存在这个目录，可以继续循环
 					{
-						NODE_LOG("patchPro")->debug() << FILE_FUN << destPathBak << " is not exist,continue... " << endl;
+						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << destPathBak << " is not exist,continue... " << endl;
 						continue;
 					}
 					else //存在这个目录，进行替换:bak1-->bak2
@@ -692,16 +692,16 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 						if (TC_File::isFileExistEx(newFile, S_IFDIR) && TC_File::removeFile(newFile, true) != 0)
 						{
 							string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-							NODE_LOG("patchPro")->error() << FILE_FUN << "removeFile:" << newFile << " error," << err << endl;
+							NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "removeFile:" << newFile << " error," << err << endl;
 						}
 
 						if (TC_File::renameFile(destPathBak, newFile) == 0)
 						{
-							NODE_LOG("patchPro")->debug() << FILE_FUN << "renameFile:" << destPathBak << " to " << newFile << " finished!" << endl;
+							NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "renameFile:" << destPathBak << " to " << newFile << " finished!" << endl;
 						}
 						else
 						{
-							NODE_LOG("patchPro")->error() << FILE_FUN << "renameFile:" << destPathBak << " to " << newFile << " fail!" << endl;
+							NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "renameFile:" << destPathBak << " to " << newFile << " fail!" << endl;
 						}
 					}
 				}
@@ -709,20 +709,20 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 				string destPathBak = destPath + "bin_bak1" + FILE_SEP;				
 				if (TC_File::renameFile(binPath, destPathBak) == 0)
 				{
-					NODE_LOG("patchPro")->debug() << FILE_FUN << "renameFile:" << binPath << " to " << destPathBak << " finished!" << endl;
+					NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "renameFile:" << binPath << " to " << destPathBak << " finished!" << endl;
 					if (TC_File::makeDir(binPath))
 					{
-						NODE_LOG("patchPro")->debug() << FILE_FUN << "makedir " << binPath << " finish." << endl;
+						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "makedir " << binPath << " finish." << endl;
 					}
 					else
 					{
-						NODE_LOG("patchPro")->error() << FILE_FUN << "makedir " << binPath << " fail." << endl;
+						NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "makedir " << binPath << " fail." << endl;
 						return -1;
 					}
 				}
 				else
 				{
-					NODE_LOG("patchPro")->error() << FILE_FUN << "renameFile:" << binPath << " to " << destPathBak << " fail." << endl;
+					NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "renameFile:" << binPath << " to " << destPathBak << " fail." << endl;
 					return -1;
 				}
 
@@ -738,11 +738,11 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 						{
 							if (!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
 							{
-								NODE_LOG("patchPro")->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
+								NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
 							}
 						}
 						TC_File::copyFile(sBackupSrc, sBackupDest, true);
-						NODE_LOG("patchPro")->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
+						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
 					}
 				}
 
@@ -757,16 +757,16 @@ inline int CommandPatch::backupfiles(std::string &sResult)
 					{
 						string sBackupSrc = destPathBak + fName;
 						string sBackupDest = binPath + fName;
-						NODE_LOG("patchPro")->debug() << FILE_FUN << "prepare backup, sBackupSrc:" << sBackupSrc << ", sBackupDest" << sBackupDest << endl;
+						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "prepare backup, sBackupSrc:" << sBackupSrc << ", sBackupDest" << sBackupDest << endl;
 						if (!TC_File::isFileExistEx(sBackupDest, S_IFDIR))
 						{
 							if (!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
 							{
-								NODE_LOG("patchPro")->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
+								NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
 							}
 						}
 						TC_File::copyFile(sBackupSrc, sBackupDest, true);
-						NODE_LOG("patchPro")->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
+						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
 					}
 				}
 			}
@@ -775,13 +775,13 @@ inline int CommandPatch::backupfiles(std::string &sResult)
     }
 	catch(exception& e)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
         sResult = string(__FUNCTION__) + "|" + _patchRequest.appname + "." + _patchRequest.servername + "|Exception:" + e.what();
         return -1;
     }
 	catch(...)
     {
-        NODE_LOG("patchPro")->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
         sResult = string(__FUNCTION__) + "|" + _patchRequest.appname + "." + _patchRequest.servername + "|Unknown Exception";
         return -1;
     }

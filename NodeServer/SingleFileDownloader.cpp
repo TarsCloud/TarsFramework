@@ -15,16 +15,15 @@
  */
 
 #include "SingleFileDownloader.h"
-#include "servant/Application.h"
-#include "servant/TarsLogger.h"
-#include "servant/TarsNotify.h"
 #include "NodeServer.h"
+#include "NodeRollLogger.h"
 #include "util.h"
 
 DownloadTaskFactory* DownloadTaskFactory::_instance = new DownloadTaskFactory();
 
 int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remoteFile, const string &localFile, const DownloadEventPtr &pPtr, const string &application, const string &serverName, const string &nodeName, std::string & sResult)
 {
+	string serverId = application + "." + serverName;
 
     vector<tars::FileInfo> vFiles;
     int ret = 0;
@@ -39,8 +38,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         catch(TarsException& ex)
         {
             g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + ex.what());     
-            // TarsRemoteNotify::getInstance()->report(string("download error:") + ex.what(), application, serverName, nodeName);
-            TLOGERROR("SingleFileDownloader::download " << (remoteFile + " TarsException " + ex.what())<< endl);
+            NODE_LOG(serverId)->error() << "SingleFileDownloader::download " << (remoteFile + " TarsException " + ex.what())<< endl;
         }
     }
 
@@ -93,13 +91,13 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
             {
                 g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
                 // TarsRemoteNotify::getInstance()->report(string("download error:") + ex.what(), application, serverName, nodeName);
-                TLOGERROR("SingleFileDownloader::download "<< (remoteFile + " TarsException " + ex.what()) << endl);
+	            NODE_LOG(serverId)->error() << "SingleFileDownloader::download "<< (remoteFile + " TarsException " + ex.what()) << endl;
             }
         }
 
         if (downloadRet < 0)
         {
-            TLOGERROR("SingleFileDownloader::download " << "|downloadRet:" << downloadRet << "|remoteFile:"  << remoteFile << endl);
+	        NODE_LOG(serverId)->error() << "SingleFileDownloader::download " << "|downloadRet:" << downloadRet << "|remoteFile:"  << remoteFile << endl;
             sResult = remoteFile + " download from tarspatch error " + TC_Common::tostr(downloadRet);
             ret = downloadRet - 100;
             g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
@@ -112,7 +110,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
             size_t r = fwrite((void*)&buffer[0], 1, buffer.size(), fp);
             if (r == 0)
             {
-                TLOGERROR("SingleFileDownloader::download fwrite file '" + localFile + "' error!" << endl);
+	            NODE_LOG(serverId)->error() << "SingleFileDownloader::download fwrite file '" + localFile + "' error!" << endl;
                 sResult = "fwrite file '" + localFile + "' error!";
                 g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
                 // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
@@ -127,7 +125,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         }
         else if (downloadRet == 1)
         {
-            TLOGDEBUG("SingleFileDownloader::download load succ " << remoteFile << "|pos:"<<pos<<endl);
+	        NODE_LOG(serverId)->debug() << "SingleFileDownloader::download load succ " << remoteFile << "|pos:"<<pos<<endl;
             g_app.reportServer(application + "." + serverName, "", nodeName, string("download succ"));     
             // TarsRemoteNotify::getInstance()->report(string("download succ"), application, serverName, nodeName);
             ret = 0;

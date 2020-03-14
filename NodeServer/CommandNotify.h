@@ -51,22 +51,22 @@ inline CommandNotify::CommandNotify(const ServerObjectPtr &pServerObjectPtr,cons
 //////////////////////////////////////////////////////////////
 //
 inline ServerCommand::ExeStatus CommandNotify::canExecute(string &sResult)
-{    
-    NODE_LOG("notify")->debug()<<FILE_FUN<<"notify begining "<<  _desc.application + "." + _desc.serverName<<" " <<_msg<<endl;
+{
+    NODE_LOG(_serverObjectPtr->getServerId())->debug()<<FILE_FUN<<"notify begining "<<  _desc.application + "." + _desc.serverName<<" " <<_msg<<endl;
     
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
     
     if ( eState == ServerObject::Inactive)
     {
         sResult = "server state is Inactive. ";
-        NODE_LOG("notify")->debug()<<FILE_FUN<<sResult<<endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug()<<FILE_FUN<<sResult<<endl;
         return DIS_EXECUTABLE;
     }
 
     if ( eState == ServerObject::Destroying)
     {
         sResult = "server state is Destroying. ";
-        NODE_LOG("notify")->debug()<<FILE_FUN<<sResult<< endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug()<<FILE_FUN<<sResult<< endl;
         return DIS_EXECUTABLE;
     }
 
@@ -88,7 +88,7 @@ inline int CommandNotify::execute(string &sResult)
     }
     catch (exception& e)
     {
-        NODE_LOG("notify")->debug()<<FILE_FUN<<"CommandNotify::execute notify "<<_desc.application + "." + _desc.serverName << " error:" << e.what() << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug()<<FILE_FUN<<"CommandNotify::execute notify "<<_desc.application + "." + _desc.serverName << " error:" << e.what() << endl;
         sResult = "error" + string(e.what());
         return -1;
     }

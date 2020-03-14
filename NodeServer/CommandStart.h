@@ -68,7 +68,7 @@ inline ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
 
     TC_ThreadRecLock::Lock lock(*_serverObjectPtr);
 
-    NODE_LOG("startServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " beging activate------|byRegistry|" << _byNode << endl;
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " beging activate------|byRegistry|" << _byNode << endl;
 
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
 
@@ -79,7 +79,7 @@ inline ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     else if (!_serverObjectPtr->isEnabled())
     {
         sResult = "server is disabled";
-        NODE_LOG("startServer")->debug() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return DIS_EXECUTABLE;
     }
 
@@ -87,14 +87,14 @@ inline ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     {
         _serverObjectPtr->synState();
         sResult = "server is already " + _serverObjectPtr->toStringState(eState);
-        NODE_LOG("startServer")->debug() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return NO_NEED_EXECUTE;
     }
 
     if (eState != ServerObject::Inactive)
     {
         sResult = "server state is not Inactive. the curent state is " + _serverObjectPtr->toStringState(eState);
-        NODE_LOG("startServer")->debug() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return DIS_EXECUTABLE;
     }
 
@@ -105,7 +105,7 @@ inline ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     {
         _serverObjectPtr->setPatched(false);
         sResult      = "The server exe patch " + _exeFile + " is not exist.";
-        NODE_LOG("startServer")->debug() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return DIS_EXECUTABLE;
     }
 
@@ -130,7 +130,7 @@ inline bool CommandStart::startByScript(string& sResult)
     if (vtServerName.size() != 2)
     {
         sResult = sResult + "|failed to get pid for  " + sServerId + ",server id error";
-        NODE_LOG("startServer")->error() << FILE_FUN << sResult  << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult  << endl;
         throw runtime_error(sResult);
     }
 
@@ -138,14 +138,14 @@ inline bool CommandStart::startByScript(string& sResult)
     string sFullExeFileName = TC_File::extractFilePath(sStartScript) + vtServerName[1];
     if (!TC_File::isFileExist(sFullExeFileName))
     {
-        NODE_LOG("startServer")->error() << FILE_FUN << "file name " << sFullExeFileName << " error, use exe file" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "file name " << sFullExeFileName << " error, use exe file" << endl;
 
         //使用exe路径
         sFullExeFileName = _serverObjectPtr->getExeFile();
         if (!TC_File::isFileExist(sFullExeFileName))
         {
             sResult = sResult + "|failed to get full exe file name|" + sFullExeFileName;
-            NODE_LOG("startServer")->error() << FILE_FUN << sResult << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
             throw runtime_error(sResult);
         }
     }
@@ -190,7 +190,7 @@ inline bool CommandStart::startByScript(string& sResult)
             }
         }
 
-        NODE_LOG("startServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " activating usleep " << int(iStartWaitInterval) << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " activating usleep " << int(iStartWaitInterval) << endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(START_SLEEP_INTERVAL/1000));
 	//	usleep(START_SLEEP_INTERVAL);
     }
@@ -198,7 +198,7 @@ inline bool CommandStart::startByScript(string& sResult)
     if (_serverObjectPtr->checkPid() != 0)
     {
         sResult = sResult + "|get pid for server[" + sServerId + "],pid is not digit";
-        NODE_LOG("startServer")->error() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
         if (TC_File::isFileExist(sPidFile))
         {
             TC_File::removeFile(sPidFile, false);
@@ -357,7 +357,7 @@ inline bool CommandStart::startByScriptPHP(string& sResult)
     if (vtServerName.size() != 2)
     {
         sResult = sResult + "|failed to get pid for  " + sServerId + ",server id error";
-        NODE_LOG("startServer")->error() << FILE_FUN << sResult  << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult  << endl;
         throw runtime_error(sResult);
     }
 
@@ -404,14 +404,14 @@ inline bool CommandStart::startByScriptPHP(string& sResult)
             }
         }
 
-        NODE_LOG("startServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " activating usleep " << int(iStartWaitInterval) << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " activating usleep " << int(iStartWaitInterval) << endl;
         TC_Common::msleep(START_SLEEP_INTERVAL/1000);
     }
 
     if (_serverObjectPtr->checkPid() != 0)
     {
         sResult = sResult + "|get pid for server[" + sServerId + "],pid is not digit";
-        NODE_LOG("startServer")->error() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
         if (TC_File::isFileExist(sPidFile))
         {
             TC_File::removeFile(sPidFile, false);
@@ -457,7 +457,7 @@ inline int CommandStart::execute(string& sResult)
             _serverObjectPtr->setLimitInfoUpdate(true);
             _serverObjectPtr->setStarted(true);
 			_serverObjectPtr->setStartTime(TNOWMS);
-            NODE_LOG("startServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "_" << _desc.nodeName << " start succ " << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "_" << _desc.nodeName << " start succ " << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
             return 0;
         }
     }
@@ -474,7 +474,7 @@ inline int CommandStart::execute(string& sResult)
         sResult = "catch unkwon exception";
     }
 
-    NODE_LOG("startServer")->error() << FILE_FUN << _desc.application << "." << _desc.serverName << " start  failed :" << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
+    NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << _desc.application << "." << _desc.serverName << " start  failed :" << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
     
     _serverObjectPtr->setPid(0);
     _serverObjectPtr->setState(ServerObject::Inactive);

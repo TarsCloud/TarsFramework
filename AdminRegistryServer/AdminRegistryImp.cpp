@@ -339,6 +339,11 @@ int AdminRegistryImp::startServer(const string & application, const string & ser
 		 
         TLOGERROR(result << endl);
     }
+
+	if(iRet != EM_TARS_SUCCESS)
+	{
+		TarsRemoteNotify::getInstance()->report(string("start server error:" + etos((tarsErrCode)iRet)) , application, serverName, nodeName);
+	}
     return iRet;
 }
 int AdminRegistryImp::startServer_inner(const string & application, const string & serverName, const string & nodeName, string &result)
@@ -354,7 +359,7 @@ int AdminRegistryImp::startServer_inner(const string & application, const string
 		{
 			TLOGINFO(" '" + application + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
 			iRet = DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Active);
-    }
+        }
 		else
 		{
 			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
@@ -362,7 +367,12 @@ int AdminRegistryImp::startServer_inner(const string & application, const string
 				<< application << "." << serverName << "_" << nodeName << endl);
 			iRet = nodePrx->startServer(application, serverName, result);
 		}
-    return iRet;
+
+		if(iRet != EM_TARS_SUCCESS)
+		{
+			TarsRemoteNotify::getInstance()->report(string("start server error:" + etos((tarsErrCode)iRet)) , application, serverName, nodeName);
+		}
+        return iRet;
 	}
 	catch (TarsSyncCallTimeoutException& tex)
 	{
@@ -431,7 +441,7 @@ int AdminRegistryImp::stopServer(const string & application, const string & serv
     catch(TarsNodeNotRegistryException& ex)
     {
         current->setResponse(true);
-TarsRemoteNotify::getInstance()->report(string("stop server:") + ex.what(), application, serverName, nodeName);
+		TarsRemoteNotify::getInstance()->report(string("stop server:") + ex.what(), application, serverName, nodeName);
         iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
         TarsRemoteNotify::getInstance()->report(string("stop server:") + ex.what(), application, serverName, nodeName);
         TLOGERROR("AdminRegistryImp::stopServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsNodeNotRegistryException:" + ex.what())<<endl);
@@ -474,7 +484,12 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 
 			iRet = nodePrx->stopServer(application, serverName, result);		
 		}
-    return iRet;
+
+		if(iRet != EM_TARS_SUCCESS)
+		{
+			TarsRemoteNotify::getInstance()->report(string("stop server error:" + etos((tarsErrCode)iRet)) , application, serverName, nodeName);
+		}
+		return iRet;
 	}
 	catch (TarsSyncCallTimeoutException& tex)
 	{
@@ -522,7 +537,11 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 			nodePrx->tars_timeout(12000);
             iRet = nodePrx->stopServer(application, serverName, result);
         }
-        TLOGDEBUG("call node restartServer(), stop|" << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() << endl);
+        TLOGDEBUG("call node restartServer, stop|" << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() << endl);
+	    if(iRet != EM_TARS_SUCCESS)
+	    {
+		    TarsRemoteNotify::getInstance()->report(string("restart server, stop error:" + etos((tarsErrCode)iRet)) , application, serverName, nodeName);
+	    }
     }
     catch(TarsException & ex)
     {
@@ -581,13 +600,14 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
         }
         TLOGERROR( result << endl);
     }
+
     return iRet;
 }
 int AdminRegistryImp::restartServer_inner(const string & application, const string & serverName, const string & nodeName, string &result)
 {
 	TLOGDEBUG("into " << __FUNCTION__ << "|" << application << "." << serverName << "_" << nodeName << endl);
 	bool isDnsServer = false;
-	int iRet = EM_TARS_SUCCESS;
+	tarsErrCode iRet = EM_TARS_SUCCESS;
 	try
 	{
 		vector<ServerDescriptor> server;
@@ -600,12 +620,16 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
 		{
 			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
 			nodePrx->tars_timeout(12000);
-			iRet = nodePrx->stopServer(application, serverName, result);
+			iRet = (tarsErrCode)nodePrx->stopServer(application, serverName, result);
 		}
-		TLOGDEBUG("call node restartServer(), stop|" << application << "." << serverName << "_" << nodeName << "|" << iRet << endl);
+		if(iRet != EM_TARS_SUCCESS)
+		{
+			TarsRemoteNotify::getInstance()->report(string("restart server, stop error:" + etos((tarsErrCode)iRet)) , application, serverName, nodeName);
+		}
+		TLOGDEBUG("call node restartServer(), stop|" << application << "." << serverName << "_" << nodeName << "|" << etos(iRet) << endl);
 	}
 	catch (TarsException & ex)
-        {
+    {
 		result = string(__FUNCTION__) + " '" + application + "." + serverName + "_" + nodeName
 			+ "' exception:" + ex.what();
 		TLOGERROR(result << endl);
@@ -622,7 +646,7 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
 			{
 				TLOGDEBUG( "|" << " '" + application + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
 				return DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Active);
-        }
+            }
 			else
 			{
 				NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
@@ -667,7 +691,7 @@ int AdminRegistryImp::notifyServer(const string & application, const string & se
     {
         NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
         current->setResponse(false);
-        NodePrxCallbackPtr callback = new NotifyServerCallbackImp(current);
+        NodePrxCallbackPtr callback = new NotifyServerCallbackImp(application, serverName, nodeName, current);
         nodePrx->async_notifyServer(callback, application, serverName, command);
         return EM_TARS_SUCCESS;
     }
@@ -1231,6 +1255,11 @@ void StartServerCallbackImp::callback_startServer(tars::Int32 ret,
 {
     TLOGDEBUG("StartServerCallbackImp::callback_startServer: "<< "|" << _application << "." << _serverName << "_" << _nodeName
         << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+
+	if(ret != EM_TARS_SUCCESS)
+	{
+		TarsRemoteNotify::getInstance()->report(string("start server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
+	}
     AdminReg::async_response_startServer(_current, ret, result);
 }
 
@@ -1244,7 +1273,8 @@ void StartServerCallbackImp::callback_startServer_exception(tars::Int32 ret)
     {
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
-    TarsRemoteNotify::getInstance()->report("start server timeout, ret:" + TC_Common::tostr(ret), _application, _serverName, _nodeName);
+
+	TarsRemoteNotify::getInstance()->report(string("start server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
 
     AdminReg::async_response_startServer(_current, iRet, "");
 }
@@ -1254,6 +1284,12 @@ void StopServerCallbackImp::callback_stopServer(tars::Int32 ret,
 {
     TLOGDEBUG( "StopServerCallbackImp::callback_stopServer: " << _application << "." << _serverName << "_" << _nodeName
         << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+
+	if(ret != EM_TARS_SUCCESS)
+	{
+		TarsRemoteNotify::getInstance()->report(string("stop server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
+	}
+
     AdminReg::async_response_stopServer(_current, ret, result);
 }
 
@@ -1267,7 +1303,7 @@ void StopServerCallbackImp::callback_stopServer_exception(tars::Int32 ret)
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
 
-    TarsRemoteNotify::getInstance()->report("stop server timeout, ret:" + TC_Common::tostr(ret), _application, _serverName, _nodeName);
+	TarsRemoteNotify::getInstance()->report(string("stop server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
 
     AdminReg::async_response_stopServer(_current, iRet, "");
 }
@@ -1275,7 +1311,12 @@ void StopServerCallbackImp::callback_stopServer_exception(tars::Int32 ret)
 void NotifyServerCallbackImp::callback_notifyServer(tars::Int32 ret,  const std::string& result)
 {
     TLOGDEBUG("NotifyServerCallbackImp::callback_notifyServer_exception:  "<< _current->getIp() << ":" << _current->getPort() << "|" << ret  << "|" << result <<endl);
-    AdminReg::async_response_notifyServer(_current, ret, result);
+	if(ret != EM_TARS_SUCCESS)
+	{
+		TarsRemoteNotify::getInstance()->report(string("notify server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
+	}
+
+	AdminReg::async_response_notifyServer(_current, ret, result);
 }
 
 void NotifyServerCallbackImp::callback_notifyServer_exception(tars::Int32 ret)
@@ -1286,6 +1327,8 @@ void NotifyServerCallbackImp::callback_notifyServer_exception(tars::Int32 ret)
     {
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
+	TarsRemoteNotify::getInstance()->report(string("notify server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
+
     AdminReg::async_response_notifyServer(_current, iRet, "");
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -1307,7 +1350,6 @@ void GetServerStateCallbackImp::callback_getStateInfo(tars::Int32 ret,  const ta
             TLOGWARN("GetServerStateCallbackImp::callback_getStateInfo_exception '" + _application + "." + _serverName + "_" + _nodeName<<"|"<< resultRef <<endl);
         }
     }
-    //        return EM_TARS_SUCCESS;
     AdminReg::async_response_getServerState(_current, EM_TARS_SUCCESS, _state, resultRef);
     TLOGDEBUG("GetServerStateCallbackImp::callback_getStateInfo_exception " <<"|position2|"<<"'" + _application  + "." + _serverName + "_" + _nodeName<<"|"<< ret << "|" << resultRef <<endl);
 
@@ -1321,7 +1363,8 @@ void GetServerStateCallbackImp::callback_getStateInfo_exception(tars::Int32 ret)
     {
         iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
     }
-    else if(ret == tars::TARSSERVERNOFUNCERR) {
+    else if(ret == tars::TARSSERVERNOFUNCERR)
+    {
         iRet = EM_TARS_SUCCESS;
         ServerState stateInNode = _nodePrx->getState(_application, _serverName, result);
         _state.presentStateInNode = etos(stateInNode);

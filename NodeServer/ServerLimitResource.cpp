@@ -51,10 +51,13 @@ void ServerLimitResource::addExcStopRecord()
 {
     time_t tNow     = TNOW;
 
+	string serverId = _appName+"."+_serverName;
+
     TC_ThreadLock::Lock lock(*this);
     //在允许的时间段内才检查是否增加计数和关闭core属性
-    NODE_LOG("core")->debug() << FILE_FUN<< (_appName+"."+_serverName) << "|before|" << tNow << "|" << _excStopRecordTime
+    NODE_LOG(serverId)->debug() << FILE_FUN<< serverId << "|before|" << tNow << "|" << _excStopRecordTime
             << "|" << _coreLimitTimeInterval << "|" << _curExcStopCount << "|" << _closeCore << "|" << _maxExcStopCount << endl;
+
     if((tNow - _excStopRecordTime) < _coreLimitTimeInterval)
     {
         _curExcStopCount++;
@@ -70,7 +73,7 @@ void ServerLimitResource::addExcStopRecord()
         _curExcStopCount   = 1;
         _excStopRecordTime = tNow;
     }
-    NODE_LOG("core")->debug() << FILE_FUN << (_appName+"."+_serverName) << "|after|" << tNow << "|" << _excStopRecordTime
+    NODE_LOG(serverId)->debug() << FILE_FUN << serverId << "|after|" << tNow << "|" << _excStopRecordTime
             << "|" << _coreLimitTimeInterval << "|" << _curExcStopCount << "|" << _closeCore << "|" << _maxExcStopCount << endl;
 }
 
@@ -78,7 +81,9 @@ int ServerLimitResource::IsCoreLimitNeedClose(bool& bClose)
 {
     time_t tNow     = TNOW;
 
-    int ret = 0;
+	string serverId = _appName+"."+_serverName;
+
+	int ret = 0;
     if(_closeCore)
     {
         if((tNow -_enableCoreLimitTime) < _coreLimitExpiredTime)
@@ -90,7 +95,7 @@ int ServerLimitResource::IsCoreLimitNeedClose(bool& bClose)
         else
         {
             TC_ThreadLock::Lock lock(*this);
-            NODE_LOG("core")->debug() <<FILE_FUN <<" expired|"<<(_appName+"."+_serverName)<<"|"<<tNow<<"|"<<_enableCoreLimitTime<<endl;
+            NODE_LOG(serverId)->debug() <<FILE_FUN <<" expired|"<<serverId<<"|"<<tNow<<"|"<<_enableCoreLimitTime<<endl;
             _curExcStopCount     = 0;
             _closeCore           = false;
             _excStopRecordTime   = 0;
@@ -104,7 +109,7 @@ int ServerLimitResource::IsCoreLimitNeedClose(bool& bClose)
         bClose = false;
         ret    = 1;
     }
-    NODE_LOG("core")->debug() <<FILE_FUN<<"|"<<(_appName+"."+_serverName)<<"|"<<_closeCore<<"|"<< _curExcStopCount<<"|"<<tNow<<"|"<<_enableCoreLimitTime
+    NODE_LOG(serverId)->debug() <<FILE_FUN<<"|"<<serverId<<"|"<<_closeCore<<"|"<< _curExcStopCount<<"|"<<tNow<<"|"<<_enableCoreLimitTime
             << "|" << ret <<"|" << std::boolalpha << bClose << endl;
     return ret;
 }

@@ -50,15 +50,15 @@ ServerObject::ServerObject( const ServerDescriptor& tDesc)
 
 void ServerObject::setServerDescriptor( const ServerDescriptor& tDesc )
 {
-    TLOGDEBUG("ServerObject::setServerDescriptor "<< tDesc.application << "." << tDesc.serverName <<endl);
-    
     _desc          = tDesc;
     _application   = tDesc.application;
     _serverName    = tDesc.serverName;
     _serverId      = _application+"."+_serverName;
     _desc.settingState == "active"?_enabled = true:_enabled = false;
-    
-    time_t now = TNOW;
+
+	NODE_LOG(_serverId)->debug() << "ServerObject::setServerDescriptor "<< _serverId <<endl;
+
+	time_t now = TNOW;
     _adapterKeepAliveTime.clear();
 
      map<string, AdapterDescriptor>::const_iterator itAdapters;
@@ -73,20 +73,20 @@ void ServerObject::setServerDescriptor( const ServerDescriptor& tDesc )
 bool ServerObject::isAutoStart()
 {
     Lock lock(*this);
-    TLOGDEBUG( "ServerObject::isAutoStart "<< _application << "." << _serverName <<"|"<<_enabled<<"|"<<_loaded<<"|"<<_patched<<"|"<<toStringState(_state)<<endl);
-    NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<< _application << "." << _serverName <<"|"<<_enabled<<"|"<<_loaded<<"|"<<_patched<<"|"<<toStringState(_state)<<endl; 
+
+    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _serverId <<"|"<<_enabled<<"|"<<_loaded<<"|"<<_patched<<"|"<<toStringState(_state)<<endl;
     if(toStringState(_state).find( "ing" ) != string::npos)  //正处于中间态时不允许重启动
     {
-        TLOGDEBUG("ServerObject::isAutoStart " << _application << "." << _serverName <<" not allow to restart in (ing) state"<<endl);
+	    NODE_LOG(_serverId)->debug() << "ServerObject::isAutoStart " << _serverId <<" not allow to restart in (ing) state"<<endl;
         return false;
     }
     
     if(!_enabled||!_loaded || !_patched || _activatorPtr->isActivatingLimited())
     {
-           if(_activatorPtr->isActivatingLimited())
-           {
-               TLOGDEBUG("ServerObject::isAutoStart " << _application << "." << _serverName <<" not allow to restart in limited state"<<endl);
-           }
+        if(_activatorPtr->isActivatingLimited())
+        {
+	        NODE_LOG(_serverId)->debug() << "ServerObject::isAutoStart " << _serverId <<" not allow to restart in limited state"<<endl;
+        }
         return false;
     }
     return true;
@@ -95,7 +95,7 @@ bool ServerObject::isAutoStart()
 ServerState ServerObject::getState()
 {
     Lock lock(*this);
-    TLOGINFO("ServerObject::getState "<<_application << "." << _serverName <<"'s state is "<<toStringState(_state)<<endl);
+	NODE_LOG(_serverId)->debug() << "ServerObject::getState " << _serverId <<"'s state is "<<toStringState(_state)<<endl;
     return toServerState( _state );
 }
 
@@ -110,7 +110,7 @@ void ServerObject::setState(InternalServerState eState, bool bSynState)
 
     if ( _state != eState )
     {
-        TLOGDEBUG(FILE_FUN << _application << "." << _serverName << " State changed! old State:" << toStringState( _state ) << " new State:" << toStringState( eState ) << endl);
+	    NODE_LOG(_serverId)->debug() << FILE_FUN << _serverId << " State changed! old State:" << toStringState( _state ) << " new State:" << toStringState( eState ) << endl;
         _state = eState;
     }
 
@@ -175,8 +175,7 @@ void ServerObject::synState()
         //日志
         stringstream ss;
         tServerStateInfo.displaySimple(ss);
-        NODE_LOG("synState")->debug()<<FILE_FUN << "synState" << "|"<< _nodeInfo.nodeName << "|" <<  _application << "|" << _serverName
-                << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
+        NODE_LOG(_serverId)->debug()<<FILE_FUN << "synState" << "|"<< _nodeInfo.nodeName << "|" <<  _serverId << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
 
         _noticed = true;
         _noticeFailTimes = 0;
@@ -185,7 +184,7 @@ void ServerObject::synState()
     {
         _noticed = false;
         _noticeFailTimes ++;
-        TLOGERROR("ServerObject::synState "<<_application<<"."<<_serverName<<" error times:"<<_noticeFailTimes<<" reason:"<< e.what() << endl);
+	    NODE_LOG(_serverId)->error() << "ServerObject::synState "<<_serverId<<" error times:"<<_noticeFailTimes<<" reason:"<< e.what() << endl;
     }
 }
 
@@ -203,13 +202,13 @@ void ServerObject::asyncSynState()
         //日志
         stringstream ss;
         tServerStateInfo.displaySimple(ss);
-        NODE_LOG("synState")->debug()<<FILE_FUN<< _nodeInfo.nodeName << "|" <<  _application << "|" << _serverName
+        NODE_LOG(_serverId)->debug()<<FILE_FUN<< _nodeInfo.nodeName << "|" << _serverId
                 << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
 
     }
     catch (exception &e)
     {
-        TLOGERROR("ServerObject::asyncSynState "<<_application<<"."<<_serverName<<" error:" << e.what() << endl);
+	    NODE_LOG(_serverId)->error() << "ServerObject::asyncSynState "<<_serverId<<" error:" << e.what() << endl;
     }
 }
 
@@ -304,28 +303,40 @@ string ServerObject::toStringState(InternalServerState eState) const
 int ServerObject::checkPid()
 {
     Lock lock(*this);
-    if(_pid != 0)
+	int iRet = 0;
+
+	if(_pid != 0)
     {
 #if TARGET_PLATFORM_WINDOWS
-        int iRet = 0;
         HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, _pid);
         if (hProcess == NULL)
         {
             iRet = -1;
         }
 		CloseHandle(hProcess);
-#else        
-        int iRet = ::kill(static_cast<pid_t>(_pid), 0);
-#endif
-        // int iRet = _pActivatorPtr->sendSignal(_pid, 0);
         if (iRet == 0)
         {
-            NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists" << endl;
+            NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists, ret:" << iRet << ", " <<  TC_Exception::getSystemCode() << endl;
             return 0;
         }
-    }
-    NODE_LOG("KeepAliveThread")->error() <<FILE_FUN<< _serverId << "|" << _pid << "| pid not exists" << endl;
-    return -1;
+
+        NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
+
+#else        
+        iRet = ::kill(static_cast<pid_t>(_pid), 0);
+		if (iRet != 0)// && (errno == ESRCH || errno == ENOENT ))
+		{
+			NODE_LOG(_serverId)->error() << "kill " << signal << " to pid, pid not exsits, pid:" << _pid << ", catch exception|" << errno << endl;
+			return -1;
+		}
+
+		NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
+
+		return 0;
+#endif
+	}
+
+    return iRet;
 }
 
 void ServerObject::keepAlive(int64_t pid,const string &adapter)
@@ -333,27 +344,26 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
     Lock lock(*this);
     if (pid <= 0)
     {
-        TLOGERROR("ServerObject::keepAlive "<< _application << "." << _serverName << " pid "<<pid<<" error, pid <= 0"<<endl);
+	    NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid "<<pid<<" error, pid <= 0"<<endl;
         return;
     }
     else
     {
-        TLOGDEBUG("ServerObject::keepAlive "<<_serverType<< "|pid|" << pid <<"|server|"<<_application << "." << _serverName <<"|"<<adapter<< endl);
+	    NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " <<_serverType<< ", pid:" << pid <<", adapter:" << adapter<< endl;
     }
     time_t now  = TNOW;
     setLastKeepAliveTime(now,adapter);
-    //setLastKeepAliveTime(now);
     setPid(pid);
 
     //心跳不改变正在转换期状态(Activating除外)
     if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
     {
-        TLOGDEBUG("ServerObject::keepAlive "<< _desc.application << "|" << _desc.serverName << "|" << toStringState(_state) << "|" << _state << endl);
+	    NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << ", state:" << toStringState(_state) << endl;
         setState(ServerObject::Active);
     }
     else
     {
-         TLOGDEBUG("ServerObject::keepAlive " << _application << "." << _serverName << " State no need changed to active!  State:" << toStringState( _state ) << endl);
+	    NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << " State no need changed to active!  State:" << toStringState( _state ) << endl;
     }
 
     if(!_loaded)
@@ -367,18 +377,17 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
     }
 }
 
-
 void ServerObject::keepActiving(int64_t pid)
 {
     Lock lock(*this);
     if (pid <= 0)
     {
-        LOG->error()<<FILE_FUN<< _application << "." << _serverName << " pid "<<pid<<" error, pid <= 0"<<endl;
+	    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _application << "." << _serverName << " pid "<<pid<<" error, pid <= 0"<<endl;
         return;
     }
     else
     {
-        LOG->debug() << FILE_FUN<<_serverType<< "|pid|" << pid <<"|server|"<<_application << "." << _serverName << endl;
+	    NODE_LOG(_serverId)->debug() << FILE_FUN<<_serverType<< "|pid|" << pid <<"|server|"<<_application << "." << _serverName << endl;
     }
     time_t now  = TNOW;
     setLastKeepAliveTime(now);
@@ -392,6 +401,9 @@ void ServerObject::setLastKeepAliveTime(time_t t,const string& adapter)
 {
     Lock lock(*this);
     _keepAliveTime = t;
+
+	NODE_LOG(_serverId)->debug() << "setLastKeepAliveTime keepAliveTime:" << _keepAliveTime << ", now:" << TNOW << endl;
+
     map<string, time_t>::iterator it1 = _adapterKeepAliveTime.begin();
     if(adapter.empty())
     {
@@ -409,7 +421,7 @@ void ServerObject::setLastKeepAliveTime(time_t t,const string& adapter)
     }
     else
     {
-        TLOGERROR("ServerObject::setLastKeepAliveTime "<<adapter<<" not registed "<< endl);
+	    NODE_LOG(_serverId)->error() << "ServerObject::setLastKeepAliveTime "<<adapter<<" not registed "<< endl;
     }
 }
 
@@ -434,7 +446,7 @@ bool ServerObject::isTimeOut(int iTimeout)
     time_t now = TNOW;
     if(now - _keepAliveTime > iTimeout)
     {
-        TLOGERROR("ServerObject::isTimeOut server time  out "<<now - _keepAliveTime<<"|>|"<<iTimeout<< endl);
+	    NODE_LOG(_serverId)->error() << "ServerObject::isTimeOut server time out, keepAliveTime:" << _keepAliveTime << ", now:" << TNOW << ", diff:" << now - _keepAliveTime<<" > "<<iTimeout<< endl;
         return true;
     }
     map<string, time_t>::const_iterator it = _adapterKeepAliveTime.begin();
@@ -442,7 +454,7 @@ bool ServerObject::isTimeOut(int iTimeout)
     {
         if(now - it->second > iTimeout)
         {
-            TLOGERROR("ServerObject::isTimeOut server "<< it->first<<" time  out "<<now - it->second<<"|>|"<<iTimeout<<"|"<<TC_Common::tostr(_adapterKeepAliveTime)<< endl);
+	        NODE_LOG(_serverId)->error() << "ServerObject::isTimeOut server "<< it->first<<" time out "<<now - it->second<<"|>|"<<iTimeout<<"|"<<TC_Common::tostr(_adapterKeepAliveTime)<< endl;
             return true;
         }
         it++;
@@ -455,12 +467,13 @@ bool ServerObject::isStartTimeOut()
 	Lock lock(*this);
 	int64_t now = TNOWMS;
 
-	if (now - _startTime >= 1000)//默认为1000ms,_timeout
+	int timeout = 2000;
+	if (now - _startTime >= timeout && now - _keepAliveTime >= timeout)
 	{
-		NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"server start time  out "<<now - _startTime<<"|>|"<<100<<endl;
+		NODE_LOG(_serverId)->debug()<<FILE_FUN<<"server start time  out "<<now - _startTime << ">" <<timeout<<endl;
 		return true;
 	}
-	NODE_LOG("KeepAliveThread")->debug()<<"server start time  out "<<now - _startTime<<"|<|"<<100<<endl;
+	NODE_LOG(_serverId)->debug()<<"server start time  out " << now - _startTime << "<" <<timeout<<endl;
 
 	return false;
 }
@@ -486,7 +499,7 @@ void ServerObject::setPid(int64_t pid)
     {
         return;
     }
-    NODE_LOG("startServer")->debug()<<FILE_FUN<< _application << "." << _serverName << " pid changed! old pid:" << _pid << " new pid:" << pid << endl;
+    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _application << "." << _serverName << " pid changed! old pid:" << _pid << " new pid:" << pid << endl;
     _pid = pid;
 }
 
@@ -519,9 +532,9 @@ string ServerObject::getPatchVersion()
 
 int ServerObject::getPatchPercent(PatchInfo &tPatchInfo)
 {
-    TLOGDEBUG("ServerObject::getPatchPercent"<< _application << "_" << _serverName << "|"<< _serverId<< endl);
+    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent"<< _application << "_" << _serverName << "|"<< _serverId<< endl;
+
     Lock lock(*this);
-    TLOGDEBUG("ServerObject::getPatchPercent "<< _application << "_" << _serverName << "|"<< _serverId << "get lock" << endl);
 
     tPatchInfo              = _patchInfo;
     //是否正在发布
@@ -529,13 +542,13 @@ int ServerObject::getPatchPercent(PatchInfo &tPatchInfo)
 
     if (tPatchInfo.bSucc == true || _state == ServerObject::Patching || _state == ServerObject::BatchPatching)
     {
-        TLOGDEBUG("ServerObject::getPatchPercent "<< _desc.application
-            << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl);
+	    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent "<< _desc.application
+            << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl;
         return 0;
     }
 
-    TLOGERROR("ServerObject::getPatchPercent "<< _desc.application
-           << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl);
+	NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent "<< _desc.application
+           << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl;
     return -1;
 }
 
@@ -604,7 +617,7 @@ void ServerObject::doMonScript()
                  _activatorPtr->doScript(_monitorScript,sResult,mResult);
                  if(mResult.find("pid") != mResult.end() && TC_Common::isdigit(mResult["pid"]) == true)
                  {
-                     TLOGDEBUG("ServerObject::doMonScript "<< _serverId << "|"<< mResult["pid"] << endl);
+	                 NODE_LOG(_serverId)->debug() << "ServerObject::doMonScript "<< _serverId << "|"<< mResult["pid"] << endl;
                      keepAlive(TC_Common::strto<int>(mResult["pid"]));
                  }
             }
@@ -612,56 +625,56 @@ void ServerObject::doMonScript()
     }
     catch (exception &e)
     {
-        TLOGERROR("ServerObject::doMonScript error:" << e.what() << endl);
+	    NODE_LOG(_serverId)->error() << "ServerObject::doMonScript error:" << e.what() << endl;
     }
 }
 
-void ServerObject::checkServer(int iTimeout)//checkServer时对服务所占用的内存上报到主控
+//checkServer时对服务所占用的内存上报到主控
+void ServerObject::checkServer(int iTimeout)
 {
     try
     {
         string sResult;
-        NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<<_serverId <<"|"<<toStringState(_state)<< endl;
-        //pid不存在属于服务异常
-        if( _state != ServerObject::Inactive && _state != ServerObject::Deactivating  && _state != ServerObject::Activating && (checkPid() != 0))
-        {
-			bool bShouldStop = false;
+
+	    int flag = checkPid();
+
+		NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
+		NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
+
+		if(flag != 0 && _state != ServerObject::Inactive)
+		{
+			//pid不存在, 同步状态
+			setState(ServerObject::Inactive, true);
+		}
+		else if(flag == 0)
+		{
+			//pid存在
 			if (_state == ServerObject::Activating)
 			{
 				if (_started && isStartTimeOut())
 				{
-					bShouldStop = true;
 					sResult="[alarm] activating,pid not exist";
-					NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"|sResult:"<<sResult<<endl;
+					NODE_LOG(_serverId)->debug()<<FILE_FUN<<"|sResult:"<<sResult<<endl;
+					NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<" sResult:"<<sResult<<endl;
+
+					NODE_LOG(_serverId)->debug()<<FILE_FUN<<_serverId<<" "<<sResult << "|pid: " << _pid  << ", state:" << toStringState(_state)<<"|_started:"<<_started<< endl;
+					NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << "|pid:" << _pid  << ", state:" << toStringState(_state)<<"|_started:"<<_started<< endl;
+					CommandStop command(this, false);
+					command.doProcess();
 				}
-				NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"|is not bstarted"<<endl;
+//				NODE_LOG(_serverId)->debug()<<FILE_FUN<< _serverId << " is not be started"<<endl;
+//				NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN << _serverId <<" is not be started"<<endl;
 			}
-			else
-			{
-				bShouldStop = true;
-				sResult = "[alarm] down,pid not exist";
-				NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"|sResult:"<<sResult<<endl;
-			}
-			
-			if (bShouldStop)
-			{
-				NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << "|pid|" << _pid  << "|_state:" << toStringState(_state)<<"|_started:"<<_started<< endl;
-				CommandStop command(this, false);
-				command.doProcess();
-			}
-        }
-        else
-        {
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << endl;
-        }
+		}
 
         //正在运行程序心跳上报超时。
         int iRealTimeout = _timeout > 0?_timeout:iTimeout;
-        if( _state != ServerObject::Inactive && isTimeOut(iRealTimeout))
+        if( _state == ServerObject::Active && isTimeOut(iRealTimeout))
         {
             sResult = "[alarm] zombie process,no keep alive msg for " + TC_Common::tostr(iRealTimeout) + " seconds";
-            NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
-            CommandStop command(this, true);
+            NODE_LOG(_serverId)->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
+	        NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
+	        CommandStop command(this, true);
             command.doProcess();
         }
 
@@ -669,15 +682,17 @@ void ServerObject::checkServer(int iTimeout)//checkServer时对服务所占用�
         if( _state == ServerObject::Inactive && isAutoStart() == true)
         {
             sResult = sResult == ""?"[alarm] down, server is inactive":sResult;
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
+            NODE_LOG(_serverId)->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
+	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
 
-            g_app.reportServer(_serverId, "", getNodeInfo().nodeName, sResult); 
-            // g_app.reportServer(_serverId,sResult);
+	        g_app.reportServer(_serverId, "", getNodeInfo().nodeName, sResult);
 
             CommandStart command(this);
             int ret = command.doProcess();
-            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
-            //配置了coredump检测才进行操作
+            NODE_LOG(_serverId)->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
+	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
+
+	        //配置了coredump检测才进行操作
             if(_limitStateInfo.bEnableCoreLimit)
             {
                 _serviceLimitResource->addExcStopRecord();
@@ -686,13 +701,13 @@ void ServerObject::checkServer(int iTimeout)//checkServer时对服务所占用�
     }
     catch(exception &ex)
     {
-        NODE_LOG("KeepAliveThread")->error()<<FILE_FUN << "ex:" << ex.what() << endl;
-        TLOGERROR("ServerObject::checkServer ex:" << ex.what() << endl);
+        NODE_LOG(_serverId)->error()<<FILE_FUN << "ex:" << ex.what() << endl;
+	    NODE_LOG("KeepAliveThread")->error()<<FILE_FUN << "ex:" << ex.what() << endl;
     }
     catch(...)
     {
-        NODE_LOG("KeepAliveThread")->error()<<FILE_FUN << "unknown ex." << endl;
-        TLOGERROR("ServerObject::checkServer unknown ex." << endl);
+        NODE_LOG(_serverId)->error()<<FILE_FUN << "unknown ex." << endl;
+	    NODE_LOG("KeepAliveThread")->error()<<FILE_FUN << "unknown ex." << endl;
     }
 }
 
@@ -754,11 +769,17 @@ void ServerObject::reportMemProperty()
 
 void ServerObject::checkCoredumpLimit()
 {
-    if(_state != ServerObject::Active || !_limitStateInfo.bEnableCoreLimit)
+    if(_state != ServerObject::Active)
     {
-        TLOGINFO(FILE_FUN << ", " << getServerId() <<", server is inactive or disable corelimit"<<endl);
+        NODE_LOG(_serverId)->debug() << FILE_FUN << getServerId() <<", server is inactive"<<endl;
         return;
     }
+
+	if(!_limitStateInfo.bEnableCoreLimit)
+	{
+		NODE_LOG(_serverId)->debug() << FILE_FUN << getServerId() <<", server is disable corelimit"<<endl;
+		return;
+	}
 
     Lock lock(*this);
     if(_limitStateInfo.eCoreType == EM_AUTO_LIMIT)
@@ -796,7 +817,7 @@ bool ServerObject::setServerCoreLimit(bool bCloseCore)
     CommandNotify command(this,sCmd);
     int iRet = command.doProcess(sResult);
 
-    NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"setServerCoreLimit|"<<_serverId<<"|"<<sCmd<<"|"<<sResult<<endl;
+    NODE_LOG(_serverId)->debug()<<FILE_FUN<<"setServerCoreLimit|"<<_serverId<<"|"<<sCmd<<"|"<<sResult<<endl;
 
     return (iRet==0);
 
@@ -817,7 +838,7 @@ void ServerObject::setServerLimitInfo(const ServerLimitInfo& tInfo)
 
     _limitStateInfo = tInfo;
 
-    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << _serverId << "|" << _limitStateInfo.str() << endl;
+    NODE_LOG(_serverId)->debug() << FILE_FUN << _serverId << "|" << _limitStateInfo.str() << endl;
 
     _serviceLimitResource->setLimitCheckInfo(tInfo.iMaxExcStopCount,tInfo.iCoreLimitTimeInterval,tInfo.iCoreLimitExpiredTime);
 

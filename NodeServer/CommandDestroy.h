@@ -52,14 +52,14 @@ inline ServerCommand::ExeStatus CommandDestroy::canExecute(string &sResult)
 {
     TC_ThreadRecLock::Lock lock( *_serverObjectPtr );
 
-    NODE_LOG("destroyServer")->debug()<<FILE_FUN << _desc.application<< "." << _desc.serverName << " beging destroyed------|"<< endl;
+	NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN << _desc.application<< "." << _desc.serverName << " beging destroyed------|"<< endl;
 
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
 
     if (eState != ServerObject::Inactive)
     {
         sResult = FILE_FUN_STR+"server state is not Inactive. the curent state is " + _serverObjectPtr->toStringState( eState );
-        NODE_LOG("destroyServer")->debug()<<FILE_FUN << sResult << endl;
+	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return DIS_EXECUTABLE;
     }
 
@@ -84,7 +84,7 @@ inline int CommandDestroy::execute(string &sResult)
         vector<string> vtServerNames = TC_Common::sepstr<string>(sServerId,".");
         if (vtServerNames.size() != 2)
         {
-            NODE_LOG("destroyServer")->error() <<FILE_FUN<<"parse serverid error:" << sServerId << "|" << vtServerNames.size()  << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<"parse serverid error:" << sServerId << "|" << vtServerNames.size()  << endl;
             sResult = FILE_FUN_STR+"failed to remove log path, server name error:" + sServerId;
             //return -1;
         }
@@ -99,24 +99,24 @@ inline int CommandDestroy::execute(string &sResult)
             if(TC_File::isFileExistEx(sServerDir, S_IFDIR))
             {
                 g_RemoveLogThread->push_back(sServerDir);
-                NODE_LOG("destroyServer")->error()<<FILE_FUN <<"asyn remove:"<<sServerDir<<endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error()<<FILE_FUN <<"asyn remove:"<<sServerDir<<endl;
             }
             else
             {
-                NODE_LOG("destroyServer")->error()<<FILE_FUN << "[" << sServerId << "]'s server path doesnot exist:" << sServerDir << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error()<<FILE_FUN << "[" << sServerId << "]'s server path doesnot exist:" << sServerDir << endl;
             }
         }
     }
     catch (exception& e)
     {
         sResult =  FILE_FUN_STR+"Exception:"  + string(e.what());
-        NODE_LOG("destroyServer")->error()<<FILE_FUN <<sResult <<endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error()<<FILE_FUN <<sResult <<endl;
         return -1;
     }
     catch(...)
     {
         sResult =  FILE_FUN_STR+"Exception: unknown";
-        NODE_LOG("destroyServer")->error()<<FILE_FUN <<sResult <<endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->error()<<FILE_FUN <<sResult <<endl;
     }
 
     return 0;

@@ -54,22 +54,22 @@ inline CommandAddFile::CommandAddFile(const ServerObjectPtr &pServerObjectPtr,co
 // 
 inline ServerCommand::ExeStatus CommandAddFile::canExecute(string &sResult)
 {
-  
     TC_ThreadRecLock::Lock lock( *_serverObjectPtr );
-    
-    TLOGDEBUG("CommandAddFile::canExecute "<<_desc.application<< "." << _desc.serverName << " beging addFilesing------"<< endl);
+
+    NODE_LOG(_serverId)->debug() << "CommandAddFile::canExecute "<<_desc.application<< "." << _desc.serverName << " beging addFilesing------"<< endl;
+
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
     
     if(_desc.application == "" || _desc.serverName == "" )
     {
 	 	sResult = FILE_FUN_STR+"app or server name is empty";
-        TLOGERROR("CommandAddFile::canExecute app or server name is empty"<<endl);
+	    NODE_LOG(_serverId)->error() << "CommandAddFile::canExecute app or server name is empty"<<endl;
         return DIS_EXECUTABLE;
     }
     if(_file.empty())
     {
 		sResult = FILE_FUN_STR+"file is empty. ";
-        TLOGERROR("CommandAddFile::canExecute file is empty. file:"<<_file<<endl);
+	    NODE_LOG(_serverId)->error() << "CommandAddFile::canExecute file is empty. file:"<<_file<<endl;
         return DIS_EXECUTABLE;
     }
     //设当前状态为正在AddFilesing
@@ -97,9 +97,8 @@ inline int CommandAddFile::execute(string &sResult)
         //创建目录
         if(!TC_File::makeDirRecursive(sFilePath ) )
         {
-
  			sResult =  FILE_FUN_STR+"cannot create dir:" + sFilePath + " erro:"+ strerror(errno);
-            TLOGERROR("CommandAddFile::execute cannot create dir:"<<sFilePath<<" erro:"<<strerror(errno)<<endl);
+	        NODE_LOG(_serverId)->error() << "CommandAddFile::execute cannot create dir:"<<sFilePath<<" erro:"<<strerror(errno)<<endl;
             return -1;
         }
         bool bRet = false;
@@ -120,7 +119,7 @@ inline int CommandAddFile::execute(string &sResult)
   catch(exception &e)
   {
       sResult = FILE_FUN_STR+"get file:"+_file+" from configServer fail."+ e.what();
-      TLOGERROR("CommandAddFile::execute get file: "<<_file<<" from configServer fail."<<e.what());
+	  NODE_LOG(_serverId)->error() << "CommandAddFile::execute get file: "<<_file<<" from configServer fail."<<e.what() << endl;
   }
   return -1;
 }
@@ -151,7 +150,7 @@ inline int CommandAddFile::getScriptFile(string &sResult)
         if (ret != 0)
         {
             sResult = FILE_FUN_STR+"[fail] get remote file :" + sFileName;
-            TLOGERROR(sResult<<endl);
+	        NODE_LOG(_serverId)->error() << sResult<<endl;
             g_app.reportServer(_serverId, "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
             // g_app.reportServer(_serverId,sResult); 
             return -1;
@@ -179,7 +178,7 @@ inline int CommandAddFile::getScriptFile(string &sResult)
         if(!out.good())
         {
 		    sResult =FILE_FUN_STR+ "cannot create file: " + _file + " erro:"+ strerror(errno);
-            TLOGERROR("CommandAddFile::getScriptFile cannot create file: "<<(_file + " erro:"+ strerror(errno))<<endl);
+	        NODE_LOG(_serverId)->error() << "CommandAddFile::getScriptFile cannot create file: "<<(_file + " erro:"+ strerror(errno))<<endl;
             return -1;
         }
         out<<sStream;
@@ -187,13 +186,13 @@ inline int CommandAddFile::getScriptFile(string &sResult)
         sResult = FILE_FUN_STR+"[succ] get remote file :"+sFileName;
         g_app.reportServer(_serverId, "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
         // g_app.reportServer(_serverObjectPtr->getServerId(),sResult); 
-        TLOGDEBUG(sResult<<endl);
+	    NODE_LOG(_serverId)->debug() << sResult<<endl;
         return 0;          
   } 
   catch(exception &e)
   {
       sResult = FILE_FUN_STR+"get file:"+_file+" from configServer fail."+ e.what();
-      TLOGERROR("CommandAddFile::getScriptFile get file"<<(_file+" from configServer fail."+ e.what())<<endl);
+	  NODE_LOG(_serverId)->error() << "CommandAddFile::getScriptFile get file"<<(_file+" from configServer fail."+ e.what())<<endl;
   }  
   return -1; 
 }

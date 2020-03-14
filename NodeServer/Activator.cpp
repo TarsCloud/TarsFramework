@@ -33,7 +33,7 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
     addActivatingRecord();
     if (isActivatingLimited() == true)
     {
-        TLOGERROR("Activator::activate The server " << strExePath << " activating is limited! it will not auto start until after " + TC_Common::tostr(_punishInterval) + " seconds" << endl);
+	    NODE_LOG(_server->getServerId())->error() << strExePath << " activating is limited! it will not auto start until after " + TC_Common::tostr(_punishInterval) + " seconds" << endl;
     }
 
     if (strExePath.empty())
@@ -94,7 +94,7 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 	{
 		string err = TC_Exception::parseError(TC_Exception::getSystemCode());
 			
-		LOG->error() << FILE_FUN << path << "|fork child process  catch exception|errno=" << err  << endl;
+		NODE_LOG("startServer")->debug() << FILE_FUN << path << "|fork child process  catch exception|errno=" << err  << endl;
 		throw runtime_error("fork child process  catch exception:" + err);
 	}
 
@@ -107,7 +107,7 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 	vArgs.push_back(strExePath);
 	vArgs.insert(vArgs.end(), vOptions.begin(), vOptions.end());
 
-    TLOGDEBUG("Activator::activate activating server [exepath: " << strExePath << ", args: " << TC_Common::tostr(vArgs) << "]" << endl);
+	NODE_LOG(_server->getServerId())->debug() << "Activator::activate activating server [exepath: " << strExePath << ", args: " << TC_Common::tostr(vArgs) << "]" << endl;
 
     int argc = static_cast<int>(vArgs.size());
     char **argv = static_cast<char **>(malloc((argc + 1) * sizeof(char *)));
@@ -120,12 +120,10 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
     assert(i == argc);
     argv[argc] = 0;
 
-//    const char *pwdCStr = strPwdPath.c_str();
-
     pid_t pid = fork();
     if (pid == -1)
     {
-        TLOGDEBUG("Activator::activate "<< strPwdPath << "|fork child process  catch exception|errno=" << errno << endl);
+	    NODE_LOG(_server->getServerId())->debug() << "Activator::activate " << strPwdPath << "|fork child process  catch exception|errno=" << errno << endl;
         throw runtime_error("fork child process  catch exception");
     }
 
@@ -146,7 +144,6 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 #else
             if ((freopen64(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen64(_redirectPath.c_str(), "ab", stderr)) != NULL)
 #endif
-            // if ((freopen64(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen64(_redirectPath.c_str(), "ab", stderr)) != NULL)
             {
                 cout << argv[0] << " redirect stdout and stderr  to " << _redirectPath << endl;
             }
@@ -154,7 +151,6 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
             {
                 //重定向失败 直接退出
                 exit(0);
-                //cout << argv[0]<<" cannot redirect stdout and stderr  to log file" << _redirectPath << "|errno=" <<strerror(errno) << endl;
             }
 
         }
@@ -166,7 +162,6 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 #else
             if ((freopen64(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen64(strRollLogPath.c_str(), "ab", stderr)) != NULL)
 #endif
-            // if ((freopen64(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen64(strRollLogPath.c_str(), "ab", stderr)) != NULL)
             {
                 cout << argv[0] << " redirect stdout and stderr  to " << strRollLogPath << endl;
             }
@@ -174,7 +169,6 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
             {
                 //重定向失败 直接退出
                 exit(0);
-                //cout << argv[0]<<" cannot redirect stdout and stderr  to log file" << strRollLogPath << "|errno=" <<strerror(errno) << endl;
             }
         }
         else
@@ -215,7 +209,7 @@ int64_t Activator::activate(const string& strStartScript, const string& strMonit
     addActivatingRecord();
     if (isActivatingLimited() == true)
     {
-        TLOGERROR("Activator::activate The server " << _server->getServerId() << ":" << strStartScript  << " activating is limited! it will not auto start until after " + TC_Common::tostr(_punishInterval) + " seconds" << endl);
+		NODE_LOG(_server->getServerId())->error() << "Activator::activate" << strStartScript  << " activating is limited! it will not auto start until after " + TC_Common::tostr(_punishInterval) + " seconds" << endl;
     }
 
     if (strStartScript.empty())
@@ -259,6 +253,8 @@ int Activator::deactivate(int64_t pid)
 
 int Activator::deactivateAndGenerateCore(int64_t pid)
 {
+	NODE_LOG(_server->getServerId())->error() << FILE_FUN << " pid: " << pid << endl;
+
 #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
 
     if (pid != 0)
@@ -266,7 +262,7 @@ int Activator::deactivateAndGenerateCore(int64_t pid)
 		int ret = ::kill(static_cast<pid_t>(pid), SIGABRT);
 		if (ret != 0 && errno != ESRCH)
 		{
-			LOG->error() << FILE_FUN << "send signal " << signal << " to pid " << pid << " catch exception|" << errno << endl;
+			NODE_LOG(_server->getServerId())->error() << FILE_FUN << " send signal " << signal << " to pid " << pid << " catch exception|" << errno << endl;
 			return -1;
 		}
 		return 0;
@@ -282,6 +278,8 @@ int Activator::kill(int64_t pid) const
 {
     assert(pid);
 
+	NODE_LOG(_server->getServerId())->error() << FILE_FUN << " pid: " << pid << endl;
+
 #if TARGET_PLATFORM_WINDOWS
 	HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 	if (hProcess == NULL)
@@ -296,21 +294,18 @@ int Activator::kill(int64_t pid) const
 	if (!ok)
 	{
 		string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-		LOG->error() << FILE_FUN << "send signal " << signal << " to pid " << pid << " catch exception|" << err << endl;
+		NODE_LOG(_server->getServerId())->error() << "send signal " << signal << " to pid " << pid << " catch exception|" << err << endl;
 
 		return -1;
 	}
 	return 0;
 	
-
-
 #else
-    //int ret = ::kill(static_cast<pid_t>(pid), SIGINT);
 	int ret = ::kill(static_cast<pid_t>(pid), SIGKILL);
     if (ret != 0 && errno != ESRCH && errno != ENOENT)
     {
-        TLOGERROR("Activator::activate send signal " << signal << " to pid, pid not exsits, pid:" << pid << ", catch exception|" << errno << endl);
-        return -1;
+	    NODE_LOG(_server->getServerId())->error() << "Activator::activate send signal " << signal << " to pid, pid not exsits, pid:" << pid << ", catch exception|" << errno << endl;
+	    return -1;
     }
 	
     if(ret == 0)
@@ -364,7 +359,7 @@ void Activator::addActivatingRecord()
 
 bool Activator::doScript(const string& strScript, string& strResult, map<string, string>& mResult, const string& sEndMark)
 {
-    TLOGINFO("Activator::activate doScript " << strScript << " begin----" << endl);
+	NODE_LOG(_server->getServerId())->info() << "Activator::activate doScript " << strScript << " begin----" << endl;
 
     if (!TC_File::isFileExistEx(strScript))
     {
@@ -377,7 +372,7 @@ bool Activator::doScript(const string& strScript, string& strResult, map<string,
     {
         sRealEndMark = "end-" + TC_File::extractFileName(strScript);
     }
-    LOG->info() << FILE_FUN << "doScript " << strScript << " endMark----" << sRealEndMark << endl;
+	NODE_LOG(_server->getServerId())->info() << FILE_FUN << "doScript " << strScript << " endMark----" << sRealEndMark << endl;
 
 #if TARGET_PLATFORM_WINDOWS
     SECURITY_ATTRIBUTES sa;
@@ -388,8 +383,7 @@ bool Activator::doScript(const string& strScript, string& strResult, map<string,
 	sa.bInheritHandle = TRUE;
 	if (!CreatePipe(&hRead, &hWrite, &sa, 0)) 
     {
-        LOG->error() << FILE_FUN << "doScript CreatePipe error" << endl;
-        
+        NODE_LOG(_server->getServerId())->error() << FILE_FUN << "doScript CreatePipe error" << endl;
 		return FALSE;
 	}
 
@@ -403,7 +397,8 @@ bool Activator::doScript(const string& strScript, string& strResult, map<string,
 	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 	//关键步骤，CreateProcess函数参数意义请查阅MSDN 
 	if (!CreateProcessA(strScript.c_str(), NULL, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi)) {
-        LOG->error() << FILE_FUN << "doScript CreateProcessA:" << strScript << endl;
+//        LOG->error() << FILE_FUN << "doScript CreateProcessA:" << strScript << endl;
+        NODE_LOG(_server->getServerId())->error() << FILE_FUN << " doScript CreateProcessA:" << strScript << endl;
 
 		CloseHandle(hWrite);
 		CloseHandle(hRead);
@@ -471,8 +466,9 @@ bool Activator::doScript(const string& strScript, string& strResult, map<string,
         }
         if (sRealEndMark == "" || strResult.find(sRealEndMark) != string::npos)
         {
-            TLOGINFO("Activator::doScript "<< sCmd << "|sEndMark " << sRealEndMark << " finded|" << strResult << endl);
-            break;
+	        NODE_LOG(_server->getServerId())->info() << "Activator::doScript "<< sCmd << "|sEndMark " << sRealEndMark << " finded|" << strResult << endl;
+//	        TLOGINFO("Activator::doScript "<< sCmd << "|sEndMark " << sRealEndMark << " finded|" << strResult << endl);
+	        break;
         }
     }
 	fflush(fp);

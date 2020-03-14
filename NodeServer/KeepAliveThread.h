@@ -97,7 +97,7 @@ protected:
 private:
 
     vector<ServerStateInfo>     _stat;         //服务状态列表
-    TC_ThreadLock                _lock;
+    TC_ThreadLock               _lock;
 };
 
 

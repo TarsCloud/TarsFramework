@@ -392,7 +392,7 @@ private:
 class StopServerCallbackImp: public NodePrxCallback
 {
 public:
-    StopServerCallbackImp(string application, string serverName, string nodeName, tars::TarsCurrentPtr current)
+    StopServerCallbackImp(const string &application, const string &serverName, const string &nodeName, tars::TarsCurrentPtr current)
     : _application(application)
     , _serverName(serverName)
     , _nodeName(nodeName)
@@ -413,8 +413,11 @@ private:
 class NotifyServerCallbackImp: public NodePrxCallback
 {
 public:
-    NotifyServerCallbackImp(tars::TarsCurrentPtr current)
-    : _current(current)
+    NotifyServerCallbackImp(const string &application, const string &serverName, const string &nodeName, tars::TarsCurrentPtr current)
+	    : _application(application)
+	    , _serverName(serverName)
+	    , _nodeName(nodeName)
+	    , _current(current)
     {
     }
 
@@ -422,6 +425,9 @@ public:
     virtual void callback_notifyServer_exception(tars::Int32 ret);
 
 private:
+	string _application;
+	string _serverName;
+	string _nodeName;
     tars::TarsCurrentPtr _current;
 };
 

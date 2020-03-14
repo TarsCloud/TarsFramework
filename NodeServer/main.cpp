@@ -268,12 +268,12 @@ int main( int argc, char* argv[] )
                 break;
             }
         }
-#if !TARGET_PLATFORM_WINDOWS
-        if (!bNoDaemon)
-        {
-            TC_Common::daemon();
-        }
-#endif
+//#if !TARGET_PLATFORM_WINDOWS
+//        if (!bNoDaemon)
+//        {
+//            TC_Common::daemon();
+//        }
+//#endif
         parseConfig(argc,argv);
 
         g_pconf = &g_app.getConfig();

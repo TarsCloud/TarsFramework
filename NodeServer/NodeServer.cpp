@@ -170,7 +170,12 @@ TC_Endpoint NodeServer::getAdapterEndpoint(const string& name) const
     TC_EpollServer::BindAdapterPtr pBindAdapterPtr = pEpollServerPtr->getBindAdapter(name);
     assert(pBindAdapterPtr);
 
-    return pBindAdapterPtr->getEndpoint();
+	TC_Endpoint ep = pBindAdapterPtr->getEndpoint();
+
+	TLOGINFO("NodeServer::getAdapterEndpoint:" << ep.toString() << endl);
+
+	return ep;
+//    return pBindAdapterPtr->getEndpoint();
 }
 
 bool NodeServer::cmdViewServerDesc(const string& command, const string& params, string& result)

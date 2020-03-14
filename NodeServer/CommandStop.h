@@ -58,7 +58,7 @@ inline ServerCommand::ExeStatus CommandStop::canExecute(string& sResult)
 {
     TC_ThreadRecLock::Lock lock(*_serverObjectPtr);
 
-    NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " beging deactivate------|byRegistry|" << _byNode << endl;
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " beging deactivate------|byRegistry|" << _byNode << endl;
 
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
 
@@ -71,14 +71,14 @@ inline ServerCommand::ExeStatus CommandStop::canExecute(string& sResult)
     {
         _serverObjectPtr->synState();
         sResult = "server state is Inactive. ";
-        NODE_LOG("stopServer")->debug() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return NO_NEED_EXECUTE;
     }
 
     if (eState == ServerObject::Destroying)
     {
         sResult = "server state is Destroying. ";
-        NODE_LOG("stopServer")->debug() << FILE_FUN << sResult << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
         return DIS_EXECUTABLE;
     }
 
@@ -92,12 +92,12 @@ inline ServerCommand::ExeStatus CommandStop::canExecute(string& sResult)
         if (TNOW - tPatchInfo.iModifyTime < iTimes)
         {
             sResult = "server is " + sPatchType + " " + TC_Common::tostr(tPatchInfo.iPercent) + "%, please try again later.....";
-            NODE_LOG("stopServer")->debug() << FILE_FUN << "CommandStop::canExecute|" << sResult << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "CommandStop::canExecute|" << sResult << endl;
             return DIS_EXECUTABLE;
         }
         else
         {
-            NODE_LOG("stopServer")->debug() << FILE_FUN << "server is patching " << tPatchInfo.iPercent << "% ,and no modify info for " << TNOW - tPatchInfo.iModifyTime << "s" << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "server is patching " << tPatchInfo.iPercent << "% ,and no modify info for " << TNOW - tPatchInfo.iModifyTime << "s" << endl;
         }
     }
 
@@ -114,12 +114,12 @@ inline int CommandStop::execute(string& sResult)
     try
     {
         int64_t pid = _serverObjectPtr->getPid();
-        NODE_LOG("stopServer")->debug() << FILE_FUN << "pid:" << pid << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "pid:" << pid << endl;
 #if TARGET_PLATFORM_LINUX 
         if (pid != 0)
         {
             string f = "/proc/" + TC_Common::tostr(pid) + "/status";
-            NODE_LOG("stopServer")->debug() << FILE_FUN << "print the server status :" << f << "|" << TC_File::load2str(f) << endl;
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "print the server status :" << f << "|" << TC_File::load2str(f) << endl;
         }
 #endif
         string sStopScript   = _serverObjectPtr->getStopScript();
@@ -170,8 +170,7 @@ inline int CommandStop::execute(string& sResult)
             {
                 AdminFPrx pAdminPrx;    //服务管理代理
                 string  sAdminPrx = "AdminObj@" + _serverObjectPtr->getLocalEndpoint().toString();
-                NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName
-                    << " call " << sAdminPrx << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " call " << sAdminPrx << endl;
                 pAdminPrx = Application::getCommunicator()->stringToProxy<AdminFPrx>(sAdminPrx);
                 pAdminPrx->async_shutdown(NULL);
                 needWait = true;
@@ -181,13 +180,13 @@ inline int CommandStop::execute(string& sResult)
     }
     catch (exception& e)
     {
-        NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down result:|" << e.what() << "|use kill -9 for check" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down result:|" << e.what() << "|use kill -9 for check" << endl;
         int64_t pid = _serverObjectPtr->getPid();
         _serverObjectPtr->getActivator()->deactivate(pid);
     }
     catch (...)
     {
-        NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down fail:|" << "|use kill -9 for check" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down fail:|" << "|use kill -9 for check" << endl;
 		int64_t pid = _serverObjectPtr->getPid();
         _serverObjectPtr->getActivator()->deactivate(pid);
     }
@@ -226,13 +225,13 @@ inline int CommandStop::execute(string& sResult)
                 _serverObjectPtr->setPid(0);
                 _serverObjectPtr->setState(ServerObject::Inactive);
 				_serverObjectPtr->setStarted(false);
-				NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "server already stop, stop_cost:" << TNOW - tNow << endl;
+				NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "server already stop, stop_cost:" << TNOW - tNow << endl;
                 return 0;
             }
-            //NODE_LOG("stopServer")->debug() << FILE_FUN << _tDesc.application << "." << _tDesc.serverName << " deactivating usleep " << int(STOP_SLEEP_INTERVAL) << endl;
+            //NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _tDesc.application << "." << _tDesc.serverName << " deactivating usleep " << int(STOP_SLEEP_INTERVAL) << endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(STOP_SLEEP_INTERVAL / 1000));
         }
-        NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down timeout ( used " << iStopWaitInterval << "'s), use kill -9" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down timeout ( used " << iStopWaitInterval << "'s), use kill -9" << endl;
     }
 
     //仍然失败。用kill -9，再等待STOP_WAIT_INTERVAL秒。
@@ -255,7 +254,7 @@ inline int CommandStop::execute(string& sResult)
             _serverObjectPtr->setState(ServerObject::Inactive);
             _serverObjectPtr->setStarted(false);
 
-	        NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", not exists."  << endl;
+	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", not exists."  << endl;
 
 	        return 0;
         }
@@ -263,7 +262,7 @@ inline int CommandStop::execute(string& sResult)
     }
     sResult = "server pid " + TC_Common::tostr(pid) + " is still exist";
 
-    NODE_LOG("stopServer")->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", " << sResult << endl;
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", " << sResult << endl;
 
     return  -1;
 }
