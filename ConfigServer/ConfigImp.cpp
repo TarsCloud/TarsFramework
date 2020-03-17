@@ -685,7 +685,7 @@ int ConfigImp::loadConfigByHost(const ConfigInfo & configInfo, string &config, t
             "where server_name = '" + _mysqlConfig.escapeString(configInfo.appname + "." + configInfo.servername) + "' "
             "and filename='" + _mysqlConfig.escapeString(configInfo.filename) + "' "
             "and host='" + _mysqlConfig.escapeString(sHost) + "' "
-            "and level=" + TC_Common::tostr<int>(eLevelIpServer);
+            "and level=" + TC_Common::tostr<int>(eLevelIpServer) + sCondition;
 
         res = _mysqlConfig.queryRecord(sSql);
 
