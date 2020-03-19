@@ -42,20 +42,22 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         }
     }
 
-    //1表示是文件
+	NODE_LOG(serverId)->error() << "SingleFileDownloader::download file count:"<< vFiles.size() << endl;
+
+	//1表示是文件
     if(ret != 1)
     {
         sResult = remoteFile + " is not an file";
-        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-        // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
+        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);
+	    NODE_LOG(serverId)->error() << "SingleFileDownloader::download error:"<< sResult << endl;
         return -1;
     }
 
     if(vFiles.size() < 1)
     {
         sResult = remoteFile + " not exist";
-        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-        // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
+        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);
+	    NODE_LOG(serverId)->error() << "SingleFileDownloader::download error:"<< sResult << endl;
         return -2;
     }
 
@@ -65,8 +67,8 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
     if (!fp)
     {
         sResult = localFile + " can not write";
-        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-        // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
+        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);
+	    NODE_LOG(serverId)->error() << "SingleFileDownloader::download error:"<< sResult << endl;
         return -3;
     }
 
@@ -90,7 +92,6 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
             catch(TarsException& ex)
             {
                 g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-                // TarsRemoteNotify::getInstance()->report(string("download error:") + ex.what(), application, serverName, nodeName);
 	            NODE_LOG(serverId)->error() << "SingleFileDownloader::download "<< (remoteFile + " TarsException " + ex.what()) << endl;
             }
         }
@@ -101,8 +102,6 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
             sResult = remoteFile + " download from tarspatch error " + TC_Common::tostr(downloadRet);
             ret = downloadRet - 100;
             g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-            // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
-
             break;
         }
         else if (downloadRet == 0)
@@ -113,7 +112,6 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
 	            NODE_LOG(serverId)->error() << "SingleFileDownloader::download fwrite file '" + localFile + "' error!" << endl;
                 sResult = "fwrite file '" + localFile + "' error!";
                 g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-                // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
                 ret = -5;
                 break;
             }
@@ -127,7 +125,6 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         {
 	        NODE_LOG(serverId)->debug() << "SingleFileDownloader::download load succ " << remoteFile << "|pos:"<<pos<<endl;
             g_app.reportServer(application + "." + serverName, "", nodeName, string("download succ"));     
-            // TarsRemoteNotify::getInstance()->report(string("download succ"), application, serverName, nodeName);
             ret = 0;
             fileEnded = true;
             break;
@@ -137,9 +134,9 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
     if(!fileEnded)
     {
         ret = -6;
-        sResult = remoteFile + " not end";
-        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
-        // TarsRemoteNotify::getInstance()->report(string("download error:") + sResult, application, serverName, nodeName);
+        sResult = remoteFile + " not download finish";
+	    NODE_LOG(serverId)->error() << "SingleFileDownloader::download error:" << sResult << endl;
+        g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);
     }
 
     fclose(fp);

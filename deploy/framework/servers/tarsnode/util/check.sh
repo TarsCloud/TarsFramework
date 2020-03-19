@@ -16,13 +16,6 @@ else
 PID=`ps -eopid,cmd | grep "$bin"| grep "tarsnode" |  grep -v "grep" |grep -v "sh" |awk '{print $1}'`
 fi
 
-#PID=`ps -eopid,cmd | grep "$bin"| grep "tarsnode" |  grep -v "grep"|grep -v "sh" |awk '{print $1}'`
-
-#echo $PID
-
-#ulimit -c 409600
-#ulimit -a
-
 if [ "$PID" == "" ]; then
-  $bin --locator="tars.tarsregistry.QueryObj@tcp -h registry.tars.com -p 17890" --config=/usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf &
+  sh /usr/local/app/tars/tarsnode/util/start.sh
 fi
