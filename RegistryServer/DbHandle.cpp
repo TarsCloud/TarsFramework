@@ -1178,6 +1178,8 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 epf.host        = ep.getHost();
                 epf.port        = ep.getPort();
                 epf.timeout     = ep.getTimeout();
+                epf.weightType  = ep.getWeightType();
+                epf.weight      = ep.getWeight();
 
                 // 现在支持三种类型：0 UDP, 1 TCP, 2 SSL
                 // 所以istcp字段作为int类型使用
