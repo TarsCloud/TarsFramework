@@ -1213,6 +1213,10 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                     epf.setId = res[i]["set_name"] + "." + res[i]["set_area"] + "." + res[i]["set_group"];
                 }
 
+                //获取权重信息
+                epf.weight = ep.getWeight();
+                epf.weightType = ep.getWeightType();
+
                 TLOGDEBUG("CDbHandle::loadObjectIdCache :" << res[i]["servant"] << "." << epf.host << "|" << epf.grouprealid << "|" << epf.groupworkid << "|" << res[i]["setting_state"] << "|" << res[i]["present_state"] << endl);
 
                 bool bActive = true;
