@@ -86,10 +86,9 @@ function LOG_INFO()
 	echo -e "\033[32m $msg \033[0m"  	
 }
 
-if (( $# < 7 ))
+if (( $# < 8 ))
 then
-    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT";
-    echo "you should not call this script directly, you should call linux-install.sh or in docker by call docker-init.sh"
+    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT TARS_PATH";
     exit 1
 fi
 
@@ -100,20 +99,24 @@ REBUILD=$4
 SLAVE=$5
 USER=$6
 PORT=$7
+TARS_PATH=$8
 
 if [ "${SLAVE}" != "true" ]; then
     SLAVE="false"
 fi
 
 if [ "${SLAVE}" != "true" ]; then
-    TARS=(tarsnotify tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch)
+    TARS=(tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch)
 else
-    TARS=(tarsnotify tarsregistry tarsconfig tarsnode tarsproperty tarsqueryproperty tarsquerystat tarsstat)
+    TARS=(tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat)
 fi
 
-TARSALL=(tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
-TARS_PATH=/usr/local/app/tars
-mkdir -p ${TARS_PATH}
+if [ "${TARS_PATH}" == "" ]; then
+    TARS_PATH=/usr/local/app/tars
+    mkdir -p ${TARS_PATH}
+fi
+
+TARSALL=(tarsregistry tarsAdminRegistry tarsconfig tarsnode tarslog tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 
 WORKDIR=$(cd $(dirname $0); pwd)
 
@@ -132,6 +135,7 @@ LOG_DEBUG "HOSTIP:        "$HOSTIP
 LOG_DEBUG "WORKDIR:       "$WORKDIR
 LOG_DEBUG "SLAVE:         "${SLAVE}
 LOG_DEBUG "REBUILD:       "${REBUILD}
+LOG_DEBUG "TARS_PATH:     "${TARS_PATH}
 LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.\n";
 
 ################################################################################

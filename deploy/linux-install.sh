@@ -217,6 +217,6 @@ cp ${TARS_INSTALL}/tools/install.sh ${TARS_INSTALL}/web/files/
 
 cd ${TARS_INSTALL}
 
-./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${TARS_PATH}
 
 exec_profile
