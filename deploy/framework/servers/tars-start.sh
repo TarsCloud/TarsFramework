@@ -1,4 +1,4 @@
-TARS=(tarsAdminRegistry tarsconfig tarslog tarsnode tarsnotify tarspatch tarsproperty tarsqueryproperty tarsquerystat tarsregistry tarsstat)
+TARS=(tarsAdminRegistry tarsregistry tarsnotify tarsconfig tarsnode tarslog tarspatch tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 
 TARS_PATH=/usr/local/app/tars/
 
@@ -9,6 +9,7 @@ do
   if [ -d ${var} ]; then
     echo "start ${var}"
     ${TARS_PATH}/${var}/util/start.sh
+    sleep 1
   fi
 done
 

@@ -45,6 +45,7 @@ int DbProxy::createRespHead(const vector<pair<int, string>> &res, const string& 
 		if ( res[i].first != 0 && rsp.ret == 0)
 		{
 			rsp.ret = -1;
+			rsp.msg = res[i].second;
 		}
 	}
 
@@ -634,6 +635,8 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 
         TLOGDEBUG("query sUid:" << sUid << ", notify query finish." << endl);
     }
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

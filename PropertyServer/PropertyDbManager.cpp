@@ -44,7 +44,7 @@ PropertyDbManager::PropertyDbManager()
         "  `lasttime` varchar(16) NOT NULL default '', "
         "   PRIMARY KEY  (`appname`,`action`), "
         "   UNIQUE KEY `id` (`id`) "
-        " ) ENGINE=HEAP DEFAULT CHARSET=gbk";
+        " ) ENGINE=HEAP DEFAULT CHARSET=utf8";
     }
 
     string sCutType     = g_pconf->get("/tars/reapSql<CutType>","hour");

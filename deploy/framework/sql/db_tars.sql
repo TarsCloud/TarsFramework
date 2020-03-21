@@ -28,7 +28,7 @@ CREATE TABLE `t_adapter_conf` (
   `server_name` varchar(128) DEFAULT '',
   `node_name` varchar(50) DEFAULT '',
   `adapter_name` varchar(100) DEFAULT '',
-  `registry_timestamp` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `registry_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `thread_num` int(11) DEFAULT '1',
   `endpoint` varchar(128) DEFAULT '',
   `max_connections` int(11) DEFAULT '1000',

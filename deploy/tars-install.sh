@@ -113,8 +113,9 @@ fi
 
 if [ "${TARS_PATH}" == "" ]; then
     TARS_PATH=/usr/local/app/tars
-    mkdir -p ${TARS_PATH}
 fi
+
+mkdir -p ${TARS_PATH}
 
 TARSALL=(tarsregistry tarsAdminRegistry tarsconfig tarsnode tarslog tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 
