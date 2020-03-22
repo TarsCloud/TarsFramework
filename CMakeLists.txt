@@ -18,11 +18,21 @@ add_subdirectory(tarscpp)
 
 include_directories(${servant_SOURCE_DIR})
 
-#include_directories("thirdparty/rapidjson/include")
+if(WIN32)
+    set(BUILD_SERVER servers-win)
+    set(TARS_INSTALL_PATH c:\\tars-install)
+else(WIN32)
+    set(BUILD_SERVER servers)
+    set(TARS_INSTALL_PATH /usr/local/app/tars)
+endif(WIN32)
 
 macro(complice_module MODULE)
 
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/servers/${MODULE}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${BUILD_SERVER}/${MODULE}/bin)
+    foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_BINARY_DIR}/${BUILD_SERVER}/${MODULE}/bin)
+    endforeach()   
 
     include_directories(${PROJECT_SOURCE_DIR}/tarscpp/servant/protocol/framework)
     include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/include)
@@ -124,7 +134,7 @@ set(FRAMEWORK-TGZ "${CMAKE_BINARY_DIR}/framework.tgz")
 
 #执行命令
 add_custom_command(OUTPUT ${FRAMEWORK-TGZ}
-        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/servers
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/${BUILD_SERVER}
         COMMAND ${CMAKE_COMMAND} -E make_directory test 
         COMMAND ${CMAKE_COMMAND} -E tar czf ${FRAMEWORK-TGZ} ${DEPENDS_LIST}
         COMMAND ${CMAKE_COMMAND} -E copy ${FRAMEWORK-TGZ} ${PROJECT_BINARY_DIR}
@@ -143,17 +153,15 @@ list(APPEND DEPENDS_LIST tarsproperty)
 list(APPEND DEPENDS_LIST tarslog)
 list(APPEND DEPENDS_LIST tarsquerystat)
 list(APPEND DEPENDS_LIST tarsqueryproperty)
-#list(APPEND DEPENDS_LIST tarsauth)
 
 foreach (MODULE ${DEPENDS_LIST})
 
     set(MODULE-TGZ "${CMAKE_BINARY_DIR}/${MODULE}.tgz")
 
-    #兼容性更好
     add_custom_command(OUTPUT ${MODULE-TGZ}
             WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${MODULE}
-            COMMAND ${CMAKE_COMMAND} -E copy servers/${MODULE}/bin/${MODULE} ${MODULE}/
+            COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/${MODULE}/bin/${MODULE} ${MODULE}/
             COMMAND ${CMAKE_COMMAND} -E tar czf ${MODULE-TGZ} ${MODULE}
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${MODULE}
             COMMENT "create ${MODULE-TGZ}")
@@ -163,57 +171,62 @@ endforeach ()
 
 ############################################################################################
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/servers/ DESTINATION deploy/framework/servers
+install(DIRECTORY ${PROJECT_BINARY_DIR}/${BUILD_SERVER}/ DESTINATION deploy/framework/${BUILD_SERVER}
         PATTERN "tars*"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
         
+IF(WIN32)
+install(DIRECTORY deploy DESTINATION ./ 
+        PATTERN "*.bat"
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
+else(WIN32)
 install(DIRECTORY deploy DESTINATION ./ 
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
-
+ENDIF(WIN32)
 ############################################################################################
 #for debug
 
 add_custom_target(cp-tarsAdminRegistry
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsAdminRegistry
-        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsAdminRegistry/bin/tarsAdminRegistry /usr/local/app/tars/tarsAdminRegistry/bin/tarsAdminRegistry
-        COMMAND sh /usr/local/app/tars/tarsAdminRegistry/util/start.sh
+        COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/tarsAdminRegistry/bin/tarsAdminRegistry ${TARS_INSTALL_PATH}/tarsAdminRegistry/bin/tarsAdminRegistry
+        COMMAND sh ${TARS_INSTALL_PATH}/tarsAdminRegistry/util/start.sh
         COMMENT "cp tarsAdminRegistry & restart")
 
 add_custom_target(cp-tarsnotify
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsnotify
-        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsnotify/bin/tarsnotify /usr/local/app/tars/tarsnotify/bin/tarsnotify
-        COMMAND sh /usr/local/app/tars/tarsnotify/util/start.sh
+        COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/tarsnotify/bin/tarsnotify ${TARS_INSTALL_PATH}/tarsnotify/bin/tarsnotify
+        COMMAND sh ${TARS_INSTALL_PATH}/tarsnotify/util/start.sh
         COMMENT "cp tarsnotify & restart")
 
 add_custom_target(cp-tarsnode
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsnode
-        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsnode/bin/tarsnode /usr/local/app/tars/tarsnode/bin/tarsnode
-        COMMAND sh /usr/local/app/tars/tarsnode/util/start.sh
+        COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/tarsnode/bin/tarsnode ${TARS_INSTALL_PATH}/tarsnode/bin/tarsnode
+        COMMAND sh ${TARS_INSTALL_PATH}/tarsnode/util/start.sh
         COMMENT "cp tarsnode & restart")
 
 add_custom_target(cp-tarsstat
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsstat
-        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsstat/bin/tarsstat /usr/local/app/tars/tarsstat/bin/tarsstat
-        COMMAND sh /usr/local/app/tars/tarsstat/util/start.sh
+        COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/tarsstat/bin/tarsstat ${TARS_INSTALL_PATH}/tarsstat/bin/tarsstat
+        COMMAND sh ${TARS_INSTALL_PATH}/tarsstat/util/start.sh
         COMMENT "cp tarsstat & restart")
 
 add_custom_target(cp-tarsquerystat
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsquerystat
-        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsquerystat/bin/tarsquerystat /usr/local/app/tars/tarsquerystat/bin/tarsquerystat
-        COMMAND /usr/local/app/tars/tarsquerystat/util/start.sh
+        COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/tarsquerystat/bin/tarsquerystat ${TARS_INSTALL_PATH}/tarsquerystat/bin/tarsquerystat
+        COMMAND ${TARS_INSTALL_PATH}/tarsquerystat/util/start.sh
         COMMENT "cp tarsquerystat & restart")
 
 add_custom_target(cp-tarsqueryproperty
         WORKING_DIRECTORY ${WORKING_DIRECTORY}
         DEPENDS tarsqueryproperty
-        COMMAND ${CMAKE_COMMAND} -E copy servers/tarsqueryproperty/bin/tarsqueryproperty /usr/local/app/tars/tarsqueryproperty/bin/tarsqueryproperty
-        COMMAND /usr/local/app/tars/tarsqueryproperty/util/start.sh
+        COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/tarsqueryproperty/bin/tarsqueryproperty ${TARS_INSTALL_PATH}/tarsqueryproperty/bin/tarsqueryproperty
+        COMMAND ${TARS_INSTALL_PATH}/tarsqueryproperty/util/start.sh
         COMMENT "cp tarsqueryproperty & restart")
 
 
