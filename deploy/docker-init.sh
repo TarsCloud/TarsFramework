@@ -85,7 +85,7 @@ mkdir -p /data/tars/demo_log
 mkdir -p /data/tars/patchs
 mkdir -p /data/tars/tarsnode-data
 
-./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER} ${PORT} ${TARS_PATH}
 if [ $? != 0 ]; then
     echo  "tars-install.sh error"
     exit 1
