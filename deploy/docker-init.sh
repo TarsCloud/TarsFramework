@@ -85,6 +85,8 @@ mkdir -p /data/tars/demo_log
 mkdir -p /data/tars/patchs
 mkdir -p /data/tars/tarsnode-data
 
+trap 'exit' SIGTERM SIGINT
+
 ./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER} ${PORT} ${TARS_PATH}
 if [ $? != 0 ]; then
     echo  "tars-install.sh error"
@@ -97,8 +99,6 @@ if [ "$SLAVE" != "true" ]; then
 else
   TARS=(tarsnode tarsregistry)
 fi
-
-trap 'exit' SIGTERM SIGINT
 
 while [ 1 ]
 do
