@@ -451,6 +451,8 @@ do
        exit 1 
    fi
 
+    LOG_DEBUG "remove old version config: rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf"
+
     LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
     sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
 done

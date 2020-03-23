@@ -41,5 +41,5 @@ replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapt
 replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`) VALUES ('tars','tarsstat','','localip.tars.com',now(),'','/usr/local/app/tars/tarsstat/bin/tarsstat','tars.tarsstat',0,'active','active',0,'2.1.0',now(),'','1.1.0',now(),'admin','tars_cpp');
 
 #v2.1.0, tarsquerystat & tarsqueryproperty change to tars server
-delete from `t_adapter_conf` where application = 'tars' and server_name = 'tarsqueryproperty' and adapter_name = 'tars.tarsqueryproperty.NoTarsObjAdapter';
-delete from `t_adapter_conf` where application = 'tars' and server_name = 'tarsquerystat' and adapter_name = 'tars.tarsquerystat.NoTarsObjAdapter';
+delete from t_adapter_conf where application = 'tars' and server_name = 'tarsqueryproperty' and adapter_name = 'tars.tarsqueryproperty.NoTarsObjAdapter';
+delete from t_adapter_conf where application = 'tars' and server_name = 'tarsquerystat' and adapter_name = 'tars.tarsquerystat.NoTarsObjAdapter';
