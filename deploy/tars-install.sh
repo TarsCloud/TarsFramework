@@ -348,7 +348,7 @@ function update_template()
             elif [ "$template_name" == "tars.tarsregistry" ]; then
                 parent_template="tars.framework-db"
             fi
-            LOG_INFO "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');"
+#            LOG_INFO "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');"
             echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile}
 
         done
