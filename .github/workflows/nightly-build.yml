@@ -1,4 +1,4 @@
-name: framework
+name: framework-nightly-build
 
 on: 
   push:
@@ -18,8 +18,12 @@ jobs:
     - name: Build framework image
       run: cd TarsDocker && docker build ./framework/ --file ./framework/Dockerfile --tag tarscloud/framework:nightly
     - name: docker push framework
-      run: docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} && docker push tarscloud/framework:nightly
+      run: |
+        docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} && docker push tarscloud/framework:nightly
+        docker login -u ${{ secrets.tarsname }} -p ${{ secrets.tarspass }} && docker push tarscloud/framework:nightly
     - name: Build tars image
       run: cd TarsDocker && docker build ./tars/ --file ./tars/Dockerfile --tag tarscloud/tars:nightly
     - name: docker push tars
-      run: docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} && docker push tarscloud/tars:nightly
+      run: |
+        docker login docker.tarsyun.com -u ${{ secrets.name }} -p ${{ secrets.pass }} && docker push docker.tarsyun.com/tarscloud/tars:nightly
+        docker login docker.tarsyun.com -u ${{ secrets.tarsname }} -p ${{ secrets.tarspass }} && docker push docker.tarsyun.com/tarscloud/tars:nightly
