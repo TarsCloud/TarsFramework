@@ -50,8 +50,13 @@ if [ "${COMMAND}" == "start" ]; then
         CONFIG=/usr/local/app/tars/${SERVER_NAME}/conf/tars.${SERVER_NAME}.config.conf
     fi
 
-    echo "start $bin --config=$CONFIG"
-    $bin  --config=$CONFIG > /dev/null &
+    if [ "${SERVER_NAME}" == "tarsnode" ]; then
+        echo "start $bin --nodeid=local.tars.com --config=$CONFIG"
+        $bin --nodeid="local.tars.com" --config=$CONFIG > /dev/null &
+    else
+        echo "start $bin --config=$CONFIG"
+        $bin --config=$CONFIG > /dev/null &
+    fi
 
 fi
 
