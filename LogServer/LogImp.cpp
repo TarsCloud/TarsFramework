@@ -401,14 +401,20 @@ void LogImp::initialize()
 
 void LogImp::logger(const string &app, const string &server, const string &file, const string &format, const vector<string> &buffer, tars::TarsCurrentPtr current)
 {
-    TC_DayLogger &dl = g_globe.getLogger(app, server, file, format,current->getIp());
+    string nodeName = current->getHostName() ;
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
+
+    TC_DayLogger &dl = g_globe.getLogger(app, server, file, format, nodeName);
 
     //记录日志
     for(size_t i = 0; i < buffer.size(); i++)
     {
         if(g_globe._bIpPrefix)
         {
-            dl.any() << current->getIp() << "|" << buffer[i];
+            dl.any() << nodeName << "|" << buffer[i];
         }
         else
         {
@@ -419,14 +425,20 @@ void LogImp::logger(const string &app, const string &server, const string &file,
 
 void LogImp::loggerbyInfo(const LogInfo & info,const vector<std::string> & buffer,tars::TarsCurrentPtr current)
 {
-    TC_DayLogger &dl = g_globe.getLogger(info,current->getIp());
+    string nodeName = current->getHostName() ;
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
+
+    TC_DayLogger &dl = g_globe.getLogger(info,nodeName);
 
     //记录日志
     for(size_t i = 0; i < buffer.size(); i++)
     {
         if(g_globe._bIpPrefix)
         {
-            dl.any() << current->getIp() << info.sSepar << buffer[i];
+            dl.any() << nodeName << info.sSepar << buffer[i];
         }
         else
         {

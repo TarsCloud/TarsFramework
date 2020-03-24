@@ -160,7 +160,7 @@ bool AdminRegistryImp::pingNode(const string & name, string & result, tars::Tars
 
 int AdminRegistryImp::shutdownNode(const string & name, string & result, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("AdminRegistryImp::shutdownNode name:"<<name<<"|"<<current->getIp()<<":"<<current->getPort()<<endl);
+    TLOGDEBUG("AdminRegistryImp::shutdownNode name:"<<name<<"|"<<current->getHostName()<<":"<<current->getPort()<<endl);
     try
     {
         NodePrx nodePrx = DBPROXY->getNodePrx(name);
@@ -176,14 +176,14 @@ int AdminRegistryImp::shutdownNode(const string & name, string & result, tars::T
 ///////////////////////////////////
 vector<vector<string> > AdminRegistryImp::getAllServerIds(string & result, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG(__FILE__ << "|" << __LINE__ << "|into " << __FUNCTION__ << "|" << current->getIp() << ":" << current->getPort() << endl);
+    TLOGDEBUG(__FILE__ << "|" << __LINE__ << "|into " << __FUNCTION__ << "|" << current->getHostName() << ":" << current->getPort() << endl);
 
     return DBPROXY->getAllServerIds(result);
 }
 
 int AdminRegistryImp::getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string &result, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("AdminRegistryImp::getServerState:" << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() <<endl);
+    TLOGDEBUG("AdminRegistryImp::getServerState:" << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
     int iRet = EM_TARS_UNKNOWN_ERR;
     try
@@ -235,7 +235,7 @@ int AdminRegistryImp::getServerState(const string & application, const string & 
             }
         }
 
-        TLOGDEBUG("AdminRegistryImp::getServerState: "  << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() <<endl);
+        TLOGDEBUG("AdminRegistryImp::getServerState: "  << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
         return EM_TARS_SUCCESS;
     }
@@ -285,7 +285,7 @@ int AdminRegistryImp::getGroupId(const string & ip, int &groupId, string &result
 int AdminRegistryImp::startServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::startServer: "<< application << "." << serverName << "_" << nodeName
-        << "|" << current->getIp() << ":" << current->getPort() <<endl);
+        << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
     int iRet = EM_TARS_UNKNOWN_ERR;
     try
@@ -307,7 +307,7 @@ int AdminRegistryImp::startServer(const string & application, const string & ser
         {
             NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
             TLOGINFO("call node into " << __FUNCTION__ << "|"
-                << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() <<endl);
+                << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
             current->setResponse(false);
             NodePrxCallbackPtr callback = new StartServerCallbackImp(application, serverName, nodeName, current);
@@ -400,7 +400,7 @@ int AdminRegistryImp::startServer_inner(const string & application, const string
 int AdminRegistryImp::stopServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::stopServer: "<< application << "." << serverName << "_" << nodeName
-        << "|" << current->getIp() << ":" << current->getPort() <<endl);
+        << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
     int iRet = EM_TARS_UNKNOWN_ERR;
     try
@@ -417,13 +417,13 @@ int AdminRegistryImp::stopServer(const string & application, const string & serv
             TLOGINFO( "|" << " '" + application  + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
             iRet = DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Inactive);
             TLOGDEBUG( __FUNCTION__ << "|" << application << "." << serverName << "_" << nodeName
-                << "|" << current->getIp() << ":" << current->getPort() << "|" << iRet <<endl);
+                << "|" << current->getHostName() << ":" << current->getPort() << "|" << iRet <<endl);
         }
         else
         {
             NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
             TLOGINFO("call node into " << __FUNCTION__ << "|"
-                << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() <<endl);
+                << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
             current->setResponse(false);
             NodePrxCallbackPtr callback = new StopServerCallbackImp(application, serverName, nodeName, current);
             nodePrx->async_stopServer(callback, application, serverName);
@@ -517,7 +517,7 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 
 int AdminRegistryImp::restartServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG(" AdminRegistryImp::restartServer: " << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() <<endl);
+    TLOGDEBUG(" AdminRegistryImp::restartServer: " << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
     bool isDnsServer = false;
     int iRet = EM_TARS_SUCCESS;
@@ -537,7 +537,7 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 			nodePrx->tars_timeout(12000);
             iRet = nodePrx->stopServer(application, serverName, result);
         }
-        TLOGDEBUG("call node restartServer, stop|" << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() << endl);
+        TLOGDEBUG("call node restartServer, stop|" << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() << endl);
 	    if(iRet != EM_TARS_SUCCESS)
 	    {
 		    TarsRemoteNotify::getInstance()->report(string("restart server, stop error:" + etos((tarsErrCode)iRet)) , application, serverName, nodeName);
@@ -569,7 +569,7 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
             {
                 NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
 
-                TLOGDEBUG("call node restartServer(), start|" << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() << endl);
+                TLOGDEBUG("call node restartServer(), start|" << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() << endl);
 
                 return nodePrx->startServer(application, serverName, result);
             }
@@ -685,7 +685,7 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
 
 int AdminRegistryImp::notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string &result, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("AdminRegistryImp::notifyServer: " << application << "." << serverName << "_" << nodeName << "|" << current->getIp() << ":" << current->getPort() <<endl);
+    TLOGDEBUG("AdminRegistryImp::notifyServer: " << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
     int iRet = EM_TARS_UNKNOWN_ERR;
     try
     {
@@ -907,7 +907,7 @@ int AdminRegistryImp::getPatchPercent( const string& application, const string& 
     try
     {
         TLOGDEBUG( "AdminRegistryImp::getPatchPercent: " + application  + "." + serverName + "_" + nodeName
-                << "|caller: " << current->getIp()  << ":" << current->getPort() <<endl);
+                << "|caller: " << current->getHostName()  << ":" << current->getPort() <<endl);
 
         NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
 
@@ -1061,7 +1061,7 @@ int AdminRegistryImp::getServerProfileTemplate(const string & application, const
 
 int AdminRegistryImp::getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current)
 {
-    sClientIp = current->getIp();
+    sClientIp = current->getHostName();
     return 0;
 }
 //
@@ -1254,7 +1254,7 @@ void StartServerCallbackImp::callback_startServer(tars::Int32 ret,
         const std::string& result)
 {
     TLOGDEBUG("StartServerCallbackImp::callback_startServer: "<< "|" << _application << "." << _serverName << "_" << _nodeName
-        << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
 
 	if(ret != EM_TARS_SUCCESS)
 	{
@@ -1266,7 +1266,7 @@ void StartServerCallbackImp::callback_startServer(tars::Int32 ret,
 void StartServerCallbackImp::callback_startServer_exception(tars::Int32 ret)
 {
     TLOGDEBUG("StartServerCallbackImp::callback_startServer_exception: "<< "|" << _application << "." << _serverName << "_" << _nodeName
-        << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
 
     int iRet = EM_TARS_UNKNOWN_ERR;
     if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
@@ -1283,7 +1283,7 @@ void StopServerCallbackImp::callback_stopServer(tars::Int32 ret,
         const std::string& result)
 {
     TLOGDEBUG( "StopServerCallbackImp::callback_stopServer: " << _application << "." << _serverName << "_" << _nodeName
-        << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
 
 	if(ret != EM_TARS_SUCCESS)
 	{
@@ -1296,7 +1296,7 @@ void StopServerCallbackImp::callback_stopServer(tars::Int32 ret,
 void StopServerCallbackImp::callback_stopServer_exception(tars::Int32 ret)
 {
     TLOGDEBUG( "StopServerCallbackImp::callback_stopServer_exception: " << _application << "." << _serverName << "_" << _nodeName
-        << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
     int iRet = EM_TARS_UNKNOWN_ERR;
     if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
     {
@@ -1310,7 +1310,7 @@ void StopServerCallbackImp::callback_stopServer_exception(tars::Int32 ret)
 /////////////////////////////////////////////////////////////////////////////
 void NotifyServerCallbackImp::callback_notifyServer(tars::Int32 ret,  const std::string& result)
 {
-    TLOGDEBUG("NotifyServerCallbackImp::callback_notifyServer_exception:  "<< _current->getIp() << ":" << _current->getPort() << "|" << ret  << "|" << result <<endl);
+    TLOGDEBUG("NotifyServerCallbackImp::callback_notifyServer_exception:  "<< _current->getHostName() << ":" << _current->getPort() << "|" << ret  << "|" << result <<endl);
 	if(ret != EM_TARS_SUCCESS)
 	{
 		TarsRemoteNotify::getInstance()->report(string("notify server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
@@ -1321,7 +1321,7 @@ void NotifyServerCallbackImp::callback_notifyServer(tars::Int32 ret,  const std:
 
 void NotifyServerCallbackImp::callback_notifyServer_exception(tars::Int32 ret)
 {
-    TLOGDEBUG( "NotifyServerCallbackImp::callback_notifyServer_exception " << "|" << _current->getIp() << ":" << _current->getPort() << "|" << ret <<endl);
+    TLOGDEBUG( "NotifyServerCallbackImp::callback_notifyServer_exception " << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
     int iRet = EM_TARS_UNKNOWN_ERR;
     if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
     {

@@ -132,11 +132,17 @@ bool NotifyImp::IsNeedFilte(const string& sServerName,const string& sResult)
 
 void NotifyImp::reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << current->getIp() << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl);
+    string nodeName = current->getHostName() ;
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
+
+    TLOGDEBUG("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl);
 
     if(IsNeedFilte(sServerName,sResult))
     {
-        TLOGWARN("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << current->getIp() << "|sThreadId:" << sThreadId << "|sResult:" << sResult <<"|filted"<< endl);
+        TLOGWARN("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult <<"|filted"<< endl);
         return;
     }
     
@@ -152,7 +158,7 @@ void NotifyImp::reportServer(const string& sServerName, const string& sThreadId,
     }
 
     info.eType     = REPORT;
-    info.sSet      = g_app.getLoadDbThread()->getSetName(sServerName + current->getIp());
+    info.sSet      = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
     info.sMessage  = sResult;
     info.sThreadId = sThreadId;
 
@@ -163,6 +169,12 @@ void NotifyImp::reportServer(const string& sServerName, const string& sThreadId,
 
 void NotifyImp::notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current)
 {
+    string nodeName = current->getHostName() ;
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
+
     ReportInfo info;
     info.sApp    = sServerName;
     info.sServer = sServerName;
@@ -175,7 +187,7 @@ void NotifyImp::notifyServer(const string& sServerName, NOTIFYLEVEL level, const
     }
 
     info.eType    = NOTIFY;
-    info.sSet     = g_app.getLoadDbThread()->getSetName(sServerName + current->getIp());
+    info.sSet     = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
     info.sMessage = sMessage;
     info.eLevel   = level;
 
@@ -210,12 +222,12 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
     {
         case (REPORT):
         {
-            TLOGDEBUG("NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp() 
+            TLOGDEBUG("NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getHostName() 
                 << "|nodeName:" << info.sNodeName << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << endl);
 
             if (IsNeedFilte(info.sApp + info.sServer, info.sMessage))
             {
-                TLOGWARN("NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getIp()
+                TLOGWARN("NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getHostName() 
 	                         << "|nodeName:" << info.sNodeName << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << "|filted" << endl);
 
                 return;
