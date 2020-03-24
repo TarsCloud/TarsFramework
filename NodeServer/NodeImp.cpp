@@ -456,6 +456,7 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
         if ( pServerObjectPtr )
         {
+
             string s;
             bool bByNode = true;
             CommandStop command(pServerObjectPtr,true, bByNode);
@@ -471,6 +472,8 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
             NODE_LOG(serverId)->debug()<<FILE_FUN <<result << endl;
         }
         else {
+	        NODE_LOG(serverId)->debug() <<FILE_FUN<< " " << serverId << " not exists, load from registry" << endl;
+
 	        pServerObjectPtr = ServerFactory::getInstance()->loadServer(application, serverName, false, result);
         }
 

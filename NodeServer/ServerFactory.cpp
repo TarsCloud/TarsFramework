@@ -32,20 +32,22 @@ ServerObjectPtr ServerFactory::getServer( const string& application, const strin
 {
 	string serverId = application + "." + serverName;
 
-    NODE_LOG(serverId)->debug() << "ServerFactory::getServer" << endl;
-
     Lock lock( *this );
+	NODE_LOG(serverId)->debug() << "ServerFactory::getServer, all app size:" << _mmServerList.size() << endl;
 
     map<string, ServerGroup>::const_iterator p1 = _mmServerList.find( application );
     if ( p1 != _mmServerList.end() )
     {
+
         map<string, ServerObjectPtr>::const_iterator p2 = p1->second.find( serverName );
         if ( p2 != p1->second.end() && p2->second )
         {
             return p2->second;
         }
     }
-    return NULL;
+
+	NODE_LOG(serverId)->debug() << "ServerFactory::getServer, server not load" << endl;
+	return NULL;
 }
 
 int ServerFactory::eraseServer( const string& application, const string& serverName )
@@ -113,8 +115,11 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
             return vServerDescriptor;
         }
 
-        vServerDescriptor =_pRegistryPrx->getServers( application, serverName, _tPlatformInfo.getNodeName());
-        //清空cache
+	    vServerDescriptor =_pRegistryPrx->getServers( application, serverName, _tPlatformInfo.getNodeName());
+
+	    NODE_LOG(application + "." + serverName)->debug() << FILE_FUN << ", nodeName:" << _tPlatformInfo.getNodeName() << ", size:" << vServerDescriptor.size() << endl;
+
+	    //清空cache
         if( vServerDescriptor.size() > 0 && application == "" && serverName == "")
         {
             g_serverInfoHashmap.clear();
