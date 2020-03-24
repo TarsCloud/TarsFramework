@@ -120,7 +120,7 @@ if [ $OS != 3 ]; then
 
 fi
 
-#获坖主机hostip
+#获取主机hostip
 for N in ${INET[@]};
 do
     HOSTIP=$(get_host_ip $N)
