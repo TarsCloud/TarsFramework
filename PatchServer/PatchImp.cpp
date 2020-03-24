@@ -86,7 +86,7 @@ void PatchImp::initialize()
  **/
 int PatchImp::listFileInfo(const string &path, vector<FileInfo> & vf, TarsCurrentPtr current)
 {
-    TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getIp() << "|path:" << path << endl);
+    TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getHostName()  << "|path:" << path << endl);
 
     string dir = tars::TC_File::simplifyDirectory(_directory + FILE_SEP + path);
 
@@ -96,14 +96,14 @@ int PatchImp::listFileInfo(const string &path, vector<FileInfo> & vf, TarsCurren
     tars::TarsDisplayer ds(ss);
     ds.displaySimple(vf, false);
 
-    TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getIp() << "|path:" << path << "|dir:" << dir << "|str:" << ss.str() << endl);
+    TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getHostName()  << "|path:" << path << "|dir:" << dir << "|str:" << ss.str() << endl);
 
     return ret;
 }
 
 int PatchImp::download(const string & file, int pos, vector<char> & vb, TarsCurrentPtr current)
 {
-    TLOGDEBUG("PatchImp::download ip:" << current->getIp() << "|file:" << file << "|pos:" << pos << endl);
+    TLOGDEBUG("PatchImp::download ip:" << current->getHostName()  << "|file:" << file << "|pos:" << pos << endl);
 
     string path = tars::TC_File::simplifyDirectory(_directory + FILE_SEP + file);
     

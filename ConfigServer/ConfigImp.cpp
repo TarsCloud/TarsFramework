@@ -50,7 +50,7 @@ int ConfigImp::ListConfig(const string &app, const string &server, vector<string
 {
     try
     {
-        string host =  current->getIp();
+        string host =  current->getHostName();
 
         TLOGDEBUG("ConfigImp::ListConfig app:" << app << "|server:" << server << "|host:" << host << endl);
 
@@ -107,7 +107,7 @@ int ConfigImp::ListConfigByInfo(const ConfigInfo& configInfo, vector<string> &vf
 {
     try
     {
-        string sHost =  configInfo.host.empty() ? current->getIp() : configInfo.host;
+        string sHost =  configInfo.host.empty() ? current->getHostName() : configInfo.host;
 
         TLOGDEBUG("ConfigImp::ListConfigByInfo app:" << configInfo.appname << "|server:" << configInfo.servername << "|set:" << configInfo.setdivision << "|host:" << sHost << endl);
 
@@ -170,8 +170,13 @@ int ConfigImp::loadConfigByInfo(const ConfigInfo & configInfo,string &config,tar
     int iRet = 0 ;
 
     TLOGDEBUG("ConfigImp::loadConfigByInfo app:" << configInfo.appname << "|server:" << configInfo.servername << "|filename:" << configInfo.filename << "|setdivision:" << configInfo.setdivision << endl);
+    // string nodeName = current->getContext()["node_name"];
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
 
-    CHECKLIMIT(configInfo.appname,configInfo.servername,current->getIp(),configInfo.filename);
+    CHECKLIMIT(configInfo.appname,configInfo.servername,current->getHostName() ,configInfo.filename);
     
     if(configInfo.bAppOnly || configInfo.servername.empty())//应用级配置或者set级配置
     {
@@ -213,13 +218,19 @@ int ConfigImp::checkConfigByInfo(const ConfigInfo & configInfo, string &result,t
 
 int ConfigImp::loadConfig(const std::string& app, const std::string& server, const std::string& fileName, string &config, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("ConfigImp::loadConfig app:" << app << "|server:" << server << "|fileName:" << fileName << "|host:" << current->getIp() << endl);
+    // string nodeName = current->getContext()["node_name"];
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
 
-    CHECKLIMIT(app,server,current->getIp(),fileName);
+    TLOGDEBUG("ConfigImp::loadConfig app:" << app << "|server:" << server << "|fileName:" << fileName << "|host:" << current->getHostName()  << endl);
+
+    CHECKLIMIT(app,server,current->getHostName() ,fileName);
 
     if(!server.empty())
     {
-        return loadConfigByHost(app + "." + server, fileName, current->getIp(), config, current);
+        return loadConfigByHost(app + "." + server, fileName, current->getHostName() , config, current);
     }
     else
     {
@@ -592,7 +603,13 @@ int ConfigImp::loadAppConfig(const std::string& appName, const std::string& file
 
 int ConfigImp::loadConfigByHost(const ConfigInfo & configInfo, string &config, tars::TarsCurrentPtr current)
 {
-    string sHost =  configInfo.host.empty() ? current->getIp() : configInfo.host;
+    // string nodeName = current->getContext()["node_name"];
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
+
+    string sHost =  configInfo.host.empty() ? current->getHostName()  : configInfo.host;
 
     TLOGDEBUG("ConfigImp::loadConfigByHost app:" << configInfo.appname << "|server:" << configInfo.servername << "|filename:" << configInfo.filename
         << "|host:" << sHost << "|setdivision:"    <<configInfo.setdivision << endl);
@@ -881,7 +898,13 @@ bool ConfigImp::IsLimited(const std::string & app, const std::string & server, c
 
 int ConfigImp::ListAllConfigByInfo(const tars::GetConfigListInfo & configInfo, vector<std::string> &vf, tars::TarsCurrentPtr current)
 {
-	CHECKLIMIT(configInfo.appname,configInfo.servername,current->getIp(),"");
+    // string nodeName = current->getContext()["node_name"];
+    // if(nodeName.empty())
+    // {
+    //     nodeName = current->getIp();
+    // }
+
+	CHECKLIMIT(configInfo.appname,configInfo.servername,current->getHostName() ,"");
 
 	try
 	{

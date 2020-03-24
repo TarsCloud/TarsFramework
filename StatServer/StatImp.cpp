@@ -113,13 +113,13 @@ int StatImp::reportMicMsg( const map<tars::StatMicMsgHead, tars::StatMicMsgBody>
 
         if(bFromClient)
         {
-            head.masterIp   = current->getIp();  //以前是自己获取主调ip,现在从proxy直接
+            head.masterIp   = current->getHostName() ;  //以前是自己获取主调ip,现在从proxy直接
 
             head.slaveName  = getSlaveName(head.slaveName);
         }
         else
         {
-            head.slaveIp = current->getIp();//现在从proxy直接
+            head.slaveIp = current->getHostName() ;//现在从proxy直接
         }
 
         string sMasterName      = head.masterName;
@@ -165,10 +165,11 @@ int StatImp::reportSampleMsg(const vector<StatSampleMsg> &msg,tars::TarsCurrentP
 {
     TLOGINFO("sample---------------------------------access size:" << msg.size() << endl);
 
+    string nodeName = current->getHostName();
     for(unsigned i=0; i<msg.size();i++)
     {
         StatSampleMsg sample = msg[i];
-        sample.masterIp = current->getIp();
+        sample.masterIp = nodeName;
 
         ostringstream os;
         sample.displaySimple(os);
