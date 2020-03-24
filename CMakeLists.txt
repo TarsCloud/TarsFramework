@@ -105,6 +105,8 @@ macro(complice_tars OUT_DEPENDS_LIST)
     set(OUT_DEPENDS_LIST ${DEPENDS_LIST})
 endmacro()
 
+add_subdirectory(mysql-tool)
+
 add_subdirectory(tarscpp/servant/protocol/framework)
 add_subdirectory(ConfigServer)
 add_subdirectory(NodeServer)
@@ -174,7 +176,7 @@ endforeach ()
 install(DIRECTORY ${PROJECT_BINARY_DIR}/${BUILD_SERVER}/ DESTINATION deploy/framework/${BUILD_SERVER}
         PATTERN "tars*"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
-        
+
 IF(WIN32)
 install(DIRECTORY deploy DESTINATION ./ 
         PATTERN "*.bat"
@@ -184,6 +186,11 @@ install(DIRECTORY deploy DESTINATION ./
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
 ENDIF(WIN32)
+
+#install(TARGETS mysql-tool DESTINATION deploy)
+#install(FILES ${PROJECT_BINARY_DIR}/bin/mysql-tool DESTINATION deploy/
+#        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
+
 ############################################################################################
 #for debug
 
