@@ -54,7 +54,8 @@ LoadInfo PlatformInfo::getLoadInfo() const
 
 string PlatformInfo::getNodeName() const
 {
-    return ServerConfig::LocalIp;
+	return NodeServer::NODE_ID;
+//    return ServerConfig::LocalIp;
 }
 
 string PlatformInfo::getDataDir() const
