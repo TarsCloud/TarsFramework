@@ -23,4 +23,4 @@ endif()
 
 target_link_libraries(mysql-tool ${LIB_MYSQL})
 
-#install(TARGETS mysql-tool DESTINATION deploy)
+install(TARGETS mysql-tool DESTINATION deploy)

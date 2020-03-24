@@ -89,6 +89,7 @@ TARSALL="tarsregistry tarsAdminRegistry tarsnode tarslog tarsconfig tarsnotify  
 mkdir -p ${TARS_PATH}
 
 WORKDIR=$(cd $(dirname $0); pwd)
+MYSQL_TOOL=${WORKDIR}/mysql-tool.exe
 
 LOG_INFO "====================================================================";
 LOG_INFO "===**********************tars-install*****************************===";
@@ -120,26 +121,30 @@ do
     kill_all ${var}
 done
 
-################################################################################
-#check mysql
-while [ 1 ]
-do
-    RESULT=`mysqladmin -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} ping`
 
-    echo $RESULT | grep -q "alive"
+################################################################################
+
+function check_mysql()
+{
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user="$1" --pass="$2" --port=${PORT} --check
+
     if [ $? == 0 ]; then
         LOG_INFO "mysql is alive"
-        break
+        return
     fi
 
-    LOG_ERROR "check mysql is not alive: mysqladmin -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} ping"
+    LOG_ERROR "check mysql is not alive: ${MYSQL_TOOL} --host=${MYSQLIP} --user="$1" --pass="$2" --port=${PORT} --check"
 
-    sleep 3
-done
+    exit 1
+}
+################################################################################
+#check mysql
+
+check_mysql ${USER} ${PASS}
 
 function exec_mysql_script()
 {
-    mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} --default-character-set=utf8 -e "$1"
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --sql="$1"
 
     ret=$?
     LOG_DEBUG "exec_mysql_script $1, ret: $ret"  
@@ -149,7 +154,7 @@ function exec_mysql_script()
 
 function exec_mysql_sql()
 {
-    mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} --default-character-set=utf8 -D$1 < $2
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 $2
 
     ret=$?
 
@@ -178,8 +183,8 @@ fi
 
 cd ${WORKDIR}/sql.tmp
 
-MYSQL_VER=`mysql -h${MYSQLIP} -u${USER} -p${PASS} -P${PORT} -e "SELECT VERSION();"`
-MYSQL_VER=`echo $MYSQL_VER | cut -d' ' -f2`
+MYSQL_VER=`${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --version`
+#MYSQL_VER=`echo $MYSQL_VER | cut -d' ' -f2`
 MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, CREATE TABLESPACE"
 
 echo "mysql version is: $MYSQL_VER"
@@ -211,20 +216,8 @@ fi
 
 ################################################################################
 #check mysql
-while [ 1 ]
-do
-    RESULT=`mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping`
 
-    echo $RESULT | grep -q "alive"
-    if [ $? == 0 ]; then
-        LOG_INFO "mysql auth succ"
-        break
-    fi
-
-    LOG_ERROR "check mysql auth: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
-
-    sleep 3
-done
+check_mysql tars tars2015
 
 ################################################################################
 exec_mysql_script "use db_tars"
@@ -347,16 +340,12 @@ function update_conf() {
 
     LOG_INFO "update server config: ${TARS_PATH}/$1/conf/tars.$1.config.conf"
 
-    if [ "tarsnode" != "$1" ]; then
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-
-    else
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-    fi
     
     sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
     sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/start.bat`
