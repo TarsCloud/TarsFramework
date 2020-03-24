@@ -53,7 +53,7 @@ if [[ "$OS" =~ "Darwin" ]]; then
     OS=3
 else
     OS=`cat /etc/os-release`
-    if [[ "$OS" =~ "CentOS" ]]; then
+    if [[ "$OS" =~ "CentOS" ]] || [[ "$OS" =~ "Tencent tlinux" ]]; then
       OS=1
     elif [[ "$OS" =~ "Ubuntu" ]]; then
       OS=2
@@ -120,7 +120,7 @@ if [ $OS != 3 ]; then
 
 fi
 
-#获取主机hostip
+#获坖主机hostip
 for N in ${INET[@]};
 do
     HOSTIP=$(get_host_ip $N)
