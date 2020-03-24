@@ -53,7 +53,7 @@ if [[ "$OS" =~ "Darwin" ]]; then
     OS=3
 else
     OS=`cat /etc/os-release`
-    if [[ "$OS" =~ "CentOS" ]]; then
+    if [[ "$OS" =~ "CentOS" ]] || [[ "$OS" =~ "Tencent tlinux" ]]; then
       OS=1
     elif [[ "$OS" =~ "Ubuntu" ]]; then
       OS=2
