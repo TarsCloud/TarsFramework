@@ -456,6 +456,8 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
 			NODE_ID = sLocalIp;
 		}
 
+		TLOGDEBUG("NodeServer::onUpdateConfig NODE_ID:" << NODE_ID << endl);
+
 		string sTemplate;
 		pRegistryPrx->getNodeTemplate(NODE_ID, sTemplate);
 		if(TC_Common::trim(sTemplate) == "" )
