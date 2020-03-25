@@ -29,11 +29,6 @@ function netstat_port()
 #公共函数
 function LOG_ERROR()
 {
-	if (( $# < 1 ))
-	then
-		echo -e "\033[33m usesage: LOG_ERROR msg \033[0m";
-	fi
-	
 	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 
     msg="${msg} $@";
@@ -43,11 +38,6 @@ function LOG_ERROR()
 
 function LOG_WARNING()
 {
-	if (( $# < 1 ))
-	then
-		echo -e "\033[33m usesage: LOG_WARNING msg \033[0m";
-	fi
-	
 	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 
     msg="${msg} $@";
@@ -57,11 +47,6 @@ function LOG_WARNING()
 
 function LOG_DEBUG()
 {
-	if (( $# < 1 ))
-	then
-		LOG_WARNING "Usage: LOG_DEBUG logmsg";
-	fi
-	
 	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 
     msg="${msg} $@";
@@ -71,11 +56,6 @@ function LOG_DEBUG()
 
 function LOG_INFO()
 {
-	if (( $# < 1 ))
-	then
-		LOG_WARNING "Usage: LOG_INFO logmsg";
-	fi
-	
 	local msg=$(date +%Y-%m-%d" "%H:%M:%S);
 	
 	for p in $@
@@ -86,8 +66,7 @@ function LOG_INFO()
 	echo -e "\033[32m $msg \033[0m"  	
 }
 
-if (( $# < 8 ))
-then
+if [ $# -lt 8 ]; then
     echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT TARS_PATH";
     exit 1
 fi

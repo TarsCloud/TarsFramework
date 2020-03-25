@@ -61,26 +61,7 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 ################################################################################
 
-cp -rf ${TARS_INSTALL}/web/sql/*.sql ${TARS_INSTALL}/framework/sql/
-cp -rf ${TARS_INSTALL}/web/demo/sql/*.sql ${TARS_INSTALL}/framework/sql/
-
-TARS="tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat"
-
-cd ${TARS_INSTALL}/framework/servers-win;
-for var in $TARS;
-do
-  echo "tar czf ${var}.tgz ${var}"
-  tar czf ${var}.tgz ${var}
-done
-
-mkdir -p ${TARS_INSTALL}/web/files/
-cp -rf ${TARS_INSTALL}/framework/servers-win/*.tgz ${TARS_INSTALL}/web/files/
-rm -rf ${TARS_INSTALL}/framework/servers-win/*.tgz
-cp ${TARS_INSTALL}/tools/install.sh ${TARS_INSTALL}/web/files/
-
-################################################################################
-
 cd ${TARS_INSTALL}
 
-./windows-tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${TARS_PATH}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${TARS_PATH}
 
