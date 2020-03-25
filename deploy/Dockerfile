@@ -8,7 +8,7 @@ COPY centos7_base.repo /etc/yum.repos.d/
 
 RUN mkdir -p ${TARS_INSTALL} \
     && yum makecache fast \
-    && yum install -y yum-utils psmisc mysql net-tools wget unzip telnet \
+    && yum install -y yum-utils psmisc net-tools wget unzip telnet \
     yum clean all && rm -rf /var/cache/yum
 
 COPY web ${TARS_INSTALL}/web
@@ -25,11 +25,52 @@ RUN source $HOME/.bashrc \
 
 COPY framework ${TARS_INSTALL}/framework
 COPY tools ${TARS_INSTALL}/tools
-COPY docker-init.sh tars-install.sh tar-server.sh ${TARS_INSTALL}/
+# COPY docker-init.sh tars-install.sh tar-server.sh ${TARS_INSTALL}/
+COPY docker-init.sh tars-install.sh web-install.sh ${TARS_INSTALL}/
 
-RUN ${TARS_INSTALL}/tar-server.sh
+# RUN ${TARS_INSTALL}/tar-server.sh
+
+RUN mkdir -p /data/tars/app_log \
+    && mkdir -p /data/tars/web_log \
+    && mkdir -p /data/tars/demo_log \
+    && mkdir -p /data/tars/patchs \
+    && mkdir -p /data/tars/tarsnode-data \
+    && mkdir -p /usr/local/app/tars/ \
+    && mkdir -p /usr/local/app/web/ \
+    && mkdir -p /usr/local/app/web/demo/ \
+    && mkdir -p /usr/local/app/tars/tarsnode \
+    && ln -s /data/tars/app_log /usr/local/app/tars/app_log \
+    && ln -s /data/tars/web_log /usr/local/app/web/log \
+    && ln -s /data/tars/demo_log /usr/local/app/web/demo/log \
+    && ln -s /data/tars/patchs /usr/local/app/patchs \
+    && ln -s /data/tars/tarsnode-data /usr/local/app/tars/tarsnode/data
 
 ENTRYPOINT [ "/usr/local/tars/cpp/deploy/docker-init.sh"]
 
+#web
 EXPOSE 3000
+#user system
 EXPOSE 3001
+#tarslog
+EXPOSE 18993
+#tarspatch
+EXPOSE 18793
+#tarsqueryproperty
+EXPOSE 18693
+#tarsconfig
+EXPOSE 18193
+#tarsnotify
+EXPOSE 18593
+#tarsproperty
+EXPOSE 18493
+tarsquerystat
+EXPOSE 18393
+#tarsstat
+EXPOSE 18293
+#tarsAdminRegistry
+EXPOSE 12000
+#tarsnode
+EXPOSE 19385
+#tarsregistry
+EXPOSE 17890
+EXPOSE 17891

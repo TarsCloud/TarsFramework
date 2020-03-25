@@ -51,6 +51,12 @@ struct MysqlCommand
 		}
 	}
 
+	void has(TC_Mysql &mysql, const string &db)
+	{
+//		cout << "has database: " << db << endl;
+		mysql.execute("use " + db);
+	}
+
 	string getVersion(TC_Mysql &mysql)
 	{
 		TC_Mysql::MysqlData data = mysql.queryRecord("SELECT VERSION() as version");
@@ -60,11 +66,15 @@ struct MysqlCommand
 
 	void executeSql(TC_Mysql &mysql, const string &sql)
 	{
+//		cout << "exec sql:" << sql << endl;
+
 		mysql.execute(sql);
 	}
 
 	void executeFile(TC_Mysql &mysql, const string &file)
 	{
+//		cout << "exec file:" << file << endl;
+
 		string data = TC_File::load2str(file);
 		mysql.execute(data);
 	}
@@ -94,7 +104,11 @@ int main(int argc, char *argv[])
 	    {
 		    mysqlCmd.check(mysql);
 	    }
-	    if(option.hasParam("version"))
+	    else if(option.hasParam("has"))
+	    {
+		    mysqlCmd.has(mysql, option.getValue("has"));
+	    }
+	    else if(option.hasParam("version"))
 	    {
 		    cout << mysqlCmd.getVersion(mysql) << endl;
 		    return 0;
@@ -110,7 +124,6 @@ int main(int argc, char *argv[])
     }
     catch(exception &ex)
     {
-        cout << ex.what() << endl;
         exit(-1);
     }
 

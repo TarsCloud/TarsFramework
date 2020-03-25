@@ -196,27 +196,13 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 cp -rf ${TARS_INSTALL}/web/sql/*.sql ${TARS_INSTALL}/framework/sql/
 cp -rf ${TARS_INSTALL}/web/demo/sql/*.sql ${TARS_INSTALL}/framework/sql/
 
-# strip ${TARS_INSTALL}/framework/servers/tars*/bin/tars*
-chmod a+x ${TARS_INSTALL}/framework/servers/tars*/util/*.sh
-
-TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
-
-cd ${TARS_INSTALL}/framework/servers;
-for var in ${TARS[@]};
-do
-  echo "tar czf ${var}.tgz ${var}"
-  tar czf ${var}.tgz ${var}
-done
-
-mkdir -p ${TARS_INSTALL}/web/files/
-cp -rf ${TARS_INSTALL}/framework/servers/*.tgz ${TARS_INSTALL}/web/files/
-rm -rf ${TARS_INSTALL}/framework/servers/*.tgz
-cp ${TARS_INSTALL}/tools/install.sh ${TARS_INSTALL}/web/files/
-
-################################################################################
-
 cd ${TARS_INSTALL}
 
 ./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${TARS_PATH}
 
+
+################################################################################
+
 exec_profile
+
+################################################################################

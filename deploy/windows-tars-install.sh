@@ -154,7 +154,7 @@ function exec_mysql_script()
 
 function exec_mysql_sql()
 {
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 $2
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2
 
     ret=$?
 
@@ -326,13 +326,14 @@ rm -rf ${WORKDIR}/sql.tmp
 ################################################################################
 #check framework
 
-LOG_INFO "copy ${WORKDIR}/framework/servers-win/* to tars path:${TARS_PATH}";
+LOG_INFO "copy ${WORKDIR}/framework/util-win/* to tars path:${TARS_PATH}";
 
-cp -rf ${WORKDIR}/framework/servers-win/*.bat ${TARS_PATH}
+cp -rf ${WORKDIR}/framework/util-win/*.bat ${TARS_PATH}
 
 for var in $TARS;
 do
-    cp -rf ${WORKDIR}/framework/servers-win/${var} ${TARS_PATH}
+    cp -rf ${WORKDIR}/framework/conf/${var} ${TARS_PATH}
+    cp -rf ${WORKDIR}/framework/util-win/${var} ${TARS_PATH}
     cp -rf ${WORKDIR}/../thirdparty/lib/libmysql.dll ${TARS_PATH}/${var}/bin
 done
 
@@ -340,18 +341,23 @@ function update_conf() {
 
     LOG_INFO "update server config: ${TARS_PATH}/$1/conf/tars.$1.config.conf"
 
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+    sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
     
     sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
     sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/start.bat`
     sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/stop.bat`
-
 }
+
+if [ $OS == 2 ]; then
+   sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/execute.sh`
+else
+   sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/execute.sh`
+fi
 
 sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.bat`
 sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/execute.bat`

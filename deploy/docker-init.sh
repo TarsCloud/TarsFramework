@@ -102,11 +102,11 @@ fi
 
 while [ 1 ]
 do
-
-  for var in ${TARS[@]};
-  do
-    sh ${TARS_PATH}/${var}/util/check.sh
-  done
+    sh ${TARS_PATH}/tarsnode/util/check.sh
+#  for var in ${TARS[@]};
+#  do
+#    sh ${TARS_PATH}/${var}/util/check.sh
+#  done
 
   sleep 3
 

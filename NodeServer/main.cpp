@@ -208,12 +208,8 @@ void parseConfig(int argc, char *argv[])
         sNodeId = "";
     }
 
-	int ret = NodeServer::onUpdateConfig(sNodeId, sConfigFile);
+	NodeServer::onUpdateConfig(sNodeId, sConfigFile);
 
-    if(ret < 0)
-    {
-    	exit(-1);
-    }
 //
 //    if(!TC_File::isAbsolute(sConfigFile))
 //    {

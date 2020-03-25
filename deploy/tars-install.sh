@@ -192,6 +192,16 @@ function check_mysql()
 
 check_mysql ${USER} ${PASS}
 
+function exec_mysql_has()
+{
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --has=$1
+
+    ret=$?
+    LOG_DEBUG "exec_mysql_has $1, ret: $ret"
+
+    return $ret
+}
+
 function exec_mysql_script()
 {
     ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --sql="$1"
@@ -204,7 +214,7 @@ function exec_mysql_script()
 
 function exec_mysql_sql()
 {
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 $2
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2
 
     ret=$?
 
@@ -275,25 +285,8 @@ fi
 
 check_mysql tars tars2015
 
-#check_mysql()
-#
-#while [ 1 ]
-#do
-#    RESULT=`mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping`
-#
-#    echo $RESULT | grep -q "alive"
-#    if [ $? == 0 ]; then
-#        LOG_INFO "mysql auth succ"
-#        break
-#    fi
-#
-#    LOG_ERROR "check mysql auth failed! exec: mysqladmin -h${MYSQLIP} -utars -ptars2015 -P${PORT} ping"
-#
-#    exit -1
-#done
-
 ################################################################################
-exec_mysql_script "use db_tars"
+exec_mysql_has "db_tars"
 if [ $? != 0 ]; then
 
     LOG_INFO "no db_tars exists, begin build db_tars..."  
@@ -311,7 +304,7 @@ if [ $? != 0 ]; then
     exec_mysql_sql db_tars_web db_tars_web.sql
 fi
 
-exec_mysql_script "use db_cache_web"
+exec_mysql_has "db_cache_web"
 if [ $? != 0 ]; then
     LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
     exec_mysql_script "create database db_cache_web"
@@ -368,7 +361,7 @@ function update_template()
 
 update_template
 
-exec_mysql_script "use db_user_system"
+exec_mysql_has "db_user_system"
 if [ $? != 0 ]; then
     LOG_INFO "db_user_system not exists, begin build db_user_system..."  
 
@@ -399,14 +392,17 @@ rm -rf ${WORKDIR}/sql.tmp
 ################################################################################
 #check framework
 
-LOG_INFO "copy ${WORKDIR}/framework/servers/* to tars path:${TARS_PATH}";
+LOG_INFO "copy ${WORKDIR}/framework/conf/ to tars path:${TARS_PATH}";
+LOG_INFO "copy ${WORKDIR}/framework/util/ to tars path:${TARS_PATH}";
 
-cp -rf ${WORKDIR}/framework/servers/*.sh ${TARS_PATH}
+cp -rf ${WORKDIR}/framework/util-linux/*.sh ${TARS_PATH}
 chmod a+x ${TARS_PATH}/*.sh
 
 for var in ${TARS[@]};
 do
     cp -rf ${WORKDIR}/framework/servers/${var} ${TARS_PATH}
+    cp -rf ${WORKDIR}/framework/conf/${var} ${TARS_PATH}
+    cp -rf ${WORKDIR}/framework/util-linux/${var} ${TARS_PATH}
 done
 
 function update_conf() {
@@ -420,19 +416,40 @@ function update_conf() {
         sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "" "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "" "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/execute.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/start.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/stop.sh`
+        if [ -f ${TARS_PATH}/$1/util/check.sh ]; then
+            sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/check.sh`
+        fi
     else
         sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
         sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/execute.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/start.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/stop.sh`
+        if [ -f ${TARS_PATH}/$1/util/check.sh ]; then
+            sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/check.sh`
+        fi
     fi
+
 }
 
 if [ $OS == 2 ]; then
-   sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/execute.sh`
+    sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
+    sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
+    sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
 else
-   sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/execute.sh`
+    sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
+    sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
+    sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
 fi
 
 #update server config
@@ -455,57 +472,63 @@ do
     sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
 done
 
+
 ################################################################################
-#deploy & start web
-if [ "$SLAVE" != "true" ]; then
 
-    cd ${WORKDIR}
-    LOG_INFO "copy web to web path:/usr/local/app/";
+./web-install.sh ${MYSQLIP} ${HOSTIP} ${SLAVE} ${PORT} ${TARS_PATH}
 
-    rm -rf web/log
-    cp -rf web /usr/local/app/
-
-    LOG_INFO "update web config";
-
-    if [ $OS == 2 ]; then
-        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
-        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
-        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
-        sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
-
-        sed -i "" "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
-        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
-
-        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
-        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
-
-        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
-    else
-        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
-        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
-        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
-
-        sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
-        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
-
-        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
-        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
-
-        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
-    fi
-
-    LOG_INFO "start web";
-
-    cd /usr/local/app/web; pm2 stop tars-node-web; pm2 delete tars-node-web; npm run prd; 
-    cd /usr/local/app/web/demo; pm2 stop tars-user-system;  pm2 delete tars-user-system; npm run prd
-
-    LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
-    LOG_INFO "If in Docker, please check you host ip and port."
-    LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
-    LOG_INFO "You can install tarsnode to other machine in web(>=1.3.1)"
-    LOG_INFO "==============================================================";
-else
-    LOG_INFO "Install slave($SLAVE) node success"
-    LOG_INFO "==============================================================";
-fi
+#
+#################################################################################
+##deploy & start web
+#if [ "$SLAVE" != "true" ]; then
+#
+#    cd ${WORKDIR}
+#    LOG_INFO "copy web to web path:/usr/local/app/";
+#
+#    rm -rf web/log
+#    cp -rf web /usr/local/app/
+#
+#    LOG_INFO "update web config";
+#
+#    if [ $OS == 2 ]; then
+#        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+#        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
+#        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
+#        sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
+#
+#        sed -i "" "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
+#        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
+#
+#        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
+#        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
+#
+#        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+#    else
+#        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
+#        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
+#        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
+#        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
+#
+#        sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
+#        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
+#
+#        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
+#        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
+#
+#        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
+#    fi
+#
+#    LOG_INFO "start web";
+#
+#    cd /usr/local/app/web; pm2 stop tars-node-web; pm2 delete tars-node-web; npm run prd;
+#    cd /usr/local/app/web/demo; pm2 stop tars-user-system;  pm2 delete tars-user-system; npm run prd
+#
+#    LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
+#    LOG_INFO "If in Docker, please check you host ip and port."
+#    LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
+#    LOG_INFO "You can install tarsnode to other machine in web(>=1.3.1)"
+#    LOG_INFO "==============================================================";
+#else
+#    LOG_INFO "Install slave($SLAVE) node success"
+#    LOG_INFO "==============================================================";
+#fi
