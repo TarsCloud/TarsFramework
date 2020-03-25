@@ -73,10 +73,26 @@ struct MysqlCommand
 
 	void executeFile(TC_Mysql &mysql, const string &file)
 	{
-//		cout << "exec file:" << file << endl;
+		cout << "exec file:" << file << endl;
 
 		string data = TC_File::load2str(file);
-		mysql.execute(data);
+
+                vector<string> v = TC_Common::sepstr<string>(data, ";", false);
+                for(auto s : v)
+                { 
+                    string sql = TC_Common::trim(s);
+                    if(!sql.empty())
+		    	mysql.execute(s);
+                }
+	}
+
+	void executeTemplate(TC_Mysql &mysql, const string &parentTemlateName, const string &templateName, const string &profile, const string &port)
+	{
+		string content = TC_Common::replace(TC_File::load2str(profile), "3306", port);
+
+		string sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(templateName) + "','" + mysql.realEscapeString(parentTemlateName) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";
+
+		mysql.execute(sql);
 	}
 };
 
@@ -121,9 +137,14 @@ int main(int argc, char *argv[])
 	    {
 		    mysqlCmd.executeFile(mysql, option.getValue("file"));
 	    }
+		else if(option.hasParam("template"))
+		{
+		    mysqlCmd.executeTemplate(mysql, option.getValue("parent"), option.getValue("template"), option.getValue("profile"), option.getValue("port"));
+		}
     }
     catch(exception &ex)
     {
+cout << ex.what() << endl;
         exit(-1);
     }
 

@@ -194,6 +194,7 @@ check_mysql ${USER} ${PASS}
 
 function exec_mysql_has()
 {
+    echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --has=$1"
     ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --has=$1
 
     ret=$?
@@ -214,7 +215,8 @@ function exec_mysql_script()
 
 function exec_mysql_sql()
 {
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2
+    echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2"
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db="$1" --file="$2"
 
     ret=$?
 
@@ -223,8 +225,23 @@ function exec_mysql_sql()
     return $ret
 }
 
+function exec_mysql_template()
+{
+    echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --parent=$1 --template=$2 --profile=$3"
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=db_tars --parent=$1 --template=$2 --profile=$3
+
+    ret=$?
+
+    LOG_DEBUG "exec_mysql_template $1 $2, ret: $ret"  
+
+    return $ret
+}
+
 ################################################################################
 #check db_tars
+cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
+cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
+
 cp -rf ${WORKDIR}/framework/sql ${WORKDIR}/sql.tmp
 
 if [ $OS == 2 ]; then
@@ -280,6 +297,8 @@ if [ `echo $MYSQL_VER|grep ^5.` ]; then
     exec_mysql_script "flush privileges;"
 fi
 
+rm -rf ${WORKDIR}/sql.tmp
+
 ################################################################################
 #check mysql
 
@@ -316,17 +335,17 @@ function update_template()
 {
     LOG_INFO "create t_profile_template";
 
-    sqlFile="tmp.sql"
+    # sqlFile="tmp.sql"
 
-    echo > $sqlFile
-    echo "truncate t_profile_template;" >> $sqlFile
+    # echo > $sqlFile
+    echo "truncate t_profile_template;"
 
     function read_dir(){
         for template_name in $(ls template)
         do
             echo $template_name #在此处处理文件即可
 
-            profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" )
+            # profile=$(cat template/${template_name} | sed "s/'/\\\'/g" | sed "s/3306/${PORT}/g" )
 
             parent_template="tars.default"
             if [ "$template_name" == "tars.springboot" ]; then
@@ -348,15 +367,17 @@ function update_template()
             elif [ "$template_name" == "tars.tarsregistry" ]; then
                 parent_template="tars.framework-db"
             fi
+
+            exec_mysql_template $parent_template $template_name template/${template_name} 
 #            LOG_INFO "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');"
-            echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile}
+            # echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile}
 
         done
     }
 
     read_dir
 
-    exec_mysql_sql db_tars $sqlFile;
+    # exec_mysql_sql db_tars $sqlFile;
 }
 
 update_template
@@ -385,78 +406,123 @@ exec_mysql_sql db_tars tars_servers.sql
 LOG_INFO "create node info";
 exec_mysql_sql db_tars tars_node_init.sql
 
+#exit 0
+
 cd ${WORKDIR}
 
-rm -rf ${WORKDIR}/sql.tmp
-
 ################################################################################
-#check framework
+function update_path() {
 
-LOG_INFO "copy ${WORKDIR}/framework/conf/ to tars path:${TARS_PATH}";
-LOG_INFO "copy ${WORKDIR}/framework/util/ to tars path:${TARS_PATH}";
+    cd $2 
 
-cp -rf ${WORKDIR}/framework/util-linux/*.sh ${TARS_PATH}
-chmod a+x ${TARS_PATH}/*.sh
-
-for var in ${TARS[@]};
-do
-    cp -rf ${WORKDIR}/framework/servers/${var} ${TARS_PATH}
-    cp -rf ${WORKDIR}/framework/conf/${var} ${TARS_PATH}
-    cp -rf ${WORKDIR}/framework/util-linux/${var} ${TARS_PATH}
-done
-
-function update_conf() {
-
-    LOG_INFO "update server config: [${TARS_PATH}/$1/conf/tars.$1.config.conf]";
+    LOG_INFO "update install path: [conf/tars.$1.config.conf]";
 
     if [ $OS == 2 ]; then
         #mac
-        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "" "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
-        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/execute.sh`
-        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/start.sh`
-        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/stop.sh`
-        if [ -f ${TARS_PATH}/$1/util/check.sh ]; then
-            sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/check.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl conf/tars.$1.config.conf`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/execute.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/start.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/stop.sh`
+        if [ -f util/check.sh ]; then
+            sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/check.sh`
         fi
     else
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/3306/$PORT/g" `grep 3306 -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/conf/tars.$1.config.conf`
-        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${TARS_PATH}/$1/util/execute.sh`
-        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/execute.sh`
-        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/start.sh`
-        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/stop.sh`
-        if [ -f ${TARS_PATH}/$1/util/check.sh ]; then
-            sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/$1/util/check.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl conf/tars.$1.config.conf`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/execute.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/start.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/stop.sh`
+        if [ -f util/check.sh ]; then
+            sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/check.sh`
         fi
     fi
 
 }
 
-if [ $OS == 2 ]; then
-    sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
-    sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
-    sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
-else
-    sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
-    sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
-    sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
-fi
+function update_script() {
+    if [ $OS == 2 ]; then
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
+        sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
+    else
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
+        sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
+    fi
+}
+################################################################################
+#check framework
 
-#update server config
+# LOG_INFO "copy ${WORKDIR}/framework/conf/ to tars path:${TARS_PATH}";
+LOG_INFO "copy ${WORKDIR}/framework/util/ to tars path:${TARS_PATH}";
+
+cp -rf ${WORKDIR}/framework/util-linux/*.sh ${TARS_PATH}
+chmod a+x ${TARS_PATH}/*.sh
+
+rm -rf ${WORKDIR}/framework-tmp
+mkdir -p ${WORKDIR}/framework-tmp
+
+for var in ${TARSALL[@]};
+do
+    cp -rf ${WORKDIR}/framework/servers/${var} ${WORKDIR}/framework-tmp
+    cp -rf ${WORKDIR}/framework/conf/${var} ${WORKDIR}/framework-tmp
+    cp -rf ${WORKDIR}/framework/util-linux/${var} ${WORKDIR}/framework-tmp
+done
+
 for var in ${TARS[@]};
 do
-    update_conf ${var}
+    update_path ${var} "${WORKDIR}/framework-tmp/${var}"
+
+    cp -rf ${WORKDIR}/framework-tmp/${var} ${TARS_PATH}
 done
+
+#update script
+update_script
+
+################################################################################
+
+mkdir -p ${TARS_PATH}/../web/files/
+
+cd ${WORKDIR}/framework-tmp
+
+for var in ${TARSALL[@]};
+do
+    echo "tar czf ${var}.tgz ${var}"
+    tar czf ${var}.tgz ${var}
+    cp -rf ${var}.tgz ${TARS_PATH}/../web/files/
+    rm -rf ${var}.tgz
+done
+
+cd ${WORKDIR}
+
+rm -rf ${WORKDIR}/framework-tmp
+
+cp ${WORKDIR}/tools/install.sh ${TARS_PATH}/../web/files/
+
+################################################################################
+
+function update_conf() {
+
+    cd $2 
+    LOG_INFO "update server config: [conf/tars.$1.config.conf]";
+
+    if [ $OS == 2 ]; then
+        #mac
+        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl conf/tars.$1.config.conf`
+        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl conf/tars.$1.config.conf`
+        sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl conf/tars.$1.config.conf`
+        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl conf/tars.$1.config.conf`
+        sed -i "" "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl conf/tars.$1.config.conf`
+        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl util/execute.sh`
+    else
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl conf/tars.$1.config.conf`
+        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl conf/tars.$1.config.conf`
+        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl conf/tars.$1.config.conf`
+        sed -i "s/3306/$PORT/g" `grep 3306 -rl conf/tars.$1.config.conf`
+        sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl conf/tars.$1.config.conf`
+        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl util/execute.sh`
+    fi
+
+}
 
 #start server
 for var in ${TARS[@]};
@@ -466,69 +532,17 @@ do
        exit 1 
    fi
 
+    update_conf ${var} ${TARS_PATH}/${var}
+
     LOG_DEBUG "remove old version config: rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf"
+
+    rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf
 
     LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
     sh ${TARS_PATH}/${var}/util/start.sh > /dev/null
 done
 
-
 ################################################################################
 
-./web-install.sh ${MYSQLIP} ${HOSTIP} ${SLAVE} ${PORT} ${TARS_PATH}
+${WORKDIR}/web-install.sh ${MYSQLIP} ${HOSTIP} ${SLAVE} ${PORT} ${TARS_PATH}
 
-#
-#################################################################################
-##deploy & start web
-#if [ "$SLAVE" != "true" ]; then
-#
-#    cd ${WORKDIR}
-#    LOG_INFO "copy web to web path:/usr/local/app/";
-#
-#    rm -rf web/log
-#    cp -rf web /usr/local/app/
-#
-#    LOG_INFO "update web config";
-#
-#    if [ $OS == 2 ]; then
-#        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
-#        sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
-#        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
-#        sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
-#
-#        sed -i "" "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
-#        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
-#
-#        sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
-#        sed -i "" "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
-#
-#        sed -i "" "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
-#    else
-#        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/config/webConf.js`
-#        sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl /usr/local/app/web/config/webConf.js`
-#        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/config/webConf.js`
-#        sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl /usr/local/app/web/config/tars.conf`
-#
-#        sed -i "s/enableAuth: false/enableAuth: true/g" /usr/local/app/web/config/authConf.js
-#        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/config/loginConf.js
-#
-#        sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl /usr/local/app/web/demo/config/webConf.js`
-#        sed -i "s/3306/$PORT/g" `grep 3306 -rl /usr/local/app/web/demo/config/webConf.js`
-#
-#        sed -i "s/enableLogin: false/enableLogin: true/g" /usr/local/app/web/demo/config/loginConf.js
-#    fi
-#
-#    LOG_INFO "start web";
-#
-#    cd /usr/local/app/web; pm2 stop tars-node-web; pm2 delete tars-node-web; npm run prd;
-#    cd /usr/local/app/web/demo; pm2 stop tars-user-system;  pm2 delete tars-user-system; npm run prd
-#
-#    LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
-#    LOG_INFO "If in Docker, please check you host ip and port."
-#    LOG_INFO "You can start tars web manual: cd /usr/local/app/web; npm run prd"
-#    LOG_INFO "You can install tarsnode to other machine in web(>=1.3.1)"
-#    LOG_INFO "==============================================================";
-#else
-#    LOG_INFO "Install slave($SLAVE) node success"
-#    LOG_INFO "==============================================================";
-#fi

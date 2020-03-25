@@ -48,21 +48,6 @@ WORKDIR=$(cd $(dirname $0); pwd)
 #deploy & start web
 if [ "$SLAVE" != "true" ]; then
 
-    cd ${TARS_PATH}
-
-    mkdir -p ${TARS_PATH}/web/files/
-
-    TARS=(tarsAdminRegistry tarslog tarsconfig tarsnode  tarsnotify  tarspatch  tarsproperty  tarsqueryproperty  tarsquerystat  tarsregistry  tarsstat)
-
-    for var in ${TARS[@]};
-    do
-        echo "tar czf ${var}.tgz ${var}"
-        tar czf ${var}.tgz ${var}
-        cp -rf ${var}.tgz ${TARS_PATH}/web/files/
-        rm -rf ${var}.tgz
-    done
-
-    cp ${WORKDIR}/tools/install.sh ${TARS_PATH}/web/files/
 
     cd ${WORKDIR}
     LOG_INFO "copy web to web path:/usr/local/app/";

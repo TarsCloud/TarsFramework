@@ -193,8 +193,6 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 ################################################################################
 
-cp -rf ${TARS_INSTALL}/web/sql/*.sql ${TARS_INSTALL}/framework/sql/
-cp -rf ${TARS_INSTALL}/web/demo/sql/*.sql ${TARS_INSTALL}/framework/sql/
 
 cd ${TARS_INSTALL}
 

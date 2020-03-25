@@ -51,7 +51,7 @@ if [ "${COMMAND}" == "start" ]; then
     fi
 
     if [ "${SERVER_NAME}" == "tarsnode" ]; then
-        echo "start $bin --nodeid=local.tars.com --config=$CONFIG"
+        echo "start $bin --nodeid=localip.tars.com --config=$CONFIG"
         $bin --nodeid="localip.tars.com" --config=$CONFIG > /dev/null &
     else
         echo "start $bin --config=$CONFIG"
