@@ -66,8 +66,6 @@ struct MysqlCommand
 
 	void executeSql(TC_Mysql &mysql, const string &sql)
 	{
-//		cout << "exec sql:" << sql << endl;
-
 		mysql.execute(sql);
 	}
 
@@ -77,13 +75,23 @@ struct MysqlCommand
 
 		string data = TC_File::load2str(file);
 
-                vector<string> v = TC_Common::sepstr<string>(data, ";", false);
-                for(auto s : v)
-                { 
-                    string sql = TC_Common::trim(s);
-                    if(!sql.empty())
-		    	mysql.execute(s);
-                }
+		if(data.empty())
+		{
+			cout << "exec file:" << file << ", no sql" << endl;
+			exit(1);
+		}
+
+        vector<string> v = TC_Common::sepstr<string>(data, ";", false);
+        for(auto s : v)
+        { 
+            string sql = TC_Common::trim(s);
+            if(!sql.empty())
+            {
+                cout << "exec sql:" << sql << endl;
+
+		    	mysql.execute(sql);
+	        }
+        }
 	}
 
 	void executeTemplate(TC_Mysql &mysql, const string &parentTemlateName, const string &templateName, const string &profile, const string &port)

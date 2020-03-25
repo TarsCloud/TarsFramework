@@ -106,9 +106,9 @@ if [ "${SLAVE}" != "true" ]; then
 fi
 
 if [ "${SLAVE}" != "true" ]; then
-    TARS=(tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch)
+    TARS="tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch"
 else
-    TARS=(tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat)
+    TARS="tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat"
 fi
 
 if [ "${TARS_PATH}" == "" ]; then
@@ -117,7 +117,7 @@ fi
 
 mkdir -p ${TARS_PATH}
 
-TARSALL=(tarsregistry tarsAdminRegistry tarsconfig tarsnode tarslog tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
+TARSALL="tarsregistry tarsAdminRegistry tarsconfig tarsnode tarslog tarsnotify  tarspatch  tarsproperty tarsqueryproperty tarsquerystat  tarsstat"
 
 WORKDIR=$(cd $(dirname $0); pwd)
 
@@ -143,11 +143,11 @@ LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.
 
 ################################################################################
 #killall all tars-servers
-for var in ${TARSALL[@]};
+for var in $TARSALL;
 do
     kill_all ${var}
 done
-for var in ${TARSALL[@]};
+for var in $TARSALL;
 do
     kill_all ${var}
 done
@@ -155,7 +155,7 @@ done
 ################################################################################
 #check port
 PORTS=(18993 18793 18693 18193 18593 18493 18393 18293 12000 19385 17890 17891 3000 3001)
-for P in ${PORTS[@]};
+for P in $PORTS;
 do
     NETINFO=$(netstat_port)
 
@@ -216,7 +216,7 @@ function exec_mysql_script()
 function exec_mysql_sql()
 {
     echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2"
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db="$1" --file="$2"
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2
 
     ret=$?
 
@@ -297,8 +297,6 @@ if [ `echo $MYSQL_VER|grep ^5.` ]; then
     exec_mysql_script "flush privileges;"
 fi
 
-rm -rf ${WORKDIR}/sql.tmp
-
 ################################################################################
 #check mysql
 
@@ -369,15 +367,11 @@ function update_template()
             fi
 
             exec_mysql_template $parent_template $template_name template/${template_name} 
-#            LOG_INFO "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');"
-            # echo "replace into \`t_profile_template\` (\`template_name\`, \`parents_name\` , \`profile\`, \`posttime\`, \`lastuser\`) VALUES ('${template_name}','${parent_template}','${profile}', now(),'admin');" >> ${sqlFile}
 
         done
     }
 
     read_dir
-
-    # exec_mysql_sql db_tars $sqlFile;
 }
 
 update_template
@@ -406,7 +400,7 @@ exec_mysql_sql db_tars tars_servers.sql
 LOG_INFO "create node info";
 exec_mysql_sql db_tars tars_node_init.sql
 
-#exit 0
+rm -rf ${WORKDIR}/sql.tmp
 
 cd ${WORKDIR}
 
@@ -461,14 +455,14 @@ chmod a+x ${TARS_PATH}/*.sh
 rm -rf ${WORKDIR}/framework-tmp
 mkdir -p ${WORKDIR}/framework-tmp
 
-for var in ${TARSALL[@]};
+for var in $TARSALL;
 do
     cp -rf ${WORKDIR}/framework/servers/${var} ${WORKDIR}/framework-tmp
     cp -rf ${WORKDIR}/framework/conf/${var} ${WORKDIR}/framework-tmp
     cp -rf ${WORKDIR}/framework/util-linux/${var} ${WORKDIR}/framework-tmp
 done
 
-for var in ${TARS[@]};
+for var in $TARS;
 do
     update_path ${var} "${WORKDIR}/framework-tmp/${var}"
 
@@ -484,7 +478,7 @@ mkdir -p ${TARS_PATH}/../web/files/
 
 cd ${WORKDIR}/framework-tmp
 
-for var in ${TARSALL[@]};
+for var in $TARSALL;
 do
     echo "tar czf ${var}.tgz ${var}"
     tar czf ${var}.tgz ${var}
@@ -525,7 +519,7 @@ function update_conf() {
 }
 
 #start server
-for var in ${TARS[@]};
+for var in $TARS;
 do
    if [ ! -d ${TARS_PATH}/${var} ]; then
        LOG_ERROR "${TARS_PATH}/${var} not exist."
