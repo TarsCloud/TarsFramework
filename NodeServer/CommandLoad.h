@@ -28,7 +28,7 @@ class CommandLoad : public ServerCommand
 {
 
 public:
-    CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool bByNode = false);
+    CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ);
 
     ExeStatus canExecute(string& sResult);
 
@@ -41,14 +41,6 @@ private:
     */
     int updateConfigFile(string& sResult);
 
-//    /**
-//    *宏替换
-//    * @para  macro 宏map
-//    * @para  value 待替换字符串
-//    * @return string 替换后字符串
-//    */
-//    string decodeOption(const map<string, string>& macro, const string& value);
-
     /**
     * 获取server配置文件
     * @return int
@@ -60,7 +52,7 @@ private:
     NodeInfo            _nodeInfo;
     ServerDescriptor    _desc;
     ServerObjectPtr     _serverObjectPtr;
-//    StatExChangePtr     _statExChange;
+    bool                _succ = true;
 
 private:
     string _serverDir;               //服务数据目录
@@ -79,9 +71,10 @@ private:
 
 //////////////////////////////////////////////////////////////
 //
-CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool bByNode)
+CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ)
 : _nodeInfo(tNodeInfo)
 , _serverObjectPtr(pServerObjectPtr)
+, _succ(succ)
 {
     _desc      = _serverObjectPtr->getServerDescriptor();
 }
@@ -92,19 +85,19 @@ inline ServerCommand::ExeStatus CommandLoad::canExecute(string& sResult)
 {
     TC_ThreadRecLock::Lock lock(*_serverObjectPtr);
 
-	NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::canExecute " << _desc.application << "." << _desc.serverName << "|" << _desc.setId << "| beging loaded------|" << endl;
+	NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute " << _desc.application << "." << _desc.serverName << "|" << _desc.setId << "| beging loaded------|" << endl;
 
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
 
     if (_desc.application == "" || _desc.serverName == "")
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::canExecute app or server name is empty"<< endl;
+	    NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute app or server name is empty"<< endl;
         return DIS_EXECUTABLE;
     }
 
     if (_serverObjectPtr->toStringState(eState).find("ing") != string::npos && eState != ServerObject::Activating)
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::canExecute cannot loading the config, the server state is "<<_serverObjectPtr->toStringState(eState)<< endl;
+	    NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute cannot loading the config, the server state is "<<_serverObjectPtr->toStringState(eState)<< endl;
         return DIS_EXECUTABLE;
     }
 
@@ -200,7 +193,7 @@ inline int CommandLoad::execute(string& sResult)
 
     _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
 
-	NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::execute"<< _serverType   << ","
+	NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::execute"<< _serverType   << ","
                 << "exe_path="      << _exePath      << "," 
                 << "exe_file="      << _exeFile      << "," 
                 << "start_script="  << _startScript  << "," 
@@ -211,29 +204,32 @@ inline int CommandLoad::execute(string& sResult)
     //创建目录
     if (!TC_File::makeDirRecursive(_exePath))
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::execute cannot create dir: "<<(_exePath + " erro:" + strerror(errno))<<endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::execute cannot create dir: "<<(_exePath + " erro:" + strerror(errno))<<endl;
         return -1;
     }
 
     if (!TC_File::makeDirRecursive(_libPath))
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::execute cannot create dir: "<<(_libPath + " erro:" + strerror(errno))<<endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::execute cannot create dir: "<<(_libPath + " erro:" + strerror(errno))<<endl;
         return -1;
     }
 
     if (!TC_File::makeDirRecursive(_confPath))
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::execute cannot create dir: "<<(_confPath + " erro:" + strerror(errno))<<endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::execute cannot create dir: "<<(_confPath + " erro:" + strerror(errno))<<endl;
         return -1;
     }
 
     if (updateConfigFile(sResult) != 0)
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::execute update config error"<<endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::execute update config error"<<endl;
         return -1;
     }
 
-    getRemoteConf();
+    if(_succ)
+    {
+        getRemoteConf();
+    }
 
     return 0;
 }
@@ -251,17 +247,10 @@ inline int CommandLoad::updateConfigFile(string& sResult)
         tConf.insertDomainParam("/tars/application/server", m, true);
         m.clear();
 
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "1------------------------------" << endl;
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
-
         map<string, AdapterDescriptor>::const_reverse_iterator itAdapters;
         for (itAdapters = _desc.adapters.rbegin(); itAdapters != _desc.adapters.rend(); itAdapters++)
         {
-	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile get adapter " << itAdapters->first << endl;
-//            if (LOG->isNeedLog(TarsRollLogger::INFO_LOG))
-//            {
-//                _desc.display(LOG->info());
-//            }
+	        NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::updateConfigFile get adapter " << itAdapters->first << endl;
 
             if (itAdapters->first == "")
             {
@@ -281,8 +270,6 @@ inline int CommandLoad::updateConfigFile(string& sResult)
 
             tConf.insertDomainParam("/tars/application/server/" + itAdapters->first, m, true);
         }
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "2------------------------------" << endl;
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
 
         //获取本地socket
         TC_Endpoint tLocalEndpoint;
@@ -315,8 +302,7 @@ inline int CommandLoad::updateConfigFile(string& sResult)
         tLocalEndpoint.setHost("127.0.0.1");
         tLocalEndpoint.setType(TC_Endpoint::TCP);
         tLocalEndpoint.setTimeout(3000);
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "3------------------------------" << endl;
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
+	    // NODE_LOG("KeepAliveThread")->debug() << tConf.tostr() << endl;
 
         //需要宏替换部分配置
         TC_Config tConfMacro;
@@ -327,23 +313,27 @@ inline int CommandLoad::updateConfigFile(string& sResult)
         //>>修改成从主控获取locator地址
         vector<tars::EndpointF> activeEp;
         vector<tars::EndpointF> inactiveEp;
-        QueryFPrx queryProxy = AdminProxy::getInstance()->getQueryProxy();
         int iRet = 0;
-        try
+
+        if(_succ)
         {
-            iRet = queryProxy->findObjectById4All(AdminProxy::getInstance()->getQueryProxyName(), activeEp, inactiveEp);
-	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile " << _serverObjectPtr->getServerId() << "|iRet|" << iRet << "|" << activeEp.size() << "|" << inactiveEp.size() << endl;
-        }
-        catch (exception& e)
-        {
-        	//获取主控地址异常时,仍使用node中的locator
-	        NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile:get registry locator excetpion:" << e.what() << "|" << _serverObjectPtr->getServerId() << endl;
-            iRet = -1;
-        }
-        catch (...)
-        {
-	        NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile:get registry locator unknown exception|" << _serverObjectPtr->getServerId() << endl;
-            iRet = -1;
+            QueryFPrx queryProxy = AdminProxy::getInstance()->getQueryProxy();
+             try
+            {
+                iRet = queryProxy->findObjectById4All(AdminProxy::getInstance()->getQueryProxyName(), activeEp, inactiveEp);
+                NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::updateConfigFile " << _serverObjectPtr->getServerId() << "|iRet|" << iRet << "|" << activeEp.size() << "|" << inactiveEp.size() << endl;
+            }
+            catch (exception& e)
+            {
+                //获取主控地址异常时,仍使用node中的locator
+                NODE_LOG("KeepAliveThread")->error() << "CommandLoad::updateConfigFile:get registry locator exception:" << e.what() << "|" << _serverObjectPtr->getServerId() << endl;
+                iRet = -1;
+            }
+            catch (...)
+            {
+                NODE_LOG("KeepAliveThread")->error() << "CommandLoad::updateConfigFile:get registry locator unknown exception|" << _serverObjectPtr->getServerId() << endl;
+                iRet = -1;
+            }
         }
 
         if (iRet == 0 && activeEp.size() > 0)
@@ -356,7 +346,7 @@ inline int CommandLoad::updateConfigFile(string& sResult)
             }
             sLocator = sLocator.substr(0, sLocator.length() - 1);
             mMacro["locator"] = sLocator;
-	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile:" << _serverObjectPtr->getServerId() << "|locator|" << sLocator << endl;
+	        NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::updateConfigFile:" << _serverObjectPtr->getServerId() << "|locator|" << sLocator << endl;
         }
 
         mMacro["modulename"] = _desc.application + "." + _desc.serverName;
@@ -397,13 +387,8 @@ inline int CommandLoad::updateConfigFile(string& sResult)
 
         string strProfile = _serverObjectPtr->decodeMacro(_desc.profile);
         tConfMacro.parseString(strProfile);
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "4------------------------------" << endl;
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
 
         tConf.joinConfig(tConfMacro, true);
-
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "5------------------------------" << endl;
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
 
         string sStream  = TC_Common::replace(tConf.tostr(), "\\s", " ");
         string sConfigFileBak = _confFile + ".bak";
@@ -412,20 +397,17 @@ inline int CommandLoad::updateConfigFile(string& sResult)
             TC_File::copyFile(_confFile, sConfigFileBak);
         }
 
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "save to: " << _confFile << endl;
+	    NODE_LOG("KeepAliveThread")->debug() << "save to: " << _confFile << endl;
 
 	    ofstream configfile(_confFile.c_str());
         if (!configfile.good())
         {
-	        NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile cannot create configuration file: " << _confFile << endl;
+	        NODE_LOG("KeepAliveThread")->error() << "CommandLoad::updateConfigFile cannot create configuration file: " << _confFile << endl;
             return -1;
         }
 
         configfile << sStream;
         configfile.close();
-
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "load conf: " << _confFile << endl;
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << TC_File::load2str(_confFile) << endl;
 
 	    _logPath       = tConf.get("/tars/application/server<logpath>", "");
 
@@ -465,11 +447,11 @@ inline int CommandLoad::updateConfigFile(string& sResult)
     catch (exception& e)
     {
         sResult = e.what();
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile "<<e.what()<<endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::updateConfigFile "<<e.what()<<endl;
     }
     catch (...)
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile  catch unkown erro"<<endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::updateConfigFile  catch unkown erro"<<endl;
     }
     return -1;
 }
@@ -481,6 +463,7 @@ inline void CommandLoad::getRemoteConf()
     {
         return ;
     }
+
     string sResult;
     try
     {
@@ -490,7 +473,7 @@ inline void CommandLoad::getRemoteConf()
 
         if (_desc.setId.empty())
         {
-            ret = pPtr->ListConfig(_desc.application, _desc.serverName, vf);
+            ret = pPtr->ListConfig(_desc.application, _desc.serverName, vf, ServerConfig::Context);
         }
         else
         {
@@ -498,12 +481,12 @@ inline void CommandLoad::getRemoteConf()
             confInfo.appname = _desc.application;
             confInfo.servername = _desc.serverName;
             confInfo.setdivision = _desc.setId;
-            ret = pPtr->ListConfigByInfo(confInfo, vf);
+            ret = pPtr->ListConfigByInfo(confInfo, vf, ServerConfig::Context);
         }
 
         if (ret != 0)
         {
-	        NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::getRemoteConf [fail] get remote file list"<< endl;
+	        NODE_LOG("KeepAliveThread")->error() << "CommandLoad::getRemoteConf [fail] get remote file list"<< endl;
             g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
             // g_app.reportServer( sResult);
         }
@@ -520,7 +503,6 @@ inline void CommandLoad::getRemoteConf()
             //非tars服务配置文件需要node拉取 tars服务配置服务启动时自己拉取
             if (_serverObjectPtr->isTarsServer() != true)
             {
-
                 TarsRemoteConfig remoteConfig;
                 remoteConfig.setConfigInfo(Application::getCommunicator(),ServerConfig::Config,_desc.application, _desc.serverName, _exePath,_desc.setId);
                 remoteConfig.addConfig(vf[i], sResult);
@@ -531,7 +513,7 @@ inline void CommandLoad::getRemoteConf()
     }
     catch (exception& e)
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::getRemoteConf " << e.what() << endl;
+	    NODE_LOG("KeepAliveThread")->error() << "CommandLoad::getRemoteConf error:" << e.what() << endl;
     }
 }
 

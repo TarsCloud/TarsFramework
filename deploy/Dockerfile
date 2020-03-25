@@ -26,7 +26,7 @@ RUN source $HOME/.bashrc \
 COPY framework ${TARS_INSTALL}/framework
 COPY tools ${TARS_INSTALL}/tools
 # COPY docker-init.sh tars-install.sh tar-server.sh ${TARS_INSTALL}/
-COPY docker-init.sh tars-install.sh web-install.sh ${TARS_INSTALL}/
+COPY docker-init.sh tars-install.sh web-install.sh mysql-tool ${TARS_INSTALL}/
 
 # RUN ${TARS_INSTALL}/tar-server.sh
 
@@ -63,7 +63,7 @@ EXPOSE 18193
 EXPOSE 18593
 #tarsproperty
 EXPOSE 18493
-tarsquerystat
+#tarsquerystat
 EXPOSE 18393
 #tarsstat
 EXPOSE 18293

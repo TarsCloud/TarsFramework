@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     }
     catch(exception &ex)
     {
-cout << ex.what() << endl;
+		cout << ex.what() << endl;
         exit(-1);
     }
 

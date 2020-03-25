@@ -86,17 +86,36 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
     if(vServerDescriptor.size() < 1 && enableCache == true)
     {
         vServerDescriptor = getServerFromCache(application,serverName,result);
+
+        NODE_LOG("KeepAliveThread")->debug() << "ServerFactory::getServerFromCache size:" << vServerDescriptor.size() << endl;
     }
 
     if(vServerDescriptor.size() < 1)
     {
         result += " cannot load server description from regisrty ";
+        NODE_LOG("KeepAliveThread")->error() << "ServerFactory::getServerFromRegistry " << result << endl;
+
         return NULL;
+    }
+
+    bool succ = true;
+    try
+    {
+        QueryFPrx queryProxy = AdminProxy::getInstance()->getQueryProxy();
+        queryProxy->tars_set_timeout(1000)->tars_ping();
+        
+        ConfigPrx pPtr = Application::getCommunicator()->stringToProxy<ConfigPrx>(ServerConfig::Config);
+        pPtr->tars_set_timeout(1000)->tars_ping();
+    }
+    catch(exception &ex)
+    {
+        NODE_LOG("KeepAliveThread")->error() << "ServerFactory::getServerFromRegistry error:" << ex.what() << endl;
+        succ = false;
     }
 
     for(unsigned i = 0; i < vServerDescriptor.size(); i++)
     {
-        pServerObjectPtr = createServer(vServerDescriptor[i],result);
+        pServerObjectPtr = createServer(vServerDescriptor[i],result, succ);
     }
 
     return  pServerObjectPtr;
@@ -107,23 +126,25 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
     vector<ServerDescriptor> vServerDescriptor;
     try
     {
+	    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << ", nodeName:" << _tPlatformInfo.getNodeName() << endl;
+
         RegistryPrx _pRegistryPrx = AdminProxy::getInstance()->getRegistryProxy();
 
         if(!_pRegistryPrx)
         {
-        	TLOGERROR("ServerFactory::getServerFromRegistry cann't get the proxy of registry" << endl);
+        	NODE_LOG("KeepAliveThread")->error() << "ServerFactory::getServerFromRegistry cann't get the proxy of registry" << endl;
             return vServerDescriptor;
         }
 
 	    vServerDescriptor =_pRegistryPrx->getServers( application, serverName, _tPlatformInfo.getNodeName());
 
-	    NODE_LOG(application + "." + serverName)->debug() << FILE_FUN << ", nodeName:" << _tPlatformInfo.getNodeName() << ", size:" << vServerDescriptor.size() << endl;
+	    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << ", nodeName:" << _tPlatformInfo.getNodeName() << ", size:" << vServerDescriptor.size() << endl;
 
 	    //清空cache
         if( vServerDescriptor.size() > 0 && application == "" && serverName == "")
         {
             g_serverInfoHashmap.clear();
-	        TLOGDEBUG("ServerFactory::getServerFromRegistry hashmap clear ok "<<endl);
+	        NODE_LOG("KeepAliveThread")->debug() << "ServerFactory::getServerFromRegistry hashmap clear ok "<<endl;
         }
 
         //重置cache
@@ -140,7 +161,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
     }
     catch(exception &e)
     {
-	    TLOGERROR("ServerFactory::getServerFromRegistry exception" << e.what() << endl);
+	    NODE_LOG("KeepAliveThread")->error() << ",ServerFactory::getServerFromRegistry exception:" << e.what() << endl;
     }
     return  vServerDescriptor;
 }
@@ -170,7 +191,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromCache( const string& applic
             if(ret != TC_HashMap::RT_OK)
             {
                 result = result + "\n hashmap ret:"+TC_Common::tostr(ret);
-	            NODE_LOG(tServerInfo.application + "." + tServerInfo.serverName)->error() << "ServerFactory::getServerFromCache "<<result<< endl;
+	            NODE_LOG("KeepAliveThread")->error() << "ServerFactory::getServerFromCache " << tServerInfo.application + "." + tServerInfo.serverName << ", error:" <<result<< endl;
                 break;
             }
 
@@ -193,11 +214,13 @@ vector<ServerDescriptor> ServerFactory::getServerFromCache( const string& applic
     return vServerDescriptor;
 }
 
-ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, string& result)
+ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, string& result, bool succ)
 {
     Lock lock( *this );
     string application  = tDesc.application;
     string serverName   = tDesc.serverName;
+
+    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << ": " <<  application << "." << serverName << endl;
 
     map<string, ServerGroup>::const_iterator p1 = _mmServerList.find( application );
     if ( p1 != _mmServerList.end() )
@@ -206,7 +229,7 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, strin
         if ( p2 != p1->second.end() && p2->second )
         {
             p2->second->setServerDescriptor(tDesc);
-            CommandLoad command(p2->second,_tPlatformInfo.getNodeInfo());
+            CommandLoad command(p2->second,_tPlatformInfo.getNodeInfo(), succ);
             int iRet = command.doProcess(result);
             if( iRet == 0)
             {
@@ -220,7 +243,7 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, strin
     }
 
     ServerObjectPtr pServerObjectPtr = new ServerObject(tDesc);
-    CommandLoad command(pServerObjectPtr,_tPlatformInfo.getNodeInfo());
+    CommandLoad command(pServerObjectPtr,_tPlatformInfo.getNodeInfo(), succ);
     int iRet = command.doProcess(result);
     if(iRet ==0)
     {
@@ -230,21 +253,22 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, strin
 
         if(tInfo.iMonitorIntervalMs < _iMinMonitorIntervalMs)
         {
-	        NODE_LOG(pServerObjectPtr->getServerId())->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
-	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
+            NODE_LOG(pServerObjectPtr->getServerId())->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
+            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "_iMinMonitorIntervalMs " << _iMinMonitorIntervalMs << "->" << tInfo.iMonitorIntervalMs << "|" << pServerObjectPtr->getServerId() << endl;
             _iMinMonitorIntervalMs = tInfo.iMonitorIntervalMs;
         }
 
         if (!tInfo.bReportLoadInfo)
         {
             NODE_LOG(pServerObjectPtr->getServerId())->debug() <<FILE_FUN<< "bReportLoadInfo:"<<tInfo.bReportLoadInfo<<"|"<<pServerObjectPtr->getServerId()<<endl;
-	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "bReportLoadInfo:"<<tInfo.bReportLoadInfo<<"|"<<pServerObjectPtr->getServerId()<<endl;
-	        _bReportLoadInfo=false;
+            NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<< "bReportLoadInfo:"<<tInfo.bReportLoadInfo<<"|"<<pServerObjectPtr->getServerId()<<endl;
+            _bReportLoadInfo=false;
         }
 
         _mmServerList[application][serverName] = pServerObjectPtr;
         return pServerObjectPtr;
     }
+
     return NULL;
 }
 

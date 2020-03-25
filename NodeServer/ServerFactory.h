@@ -57,7 +57,7 @@ public:
     ServerObjectPtr createServer( const ServerDescriptor& tDesc)
     {
         string result;
-        return createServer(tDesc,result);
+        return createServer(tDesc,result, true);
     }
 
     /**
@@ -66,7 +66,7 @@ public:
      * @param result    结果
      * @return  ServerObjectPtr
      */
-    ServerObjectPtr createServer( const ServerDescriptor& tDesc,string& result);
+    ServerObjectPtr createServer( const ServerDescriptor& tDesc,string& result, bool succ);
 
     /**
      * 删除指定服务
