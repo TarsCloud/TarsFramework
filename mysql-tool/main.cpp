@@ -97,7 +97,8 @@ struct MysqlCommand
         for(auto s : sqls)
         { 
             string sql = TC_Common::trim(s);
-            if(sql.empty())
+
+            if(sql.empty() || sql.length() < 2)
 				continue;
 
 			if(sql.substr(0, 2) == "--" || sql.substr(0, 2) == "/*" || sql.substr(0, 1) == "#")     
@@ -114,10 +115,7 @@ struct MysqlCommand
             if(sql.empty())
 				continue;
 
-			// cout << "sql: " << sql << endl;
-
 		    mysql.execute(sql);
-	        
         }
 	}
 
