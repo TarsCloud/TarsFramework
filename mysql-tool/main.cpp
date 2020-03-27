@@ -18,6 +18,7 @@
 #include "util/tc_option.h"
 #include "util/tc_file.h"
 #include "util/tc_common.h"
+#include "util/tc_config.h"
 #include <iostream>
 #include <string>
 
@@ -139,6 +140,26 @@ struct MysqlCommand
 			TC_File::save2file(option.getValue("replace"), content);
 		}
 	}
+
+	void replaceConfig(TC_Option &option)
+	{
+		string file = option.getValue("config");
+
+		TC_Config config;
+		config.parseFile(file);
+		config.set("/tars/db<dbhost>", option.getValue("host"));
+		config.set("/tars/db<dbuser>", option.getValue("user"));
+		config.set("/tars/db<dbpass>", option.getValue("pass"));
+		config.set("/tars/db<dbport>", option.getValue("port"));
+
+		string content = TC_Common::replace(config.tostr(), "TARS_PATH", option.getValue("tars-path"));
+		content = TC_Common::replace(content, "registry.tars.com", option.getValue("hostip"));
+		content = TC_Common::replace(content, "localip.tars.com", option.getValue("hostip"));
+		content = TC_Common::replace(content, "registryAddress", "tcp -h " + option.getValue("hostip") + " -p 17890");
+
+		TC_File::save2file(file, content);
+	}
+
 };
 
 int main(int argc, char *argv[])
@@ -190,6 +211,10 @@ int main(int argc, char *argv[])
 	    else if(option.hasParam("replace"))
 	    {
 		    mysqlCmd.replace(option);
+	    }
+	    else if(option.hasParam("config"))
+	    {
+		    mysqlCmd.replaceConfig(option);
 	    }
     }
     catch(exception &ex)

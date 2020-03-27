@@ -11,7 +11,7 @@
     slavefile=hashmap_slave.txt
     insertInterval=5
     enableStatCount=0
-    size=8M
+    size=256M
     countsize=1M
   </hashmap>
 

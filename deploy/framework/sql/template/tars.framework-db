@@ -13,8 +13,8 @@
     <propertydb>
        <db1>
          dbhost=db.tars.com
-          dbname=tars_property
-          tbname=tars_property_
+         dbname=tars_property
+         tbname=tars_property_
          dbuser=tars
          dbpass=tars2015
          dbport=3306

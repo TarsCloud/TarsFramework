@@ -581,6 +581,7 @@ do
         cp -rf ${WORKDIR}/framework/util-win/${var} ${FRAMEWORK_TMP}
     fi
 
+    replacePath TARS_PATH ${TARS_PATH} ${FRAMEWORK_TMP}/${var}/conf
     replacePath TARS_PATH ${TARS_PATH} ${FRAMEWORK_TMP}/${var}/util
 done
 
@@ -597,7 +598,6 @@ else
     replace TARS_PATH ${TARS_PATH} "${FRAMEWORK_TMP}/*.sh"
 fi
 
-
 LOG_INFO "copy framework to install path"
 
 for var in $TARS;
@@ -612,6 +612,7 @@ do
     #     fi
     # fi
 
+    sleep 1
     cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}
 
     # replacePath TARS_PATH ${TARS_PATH} ${TARS_PATH}/${var}/util
@@ -621,7 +622,7 @@ done
 if [ $OS == 3 ]; then
     cp -rf ${FRAMEWORK_TMP}/*.bat ${TARS_PATH}
 else
-    cp -rf  "${FRAMEWORK_TMP}/*.sh" ${TARS_PATH}
+    cp -rf ${FRAMEWORK_TMP}/*.sh ${TARS_PATH}
 fi
 
 # replace TARS_PATH "${TARS_PATH}/*.bat"
@@ -668,15 +669,19 @@ replace TARS_PATH ${TARS_PATH} ${WEB_PATH}/web/files/*.sh
 
 function update_conf() 
 {
-    UPDATE_PATH=$1
+    for file in `ls $1`;
+    do
+       ${MYSQL_TOOL} --host=${MYSQLIP} --user="${TARS_USER}" --pass="${TARS_PASS}" --port=${PORT} --config=$1/$file --tars-path=${TARS_PATH} --hostip=${HOSTIP}
+    done
 
-    replacePath localip.tars.com $HOSTIP ${UPDATE_PATH}
-    replacePath db.tars.com $MYSQLIP ${UPDATE_PATH}
-    replacePath registry.tars.com $HOSTIP ${UPDATE_PATH}
-    replacePath 3306 $PORT ${UPDATE_PATH}
-    replacePath "dbuser=tars" "dbuser=${TARS_USER}" ${UPDATE_PATH}
-    replacePath "dbpass=tars2015" "dbpass=${TARS_PASS}" ${UPDATE_PATH}
-    replacePath registryAddress "tcp -h $HOSTIP -p 17890" ${UPDATE_PATH}
+
+#    replacePath localip.tars.com $HOSTIP ${UPDATE_PATH}
+#    replacePath db.tars.com $MYSQLIP ${UPDATE_PATH}
+#    replacePath registry.tars.com $HOSTIP ${UPDATE_PATH}
+#    replacePath 3306 $PORT ${UPDATE_PATH}
+#    replacePath "dbuser=tars" "dbuser=${TARS_USER}" ${UPDATE_PATH}
+#    replacePath "dbpass=tars2015" "dbpass=${TARS_PASS}" ${UPDATE_PATH}
+#    replacePath registryAddress "tcp -h $HOSTIP -p 17890" ${UPDATE_PATH}
 
     # cd $2 
     # LOG_INFO "update server config: [conf/tars.$1.config.conf]";
@@ -711,6 +716,13 @@ function update_conf()
     # fi
 }
 
+function update_util()
+{
+    for file in `ls $1`;
+    do
+        replace localip.tars.com $HOSTIP $1/${file}
+    done
+}
 
 # replacePath localip.tars.com $HOSTIP ${TARS_PATH}
 # replacePath db.tars.com $HOSTIP ${TARS_PATH}
@@ -728,15 +740,15 @@ do
         exit 1 
     fi
 
-    # LOG_DEBUG "update config: ${TARS_PATH}/${var}/conf"
+    LOG_DEBUG "update config: ${TARS_PATH}/${var}/conf"
     update_conf "${TARS_PATH}/${var}/conf"
 
-    # LOG_DEBUG "---------------------------------------------"
-    update_conf "${TARS_PATH}/${var}/util"
+    LOG_DEBUG "update util: ${TARS_PATH}/${var}/util"
+    update_util "${TARS_PATH}/${var}/util"
 
     # update_conf ${var} ${TARS_PATH}/${var}
 
-    LOG_DEBUG "remove old config: rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf"
+    LOG_DEBUG "remove config: rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf"
 
     rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf
 
