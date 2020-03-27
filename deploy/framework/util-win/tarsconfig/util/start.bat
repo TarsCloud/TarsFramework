@@ -1,4 +1,4 @@
 
-TARS_PATH/execute.bat tarsconfig start
+TARS_PATH/tarsconfig/util/execute.bat tarsconfig start
 
 

@@ -1,3 +1,5 @@
+
+@echo off
 set TARS="tarsAdminRegistry,tarsconfig,tarslog,tarsnode,tarsnotify,tarspatch,tarsproperty,tarsqueryproperty,tarsquerystat,tarsregistry,tarsstat"
 
 :loop
@@ -12,5 +14,7 @@ for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
     goto :loop
 )
 
+@echo off
 call pm2 stop tars-node-web
+@echo off
 call pm2 stop tars-user-system

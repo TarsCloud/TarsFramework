@@ -1,3 +1,3 @@
 
 
-TARS_PATH/execute.bat tarsnotify stop
+TARS_PATH/tarsnotify/util/execute.bat tarsnotify stop

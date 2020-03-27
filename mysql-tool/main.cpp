@@ -53,8 +53,19 @@ struct MysqlCommand
 
 	void has(TC_Mysql &mysql, const string &db)
 	{
-//		cout << "has database: " << db << endl;
-		mysql.execute("use " + db);
+		string sql = "select * from information_schema.tables where table_schema ='"+mysql.realEscapeString(db)+"' limit 1";
+
+		TC_Mysql::MysqlData data = mysql.queryRecord(sql);
+		if(data.size() > 0)
+		{
+			// for(size_t i = 0; i < data.size(); i++)
+			// {
+			// 	cout << data[i]["TABLE_NAME"] << endl;
+			// }
+			exit(0);
+		}
+		
+		exit(1);
 	}
 
 	string getVersion(TC_Mysql &mysql)
@@ -69,46 +80,75 @@ struct MysqlCommand
 		mysql.execute(sql);
 	}
 
-	void executeFile(TC_Mysql &mysql, const string &file)
+	void executeFile(TC_Mysql &mysql, TC_Option &option)//const string &file)
 	{
-		cout << "exec file:" << file << endl;
-
-		string data = TC_File::load2str(file);
+		string data = TC_File::load2str(option.getValue("file"));
 
 		if(data.empty())
 		{
-			cout << "exec file:" << file << ", no sql" << endl;
+			cout << "exec file:" << option.getValue("file") << ", no sql" << endl;
 			exit(1);
 		}
 
-        vector<string> v = TC_Common::sepstr<string>(data, ";", false);
-        for(auto s : v)
+		data = TC_Common::replace(data, "/usr/local/app/tars", option.getValue("tars-path"));
+
+		vector<string> sqls = TC_Common::sepstr<string>(data, ";");
+
+        for(auto s : sqls)
         { 
             string sql = TC_Common::trim(s);
-            if(!sql.empty())
-            {
-                cout << "exec sql:" << sql << endl;
+            if(sql.empty())
+				continue;
 
-		    	mysql.execute(sql);
-	        }
+			if(sql.substr(0, 2) == "--" || sql.substr(0, 2) == "/*" || sql.substr(0, 1) == "#")     
+			{
+				string::size_type pos = sql.find("\n");
+				if(pos == string::npos)
+				{
+					continue;
+				}
+
+				sql = TC_Common::trim(sql.substr(pos));
+			}       
+
+            if(sql.empty())
+				continue;
+
+			// cout << "sql: " << sql << endl;
+
+		    mysql.execute(sql);
+	        
         }
 	}
 
-	void executeTemplate(TC_Mysql &mysql, const string &parentTemlateName, const string &templateName, const string &profile, const string &port)
+	void executeTemplate(TC_Mysql &mysql, TC_Option &option)
 	{
-		string content = TC_Common::replace(TC_File::load2str(profile), "3306", port);
+		string content = TC_File::load2str(option.getValue("profile"));
 
-		string sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(templateName) + "','" + mysql.realEscapeString(parentTemlateName) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";
+		string sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(option.getValue("template")) + "','" + mysql.realEscapeString(option.getValue("parent")) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";
 
 		mysql.execute(sql);
+	}
+
+	void replace(TC_Option &option)
+	{
+		string content = TC_File::load2str(option.getValue("replace"));
+
+		if(content.find(option.getValue("src")) != string::npos)
+		{
+			content = TC_Common::replace(content, option.getValue("src"), option.getValue("dst"));
+
+			TC_File::save2file(option.getValue("replace"), content);
+		}
 	}
 };
 
 int main(int argc, char *argv[])
 {
+	TC_Option option;
+
     try
     {
-		TC_Option option;
 		option.decode(argc, argv);
 
 	    MysqlCommand mysqlCmd;
@@ -143,16 +183,21 @@ int main(int argc, char *argv[])
 	    }
 	    else if(option.hasParam("file"))
 	    {
-		    mysqlCmd.executeFile(mysql, option.getValue("file"));
+		    mysqlCmd.executeFile(mysql, option);
 	    }
 		else if(option.hasParam("template"))
 		{
-		    mysqlCmd.executeTemplate(mysql, option.getValue("parent"), option.getValue("template"), option.getValue("profile"), option.getValue("port"));
+		    mysqlCmd.executeTemplate(mysql, option);
 		}
+	    else if(option.hasParam("replace"))
+	    {
+		    mysqlCmd.replace(option);
+	    }
     }
     catch(exception &ex)
     {
-		cout << ex.what() << endl;
+		cout << "exec mysql parameter:" << TC_Common::tostr(option.getMulti().begin(), option.getMulti().end()) << endl;
+		cout << "error:" << ex.what() << endl;
         exit(-1);
     }
 

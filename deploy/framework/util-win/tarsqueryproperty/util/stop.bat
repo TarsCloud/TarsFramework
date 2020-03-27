@@ -1,3 +1,3 @@
 
 
-TARS_PATH/execute.bat tarsqueryproperty stop
+TARS_PATH/tarsqueryproperty/util/execute.bat tarsqueryproperty stop

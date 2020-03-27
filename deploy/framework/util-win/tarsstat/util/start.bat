@@ -1,4 +1,4 @@
 
-TARS_PATH/execute.bat tarsstat start
+TARS_PATH/tarsstat/util/execute.bat tarsstat start
 
 

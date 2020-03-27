@@ -6,8 +6,8 @@
     </server>          
   </application>
 
-    directory=/usr/local/app/patchs/tars
-    uploadDirectory=/usr/local/app/patchs/tars.upload
+    directory=UPLOAD_PATH/patchs/tars
+    uploadDirectory=UPLOAD_PATH/patchs/tars.upload
     size=1M
 
     MemMax = 100M

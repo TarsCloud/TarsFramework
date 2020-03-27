@@ -1,4 +1,4 @@
 
-TARS_PATH/execute.bat tarsAdminRegistry start
+TARS_PATH/tarsAdminRegistry/util/execute.bat tarsAdminRegistry start
 
 

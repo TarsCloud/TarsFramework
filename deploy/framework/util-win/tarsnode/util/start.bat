@@ -1,4 +1,4 @@
 
-TARS_PATH/execute.bat tarsnode start
+TARS_PATH/tarsnode/util/execute.bat tarsnode start
 
 

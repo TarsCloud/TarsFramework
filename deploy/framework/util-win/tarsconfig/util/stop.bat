@@ -1,3 +1,3 @@
 
 
-TARS_PATH/execute.bat tarsconfig stop
+TARS_PATH/tarsconfig/util/execute.bat tarsconfig stop

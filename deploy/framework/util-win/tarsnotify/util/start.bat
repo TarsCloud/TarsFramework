@@ -1,4 +1,4 @@
 
-TARS_PATH/execute.bat tarsnotify start
+TARS_PATH/tarsnotify/util/execute.bat tarsnotify start
 
 

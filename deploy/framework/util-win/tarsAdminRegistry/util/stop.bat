@@ -1,2 +1,2 @@
 
-TARS_PATH/execute.bat tarsAdminRegistry stop
+TARS_PATH/tarsAdminRegistry/util/execute.bat tarsAdminRegistry stop

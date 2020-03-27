@@ -1,2 +1,2 @@
 
-TARS_PATH/execute.bat tarsstat stop
+TARS_PATH/tarsstat/util/execute.bat tarsstat stop

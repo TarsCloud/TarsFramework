@@ -92,6 +92,25 @@ bool ServerObject::isAutoStart()
     return true;
 }
 
+void ServerObject::setExeFile(const string &sExeFile)
+{
+    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << sExeFile <<endl;
+
+#if TARGET_PLATFORM_WINDOWS
+    if(TC_Common::trim(TC_File::extractFileExt(sExeFile)).empty())
+    {
+        _exeFile = sExeFile + ".exe";
+    }
+    else
+    {
+        _exeFile = sExeFile;
+    }
+#else
+    _exeFile = sExeFile;
+#endif    
+    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << _exeFile <<endl;
+}
+
 ServerState ServerObject::getState()
 {
     Lock lock(*this);

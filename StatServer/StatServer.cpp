@@ -208,7 +208,7 @@ void StatServer::initHashMap()
     {
         for(int k = 0; k < iHashMapNum; ++k)
         {
-            string sFileConf("/tars/hashmap<file");
+            string sFileConf("/tars/hashmap<file>");
             string sFileDefault("hashmap");
 
             sFileConf += TC_Common::tostr(i);

@@ -37,7 +37,7 @@
         min_block = 50
         max_block = 200
         factor    = 1.2
-        FilePath  = /usr/local/app/tars/tarsregistry/util/objectCache.dat
+        FilePath  = TARS_PATH/tarsregistry/util/objectCache.dat
         FileSize  = 8M
     </objcache>
     <nodeinfo>

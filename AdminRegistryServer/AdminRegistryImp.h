@@ -340,6 +340,7 @@ public:
 	virtual int getServers(vector<FrameworkServer> &servers, tars::TarsCurrentPtr current);
 
 	virtual int checkServer(const FrameworkServer &server, tars::TarsCurrentPtr current);
+
 protected:
 
     PatchPrx _patchPrx;

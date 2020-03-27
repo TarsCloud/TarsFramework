@@ -1212,7 +1212,6 @@ int AdminRegistryImp::checkServer(const FrameworkServer &server, tars::TarsCurre
 	return 0;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////
 void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
         const std::string& result)

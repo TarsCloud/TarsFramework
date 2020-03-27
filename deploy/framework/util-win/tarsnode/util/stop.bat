@@ -1,3 +1,3 @@
 
 
-TARS_PATH/execute.bat tarsnode stop
+TARS_PATH/tarsnode/util/execute.bat tarsnode stop

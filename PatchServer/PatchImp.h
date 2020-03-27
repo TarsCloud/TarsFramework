@@ -75,7 +75,6 @@ public:
      * @return
      */
 	int deletePatchFile(const string & app, const string & serverName, const string & patchFile, TarsCurrentPtr current);
-
 protected:
     int __listFileInfo(const string &path, vector<FileInfo> &vf);
     

@@ -414,7 +414,7 @@ public:
 
     void setServerDescriptor( const ServerDescriptor& tDesc );
     void setVersion( const string &version );
-    void setExeFile(const string &sExeFile){_exeFile = sExeFile;}
+    void setExeFile(const string &sExeFile);
     void setExePath(const string &sExePath){_exePath = sExePath;}
     void setConfigFile(const string &sConfFile){_confFile = sConfFile;}
     void setLogPath(const string &sLogPath){_logPath = sLogPath;}

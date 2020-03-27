@@ -55,9 +55,9 @@ then
     ln -s /data/app /usr/local/app
 fi
 
-mkdir -p /usr/local/app/tars
+mkdir -p TARS_PATH
 
-if [ -d "/usr/local/app/tars/tarsnode" ]; then
+if [ -d "TARS_PATH/tarsnode" ]; then
    read -p "tarsnode exist, overwrite?(Y/N):" Y
    if [ "$Y" != "Y" ] && [ "$Y" != "y" ]; then
        echo "exit"
@@ -65,7 +65,7 @@ if [ -d "/usr/local/app/tars/tarsnode" ]; then
    fi
 fi
 
-cp -rf tarsnode /usr/local/app/tars/
+cp -rf tarsnode TARS_PATH
 
 while [ 1 ]
 do
@@ -122,14 +122,14 @@ echo "all tars registry:" $registryAddress
 
 echo "update tarsnode conf"
 
-sed -i "s/localip.tars.com/${localIp}/g" /usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf 
+sed -i "s/localip.tars.com/${localIp}/g" TARS_PATH/tarsnode/conf/tars.tarsnode.config.conf 
 
-sed -i "s/registryAddress/${registryAddress}/g" /usr/local/app/tars/tarsnode/conf/tars.tarsnode.config.conf
+sed -i "s/registryAddress/${registryAddress}/g" TARS_PATH/tarsnode/conf/tars.tarsnode.config.conf
 
-sed -i "s/registryAddress/${registryAddress}/g" /usr/local/app/tars/tarsnode/util/execute.sh
+sed -i "s/registryAddress/${registryAddress}/g" TARS_PATH/tarsnode/util/execute.sh
 
 echo "install tarsnode succ, start tarsnode"
 
-sh /usr/local/app/tars/tarsnode/util/start.sh
+sh TARS_PATH/tarsnode/util/start.sh
 
 ps -aux | grep bin/tarsnode
