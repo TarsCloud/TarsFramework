@@ -122,11 +122,56 @@ struct MysqlCommand
 
 	void executeTemplate(TC_Mysql &mysql, TC_Option &option)
 	{
-		string content = TC_File::load2str(option.getValue("profile"));
+		string content = replaceConfig(option.getValue("profile"), option);
+
+//		string content = TC_File::load2str(option.getValue("profile"));
 
 		string sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(option.getValue("template")) + "','" + mysql.realEscapeString(option.getValue("parent")) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";
 
 		mysql.execute(sql);
+	}
+
+	string replaceConfig(const string &file, TC_Option &option)
+	{
+		TC_Config config;
+		config.parseFile(file);
+
+		if(config.hasDomainVector("/tars/db")) {
+			config.set("/tars/db<dbhost>", option.getValue("host"));
+			config.set("/tars/db<dbuser>", option.getValue("user"));
+			config.set("/tars/db<dbpass>", option.getValue("pass"));
+			config.set("/tars/db<dbport>", option.getValue("port"));
+		}
+
+		if(config.hasDomainVector("/tars/statdb")) {
+			vector<string> v = config.getDomainVector("/tars/statdb");
+			for(auto s : v)
+			{
+				config.set("/tars/statdb/" +s+ "<dbhost>", option.getValue("host"));
+				config.set("/tars/statdb/" +s+ "<dbuser>", option.getValue("user"));
+				config.set("/tars/statdb/" +s+ "<dbpass>", option.getValue("pass"));
+				config.set("/tars/statdb/" +s+ "<dbport>", option.getValue("port"));
+			}
+		}
+
+		if(config.hasDomainVector("/tars/propertydb")) {
+			vector<string> v = config.getDomainVector("/tars/propertydb");
+			for(auto s : v)
+			{
+				config.set("/tars/propertydb/" +s+ "<dbhost>", option.getValue("host"));
+				config.set("/tars/propertydb/" +s+ "<dbuser>", option.getValue("user"));
+				config.set("/tars/propertydb/" +s+ "<dbpass>", option.getValue("pass"));
+				config.set("/tars/propertydb/" +s+ "<dbport>", option.getValue("port"));
+			}
+		}
+
+		string content = TC_Common::replace(config.tostr(), "TARS_PATH", option.getValue("tars-path"));
+		content = TC_Common::replace(content, "UPLOAD_PATH", option.getValue("upload-path"));
+		content = TC_Common::replace(content, "registry.tars.com", option.getValue("hostip"));
+		content = TC_Common::replace(content, "localip.tars.com", option.getValue("hostip"));
+		content = TC_Common::replace(content, "registryAddress", "tcp -h " + option.getValue("hostip") + " -p 17890");
+
+		return content;
 	}
 
 	void replace(TC_Option &option)
@@ -141,21 +186,11 @@ struct MysqlCommand
 		}
 	}
 
-	void replaceConfig(TC_Option &option)
+	void replaceConfig(TC_Mysql &mysql, TC_Option &option)
 	{
 		string file = option.getValue("config");
 
-		TC_Config config;
-		config.parseFile(file);
-		config.set("/tars/db<dbhost>", option.getValue("host"));
-		config.set("/tars/db<dbuser>", option.getValue("user"));
-		config.set("/tars/db<dbpass>", option.getValue("pass"));
-		config.set("/tars/db<dbport>", option.getValue("port"));
-
-		string content = TC_Common::replace(config.tostr(), "TARS_PATH", option.getValue("tars-path"));
-		content = TC_Common::replace(content, "registry.tars.com", option.getValue("hostip"));
-		content = TC_Common::replace(content, "localip.tars.com", option.getValue("hostip"));
-		content = TC_Common::replace(content, "registryAddress", "tcp -h " + option.getValue("hostip") + " -p 17890");
+		string content = replaceConfig(file, option);
 
 		TC_File::save2file(file, content);
 	}
@@ -214,13 +249,17 @@ int main(int argc, char *argv[])
 	    }
 	    else if(option.hasParam("config"))
 	    {
-		    mysqlCmd.replaceConfig(option);
+		    mysqlCmd.replaceConfig(mysql, option);
+	    }
+	    else
+	    {
+	    	assert(false);
 	    }
     }
     catch(exception &ex)
     {
-		cout << "exec mysql parameter:" << TC_Common::tostr(option.getMulti().begin(), option.getMulti().end()) << endl;
-		cout << "error:" << ex.what() << endl;
+		cout << "exec mysql parameter: " << TC_Common::tostr(option.getMulti().begin(), option.getMulti().end()) << endl;
+		cout << "error: " << ex.what() << endl;
         exit(-1);
     }
 

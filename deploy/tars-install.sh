@@ -326,12 +326,12 @@ cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
 cp -rf ${WORKDIR}/framework/sql/* ${SQL_TMP}
 
 replacePath localip.tars.com $HOSTIP ${SQL_TMP}
-replacePath db.tars.com $MYSQLIP ${SQL_TMP}
-replacePath 3306 $PORT ${SQL_TMP}
-replacePath "dbuser=tars" "dbuser=${TARS_USER}" ${SQL_TMP}
-replacePath "dbpass=tars2015" "dbpass=${TARS_PASS}" ${SQL_TMP}
-replacePath TARS_PATH ${TARS_PATH} ${SQL_TMP}
-replacePath UPLOAD_PATH ${UPLOAD_PATH} ${SQL_TMP}
+#replacePath db.tars.com $MYSQLIP ${SQL_TMP}
+#replacePath 3306 $PORT ${SQL_TMP}
+#replacePath "dbuser=tars" "dbuser=${TARS_USER}" ${SQL_TMP}
+#replacePath "dbpass=tars2015" "dbpass=${TARS_PASS}" ${SQL_TMP}
+#replacePath TARS_PATH ${TARS_PATH} ${SQL_TMP}
+#replacePath UPLOAD_PATH ${UPLOAD_PATH} ${SQL_TMP}
 
 # exit 0
 # if [ $OS == 2 ]; then
@@ -568,7 +568,6 @@ FRAMEWORK_TMP=${WORKDIR}/framework.tmp
 
 # rm -rf ${WORKDIR}/framework-tmp
 mkdir -p ${FRAMEWORK_TMP}
-
 
 for var in $TARSALL;
 do
