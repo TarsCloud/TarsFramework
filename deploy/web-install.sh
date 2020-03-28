@@ -75,12 +75,7 @@ function replacePath()
     DST=$2
     SCAN_PATH=$3
 
-    # LOG_INFO "replacePath [$SRC] [$DST] [$SCAN_PATH]"
-
     FILES=`grep "${SRC}" -rl $SCAN_PATH/*`
-
-    # LOG_INFO "path:$SCAN_PATH"
-    # LOG_INFO "file:$FILES"
 
     if [ "$FILES" == "" ]; then
         return
@@ -88,15 +83,7 @@ function replacePath()
 
     for file in $FILES;
     do
-        # LOG_INFO "replacePath $1 $2 $file"
-
         ${MYSQL_TOOL} --src="${SRC}" --dst="${DST}" --replace=$file 
-
-        # if [ $OS == 2 ]; then
-        #     sed -i "" 's#${SRC}#${DST}#g' $file 
-        # else
-        #     sed -i 's#${SRC}#${DST}#g' $file
-        # fi
     done
 }
 
@@ -138,57 +125,6 @@ if [ "$SLAVE" != "true" ]; then
     LOG_INFO "update web/demo config";
 
     update_conf ${WEB_PATH}/web/demo/config
-
-
-    # if [ $OS == 2 ]; then
-
-    #     sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "" "s/3306/$PORT/g" `grep 3306 -rl ${WEB_PATH}/web/config/webConf.js`
-
-    #     sed -i "" "s/user: 'tars'/user: '${USER}'/g" `grep 3306 -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "" "s/password: 'tars2015'/password: '${PASS}'/g" `grep 3306 -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "" "s#/usr/local/app#$WEB_PATH#g" `grep /usr/local/app -rl ${WEB_PATH}/web/config/webConf.js`
-
-    #     sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${WEB_PATH}/web/config/tars.conf`
-
-    #     sed -i "" "s/enableAuth: false/enableAuth: true/g" ${WEB_PATH}/web/config/authConf.js
-    #     sed -i "" "s/enableLogin: false/enableLogin: true/g" ${WEB_PATH}/web/config/loginConf.js
-
-    #     sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${WEB_PATH}/web/demo/config/webConf.js`
-    #     sed -i "" "s/3306/$PORT/g" `grep 3306 -rl ${WEB_PATH}/web/demo/config/webConf.js`
-
-    #     sed -i "" "s/user: 'tars'/user: '${USER}'/g" `grep 3306 -rl ${WEB_PATH}/web/demo/config/webConf.js`
-    #     sed -i "" "s/password: 'tars2015'/password: '${PASS}'/g" `grep 3306 -rl ${WEB_PATH}/web/demo/config/webConf.js`
-
-    #     sed -i "" "s/enableLogin: false/enableLogin: true/g" ${WEB_PATH}/web/demo/config/loginConf.js
-
-    # else
-    #     #web conf
-    #     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "s/3306/$PORT/g" `grep 3306 -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "s/user: 'tars'/user: '${USER}'/g" `grep 3306 -rl ${WEB_PATH}/web/config/webConf.js`
-    #     sed -i "s/password: 'tars2015'/password: '${PASS}'/g" `grep 3306 -rl ${WEB_PATH}/web/config/webConf.js`
-
-    #     sed -i "s#/usr/local/app#$WEB_PATH#g" `grep /usr/local/app -rl ${WEB_PATH}/web/config/webConf.js`
-
-    #     #tars conf
-    #     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl ${WEB_PATH}/web/config/tars.conf`
-
-    #     #auth conf
-    #     sed -i "s/enableAuth: false/enableAuth: true/g" ${WEB_PATH}/web/config/authConf.js
-    #     sed -i "s/enableLogin: false/enableLogin: true/g" ${WEB_PATH}/web/config/loginConf.js
-
-    #     #demo conf
-    #     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl ${WEB_PATH}/web/demo/config/webConf.js`
-    #     sed -i "s/3306/$PORT/g" `grep 3306 -rl ${WEB_PATH}/web/demo/config/webConf.js`
-    #     sed -i "s/user: 'tars'/user: '${USER}'/g" `grep 3306 -rl ${WEB_PATH}/web/demo/config/webConf.js`
-    #     sed -i "s/password: 'tars2015'/password: '${PASS}'/g" `grep 3306 -rl ${WEB_PATH}/web/demo/config/webConf.js`
-
-    #     sed -i "s/enableLogin: false/enableLogin: true/g" ${WEB_PATH}/web/demo/config/loginConf.js
-
-    # fi
 
     LOG_INFO "start web";
 

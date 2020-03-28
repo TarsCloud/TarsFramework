@@ -271,20 +271,8 @@ function replace()
 
     for file in $FILES;
     do
-        # LOG_DEBUG "replace $1 $2 $file"
         ${MYSQL_TOOL} --src="${SRC}" --dst="${DST}" --replace=$file 
-        # if [ $OS == 2 ]; then
-        #     sed -i "" 's#${SRC}#${DST}#g' $file 
-        # else
-        #     sed -i 's#${SRC}#${DST}#g' $file
-        # fi
     done
-
-    # if [ $OS == 2 ]; then
-    #     sed -i "" "s#${SRC}#${DST}#g" $SCAN_FILE 
-    # else
-    #     sed -i "s#${SRC}#${DST}#g" $SCAN_FILE
-    # fi
 }
 
 function replacePath()
@@ -293,13 +281,7 @@ function replacePath()
     DST=$2
     SCAN_PATH=$3
 
-    # LOG_DEBUG "replacePath $1 $2 $SCAN_PATH"
-
     FILES=`grep "${SRC}" -rl $SCAN_PATH/*`
-
-    # LOG_DEBUG "replacePath $1 $2 $SCAN_PATH"
-    # LOG_DEBUG "path:$SCAN_PATH"
-    # LOG_DEBUG "file:$FILES"
 
     if [ "$FILES" == "" ]; then
         return
@@ -307,13 +289,7 @@ function replacePath()
 
     for file in $FILES;
     do
-        # LOG_DEBUG "replacePath $1 $2 $var"
         ${MYSQL_TOOL} --src="${SRC}" --dst="${DST}" --replace=$file 
-        # if [ $OS == 2 ]; then
-        #     sed -i "" 's#${SRC}#${DST}#g' $file 
-        # else
-        #     sed -i 's#${SRC}#${DST}#g' $file
-        # fi
     done
 }
 
@@ -329,24 +305,6 @@ cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
 cp -rf ${WORKDIR}/framework/sql/* ${SQL_TMP}
 
 replacePath localip.tars.com $HOSTIP ${SQL_TMP}
-#replacePath db.tars.com $MYSQLIP ${SQL_TMP}
-#replacePath 3306 $PORT ${SQL_TMP}
-#replacePath "dbuser=tars" "dbuser=${TARS_USER}" ${SQL_TMP}
-#replacePath "dbpass=tars2015" "dbpass=${TARS_PASS}" ${SQL_TMP}
-#replacePath TARS_PATH ${TARS_PATH} ${SQL_TMP}
-#replacePath UPLOAD_PATH ${UPLOAD_PATH} ${SQL_TMP}
-
-# exit 0
-# if [ $OS == 2 ]; then
-#     #mac
-#     sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WORKDIR}/sql.tmp/*`
-#     sed -i "" "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${WORKDIR}/sql.tmp/*`
-#     sed -i "" "s/3306/${PORT}/g" `grep 3306 -rl ${WORKDIR}/sql.tmp/*`
-# else
-#     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl ${WORKDIR}/sql.tmp/*`
-#     sed -i "s/db.tars.com/${MYSQLIP}/g" `grep db.tars.com -rl ${WORKDIR}/sql.tmp/*`
-#     sed -i "s/3306/${PORT}/g" `grep 3306 -rl ${WORKDIR}/sql.tmp/*`
-# fi
 
 if [ "$REBUILD" == "true" ]; then
     exec_mysql_script "drop database if exists db_tars"
@@ -489,87 +447,10 @@ exec_mysql_sql db_tars tars_node_init.sql
 
 cd ${WORKDIR}
 
-# rm -rf ${SQL_TMP}
-
-################################################################################
-# function update_path() {
-
-#     cd $2 
-
-#     LOG_INFO "update install path: [$2/conf/tars.$1.config.conf]";
-
-#     if [ $OS == 2 ]; then
-#         #mac
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl conf/tars.$1.config.conf`
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/execute.sh`
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/start.sh`
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/stop.sh`
-#         if [ -f util/check.sh ]; then
-#             sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/check.sh`
-#         fi
-#     elif [ $OS == 3 ]; then
-#         #windows
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl conf/tars.$1.config.conf`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/execute.bat`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/start.bat`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/stop.bat`
-#         if [ -f util/check.bat ]; then
-#             sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/check.bat`
-#         fi
-#     else
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl conf/tars.$1.config.conf`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/execute.sh`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/start.sh`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/stop.sh`
-#         if [ -f util/check.sh ]; then
-#             sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl util/check.sh`
-#         fi
-#     fi
-
-# }
-
-# function update_script() {
-#     if [ $OS == 2 ]; then
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
-#         sed -i "" "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
-#     elif [ $OS == 3 ]; then
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.bat`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.bat`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.bat`
-#     else
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/check.sh`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-start.sh`
-#         sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${TARS_PATH}/tars-stop.sh`
-#     fi
-# }
-################################################################################
-#check framework
-
-# LOG_INFO "copy ${WORKDIR}/framework/conf/ to tars path:${TARS_PATH}";
-
-# if [ $OS != 3 ]; then
-#     LOG_INFO "copy ${WORKDIR}/framework/util-linux/ to tars path:${TARS_PATH}";
-
-#     cp -rf ${WORKDIR}/framework/util-linux/*.sh ${TARS_PATH}
-#     chmod a+x ${TARS_PATH}/*.sh
-
-# else
-#     LOG_INFO "copy ${WORKDIR}/framework/util-win/ to tars path:${TARS_PATH}";
-
-#     cp -rf ${WORKDIR}/framework/util-win/*.bat ${TARS_PATH}
-
-#     # cp -rf ${WORKDIR}/busybox.exe ${TARS_PATH}
-
-#     #for tarsnode use
-#     cp -rf ${WORKDIR}/busybox.exe ${TARS_PATH}/tarsnode/util/
-# fi
-
 LOG_INFO "prepare framework-------------------------------------"
 
 FRAMEWORK_TMP=${WORKDIR}/framework.tmp
 
-# rm -rf ${WORKDIR}/framework-tmp
 mkdir -p ${FRAMEWORK_TMP}
 
 for var in $TARSALL;
@@ -605,8 +486,6 @@ LOG_INFO "copy framework to install path"
 for var in $TARS;
 do
 
-    # update_path ${var} "${WORKDIR}/framework-tmp/${var}"
-
     if [ $OS == 3 ]; then
         #stop first , then copy in windows
         if [ -d ${TARS_PATH}/${var} ]; then
@@ -617,8 +496,6 @@ do
     # sleep 1
     cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}
 
-    # replacePath TARS_PATH ${TARS_PATH} ${TARS_PATH}/${var}/util
-
 done
 
 if [ $OS == 3 ]; then
@@ -626,13 +503,6 @@ if [ $OS == 3 ]; then
 else
     cp -rf ${FRAMEWORK_TMP}/*.sh ${TARS_PATH}
 fi
-
-# replace TARS_PATH "${TARS_PATH}/*.bat"
-
-#exit 0
-
-#update script
-# update_script
 
 ################################################################################
 
@@ -657,15 +527,11 @@ LOG_INFO "copy tools to web files"
 if [ $OS == 3 ]; then
     cp ${WORKDIR}/tools/install-win.sh ${WEB_PATH}/web/files/
     cp ${WORKDIR}/busybox.exe ${WEB_PATH}/web/files/
-    # sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${WEB_PATH}/web/files/install-win.sh`
 else
     cp ${WORKDIR}/tools/install.sh ${WEB_PATH}/web/files/
-    # sed -i "s#TARS_PATH#${TARS_PATH}#g" `grep TARS_PATH -rl ${WEB_PATH}/web/files/install.sh`
 fi
 
 replace TARS_PATH ${TARS_PATH} ${WEB_PATH}/web/files/*.sh
-
-# rm -rf ${FRAMEWORK_TMP}
 
 ################################################################################
 
@@ -675,47 +541,6 @@ function update_conf()
     do
        ${MYSQL_TOOL} --host=${MYSQLIP} --user="${TARS_USER}" --pass="${TARS_PASS}" --port=${PORT} --config=$1/$file --tars-path=${TARS_PATH} --upload-path=${UPLOAD_PATH} --hostip=${HOSTIP}
     done
-
-
-#    replacePath localip.tars.com $HOSTIP ${UPDATE_PATH}
-#    replacePath db.tars.com $MYSQLIP ${UPDATE_PATH}
-#    replacePath registry.tars.com $HOSTIP ${UPDATE_PATH}
-#    replacePath 3306 $PORT ${UPDATE_PATH}
-#    replacePath "dbuser=tars" "dbuser=${TARS_USER}" ${UPDATE_PATH}
-#    replacePath "dbpass=tars2015" "dbpass=${TARS_PASS}" ${UPDATE_PATH}
-#    replacePath registryAddress "tcp -h $HOSTIP -p 17890" ${UPDATE_PATH}
-
-    # cd $2 
-    # LOG_INFO "update server config: [conf/tars.$1.config.conf]";
-
-    # if [ $OS == 2 ]; then
-    #     #mac
-    #     sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "" "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "" "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "" "s/dbuser=tars/dbuser=${TARS_USER}/g" `grep dbuser=tars -rl conf/tars.$1.config.conf`
-    #     sed -i "" "s/dbpass=tars2015/dbpass=${TARS_PASS}/g" `grep dbpass=tars2015 -rl conf/tars.$1.config.conf`
-    #     sed -i "" "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl conf/tars.$1.config.conf`
-    #     sed -i "" "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl util/execute.sh`
-    # elif [ $OS == 3 ]; then
-    #     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "s/3306/$PORT/g" `grep 3306 -rl conf/tars.$1.config.conf`
-    #     sed -i "s/dbuser=tars/dbuser=${TARS_USER}/g" `grep dbuser=tars -rl conf/tars.$1.config.conf`
-    #     sed -i "s/dbpass=tars2015/dbpass=${TARS_PASS}/g" `grep dbpass=tars2015 -rl conf/tars.$1.config.conf`        
-    #     sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl conf/tars.$1.config.conf`
-    #     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl util/execute.bat`
-    # else
-    #     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "s/db.tars.com/$MYSQLIP/g" `grep db.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "s/registry.tars.com/$HOSTIP/g" `grep registry.tars.com -rl conf/tars.$1.config.conf`
-    #     sed -i "s/3306/$PORT/g" `grep 3306 -rl conf/tars.$1.config.conf`
-    #     sed -i "s/dbuser=tars/dbuser=${TARS_USER}/g" `grep dbuser=tars -rl conf/tars.$1.config.conf`
-    #     sed -i "s/dbpass=tars2015/dbpass=${TARS_PASS}/g" `grep dbpass=tars2015 -rl conf/tars.$1.config.conf`   
-    #     sed -i "s/registryAddress/tcp -h $HOSTIP -p 17890/g" `grep registryAddress -rl conf/tars.$1.config.conf`
-    #     sed -i "s/localip.tars.com/$HOSTIP/g" `grep localip.tars.com -rl util/execute.sh`
-    # fi
 }
 
 function update_util()
@@ -725,14 +550,6 @@ function update_util()
         replace localip.tars.com $HOSTIP $1/${file}
     done
 }
-
-# replacePath localip.tars.com $HOSTIP ${TARS_PATH}
-# replacePath db.tars.com $HOSTIP ${TARS_PATH}
-# replacePath registry.tars.com $HOSTIP ${TARS_PATH}
-# replacePath 3306 $HOSTIP ${TARS_PATH}
-# replacePath dbuser=tars $HOSTIP ${TARS_PATH}
-# replacePath dbpass=tars2015 $HOSTIP ${TARS_PATH}
-# replacePath registryAddress $HOSTIP ${TARS_PATH}
 
 #start server
 for var in $TARS;
@@ -747,8 +564,6 @@ do
 
     LOG_DEBUG "update util: ${TARS_PATH}/${var}/util"
     update_util "${TARS_PATH}/${var}/util"
-
-    # update_conf ${var} ${TARS_PATH}/${var}
 
     LOG_DEBUG "remove config: rm -rf ${TARS_PATH}/tarsnode/data/tars.${var}/conf/tars.${var}.config.conf"
 
@@ -769,15 +584,6 @@ done
 LOG_INFO "begin install web"
 ${WORKDIR}/web-install.sh ${MYSQLIP} ${TARS_PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${TARS_USER}  ${PORT} ${TARS_PATH} ${WEB_PATH}
 
-# #restart again
-# for var in $TARS;
-# do
-#     if [ $OS == 3 ]; then
-#         LOG_DEBUG ${TARS_PATH}/${var}/util/start.bat
-#         ${TARS_PATH}/${var}/util/start.bat 
-#     else
-#         LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
-#         ${TARS_PATH}/${var}/util/start.sh 
-#     fi
+rm -rf ${SQL_TMP}
+rm -rf ${FRAMEWORK_TMP}
 
-# done
