@@ -128,7 +128,7 @@ int PatchImp::preparePatchFile(const string &app, const string &serverName, cons
     string dstDirectory = _directory + "/TARSBatchPatching/" + app + FILE_SEP + serverName;
     string dstfile = dstDirectory + FILE_SEP + app +"." + serverName + ".tgz";
 
-    TLOGDEBUG("PatchImp::preparePatchFile upfile:" << upfile << "|dstfile:" << dstfile << endl);
+    TLOGDEBUG("PatchImp::preparePatchFile upfile:" << upfile << ", dstfile:" << dstfile << endl);
 
     bool succ = TC_File::makeDirRecursive(dstDirectory);
     if (!succ)

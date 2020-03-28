@@ -118,7 +118,7 @@ function update_conf()
     replacePath "password: 'tars2015'" "password: '${PASS}'" ${UPDATE_PATH}
     replacePath "/usr/local/app" $WEB_PATH ${UPDATE_PATH}
     replacePath "enableAuth: false" "enableAuth: true" ${UPDATE_PATH}
-    replacePath "enableLogin: fals" "enableLogin: true" ${UPDATE_PATH}
+    replacePath "enableLogin: false" "enableLogin: true" ${UPDATE_PATH}
 }
 
 ################################################################################

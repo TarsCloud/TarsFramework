@@ -11,6 +11,6 @@ do
   fi
 done
 
-pm2 stop tars-node-web; cd /usr/local/app/web/; pm2 delete tars-node-web; npm run prd;
+pm2 stop -s tars-node-web; cd /usr/local/app/web/; npm run prd;
 
-pm2 stop tars-user-system; cd /usr/local/app/web/demo; pm2 delete tars-user-system; npm run prd;
+pm2 stop -s tars-user-system; cd /usr/local/app/web/demo; npm run prd;

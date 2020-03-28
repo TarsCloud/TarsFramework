@@ -1,6 +1,7 @@
-
+@echo off
 SETLOCAL
 
+@echo off
 set TARS="tarsAdminRegistry,tarsconfig,tarslog,tarsnode,tarsnotify,tarspatch,tarsproperty,tarsqueryproperty,tarsquerystat,tarsregistry,tarsstat"
 
 :loop
@@ -16,15 +17,14 @@ for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
     goto :loop
 )
 
-call pm2 stop tars-node-web
-cd TARS_PATH\web; 
-call pm2 delete tars-node-web; 
-call npm run prd;
+call pm2 stop -s tars-node-web
+cd TARS_PATH\web
+call npm run prd
 
-call pm2 stop tars-user-system; 
-cd TARS_PATH\web\demo; 
-call pm2 delete tars-user-system; 
-call npm run prd;
+call pm2 stop -s tars-user-system
+cd TARS_PATH\web\demo
+call npm run prd
 
+@echo off
 ENDLOCAL
 

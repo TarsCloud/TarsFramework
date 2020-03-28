@@ -243,7 +243,7 @@ function exec_mysql_sql()
 function exec_mysql_template()
 {
     #echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --parent=$1 --template=$2 --profile=$3"
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${TARS_USER} --pass=${TARS_PASS} --port=${PORT} --charset=utf8 --db=db_tars --parent=$1 --template=$2 --profile=$3
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${TARS_USER} --pass=${TARS_PASS} --port=${PORT} --charset=utf8 --db=db_tars --upload-path=${UPLOAD_PATH} --tars-path=${TARS_PATH} --parent=$1 --template=$2 --profile=$3
 
     ret=$?
 
@@ -604,14 +604,14 @@ do
 
     # update_path ${var} "${WORKDIR}/framework-tmp/${var}"
 
-    # if [ $OS == 3 ]; then
-    #     #stop first , then copy in windows
-    #     if [ -d ${TARS_PATH}/${var} ]; then
-    #         ${TARS_PATH}/${var}/util/stop.bat 
-    #     fi
-    # fi
+    if [ $OS == 3 ]; then
+        #stop first , then copy in windows
+        if [ -d ${TARS_PATH}/${var} ]; then
+            ${TARS_PATH}/${var}/util/stop.bat 
+        fi
+    fi
 
-    sleep 1
+    # sleep 1
     cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}
 
     # replacePath TARS_PATH ${TARS_PATH} ${TARS_PATH}/${var}/util
@@ -670,7 +670,7 @@ function update_conf()
 {
     for file in `ls $1`;
     do
-       ${MYSQL_TOOL} --host=${MYSQLIP} --user="${TARS_USER}" --pass="${TARS_PASS}" --port=${PORT} --config=$1/$file --tars-path=${TARS_PATH} --hostip=${HOSTIP}
+       ${MYSQL_TOOL} --host=${MYSQLIP} --user="${TARS_USER}" --pass="${TARS_PASS}" --port=${PORT} --config=$1/$file --tars-path=${TARS_PATH} --upload-path=${UPLOAD_PATH} --hostip=${HOSTIP}
     done
 
 
