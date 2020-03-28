@@ -74,7 +74,7 @@ function LOG_INFO()
 }
 
 if [ $# -lt 8 ]; then
-    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT TARS_PATH";
+    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT INSTALL_PATH";
     exit 1
 fi
 
@@ -85,32 +85,34 @@ REBUILD=$4
 SLAVE=$5
 USER=$6
 PORT=$7
-TARS_PATH=$8
+INSTALL_PATH=$8
 
 if [ "${SLAVE}" != "true" ]; then
     SLAVE="false"
 fi
 
 if [ "${SLAVE}" != "true" ]; then
-    TARS="tarsregistry tarsAdminRegistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch"
+    TARS="tarsAdminRegistry tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch"
 else
     TARS="tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat"
 fi
 
-if [ "${TARS_PATH}" == "" ]; then
-    TARS_PATH=/usr/local/app/tars
+if [ "${INSTALL_PATH}" == "" ]; then
+    INSTALL_PATH=/usr/local/app
 fi
+
+TARS_PATH=${INSTALL_PATH}/tars
 
 if [ $OS == 3 ]; then
     UPLOAD_PATH=$TARS_PATH
 else
-    UPLOAD_PATH=$TARS_PATH/..
+    UPLOAD_PATH=$INSTALL_PATH
 fi
 
 if [ $OS == 3 ]; then
     WEB_PATH=$TARS_PATH
 else
-    WEB_PATH=$TARS_PATH/..
+    WEB_PATH=$INSTALL_PATH
 fi
 
 mkdir -p ${TARS_PATH}
@@ -146,6 +148,7 @@ LOG_DEBUG "SLAVE:         "${SLAVE}
 LOG_DEBUG "REBUILD:       "${REBUILD}
 LOG_DEBUG "TARS_USER:     "${TARS_USER}
 LOG_DEBUG "TARS_PASS:     "${TARS_PASS}
+LOG_DEBUG "INSTALL_PATH:  "${INSTALL_PATH}
 LOG_DEBUG "TARS_PATH:     "${TARS_PATH}
 LOG_DEBUG "WEB_PATH:      "${WEB_PATH}
 LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.\n";
@@ -766,3 +769,15 @@ done
 LOG_INFO "begin install web"
 ${WORKDIR}/web-install.sh ${MYSQLIP} ${TARS_PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${TARS_USER}  ${PORT} ${TARS_PATH} ${WEB_PATH}
 
+# #restart again
+# for var in $TARS;
+# do
+#     if [ $OS == 3 ]; then
+#         LOG_DEBUG ${TARS_PATH}/${var}/util/start.bat
+#         ${TARS_PATH}/${var}/util/start.bat 
+#     else
+#         LOG_DEBUG ${TARS_PATH}/${var}/util/start.sh
+#         ${TARS_PATH}/${var}/util/start.sh 
+#     fi
+
+# done

@@ -221,7 +221,7 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log)
 
         int ret = EM_TARS_UNKNOWN_ERR;
 
-        TLOGDEBUG("TaskList::patch:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
+        TLOGDEBUG("TaskList::patch:" << req.writeToJsonString() << ", " << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
         
         string patchId   = get("patch_id", req.parameters);
         string patchType = get("patch_type", req.parameters);

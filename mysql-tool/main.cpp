@@ -59,10 +59,6 @@ struct MysqlCommand
 		TC_Mysql::MysqlData data = mysql.queryRecord(sql);
 		if(data.size() > 0)
 		{
-			// for(size_t i = 0; i < data.size(); i++)
-			// {
-			// 	cout << data[i]["TABLE_NAME"] << endl;
-			// }
 			exit(0);
 		}
 		

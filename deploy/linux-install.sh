@@ -42,7 +42,7 @@ fi
 
 NODE_VERSION="v12.13.0"
 
-TARS_PATH=/usr/local/app/tars
+INSTALL_PATH=/usr/local/app
 MIRROR=http://mirrors.cloud.tencent.com
 
 export TARS_INSTALL=$(cd $(dirname $0); pwd)
@@ -112,10 +112,10 @@ if [ $OS != 3 ]; then
       cp centos7_base.repo /etc/yum.repos.d/
       yum makecache fast
 
-      yum install -y yum-utils psmisc mysql telnet net-tools wget unzip
+      yum install -y yum-utils psmisc telnet net-tools wget unzip
     else
       apt-get update
-      apt-get install -y psmisc mysql-client telnet net-tools wget unzip
+      apt-get install -y psmisc telnet net-tools wget unzip
     fi
 
 fi
@@ -196,7 +196,7 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 cd ${TARS_INSTALL}
 
-./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${TARS_PATH}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${INSTALL_PATH}
 
 
 ################################################################################

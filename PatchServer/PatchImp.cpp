@@ -60,8 +60,8 @@ void PatchImp::initialize()
 {
     try
     {
-        _directory       = (*g_conf)["/tars<directory>"];
-        _uploadDirectory = (*g_conf)["/tars<uploadDirectory>"];
+        _directory       = TC_File::simplifyDirectory((*g_conf)["/tars<directory>"]);
+        _uploadDirectory = TC_File::simplifyDirectory((*g_conf)["/tars<uploadDirectory>"]);
         _size            = TC_Common::toSize(g_conf->get("/tars<size>", "1M"), 1024*1024);
     }
     catch(exception &ex)

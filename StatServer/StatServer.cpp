@@ -197,18 +197,20 @@ void StatServer::initHashMap()
 
     TLOGDEBUG("StatServer::initHashMap init multi hashmap begin..." << endl);
 
-    char a[26];
-    int iChar = 0;
-    for(int n = 0; n < 26; n++)
-    {
-        a[n] = 'a' + n;
-    }
+// #if TARGET_PLATFORM_LINUX
+    // char a[26]="\0";
+    // int iChar = 0;
+    // for(int n = 0; n < 26; n++)
+    // {
+    //     a[n] = 'a' + n;
+    // }
+// #endif
 
     for(int i = 0; i < 2; ++i)
     {
         for(int k = 0; k < iHashMapNum; ++k)
         {
-            string sFileConf("/tars/hashmap<file>");
+            string sFileConf("/tars/hashmap<file");
             string sFileDefault("hashmap");
 
             sFileConf += TC_Common::tostr(i);
@@ -221,24 +223,24 @@ void StatServer::initHashMap()
 
             string sHashMapFile = ServerConfig::DataPath + "/" + g_pconf->get(sFileConf, sFileDefault);
 
-//            string sPath        = TC_File::extractFilePath(sHashMapFile);
-//
-//            if(!TC_File::makeDirRecursive(sPath))
-//            {
-//                TLOGERROR("cannot create hashmap file " << sPath << endl);
-//                exit(0);
-//            }
+            string sPath        = TC_File::extractFilePath(sHashMapFile);
+
+            if(!TC_File::makeDirRecursive(sPath))
+            {
+                TLOGERROR("cannot create hashmap file " << sPath << endl);
+                exit(0);
+            }
 
             try
             {
-                TLOGINFO("initDataBlockSize size: " << iMinBlock << ", " << iMaxBlock << ", " << iFactor << endl);
+                TLOGDEBUG("initDataBlockSize size: " << iMinBlock << ", " << iMaxBlock << ", " << iFactor << ", HashMapFile:" << sHashMapFile << endl);
 
                 _hashmap[i][k].initDataBlockSize(iMinBlock,iMaxBlock,iFactor);
 
-//                if(TC_File::isFileExist(sHashMapFile))
-//                {
-//                    iSize = TC_File::getFileSize(sHashMapFile);
-//                }
+               if(TC_File::isFileExist(sHashMapFile))
+               {
+                   iSize = TC_File::getFileSize(sHashMapFile);
+               }
 //                else
 //                {
 //                    int fd = open(sHashMapFile.c_str(), O_CREAT|O_EXCL|O_RDWR, 0666);
@@ -268,17 +270,21 @@ void StatServer::initHashMap()
 
 
                 //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
-#if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
-	            _hashmap[i][k].create(new char[iSize], iSize);
-#else
-                key_t key = ftok(sHashMapFile.c_str(), a[iChar%26]);
+// #if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+// 	            _hashmap[i][k].create(new char[iSize], iSize);
+// #else
+                // key_t key = ftok(sHashMapFile.c_str(), a[iChar%26]);
 
-                iChar++;
+                _hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
 
-                TLOGDEBUG("init hash mem，shm key: 0x" << hex << key << dec << endl);
+//                 key_t key = tars::hash<string>()(sHashMapFile);
 
-                _hashmap[i][k].initStore(key, iSize);
-#endif
+//                 // iChar++;
+
+//                 TLOGDEBUG("init hash mem，shm key: 0x" << hex << key << dec << endl);
+
+//                 _hashmap[i][k].initStore(key, iSize);
+// #endif
                 _hashmap[i][k].setAutoErase(false);
 
 	            TLOGDEBUG("\n" <<  _hashmap[i][k].desc() << endl);

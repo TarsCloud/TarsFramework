@@ -64,7 +64,7 @@ fi
 WORKDIR=$(cd $(dirname $0); pwd)
 
 #######################################################
-TARS_PATH=/usr/local/app/tars
+INSTALL_PATH=/usr/local/app
 
 mkdir -p ${TARS_PATH}
 
@@ -87,7 +87,7 @@ mkdir -p /data/tars/tarsnode-data
 
 trap 'exit' SIGTERM SIGINT
 
-./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER} ${PORT} ${TARS_PATH}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER} ${PORT} ${INSTALL_PATH}
 if [ $? != 0 ]; then
     echo  "tars-install.sh error"
     exit 1
@@ -102,7 +102,7 @@ fi
 
 while [ 1 ]
 do
-    sh ${TARS_PATH}/tarsnode/util/check.sh
+    sh ${INSTALL_PATH}/tars/tarsnode/util/check.sh
     sleep 3
 done
 

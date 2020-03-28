@@ -99,10 +99,10 @@ string PropertyServer::getRandOrder(void)
     return _randOrder;
 }
 
-string PropertyServer::getClonePath(void)
-{
-    return _clonePath;
-}
+// string PropertyServer::getClonePath(void)
+// {
+//     return _clonePath;
+// }
 
 int PropertyServer::getInserInterv(void)
 {
@@ -204,13 +204,13 @@ void PropertyServer::initHashMap()
     int iSize           = TC_Common::toSize(g_pconf->get("/tars/hashmap<size>"), 1024*1024*256);
 
 
-    _clonePath         = ServerConfig::DataPath + "/" + g_pconf->get("/tars/hashmap<clonePatch>","clone");
+    // _clonePath         = ServerConfig::DataPath + "/" + g_pconf->get("/tars/hashmap<clonePatch>","clone");
 
-    if(!TC_File::makeDirRecursive(_clonePath))
-    {
-        TLOGERROR("cannot create hashmap file " << _clonePath << endl);
-        exit(0);
-    }
+    // if(!TC_File::makeDirRecursive(_clonePath))
+    // {
+    //     TLOGERROR("cannot create hashmap file " << _clonePath << endl);
+    //     exit(0);
+    // }
 
     TLOGDEBUG("PropertyServer::initHashMap init multi hashmap begin..." << endl);
 

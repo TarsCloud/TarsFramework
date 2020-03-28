@@ -29,6 +29,13 @@ typedef StatPropMsgHead PropHead;
 
 typedef TarsHashMap<PropHead,PropBody, ThreadLockPolicy, FileStorePolicy> PropHashMap;
 
+// #if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+// typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,MemStorePolicy> PropHashMap;//FileStorePolicy
+// #else
+// typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,ShmStorePolicy> PropHashMap;//FileStorePolicy
+// #endif
+
+
 #if TARGET_PLATFORM_LINUX
 #include <ext/pool_allocator.h>
 typedef std::map<PropHead, PropBody, std::less<PropHead>, __gnu_cxx::__pool_alloc<std::pair<PropHead const, PropBody> > > PropertyMsg;
