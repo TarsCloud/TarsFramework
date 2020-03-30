@@ -949,7 +949,7 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 
 	if (pid > 0)
 	{
-		memset(buf, 0, sizeof(buf));
+//		memset(buf, 0, sizeof(buf));
 		cmd = "top -b -n 1 -o '%CPU' -o '%MEM' -H -p " + TC_Common::tostr(pid);
 		// FILE* fpTop2 = popen(cmd.c_str(), "r");	
 		// fread(buf, sizeof(char), sizeof(buf)-1, fpTop2);

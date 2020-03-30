@@ -5,6 +5,8 @@ include_directories(${CMAKE_SOURCE_DIR}/tarscpp/servant/protocol)
 
 set(MODULE tars-client)
 
+include_directories(.)
+
 aux_source_directory(. DIR_SRC)
 
 add_executable(${MODULE} ${DIR_SRC})
