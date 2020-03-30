@@ -130,11 +130,27 @@ inline int CommandLoad::execute(string& sResult)
         _exePath =  _serverDir + FILE_SEP + "bin" + FILE_SEP;
         if (_serverType == "tars_java")
         {
-            _exeFile = "java";
+            string sConfigFile      = _serverObjectPtr->getConfigFile();
+
+            TC_Config conf;
+            conf.parseFile(sConfigFile);
+            _exeFile = conf.get("/tars/application/server<java>", "java");
         }
         else if (_serverType == "tars_node")
         {
-            _exeFile = "node";
+            string sConfigFile      = _serverObjectPtr->getConfigFile();
+
+            TC_Config conf;
+            conf.parseFile(sConfigFile);
+            _exeFile = conf.get("/tars/application/server<nodejs>", "node");
+        }
+        else if(_serverType == "tars_php")
+        {
+            string sConfigFile      = _serverObjectPtr->getConfigFile();
+
+            TC_Config conf;
+            conf.parseFile(sConfigFile);
+            _exeFile = conf.get("/tars/application/server<php>", "php");
         }
         else
         {

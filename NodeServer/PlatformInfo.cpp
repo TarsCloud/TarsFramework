@@ -16,9 +16,11 @@
 
 #include "PlatformInfo.h"
 #include "util/tc_clientsocket.h"
+#include "util/tc_common.h"
 #include "NodeServer.h"
+#include <numeric>
 
-NodeInfo PlatformInfo::getNodeInfo() const
+NodeInfo PlatformInfo::getNodeInfo() 
 {
     NodeInfo tNodeInfo;
     tNodeInfo.nodeName      = getNodeName();
@@ -33,7 +35,7 @@ NodeInfo PlatformInfo::getNodeInfo() const
     return tNodeInfo;
 }
 
-LoadInfo PlatformInfo::getLoadInfo() const
+LoadInfo PlatformInfo::getLoadInfo() 
 {
     LoadInfo info;
     info.avg1   = -1.0f;
@@ -45,20 +47,46 @@ LoadInfo PlatformInfo::getLoadInfo() const
     if ( getloadavg( loadAvg, 3 ) != -1 )
     {
         info.avg1   = static_cast<float>( loadAvg[0] );
-        info.avg5   = static_cast<float>( loadAvg[1] );
-        info.avg15  = static_cast<float>( loadAvg[2] );
+    // info.avg5   = static_cast<float>( loadAvg[1] );
+    // info.avg15  = static_cast<float>( loadAvg[2] );
     }
+#else
+    string data = TC_Port::exec("wmic cpu get loadpercentage");
+    vector<string> v = TC_Common::sepstr<string>(data, "\n");
+    for(auto s : v)
+    {
+        s = TC_Common::trim(s);
+        if(TC_Common::isdigit(s))
+        {
+            info.avg1 = TC_Common::strto<float>(s); 
+            break;
+        }
+    }
+
 #endif
+
+    _load5.push_back(info.avg1);
+    if(_load5.size() > 5)
+    {
+        _load5.erase(_load5.begin()); 
+    }
+    info.avg5  = std::accumulate(_load5.begin(),_load5.end(), 0) / _load5.size();
+
+    _load15.push_back(info.avg1);
+    if(_load15.size() > 15)
+    {
+        _load15.erase(_load15.begin());
+    }
+    info.avg15  = std::accumulate(_load15.begin(),_load15.end(), 0) / _load15.size();
     return  info;
 }
 
-string PlatformInfo::getNodeName() const
+const string &PlatformInfo::getNodeName() 
 {
 	return NodeServer::NODE_ID;
-//    return ServerConfig::LocalIp;
 }
 
-string PlatformInfo::getDataDir() const
+string PlatformInfo::getDataDir() 
 {
     string sDataDir;
     sDataDir = ServerConfig::DataPath;
@@ -83,7 +111,7 @@ string PlatformInfo::getDataDir() const
     return sDataDir;
 }
 
-string PlatformInfo::getDownLoadDir() const
+string PlatformInfo::getDownLoadDir() 
 {
     string sDownLoadDir = "";
     try

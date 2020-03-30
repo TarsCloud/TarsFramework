@@ -1,5 +1,5 @@
 
 echo "begin check server..."
 
-TARS_PATH/tarsnode/util/check.bat
+TARS_PATH/tarsnode/util/monitor.bat
 

@@ -30,7 +30,7 @@ int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentP
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( sApp, sName );
         if(pServerObjectPtr)
         {
-            NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << " keep alive, pid:" << serverInfo.pid << endl;
+            // NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << " keep alive, pid:" << serverInfo.pid << endl;
 
             pServerObjectPtr->keepAlive(serverInfo.pid,serverInfo.adapter);
 

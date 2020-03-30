@@ -53,7 +53,7 @@ int AdminRegistryImp::undeploy_inner(const string & application, const string & 
 
 int AdminRegistryImp::addTaskReq(const TaskReq &taskReq, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("AdminRegistryImp::addTaskReq taskNo:" << taskReq.taskNo <<endl);
+    TLOGERROR("AdminRegistryImp::addTaskReq taskNo:" << taskReq.taskNo <<endl);
 
     int ret = DBPROXY->addTaskReq(taskReq);
     if (ret != 0)
@@ -851,8 +851,8 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 	iRet = _patchPrx->preparePatchFile(reqPro.appname, reqPro.servername, patchFile);
 	if (iRet != 0)
 	{
-		result = "gpreparePatchFile error, check tarspatch server!";
-		TLOGERROR("prepare patch file error:" << patchFile << endl);
+		result = "tarspatch::preparePatchFile error, check tarspatch server!";
+		TLOGERROR("call tarspatch::preparePatchFile file error:" << patchFile << endl);
 		TarsRemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
 
 		return EM_TARS_PREPARE_ERR;

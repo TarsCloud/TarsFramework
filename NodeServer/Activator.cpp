@@ -54,7 +54,6 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 
 #if TARGET_PLATFORM_WINDOWS
 	vector<string> vArgs;
-//	vArgs.push_back(strExePath);
 	vArgs.insert(vArgs.end(), vOptions.begin(), vOptions.end());
 
 	NODE_LOG("startServer")->debug() << FILE_FUN << "activating server [exepath: " << strExePath << ", args: " << TC_Common::tostr(vArgs) << "]" << endl;
@@ -395,7 +394,6 @@ bool Activator::doScript(const string& strScript, string& strResult, map<string,
 	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 	//关键步骤，CreateProcess函数参数意义请查阅MSDN 
 	if (!CreateProcessA(strScript.c_str(), NULL, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi)) {
-//        LOG->error() << FILE_FUN << "doScript CreateProcessA:" << strScript << endl;
         NODE_LOG(_server->getServerId())->error() << FILE_FUN << " doScript CreateProcessA:" << strScript << endl;
 
 		CloseHandle(hWrite);
@@ -465,7 +463,6 @@ bool Activator::doScript(const string& strScript, string& strResult, map<string,
         if (sRealEndMark == "" || strResult.find(sRealEndMark) != string::npos)
         {
 	        NODE_LOG(_server->getServerId())->info() << "Activator::doScript "<< sCmd << "|sEndMark " << sRealEndMark << " finded|" << strResult << endl;
-//	        TLOGINFO("Activator::doScript "<< sCmd << "|sEndMark " << sRealEndMark << " finded|" << strResult << endl);
 	        break;
         }
     }
@@ -495,7 +492,6 @@ map<string, string> Activator::parseScriptResult(const string& strResult)
             if (sName == "notify")
             {
                 g_app.reportServer(_server->getServerId(), "", _server->getNodeInfo().nodeName, sValue); 
-                // g_app.reportServer(strServerId, sValue);
             }
         }
     }

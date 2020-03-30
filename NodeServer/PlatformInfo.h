@@ -18,9 +18,9 @@
 #define __PLAT_FORM_INFO_H_
 
 #include "Node.h"
-// #include <unistd.h>
 #include "util/tc_config.h"
 #include <iostream>
+#include <list>
 #include "servant/Application.h"
 
 using namespace tars;
@@ -34,27 +34,31 @@ public:
     /**
      * 获取node的相关信息
      */
-    NodeInfo getNodeInfo() const;
+    NodeInfo getNodeInfo() ;
 
     /**
      * 获取node的所在机器的负载信息
      */
-    LoadInfo getLoadInfo() const;
+    LoadInfo getLoadInfo() ;
 
     /**
      * 获取node的名称
      */
-    string getNodeName() const;
+    const string & getNodeName() ;
 
     /**
      * 获取node的数据目录
      */
-    string getDataDir() const;
+    string getDataDir() ;
 
     /**
      * 获取文件下载目录
      */
-    string getDownLoadDir() const;
+    string getDownLoadDir() ;
+
+protected:
+    list<float>   _load5;
+    list<float>   _load15;
 };
 
 #endif

@@ -962,7 +962,7 @@ int DbProxy::updateRegistryInfo2Db(bool bRegHeartbeatOff)
         }
 
         MYSQL_INDEX->execute(sSql);
-        TLOGDEBUG(__FUNCTION__ << ", sql:" << sSql << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
+        // TLOGDEBUG(__FUNCTION__ << ", sql:" << sSql << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {

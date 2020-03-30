@@ -23,7 +23,7 @@ set(BUILD_SERVER servers)
 if(WIN32)
     set(TARS_INSTALL_PATH c:\\tars-install)
 else(WIN32)
-    set(TARS_INSTALL_PATH /usr/local/app/tars)
+    set(TARS_INSTALL_PATH /usr/local/app)
 endif(WIN32)
 
 macro(complice_module MODULE)
@@ -64,7 +64,7 @@ macro(complice_module MODULE)
 endmacro()
 
 #调用tars2cpp, 生成tars对应的文件
-macro(complice_tars OUT_DEPENDS_LIST)
+macro(complice_tars_framework OUT_DEPENDS_LIST)
     set(DEPENDS_LIST)
 
     set(SERVANT_PROTOCOL "${servant_SOURCE_DIR}/protocol/servant")
@@ -89,14 +89,14 @@ macro(complice_tars OUT_DEPENDS_LIST)
         add_custom_command(
                 OUTPUT ${CURRENT_PROTOCOL_DIR}/${TARS_H}
                 WORKING_DIRECTORY ${CURRENT_PROTOCOL_DIR}
-                DEPENDS tars2cpp
+                DEPENDS tars2cpp ${TARS_IN}
                 COMMAND ${TARS2CPP} --with-tars ${INCLUDE_STRING} ${TARS_IN}
                 COMMENT "${TARS2CPP} --with-tars ${INCLUDE_STRING} ${TARS_IN}")
 
         list(APPEND DEPENDS_LIST ${CURRENT_PROTOCOL_DIR}/${TARS_H})
 
         #设置需要清除的文件
-        list(APPEND CLEAN_LIST ${CURRENT_PROTOCOL_DIR}/${NAME_WE}.h)
+        list(APPEND CLEAN_LIST ${CURRENT_PROTOCOL_DIR}/${TARS_H})
 
     endforeach ()
 
@@ -106,6 +106,7 @@ macro(complice_tars OUT_DEPENDS_LIST)
 endmacro()
 
 add_subdirectory(mysql-tool)
+add_subdirectory(tars-client)
 
 add_subdirectory(tarscpp/servant/protocol/framework)
 add_subdirectory(ConfigServer)
@@ -198,16 +199,16 @@ if(WIN32)
         add_custom_target(cp-${server}
                 WORKING_DIRECTORY ${WORKING_DIRECTORY}
                 DEPENDS ${server}
-                COMMAND ${TARS_INSTALL_PATH}/${server}/util/stop.bat
-                COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/${server}/bin/${server}.exe ${TARS_INSTALL_PATH}/${server}/bin/
+                # COMMAND ${TARS_INSTALL_PATH}/${server}/util/stop.bat
+                COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/${server}/bin/${server}.exe ${TARS_INSTALL_PATH}/tars/${server}/bin/
                 # COMMAND start /b ${TARS_INSTALL_PATH}/${server}/util/start.bat
-                COMMENT "cp ${server} & restart")
+                COMMENT "cp ${server} & restart: copy ${BUILD_SERVER}/${server}/bin/${server}.exe ${TARS_INSTALL_PATH}/tars/${server}/bin/")
 else(WIN32)
         add_custom_target(cp-${server}
                 WORKING_DIRECTORY ${WORKING_DIRECTORY}
                 DEPENDS ${server}
-                COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/${server}/bin/${server} ${TARS_INSTALL_PATH}/${server}/bin/
-                COMMAND ${TARS_INSTALL_PATH}/${server}/util/start.sh
+                COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_SERVER}/${server}/bin/${server} ${TARS_INSTALL_PATH}/tars/${server}/bin/
+                COMMAND ${TARS_INSTALL_PATH}/tars/${server}/util/start.sh
                 COMMENT "cp ${server} & restart")
 endif(WIN32)
 endmacro()

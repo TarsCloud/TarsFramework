@@ -108,7 +108,7 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
 
     if ( g_app.isValid(current->getIp()) == false )
     {
-        result +=FILE_FUN_STR+ " erro:ip "+ current->getIp()+" is invalid";
+        result += FILE_FUN_STR+ " error:ip "+ current->getIp()+" is invalid";
         NODE_LOG(serverId)->error()<<FILE_FUN << result << endl;
         return EM_TARS_INVALID_IP_ERR;
     }
@@ -400,7 +400,7 @@ int NodeImp::startServer( const string& application, const string& serverName,st
         string s;
 
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->loadServer( application, serverName,true,s);
-        NODE_LOG(serverId)->debug()<<FILE_FUN<<result<<"|load"<< endl;
+        // NODE_LOG(serverId)->debug()<<FILE_FUN<<result<<"|load"<< endl;
 
         if ( pServerObjectPtr )
         {
@@ -409,7 +409,7 @@ int NodeImp::startServer( const string& application, const string& serverName,st
             iRet = command.doProcess(s);
             if (iRet == 0 )
             {
-                result = result+":server is activating, please wait ...|"+s;
+                result = result+":server is activating, please check: "+s;
             }
             else
             {
@@ -868,23 +868,52 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 
     string newCmd = TC_Common::replace(cmd, "__log_file_name__", filePath);
 
-	NODE_LOG(serverId)->debug() << "[NodeImp::getLogData]newcmd:" << newCmd << endl;
+	NODE_LOG(serverId)->debug() << "[NodeImp::getLogData] cmd:" << newCmd << endl;
+
 #if TARGET_PLATFORM_WINDOWS
+    string tmpCmd;
+    vector<string> subCmd = TC_Common::sepstr<string>(newCmd, "|");
+    for(size_t i = 0; i < subCmd.size(); i++)
+    {
+        tmpCmd += ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "util\\busybox.exe " + subCmd[i]; 
+        if(i != subCmd.size() - 1)
+        {
+            tmpCmd += " | "; 
+        }
+    }
 
-    fileData = "not support!";
-
-#else
-    FILE* fp = popen(newCmd.c_str(), "r");
-
-    static size_t buf_len = 2 * 1024 * 1024;
-    char *buf = new char[buf_len];
-    memset(buf, 0, buf_len);
-    fread(buf, sizeof(char), buf_len - 1, fp);
-    fclose(fp);
-
-    fileData = string(buf);
-    delete []buf;
+    newCmd = tmpCmd;
 #endif
+
+	NODE_LOG(serverId)->debug() << "[NodeImp::getLogData] newcmd:" << newCmd << endl;
+
+    fileData = TC_Port::exec(newCmd.c_str());
+    
+// #if TARGET_PLATFORM_WINDOWS
+
+//     FILE* fp = _popen(newCmd.c_str(), "r");
+
+//     static size_t buf_len = 2 * 1024 * 1024;
+//     char *buf = new char[buf_len];
+//     memset(buf, 0, buf_len);
+//     fread(buf, sizeof(char), buf_len - 1, fp);
+//     fclose(fp);
+
+//     fileData = string(buf);
+//     delete []buf;
+
+// #else
+//     FILE* fp = popen(newCmd.c_str(), "r");
+
+//     static size_t buf_len = 2 * 1024 * 1024;
+//     char *buf = new char[buf_len];
+//     memset(buf, 0, buf_len);
+//     fread(buf, sizeof(char), buf_len - 1, fp);
+//     fclose(fp);
+
+//     fileData = string(buf);
+//     delete []buf;
+// #endif
 
     return 0;
 }
@@ -899,6 +928,7 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 //	return str;
 //}
 
+// TASKLIST /FI "USERNAME ne NT AUTHORITY\SYSTEM" /FI "STATUS eq running" /V /FO TABLE
 int NodeImp::getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current)
 {
 	string serverId = application + "." + serverName;
@@ -908,36 +938,40 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	fileData = "not support!";	
 #else
 	string cmd = "top -c -bw 160 -n 1 -o '%CPU' -o '%MEM'";
-	FILE* fpTop = popen(cmd.c_str(), "r");
-	char   buf[1 * 1024 * 1024] = { 0 };
-	fread(buf, sizeof(char), sizeof(buf)-1, fpTop);
-	fclose(fpTop);
-	fileData = string(buf);
+
+    fileData = TC_Port::exec(cmd.c_str()); 
+	// FILE* fpTop = popen(cmd.c_str(), "r");
+	// char   buf[1 * 1024 * 1024] = { 0 };
+	// fread(buf, sizeof(char), sizeof(buf)-1, fpTop);
+	// fclose(fpTop);
+	// fileData = string(buf);
 	fileData += "#global-top-end#";
 
 	if (pid > 0)
 	{
 		memset(buf, 0, sizeof(buf));
 		cmd = "top -b -n 1 -o '%CPU' -o '%MEM' -H -p " + TC_Common::tostr(pid);
-		FILE* fpTop2 = popen(cmd.c_str(), "r");	
-		fread(buf, sizeof(char), sizeof(buf)-1, fpTop2);
-		fclose(fpTop2);
+		// FILE* fpTop2 = popen(cmd.c_str(), "r");	
+		// fread(buf, sizeof(char), sizeof(buf)-1, fpTop2);
+		// fclose(fpTop2);
 		fileData += "\n\n";
 		fileData += "#this-top-begin#" + string(100, '-');
 		fileData += "\n";
-		fileData += string(buf);
+        fileData += TC_Port::exec(cmd.c_str()); 
+		// fileData += string(buf);
 		fileData += "#this-top-end#";
 	}
 	
-	memset(buf, 0, sizeof(buf));
+	// memset(buf, 0, sizeof(buf));
 	cmd = "cd /usr/local/app/taf/app_log/; ls -alth core.*";
-	FILE* fpLL = popen(cmd.c_str(), "r");
-	fread(buf, sizeof(char), sizeof(buf)-1, fpLL);
-	fclose(fpLL);
+	// FILE* fpLL = popen(cmd.c_str(), "r");
+	// fread(buf, sizeof(char), sizeof(buf)-1, fpLL);
+	// fclose(fpLL);
 	fileData += "\n\n";
 	fileData += "#core-file-begin#" + string(100, '-');
 	fileData += "\n";
-	fileData += string(buf);
+    fileData = TC_Port::exec(cmd.c_str()); 
+	// fileData += string(buf);
 
 	NODE_LOG(serverId)->debug() << fileData << endl;
 #endif

@@ -10,7 +10,7 @@ set TARS="tarsAdminRegistry,tarsconfig,tarslog,tarsnode,tarsnotify,tarspatch,tar
 for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
     echo "start %%a"
 
-    call c:/tars-install\%%a\util\start.bat
+    call TARS_PATH\%%a\util\start.bat
 
     set TARS="%%b"
 
@@ -18,11 +18,11 @@ for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
 )
 
 call pm2 stop -s tars-node-web
-cd TARS_PATH\web
+cd WEB_PATH\web
 call npm run prd
 
 call pm2 stop -s tars-user-system
-cd TARS_PATH\web\demo
+cd WEB_PATH\web\demo
 call npm run prd
 
 @echo off

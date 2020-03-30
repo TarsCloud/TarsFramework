@@ -252,6 +252,11 @@ public:
 	 */
 	bool isStarted() {return _started;}
 
+    /**
+     * save pid 
+     */
+    int64_t savePid();
+
 public:
 
     /**
@@ -392,25 +397,26 @@ public:
 public:
     ServerDescriptor getServerDescriptor() { return  _desc; }
     ActivatorPtr getActivator() { return  _activatorPtr; }
-    string getExePath(){return _exePath;}
-    string getExeFile(){return _exeFile;}
-    string getConfigFile(){return _confFile;}
-    string getLogPath(){return _logPath;}
-    string getLibPath(){return _libPath;}
-    string getServerDir(){return _serverDir;}
-    string getServerId(){return _serverId;}
-    string getServerType(){return _serverType;}
-    string getStartScript() {return _startScript;}
-    string getStopScript() {return _stopScript;}
-    string getMonitorScript() {return _monitorScript;}
-    string getEnv() { return _env; }
-    string getRedirectPath() {return _redirectPath;}
+    string getRunningTmpPath();
+    const string & getExePath() {return _exePath;}
+    const string & getExeFile() {return _exeFile;}
+    const string & getConfigFile(){return _confFile;}
+    const string & getLogPath(){return _logPath;}
+    const string & getLibPath(){return _libPath;}
+    const string & getServerDir(){return _serverDir;}
+    const string & getServerId(){return _serverId;}
+    const string & getServerType(){return _serverType;}
+    const string & getStartScript() {return _startScript;}
+    const string & getStopScript() {return _stopScript;}
+    const string & getMonitorScript() {return _monitorScript;}
+    const string & getEnv() { return _env; }
+    const string & getRedirectPath() {return _redirectPath;}
 
     //java服务
-    string getJvmParams() {return _jvmParams;}
-    string getMainClass() {return _mainClass;}
-    string getClassPath() {return _classPath;}
-    string getBackupFileNames(){return _backupFiles;}
+    const string & getJvmParams() {return _jvmParams;}
+    const string & getMainClass() {return _mainClass;}
+    const string & getClassPath() {return _classPath;}
+    const string & getBackupFileNames(){return _backupFiles;}
 
     void setServerDescriptor( const ServerDescriptor& tDesc );
     void setVersion( const string &version );

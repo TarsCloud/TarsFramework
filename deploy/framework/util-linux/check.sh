@@ -1,5 +1,5 @@
 #!/bin/bash
 
-TARS_PATH/tarsnode/util/check.sh
+TARS_PATH/tarsnode/util/monitor.sh
 
 

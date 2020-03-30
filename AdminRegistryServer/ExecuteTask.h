@@ -51,13 +51,14 @@ protected:
 
     //设置应答的log
     void setRspLog(size_t index, const string &log);
+    void setRspPercent(size_t index, int percent);
 
     EMTaskItemStatus executeSingleTask(size_t index, const TaskItemReq &req);
 
     EMTaskItemStatus start   (const TaskItemReq &req, string &log);
     EMTaskItemStatus restart (const TaskItemReq &req, string &log);
     EMTaskItemStatus stop    (const TaskItemReq &req, string &log);
-    EMTaskItemStatus patch   (const TaskItemReq &req, string &log);
+    EMTaskItemStatus patch   (size_t index, const TaskItemReq &req, string &log);
     EMTaskItemStatus undeploy(const TaskItemReq &req, string &log);
 //    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);
@@ -101,11 +102,6 @@ protected:
 class ExecuteTask : public TC_Singleton<ExecuteTask>, public TC_ThreadLock, public TC_Thread
 {
 public:
-
-
-
-
-
     /**
      * 添加任务请求
      * 
@@ -137,10 +133,7 @@ public:
 public:
      ExecuteTask();
 	 void init();
-	 AdminRegistryImp* getAdminImp()
-	 {
-		 return _adminImp;
-	 }
+	 AdminRegistryImp* getAdminImp() { return _adminImp; }
     ~ExecuteTask();
     virtual void run();
 protected:

@@ -17,6 +17,7 @@
 #include "ServerObject.h"
 #include "Activator.h"
 #include "RegistryProxy.h"
+#include "util/tc_port.h"
 #include "util/tc_clientsocket.h"
 #include "servant/Communicator.h"
 #include "NodeServer.h"
@@ -48,6 +49,79 @@ ServerObject::ServerObject( const ServerDescriptor& tDesc)
     _serviceLimitResource = new ServerLimitResource(5,10,60,_application,_serverName);
 }
 
+int64_t ServerObject::savePid()
+{
+    // vector<string> vtServerName =  TC_Common::sepstr<string>(_serverId, ".");
+    // if (vtServerName.size() != 2)
+    // {
+    //     sResult = sResult + "|failed to get pid for  " + _serverId + ",server id error";
+    //     NODE_LOG(_serverId)->error() << FILE_FUN << sResult  << endl;
+    //     throw runtime_error(sResult);
+    // }
+
+    // time_t tNow = TNOW;
+    // int iStartWaitInterval = START_WAIT_INTERVAL;
+
+    // //服务启动,超时时间自己定义的情况
+    // TC_Config conf;
+    // conf.parseFile(_confFile);
+    // iStartWaitInterval = TC_Common::strto<int>(conf.get("/tars/application/server<activating-timeout>", "3000")) / 1000;
+    // if (iStartWaitInterval < START_WAIT_INTERVAL)
+    // {
+    //     iStartWaitInterval = START_WAIT_INTERVAL;
+    // }
+    // if (iStartWaitInterval > 60)
+    // {
+    //     iStartWaitInterval = 60;
+    // }
+
+    string sPidFile = ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + _serverId + FILE_SEP + _serverId + ".pid";
+
+#if TARGET_PLATFORM_WINDOWS
+    // string sGetServerPidScript = "ps -ef | grep -v 'grep' |grep -iE '" + _startScript + "'| awk '{print $2}' > " + sPidFile;
+
+    string sGetServerPidScript = "wmic process get executablepath,processid | " + ServerConfig::TarsPath + FILE_SEP + "tarsnode\\util\\busybox.exe grep \"" + _startScript + "\" >" + sPidFile ;
+#else
+    // string sGetServerPidScript = "ps -ef | grep -v 'grep' |grep -iE '" + _startScript + "'| awk '{print $2}' > " + sPidFile;
+
+    string sGetServerPidScript = "ps -ef | grep -v grep | grep -iE '" + _startScript + "' | awk '{print $8 \" \"$2}' >" + sPidFile;
+#endif
+
+    // while ((TNOW - iStartWaitInterval) < tNow)
+    // {
+        //注意:由于是守护进程,不要对sytem返回值进行判断,始终wait不到子进程
+    system(sGetServerPidScript.c_str());
+
+    string data = TC_File::load2str(sPidFile);
+
+    int64_t iPid = -1;
+    vector<string> v = TC_Common::sepstr<string>(data, " \t");
+    if(v.size() > 2)
+    {
+        string sPid = TC_Common::trim(v[1]);
+        if (TC_Common::isdigit(sPid))
+        {
+            iPid = TC_Common::strto<int64_t>(sPid);
+            setPid(iPid);
+            if (checkPid() != 0)
+            {
+                iPid = -1;
+            }
+        }
+    }
+
+    if (TC_File::isFileExist(sPidFile))
+    {
+        TC_File::removeFile(sPidFile, false);
+    }
+    
+    // NODE_LOG(_serverId)->debug() << FILE_FUN << < " activating usleep " << int(iStartWaitInterval) << endl;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(START_SLEEP_INTERVAL/1000));
+    // }
+
+    return iPid;
+}
+
 void ServerObject::setServerDescriptor( const ServerDescriptor& tDesc )
 {
     _desc          = tDesc;
@@ -74,7 +148,7 @@ bool ServerObject::isAutoStart()
 {
     Lock lock(*this);
 
-    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _serverId <<"|"<<_enabled<<"|"<<_loaded<<"|"<<_patched<<"|"<<toStringState(_state)<<endl;
+    // NODE_LOG(_serverId)->debug()<<FILE_FUN<< _serverId <<"|"<<_enabled<<"|"<<_loaded<<"|"<<_patched<<"|"<<toStringState(_state)<<endl;
     if(toStringState(_state).find( "ing" ) != string::npos)  //正处于中间态时不允许重启动
     {
 	    NODE_LOG(_serverId)->debug() << "ServerObject::isAutoStart " << _serverId <<" not allow to restart in (ing) state"<<endl;
@@ -92,12 +166,18 @@ bool ServerObject::isAutoStart()
     return true;
 }
 
+string ServerObject::getRunningTmpPath() 
+{
+    return _exePath + FILE_SEP + ".." + FILE_SEP + "bin.tmp";
+}
+
 void ServerObject::setExeFile(const string &sExeFile)
 {
-    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << sExeFile <<endl;
+    string ext = TC_Common::trim(TC_File::extractFileExt(sExeFile));
+    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << sExeFile << ", ext:" << ext <<endl;
 
 #if TARGET_PLATFORM_WINDOWS
-    if(TC_Common::trim(TC_File::extractFileExt(sExeFile)).empty())
+    if(ext.empty())
     {
         _exeFile = sExeFile + ".exe";
     }
@@ -335,7 +415,7 @@ int ServerObject::checkPid()
 		CloseHandle(hProcess);
         if (iRet == 0)
         {
-            NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists, ret:" << iRet << ", " <<  TC_Exception::getSystemCode() << endl;
+            // NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists, ret:" << iRet << ", " <<  TC_Exception::getSystemCode() << endl;
             return 0;
         }
 
@@ -349,7 +429,7 @@ int ServerObject::checkPid()
 			return -1;
 		}
 
-		NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
+		// NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
 
 		return 0;
 #endif
@@ -366,10 +446,10 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
 	    NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid "<<pid<<" error, pid <= 0"<<endl;
         return;
     }
-    else
-    {
-	    NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " <<_serverType<< ", pid:" << pid <<", adapter:" << adapter<< endl;
-    }
+    // else
+    // {
+	//     NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " <<_serverType<< ", pid:" << pid <<", adapter:" << adapter<< endl;
+    // }
     time_t now  = TNOW;
     setLastKeepAliveTime(now,adapter);
     setPid(pid);
@@ -377,13 +457,13 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
     //心跳不改变正在转换期状态(Activating除外)
     if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
     {
-	    NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << ", state:" << toStringState(_state) << endl;
+	    // NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << ", state:" << toStringState(_state) << endl;
         setState(ServerObject::Active);
     }
-    else
-    {
-	    NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << " State no need changed to active!  State:" << toStringState( _state ) << endl;
-    }
+    // else
+    // {
+	//     NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << " State no need changed to active!  State:" << toStringState( _state ) << endl;
+    // }
 
     if(!_loaded)
     {
@@ -421,7 +501,7 @@ void ServerObject::setLastKeepAliveTime(time_t t,const string& adapter)
     Lock lock(*this);
     _keepAliveTime = t;
 
-	NODE_LOG(_serverId)->debug() << "setLastKeepAliveTime keepAliveTime:" << _keepAliveTime << ", now:" << TNOW << endl;
+	// NODE_LOG(_serverId)->debug() << "setLastKeepAliveTime keepAliveTime:" << _keepAliveTime << ", now:" << TNOW << endl;
 
     map<string, time_t>::iterator it1 = _adapterKeepAliveTime.begin();
     if(adapter.empty())
@@ -641,6 +721,14 @@ void ServerObject::doMonScript()
                  }
             }
         }
+        else
+        {
+            int64_t pid = savePid();
+            if(pid >= 0)
+            {
+                keepAlive(pid); 
+            }
+        }
     }
     catch (exception &e)
     {
@@ -657,11 +745,11 @@ void ServerObject::checkServer(int iTimeout)
 
 	    int flag = checkPid();
 
-		NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
-		NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
-
 		if(flag != 0 && _state != ServerObject::Inactive)
 		{
+    		NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
+		    NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
+
 			//pid不存在, 同步状态
 			setState(ServerObject::Inactive, true);
 		}
@@ -796,7 +884,7 @@ void ServerObject::checkCoredumpLimit()
 
 	if(!_limitStateInfo.bEnableCoreLimit)
 	{
-		NODE_LOG(_serverId)->debug() << FILE_FUN << getServerId() <<", server is disable corelimit"<<endl;
+		// NODE_LOG(_serverId)->debug() << FILE_FUN << getServerId() <<", server is disable corelimit"<<endl;
 		return;
 	}
 

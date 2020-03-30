@@ -33,12 +33,11 @@ ServerObjectPtr ServerFactory::getServer( const string& application, const strin
 	string serverId = application + "." + serverName;
 
     Lock lock( *this );
-	NODE_LOG(serverId)->debug() << "ServerFactory::getServer, all app size:" << _mmServerList.size() << endl;
+	// NODE_LOG(serverId)->debug() << "ServerFactory::getServer, all app size:" << _mmServerList.size() << endl;
 
     map<string, ServerGroup>::const_iterator p1 = _mmServerList.find( application );
     if ( p1 != _mmServerList.end() )
     {
-
         map<string, ServerObjectPtr>::const_iterator p2 = p1->second.find( serverName );
         if ( p2 != p1->second.end() && p2->second )
         {

@@ -97,23 +97,19 @@ else
     TARS="tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat"
 fi
 
-if [ "${INSTALL_PATH}" == "" ]; then
-    INSTALL_PATH=/usr/local/app
+if [ $OS != 3]; then
+    if [ "${INSTALL_PATH}" == "" ]; then
+        INSTALL_PATH=/usr/local/app
+    fi
+else
+    if [ "${INSTALL_PATH}" == "" ]; then
+        INSTALL_PATH="c:/tars-install"
+    fi
 fi
 
 TARS_PATH=${INSTALL_PATH}/tars
-
-if [ $OS == 3 ]; then
-    UPLOAD_PATH=$TARS_PATH
-else
-    UPLOAD_PATH=$INSTALL_PATH
-fi
-
-if [ $OS == 3 ]; then
-    WEB_PATH=$TARS_PATH
-else
-    WEB_PATH=$INSTALL_PATH
-fi
+UPLOAD_PATH=$INSTALL_PATH
+WEB_PATH=$INSTALL_PATH
 
 mkdir -p ${TARS_PATH}
 
@@ -150,7 +146,8 @@ LOG_DEBUG "TARS_USER:     "${TARS_USER}
 LOG_DEBUG "TARS_PASS:     "${TARS_PASS}
 LOG_DEBUG "INSTALL_PATH:  "${INSTALL_PATH}
 LOG_DEBUG "TARS_PATH:     "${TARS_PATH}
-LOG_DEBUG "WEB_PATH:      "${WEB_PATH}
+LOG_DEBUG "UPLOAD_PATH:   "${UPLOAD_PATH}/patchs
+LOG_DEBUG "WEB_PATH:      "${WEB_PATH}/web
 LOG_DEBUG "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print config info finish.\n";
 
 ################################################################################
@@ -475,14 +472,18 @@ if [ $OS == 3 ]; then
     cp -rf ${WORKDIR}/framework/util-win/*.bat ${FRAMEWORK_TMP}
 
     replace TARS_PATH ${TARS_PATH} "${FRAMEWORK_TMP}/*.bat"
+    replace WEB_PATH ${WEB_PATH} "${FRAMEWORK_TMP}/*.bat"
 else
     cp -rf ${WORKDIR}/framework/util-linux/*.sh ${FRAMEWORK_TMP}
 
     replace TARS_PATH ${TARS_PATH} "${FRAMEWORK_TMP}/*.sh"
+    replace WEB_PATH ${WEB_PATH} "${FRAMEWORK_TMP}/*.sh"
 fi
 
 LOG_INFO "copy framework to install path"
 
+${TARS_PATH}/tarsnode/util/stop.bat 
+sleep 1
 for var in $TARS;
 do
 
@@ -490,6 +491,7 @@ do
         #stop first , then copy in windows
         if [ -d ${TARS_PATH}/${var} ]; then
             ${TARS_PATH}/${var}/util/stop.bat 
+            sleep 1
         fi
     fi
 
@@ -497,6 +499,8 @@ do
     cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}
 
 done
+
+sleep 3
 
 if [ $OS == 3 ]; then
     cp -rf ${FRAMEWORK_TMP}/*.bat ${TARS_PATH}
