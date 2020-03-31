@@ -127,13 +127,13 @@ inline ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
 
 inline bool CommandStart::startByScript(string& sResult)
 {
-    int64_t iPid = -1;
+    // int64_t iPid = -1;
     bool bSucc = false;
     string sStartScript     = _serverObjectPtr->getStartScript();
     string sMonitorScript   = _serverObjectPtr->getMonitorScript();
 
     string sServerId    = _serverObjectPtr->getServerId();
-    iPid = _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
+    _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
 
     // vector<string> vtServerName =  TC_Common::sepstr<string>(sServerId, ".");
     // if (vtServerName.size() != 2)

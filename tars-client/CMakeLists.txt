@@ -1,6 +1,10 @@
 
 include_directories(${CMAKE_SOURCE_DIR}/tarscpp/util/include)
+
+if(WIN32)
 include_directories(${CMAKE_SOURCE_DIR}/tarscpp/util/src/epoll_windows)
+endif(WIN32)
+
 include_directories(${CMAKE_SOURCE_DIR}/tarscpp/servant/protocol)
 
 set(MODULE tars-client)

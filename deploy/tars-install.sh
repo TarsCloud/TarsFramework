@@ -482,7 +482,12 @@ fi
 
 LOG_INFO "copy framework to install path"
 
-${TARS_PATH}/tarsnode/util/stop.bat 
+if [ $OS == 3 ]; then
+    if [ -f ${TARS_PATH}/tarsnode/util/stop.bat ]; then
+        ${TARS_PATH}/tarsnode/util/stop.bat 
+    fi
+fi
+
 sleep 1
 for var in $TARS;
 do

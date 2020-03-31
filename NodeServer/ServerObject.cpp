@@ -721,7 +721,7 @@ void ServerObject::doMonScript()
                  }
             }
         }
-        else
+        else if(_startScript.empty() || isTarsServer() == false)
         {
             int64_t pid = savePid();
             if(pid >= 0)

@@ -510,7 +510,7 @@ private:
     PatchInfo           _patchInfo;            //下载信息
 
 private:
-    int64_t               _pid;                  //服务进程号
+    int64_t             _pid;                  //服务进程号
     string              _version;              //TARS版本
     NodeInfo            _nodeInfo;             //服务所在node信息
     TC_Endpoint         _localEndpoint;        //本地socket
