@@ -1,4 +1,6 @@
 
+set(MODULE tars-client)
+
 include_directories(${CMAKE_SOURCE_DIR}/tarscpp/util/include)
 
 if(WIN32)
@@ -6,9 +8,6 @@ include_directories(${CMAKE_SOURCE_DIR}/tarscpp/util/src/epoll_windows)
 endif(WIN32)
 
 include_directories(${CMAKE_SOURCE_DIR}/tarscpp/servant/protocol)
-include_directories(${CMAKE_SOURCE_DIR}/tarscpp/servant/protocol/framework)
-
-set(MODULE tars-client)
 
 include_directories(.)
 
@@ -16,7 +15,7 @@ aux_source_directory(. DIR_SRC)
 
 add_executable(${MODULE} ${DIR_SRC})
 
-add_dependencies(${MODULE} tarsservant tarsutil)
+add_dependencies(${MODULE} tarsservant tarsutil FRAMEWORK-PROTOCOL)
 
 target_link_libraries(${MODULE} tarsservant tarsutil)
 
