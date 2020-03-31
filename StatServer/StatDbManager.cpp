@@ -156,15 +156,15 @@ StatDbManager::StatDbManager()
         }
     }
 
-    map<string, vector<size_t> >::iterator m_iter = _mIpHasDbInfo.begin();
-    while(m_iter != _mIpHasDbInfo.end())
-    {
-        vector<size_t> &vDb = m_iter->second;
+//     map<string, vector<size_t> >::iterator m_iter = _mIpHasDbInfo.begin();
+//     while(m_iter != _mIpHasDbInfo.end())
+//     {
+//         vector<size_t> &vDb = m_iter->second;
 
-//        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ip:" << m_iter->first << "|DbNum:" << vDb.size() << endl;
+// //        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ip:" << m_iter->first << "|DbNum:" << vDb.size() << endl;
 
-        ++m_iter;
-    }
+//         ++m_iter;
+//     }
 
 
     TLOGDEBUG("StatDbManager init ok." << endl);

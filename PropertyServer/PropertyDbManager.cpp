@@ -202,15 +202,15 @@ PropertyDbManager::PropertyDbManager()
         ++mDbToIpIter;
     }
 
-    map<string, vector<size_t> >::iterator m_iter1 = _ipHasDbInfo.begin();
-    while(m_iter1 != _ipHasDbInfo.end())
-    {
-        vector<size_t> &vDb = m_iter1->second;
+//     map<string, vector<size_t> >::iterator m_iter1 = _ipHasDbInfo.begin();
+//     while(m_iter1 != _ipHasDbInfo.end())
+//     {
+//         vector<size_t> &vDb = m_iter1->second;
 
-//        FDLOG("PropertyPool") << "statsec ip:" << ServerConfig::LocalIp << "|ip:" << m_iter1->first << "|DbNum:" << vDb.size() << endl;
+// //        FDLOG("PropertyPool") << "statsec ip:" << ServerConfig::LocalIp << "|ip:" << m_iter1->first << "|DbNum:" << vDb.size() << endl;
 
-        ++m_iter1;
-    }
+//         ++m_iter1;
+//     }
 
     TLOGDEBUG("PropertyDbManager init ok." << endl);
 }
