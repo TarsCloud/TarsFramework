@@ -237,10 +237,10 @@ void StatServer::initHashMap()
 
                 _hashmap[i][k].initDataBlockSize(iMinBlock,iMaxBlock,iFactor);
 
-               if(TC_File::isFileExist(sHashMapFile))
-               {
-                   iSize = TC_File::getFileSize(sHashMapFile);
-               }
+//               if(TC_File::isFileExist(sHashMapFile))
+//               {
+//                   iSize = TC_File::getFileSize(sHashMapFile);
+//               }
 //                else
 //                {
 //                    int fd = open(sHashMapFile.c_str(), O_CREAT|O_EXCL|O_RDWR, 0666);
@@ -270,21 +270,21 @@ void StatServer::initHashMap()
 
 
                 //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
-// #if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
-// 	            _hashmap[i][k].create(new char[iSize], iSize);
-// #else
+#if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+ 	            _hashmap[i][k].create(new char[iSize], iSize);
+#else
                 // key_t key = ftok(sHashMapFile.c_str(), a[iChar%26]);
 
-                _hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
+ //               _hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
 
-//                 key_t key = tars::hash<string>()(sHashMapFile);
+               key_t key = tars::hash<string>()(sHashMapFile);
 
 //                 // iChar++;
 
 //                 TLOGDEBUG("init hash mem，shm key: 0x" << hex << key << dec << endl);
 
-//                 _hashmap[i][k].initStore(key, iSize);
-// #endif
+                 _hashmap[i][k].initStore(key, iSize);
+#endif
                 _hashmap[i][k].setAutoErase(false);
 
 	            TLOGDEBUG("\n" <<  _hashmap[i][k].desc() << endl);

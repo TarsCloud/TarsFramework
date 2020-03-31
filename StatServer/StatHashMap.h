@@ -28,13 +28,13 @@
 // #include <ext/pool_allocator.h>
 using namespace tars;
 
-typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,FileStorePolicy> HashMap;//FileStorePolicy
+//typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,FileStorePolicy> HashMap;//FileStorePolicy
 
-// #if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
-// typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,MemStorePolicy> HashMap;//FileStorePolicy
-// #else
-// typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,ShmStorePolicy> HashMap;//FileStorePolicy
-// #endif
+ #if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+ typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,MemStorePolicy> HashMap;//FileStorePolicy
+ #else
+ typedef TarsHashMap<StatMicMsgHead, StatMicMsgBody, ThreadLockPolicy,ShmStorePolicy> HashMap;//FileStorePolicy
+ #endif
 
 #if TARGET_PLAFFORM_LINUX
 #include <ext/pool_allocator.h>

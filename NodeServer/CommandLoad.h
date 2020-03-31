@@ -123,6 +123,9 @@ inline int CommandLoad::execute(string& sResult)
         _serverDir = TC_File::simplifyDirectory(_nodeInfo.dataDir + FILE_SEP +  _desc.application + "." + _desc.serverName);
     }
 
+//获取服务框架配置文件
+    _confPath      = _serverDir + FILE_SEP + "conf" + FILE_SEP;
+    _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
     //若exePath不合法采用默认路径
     //注意java服务启动方式特殊 可执行文件为java 须特殊处理
     if (_exePath.empty())
@@ -130,10 +133,8 @@ inline int CommandLoad::execute(string& sResult)
         _exePath =  _serverDir + FILE_SEP + "bin" + FILE_SEP;
         if (_serverType == "tars_java")
         {
-            string sConfigFile      = _serverObjectPtr->getConfigFile();
-
             TC_Config conf;
-            conf.parseFile(sConfigFile);
+            conf.parseFile(_confFile);
             _exeFile = conf.get("/tars/application/server<java>", "java");
         }
         else if (_serverType == "tars_node")
@@ -141,7 +142,7 @@ inline int CommandLoad::execute(string& sResult)
             string sConfigFile      = _serverObjectPtr->getConfigFile();
 
             TC_Config conf;
-            conf.parseFile(sConfigFile);
+            conf.parseFile(_confFile);
             _exeFile = conf.get("/tars/application/server<nodejs>", "node");
         }
         else if(_serverType == "tars_php")
@@ -149,7 +150,7 @@ inline int CommandLoad::execute(string& sResult)
             string sConfigFile      = _serverObjectPtr->getConfigFile();
 
             TC_Config conf;
-            conf.parseFile(sConfigFile);
+            conf.parseFile(_confFile);
             _exeFile = conf.get("/tars/application/server<php>", "php");
         }
         else
@@ -203,11 +204,6 @@ inline int CommandLoad::execute(string& sResult)
 
     //创建配置lib文件目录
     _libPath       = _nodeInfo.dataDir + FILE_SEP + "lib" + FILE_SEP;
-
-    //获取服务框架配置文件
-    _confPath      = _serverDir + FILE_SEP + "conf" + FILE_SEP;
-
-    _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
 
 	NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::execute"<< _serverType   << ","
                 << "exe_path="      << _exePath      << "," 
