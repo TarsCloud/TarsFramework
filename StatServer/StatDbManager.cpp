@@ -161,7 +161,7 @@ StatDbManager::StatDbManager()
     {
         vector<size_t> &vDb = m_iter->second;
 
-        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ip:" << m_iter->first << "|DbNum:" << vDb.size() << endl;
+//        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ip:" << m_iter->first << "|DbNum:" << vDb.size() << endl;
 
         ++m_iter;
     }
@@ -391,7 +391,7 @@ int StatDbManager::insert2Db(const StatMsg &statmsg, const string &sDate, const 
                 pMysql->execute(sSql);
                 TLOGDEBUG("insert " << sTbName << " affected:" << iCount  << endl);
 
-                FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|insert " << sTbName << "|insert affected:" << iCount << "|mysql affected:" << pMysql->getAffectedRows() << endl;
+//                FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|insert " << sTbName << "|insert affected:" << iCount << "|mysql affected:" << pMysql->getAffectedRows() << endl;
                 iCount = 0;
             }
         }
@@ -400,7 +400,7 @@ int StatDbManager::insert2Db(const StatMsg &statmsg, const string &sDate, const 
         {
             pMysql->execute(sSql);
             TLOGDEBUG("insert " << sTbName << " affected:" << iCount << endl);
-            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|insert " << sTbName << "|insert affected:" << iCount << "|mysql affected:" << pMysql->getAffectedRows() << endl;
+//            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|insert " << sTbName << "|insert affected:" << iCount << "|mysql affected:" << pMysql->getAffectedRows() << endl;
         }
     }
     catch (TC_Mysql_Exception& ex)
@@ -612,8 +612,8 @@ int StatDbManager::insert2MultiDbs(int iIndex, const StatMsg &statmsg, const str
             int64_t iEnd = tars::TC_TimeProvider::getInstance()->getNowMs();
 
             TLOGDEBUG("insert|" << iIndex << "|" << getIpAndPort(iIndex) << "|" << sDate << "|" << sFlag << "|" << statmsg.size() << "|" << (iEnd - iBegin) << endl);
-            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp  << "|insert|dbIndex:" << iIndex << "|" << getIpAndPort(iIndex) << "|date:" << sDate << "|tflag:" << sFlag 
-                << "|records:" << statmsg.size() << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin(ms):" << iBegin << "|iEnd(ms):" << iEnd << endl;
+//            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp  << "|insert|dbIndex:" << iIndex << "|" << getIpAndPort(iIndex) << "|date:" << sDate << "|tflag:" << sFlag
+//                << "|records:" << statmsg.size() << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin(ms):" << iBegin << "|iEnd(ms):" << iEnd << endl;
         }
     }
     catch(TC_Mysql_Exception& ex)

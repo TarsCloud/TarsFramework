@@ -27,13 +27,15 @@ using namespace tars;
 typedef StatPropMsgBody PropBody;
 typedef StatPropMsgHead PropHead;
 
-typedef TarsHashMap<PropHead,PropBody, ThreadLockPolicy, FileStorePolicy> PropHashMap;
+//typedef TarsHashMap<PropHead,PropBody, ThreadLockPolicy, FileStorePolicy> PropHashMap;
 
-// #if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
-// typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,MemStorePolicy> PropHashMap;//FileStorePolicy
-// #else
-// typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,ShmStorePolicy> PropHashMap;//FileStorePolicy
-// #endif
+#if TARGET_PLATFORM_IOS
+typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,MemStorePolicy> PropHashMap;//FileStorePolicy
+#elif TARGET_PLATFORM_WINDOWS
+typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,FileStorePolicy> PropHashMap;//FileStorePolicy
+#else
+typedef TarsHashMap<PropHead, PropBody, ThreadLockPolicy,ShmStorePolicy> PropHashMap;//FileStorePolicy
+#endif
 
 
 #if TARGET_PLATFORM_LINUX

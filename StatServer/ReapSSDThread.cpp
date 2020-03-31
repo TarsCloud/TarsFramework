@@ -95,12 +95,12 @@ void ReapSSDProcThread::run()
                     TLOGDEBUG("ReapSSDProcThread::run stat ip:" << ServerConfig::LocalIp  << "|dbIndex:" << item._index << "|" << StatDbManager::getInstance()->getIpAndPort(item._index) 
                         << "|date:" << item._date << "|tflag:" << item._tflag << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin:" << iBegin << "|iEnd:" << iEnd << endl);
 
-                    FDLOG("CountStat") << "ReapSSDProcThread::run stat ip:" << ServerConfig::LocalIp  << "|dbIndex:" << item._index << "|" << StatDbManager::getInstance()->getIpAndPort(item._index) 
-                        << "|date:" << item._date << "|tflag:" << item._tflag << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin:" << iBegin << "|iEnd:" << iEnd << endl;
+//                    FDLOG("CountStat") << "ReapSSDProcThread::run stat ip:" << ServerConfig::LocalIp  << "|dbIndex:" << item._index << "|" << StatDbManager::getInstance()->getIpAndPort(item._index)
+//                        << "|date:" << item._date << "|tflag:" << item._tflag << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin:" << iBegin << "|iEnd:" << iEnd << endl;
 
                     if((iEnd - iBegin)/1000 > (g_app.getInserInterv() - 2) * 60)
                     {
-                        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ReapSSDProcThread::run timeout 8 minute." << endl;
+//                        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ReapSSDProcThread::run timeout 8 minute." << endl;
                         string sMsg("stat ip:");
                         sMsg += ServerConfig::LocalIp;
                         sMsg += " ReapSSDProcThread::run write db:";
@@ -124,7 +124,7 @@ void ReapSSDProcThread::run()
         catch(exception& e)
         {
             TLOGERROR("ReapSSDProcThread::run exception:" << e.what() << endl);
-            FDLOG("CountStat") << "ReapSSDProcThread::run exception:" << e.what() << endl;
+//            FDLOG("CountStat") << "ReapSSDProcThread::run exception:" << e.what() << endl;
         }
     }
 }
@@ -181,7 +181,7 @@ void ReapSSDThread::run()
 
     int iLastIndex = -1;
 
-    FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ReapSSDThread::run iInsertDataThread:" << iInsertDataNum << "|dbNumber:" << dbNumber << endl;
+//    FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|ReapSSDThread::run iInsertDataThread:" << iInsertDataNum << "|dbNumber:" << dbNumber << endl;
 
     while (!_terminate)
     {
@@ -209,10 +209,10 @@ void ReapSSDThread::run()
                 int64_t tEnd = TNOWMS;
 
                 TLOGDEBUG("stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|ReapSSDThread::run getDataFromBuffer timecost(ms):" << (tEnd - tBegin) << endl);
-                FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|ReapSSDThread::run getDataFromBuffer timecost(ms):" << (tEnd - tBegin) << endl;
+//                FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|ReapSSDThread::run getDataFromBuffer timecost(ms):" << (tEnd - tBegin) << endl;
 
                 TLOGDEBUG("stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|ReapSSDThread::run insert begin _vAllStatMsg.size:" << vAllStatMsg.size() << "|record num:" << iTotalNum << endl);
-                FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|ReapSSDThread::run insert begin _vAllStatMsg.size:" << vAllStatMsg.size() << "|record num:" << iTotalNum << endl;
+//                FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|ReapSSDThread::run insert begin _vAllStatMsg.size:" << vAllStatMsg.size() << "|record num:" << iTotalNum << endl;
 
                 if(iTotalNum <= 0)
                 {
@@ -382,7 +382,7 @@ void ReapSSDThread::getDataFromBuffer(int iIndex, vector<StatMsg*> &vAllStatMsg,
                 continue ;
             }
 
-            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|ReapSSDThread::getData load hashmap k:" << k << endl;
+//            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|ReapSSDThread::getData load hashmap k:" << k << endl;
 
             HashMap::lock_iterator it = pHashMap->beginSetTime();
             while ( it != pHashMap->end() )
@@ -426,12 +426,12 @@ void ReapSSDThread::getDataFromBuffer(int iIndex, vector<StatMsg*> &vAllStatMsg,
         iTotalNum = iCount;
 
         TLOGDEBUG("ReapSSDThread::getDataFromBuffer Buffer Index:" << iIndex << "|get total size:" << iCount << endl);
-        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|ReapSSDThread::getData get total size:" << iCount << "|end..." << endl;
+//        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|ReapSSDThread::getData get total size:" << iCount << "|end..." << endl;
     }
     catch (exception& ex)
     {
         TLOGERROR("ReapSSDThread::getDataFromBuffer exception:" << ex.what() << endl);
-        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|ReapSSDThread::getData exception:" << ex.what() << endl;
+//        FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|ReapSSDThread::getData exception:" << ex.what() << endl;
 
         string sMsg("ReapSSDThread::getDataFromBuffer Buffer Index:");
         sMsg += TC_Common::tostr(iIndex);

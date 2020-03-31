@@ -96,12 +96,12 @@ void ReapSSDProcThread::run()
                     TLOGDEBUG("ReapSSDProcThread::run stat ip:" << ServerConfig::LocalIp  << "|dbIndex:" << item._index << "|" << PropertyDbManager::getInstance()->getIpAndPort(item._index) 
                         << "|date:" << item._date << "|tflag:" << item._tflag << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin:" << iBegin << "|iEnd:" << iEnd << endl);
 
-                    FDLOG("PropertyPool") << "ReapSSDProcThread::run stat ip:" << ServerConfig::LocalIp  << "|dbIndex:" << item._index << "|" << PropertyDbManager::getInstance()->getIpAndPort(item._index) 
-                        << "|date:" << item._date << "|tflag:" << item._tflag << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin:" << iBegin << "|iEnd:" << iEnd << endl;
+//                    FDLOG("PropertyPool") << "ReapSSDProcThread::run stat ip:" << ServerConfig::LocalIp  << "|dbIndex:" << item._index << "|" << PropertyDbManager::getInstance()->getIpAndPort(item._index)
+//                        << "|date:" << item._date << "|tflag:" << item._tflag << "|timecost(ms):" << (iEnd - iBegin) << "|iBegin:" << iBegin << "|iEnd:" << iEnd << endl;
 
                     if((iEnd - iBegin)/1000 > g_app.getInserInterv() * 40)
                     {
-                        FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|ReapSSDProcThread::run timeout 8 minute." << endl;
+//                        FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|ReapSSDProcThread::run timeout 8 minute." << endl;
                         string sMsg("stat ip:");
                         sMsg += ServerConfig::LocalIp;
                         sMsg += " ReapSSDProcThread::run write db:";
@@ -125,7 +125,7 @@ void ReapSSDProcThread::run()
         catch(exception& e)
         {
             TLOGERROR("ReapSSDProcThread::run exception:" << e.what() << endl);
-            FDLOG("PropertyPool") << "ReapSSDProcThread::run exception:" << e.what() << endl;
+//            FDLOG("PropertyPool") << "ReapSSDProcThread::run exception:" << e.what() << endl;
         }
     }
 }
@@ -183,7 +183,7 @@ void PropertyReapThread::run()
     int iLastIndex = -1;
 
     TLOGDEBUG("propertypool ip:" << ServerConfig::LocalIp << "|PropertyReapThread::run iInsertDataThread:" << iInsertDataNum << "|dbNumber:" << dbNumber << endl);
-    FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|PropertyReapThread::run iInsertDataThread:" << iInsertDataNum << "|dbNumber:" << dbNumber << endl;
+//    FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|PropertyReapThread::run iInsertDataThread:" << iInsertDataNum << "|dbNumber:" << dbNumber << endl;
 
     while (!_terminate)
     {
@@ -211,10 +211,10 @@ void PropertyReapThread::run()
                 int64_t tEnd = TNOWMS;
 
                 TLOGDEBUG("propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run getDataFromBuffer timecost(ms):" << (tEnd - tBegin) << endl);
-                FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run getDataFromBuffer timecost(ms):" << (tEnd - tBegin) << endl;
+//                FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run getDataFromBuffer timecost(ms):" << (tEnd - tBegin) << endl;
 
                 TLOGDEBUG("propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run insert begin _vAllStatMsg.size:" << vAllPropertyMsg.size() << "|record num:" << iTotalNum << endl);
-                FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run insert begin _vAllStatMsg.size:" << vAllPropertyMsg.size() << "|record num:" << iTotalNum << endl;
+//                FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run insert begin _vAllStatMsg.size:" << vAllPropertyMsg.size() << "|record num:" << iTotalNum << endl;
 
                 if(iTotalNum <= 0)
                 {
@@ -284,7 +284,7 @@ void PropertyReapThread::run()
                 }
 
                 TLOGDEBUG("propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run insert record num:" << iTotalNum << "|tast patch finished." << endl);
-                FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run insert record num:" << iTotalNum << "|tast patch finished." << endl;
+//                FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iBufferIndex << "|PropertyReapThread::run insert record num:" << iTotalNum << "|tast patch finished." << endl;
             }
 
         }
@@ -384,7 +384,7 @@ void PropertyReapThread::getDataFromBuffer(int iIndex, vector<PropertyMsg*> &vAl
                 continue ;
             }
 
-            FDLOG("PropertyPool") << "property ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|PropertyReapThread::getData load hashmap k:" << k << endl;
+//            FDLOG("PropertyPool") << "property ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|PropertyReapThread::getData load hashmap k:" << k << endl;
 
             PropertyHashMap::lock_iterator it = pHashMap->beginSetTime();
             while ( it != pHashMap->end() )
@@ -428,12 +428,12 @@ void PropertyReapThread::getDataFromBuffer(int iIndex, vector<PropertyMsg*> &vAl
         iTotalNum = iCount;
 
         TLOGDEBUG("PropertyReapThread::getDataFromBuffer Buffer Index:" << iIndex << "|get total size:" << iCount << endl);
-        FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|PropertyReapThread::getData get total size:" << iCount << "|end..." << endl;
+//        FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|PropertyReapThread::getData get total size:" << iCount << "|end..." << endl;
     }
     catch (exception& ex)
     {
         TLOGERROR("PropertyReapThread::getDataFromBuffer exception:" << ex.what() << endl);
-        FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|PropertyReapThread::getData exception:" << ex.what() << endl;
+//        FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|Buffer Index:" << iIndex << "|PropertyReapThread::getData exception:" << ex.what() << endl;
 
         string sMsg("PropertyReapThread::getDataFromBuffer Buffer Index:");
         sMsg += TC_Common::tostr(iIndex);

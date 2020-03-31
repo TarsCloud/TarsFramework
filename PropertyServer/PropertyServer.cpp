@@ -50,14 +50,12 @@ void PropertyServer::initialize()
         string s("");
         _selectBuffer = getSelectBufferFromFlag(s);
 
-
         for(size_t i =0; i < vec.size(); ++i)
         {
             vec[i].first = 0;
             vec[i].second = 0;
         }
         _buffer[_selectBuffer] = vec;
-
 
         for(size_t i =0; i < vec.size(); ++i)
         {
@@ -67,12 +65,10 @@ void PropertyServer::initialize()
         _buffer[!_selectBuffer] = vec;
 
         TLOGDEBUG("PropertyServer::initialize iHandleNum:" << iHandleNum<< endl);
-        FDLOG("PropertyPool") << "PropertyServer::initialize iHandleNum:" << iHandleNum << endl;
-
+//        FDLOG("PropertyPool") << "PropertyServer::initialize iHandleNum:" << iHandleNum << endl;
 
         TLOGDEBUG("PropertyServer::initialize iSelectBuffer:" << _selectBuffer<< endl);
-        FDLOG("PropertyPool") << "PropertyServer::initialize iSelectBuffer:" << _selectBuffer << endl;
-
+//        FDLOG("PropertyPool") << "PropertyServer::initialize iSelectBuffer:" << _selectBuffer << endl;
 
         _randOrder = AppCache::getInstance()->get("RandOrder");
         TLOGDEBUG("PropertyServer::initialize randorder:" << _randOrder << endl);
@@ -203,15 +199,6 @@ void PropertyServer::initHashMap()
     float iFactor       = TC_Common::strto<float>(g_pconf->get("/tars/hashmap<factor>","2"));
     int iSize           = TC_Common::toSize(g_pconf->get("/tars/hashmap<size>"), 1024*1024*256);
 
-
-    // _clonePath         = ServerConfig::DataPath + "/" + g_pconf->get("/tars/hashmap<clonePatch>","clone");
-
-    // if(!TC_File::makeDirRecursive(_clonePath))
-    // {
-    //     TLOGERROR("cannot create hashmap file " << _clonePath << endl);
-    //     exit(0);
-    // }
-
     TLOGDEBUG("PropertyServer::initHashMap init multi hashmap begin..." << endl);
 
     for(int i = 0; i < 2; ++i)
@@ -245,11 +232,14 @@ void PropertyServer::initHashMap()
 
                 _hashmap[i][k].initDataBlockSize(iMinBlock,iMaxBlock,iFactor);
 
-                if(TC_File::isFileExist(sHashMapFile))
-                {
-                    iSize = TC_File::getFileSize(sHashMapFile);
-                }
-                _hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
+#if TARGET_PLATFORM_IOS
+	            _hashmap[i][k].create(new char[iSize], iSize);
+#elif TARGET_PLATFORM_WINDOWS
+	            _hashmap[i][k].initStore(sHashMapFile.c_str(), iSize);
+#else
+               key_t key = tars::hash<string>()(sHashMapFile);
+               _hashmap[i][k].initStore(key, iSize);
+#endif
 
                 TLOGINFO("\n" <<  _hashmap[i][k].desc() << endl);
             }

@@ -213,7 +213,7 @@ int StatImp::addHashMap(const StatMicMsgHead &head, const StatMicMsgBody &body )
     if(rate >0.9)
     {
         TLOGERROR("StatImp::addHashMap hashmap will full|_iMemSize:" << pHashMap->getMapHead()._iMemSize << endl);
-        FDLOG("HashMap")<<"StatImp::addHashMap hashmap will full|_iMemSize:" << pHashMap->getMapHead()._iMemSize << endl;
+//        FDLOG("HashMap")<<"StatImp::addHashMap hashmap will full|_iMemSize:" << pHashMap->getMapHead()._iMemSize << endl;
         return -1;
     }
 
@@ -260,7 +260,7 @@ void StatImp::dump2file()
             g_app.setSelectBufferIndex(iSelectBuffer);
 
             TLOGDEBUG("StatImp::dump2file select buffer:" << iSelectBuffer << "|TimeInterv:" << tTimeInterv << "|now:" << tTimeNow << "|last:" << g_tLastDumpTime << endl);
-            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|StatImp::dump2file select buffer:" << iSelectBuffer << "|TimeInterv:" << tTimeInterv << "|now:" << tTimeNow << "|last:" << g_tLastDumpTime << endl;
+//            FDLOG("CountStat") << "stat ip:" << ServerConfig::LocalIp << "|StatImp::dump2file select buffer:" << iSelectBuffer << "|TimeInterv:" << tTimeInterv << "|now:" << tTimeNow << "|last:" << g_tLastDumpTime << endl;
         }
     }
 }

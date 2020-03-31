@@ -187,24 +187,7 @@ void StatServer::initHashMap()
     float iFactor       = TC_Common::strto<float>(g_pconf->get("/tars/hashmap<factor>","2"));
     int iSize           = TC_Common::toSize(g_pconf->get("/tars/hashmap<size>"), 1024*1024*256);
 
-//    _sClonePath         = ServerConfig::DataPath + "/" + g_pconf->get("/tars/hashmap<clonePatch>","clone");
-//
-//    if(!TC_File::makeDirRecursive(_sClonePath))
-//    {
-//        TLOGERROR("cannot create hashmap file " << _sClonePath << endl);
-//        exit(0);
-//    }
-
     TLOGDEBUG("StatServer::initHashMap init multi hashmap begin..." << endl);
-
-// #if TARGET_PLATFORM_LINUX
-    // char a[26]="\0";
-    // int iChar = 0;
-    // for(int n = 0; n < 26; n++)
-    // {
-    //     a[n] = 'a' + n;
-    // }
-// #endif
 
     for(int i = 0; i < 2; ++i)
     {
@@ -237,53 +220,13 @@ void StatServer::initHashMap()
 
                 _hashmap[i][k].initDataBlockSize(iMinBlock,iMaxBlock,iFactor);
 
-//               if(TC_File::isFileExist(sHashMapFile))
-//               {
-//                   iSize = TC_File::getFileSize(sHashMapFile);
-//               }
-//                else
-//                {
-//                    int fd = open(sHashMapFile.c_str(), O_CREAT|O_EXCL|O_RDWR, 0666);
-//                    if(fd == -1)
-//                    {
-//                        if(errno != EEXIST)
-//                        {
-//                            throw TC_Exception("open1 file '" + sHashMapFile + "' error", errno);
-//                        }
-//                        else
-//                        {
-//                            fd = open(sHashMapFile.c_str(), O_CREAT|O_RDWR, 0666);
-//                            if(fd == -1)
-//                            {
-//                                throw TC_Exception("open2 file '" + sHashMapFile + "' error", errno);
-//                            }
-//                        }
-//                    }
-//
-//                    lseek(fd, iSize-1, SEEK_SET);
-//                    write(fd,"\0",1);
-//                    if(fd != -1)
-//                    {
-//                       close(fd);
-//                    }
-//                }
-
-
-                //_hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
-#if TARGET_PLATFORM_IOS || TARGET_PLATFORM_WINDOWS
+#if TARGET_PLATFORM_IOS
  	            _hashmap[i][k].create(new char[iSize], iSize);
+#elif TARGET_PLATFORM_WINDOWS
+	            _hashmap[i][k].initStore(sHashMapFile.c_str(), iSize);
 #else
-                // key_t key = ftok(sHashMapFile.c_str(), a[iChar%26]);
-
- //               _hashmap[i][k].initStore( sHashMapFile.c_str(), iSize );
-
                key_t key = tars::hash<string>()(sHashMapFile);
-
-//                 // iChar++;
-
-//                 TLOGDEBUG("init hash mem，shm key: 0x" << hex << key << dec << endl);
-
-                 _hashmap[i][k].initStore(key, iSize);
+               _hashmap[i][k].initStore(key, iSize);
 #endif
                 _hashmap[i][k].setAutoErase(false);
 

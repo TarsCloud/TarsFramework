@@ -152,10 +152,12 @@ int PropertyImp::handlePropMsg(const map<StatPropMsgHead, StatPropMsgBody> &prop
         //////////////////////////////////////////////////////////////////////////////////////
         float rate =  (pHashMap->getMapHead()._iUsedChunk) * 1.0/pHashMap->allBlockChunkCount();
 
-        if(rate >0.9)
+        if(rate >0.95)
         {
-            pHashMap->expand(pHashMap->getMapHead()._iMemSize * 2);
-            TLOGERROR("PropertyImp::handlePropMsg hashmap expand to " << pHashMap->getMapHead()._iMemSize << endl);
+//            pHashMap->expand(pHashMap->getMapHead()._iMemSize * 2);
+	        TLOGERROR("PropertyImp::handlePropMsg hashmap will full|_iMemSize:" << pHashMap->getMapHead()._iMemSize << endl);
+	        return -1;
+//            TLOGERROR("PropertyImp::handlePropMsg hashmap expand to " << pHashMap->getMapHead()._iMemSize << endl);
         }
 
         int iRet = pHashMap->add(tHead, body);
@@ -207,7 +209,6 @@ void PropertyImp::dump2file()
             g_app.setSelectBufferIndex(iSelectBuffer);
 
             TLOGDEBUG("PropertyImp::dump2file select buffer:" << iSelectBuffer << "|TimeInterv:" << tTimeInterv << "|now:" << tTimeNow << "|last:" << g_tLastDumpTime << endl);
-            FDLOG("PropertyPool") << "propertypool ip:" << ServerConfig::LocalIp << "|PropertyImp::dump2file select buffer:" << iSelectBuffer << "|TimeInterv:" << tTimeInterv << "|now:" << tTimeNow << "|last:" << g_tLastDumpTime << endl;
         }
     }
 }

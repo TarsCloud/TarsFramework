@@ -12,7 +12,6 @@
     insertInterval=5
     enableStatCount=0
     size=256M
-    countsize=1M
   </hashmap>
 
   <reapSql>
