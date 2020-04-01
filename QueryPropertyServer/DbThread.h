@@ -29,7 +29,7 @@
 #include "util/tc_thread.h"
 #include "util/tc_mysql.h"
 #include "util/tc_common.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 
 
 using namespace tars;

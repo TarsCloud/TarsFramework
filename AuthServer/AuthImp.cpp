@@ -1,6 +1,6 @@
 ﻿#include "AuthImp.h"
 #include "AuthServer.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 
 using namespace tars;
 

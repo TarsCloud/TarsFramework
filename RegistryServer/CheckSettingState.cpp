@@ -15,7 +15,7 @@
  */
 
 #include "CheckSettingState.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 
 extern TC_Config * g_pconf;
 

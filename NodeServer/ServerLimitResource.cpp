@@ -16,7 +16,7 @@
 
 #include "ServerLimitResource.h"
 #include "util/tc_timeprovider.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "NodeRollLogger.h"
 #include "util.h"
 

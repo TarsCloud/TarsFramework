@@ -139,7 +139,7 @@ int StatImp::reportMicMsg( const map<tars::StatMicMsgHead, tars::StatMicMsgBody>
 
         //如果不是info等级的日志级别，就别往里走了
         ostringstream os;
-        if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
+        if(LOG->isNeedLog(LocalRollLogger::INFO_LOG))
         {
             os.str("");
             head.displaySimple(os);

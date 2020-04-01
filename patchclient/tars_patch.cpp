@@ -17,7 +17,7 @@
 #include "util/tc_file.h"
 #include "util/tc_option.h"
 #include "util/tc_md5.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "tars_patch.h"
 
 #include <iostream>

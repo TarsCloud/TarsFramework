@@ -20,7 +20,7 @@
 #include "util/tc_common.h"
 #include "jmem/jmem_hashmap.h"
 #include "servant/PropertyF.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 
 using namespace tars;
 
@@ -86,7 +86,7 @@ public:
 
                 PropBody stBody;
                 stBody.readFrom(is);
-                if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
+                if(LOG->isNeedLog(LocalRollLogger::INFO_LOG))
                 {
                     ostringstream os;
                     head.displaySimple(os);
@@ -195,7 +195,7 @@ public:
                     ++it;
                 }
 
-                if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
+                if(LOG->isNeedLog(LocalRollLogger::INFO_LOG))
                 {
                     ostringstream os;
                     head.displaySimple(os);

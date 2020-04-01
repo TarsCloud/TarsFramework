@@ -23,7 +23,7 @@ void StatServer::initialize()
     try
     {
         //关闭远程日志
-        TarsTimeLogger::getInstance()->enableRemote("", false);
+        RemoteTimeLogger::getInstance()->enableRemote("", false);
 
         //增加对象
         addServant<StatImp>( ServerConfig::Application + "." + ServerConfig::ServerName +".StatObj" );

@@ -30,7 +30,7 @@ RemoveLogManager *g_RemoveLogThread;
 void NodeServer::initialize()
 {
     //滚动日志也打印毫秒
-    TarsRollLogger::getInstance()->logger()->modFlag(TC_DayLogger::HAS_MTIME);
+    LocalRollLogger::getInstance()->logger()->modFlag(TC_DayLogger::HAS_MTIME);
 
     //node使用的循环日志初始化
     RollLoggerManager::getInstance()->setLogInfo(ServerConfig::Application,

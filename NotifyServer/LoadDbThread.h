@@ -20,7 +20,7 @@
 #include "util/tc_thread.h"
 #include "util/tc_monitor.h"
 #include "util/tc_mysql.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 //#include "NotifyServer.h"
 
 using namespace std;

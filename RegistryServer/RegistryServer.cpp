@@ -28,8 +28,8 @@ void RegistryServer::initialize()
         loadServantEndpoint(); 
 
         //ReapThread初始化时会用到
-        TarsTimeLogger::getInstance()->initFormat("group_id", "%Y%m%d%H");
-        TarsTimeLogger::getInstance()->enableRemote("group_id", true);
+        RemoteTimeLogger::getInstance()->initFormat("group_id", "%Y%m%d%H");
+        RemoteTimeLogger::getInstance()->enableRemote("group_id", true);
 
         //全量和增量加载路由信息的线程
         _reapThread.init();
@@ -54,16 +54,16 @@ void RegistryServer::initialize()
         //供tars的服务获取路由的对象
         addServant<QueryImp>((*g_pconf)["/tars/objname<QueryObjName>"]);
 
-        TarsTimeLogger::getInstance()->enableRemote("", false);
+        RemoteTimeLogger::getInstance()->enableRemote("", false);
 
-        TarsTimeLogger::getInstance()->initFormat("query_set", "%Y%m%d%H");
-        TarsTimeLogger::getInstance()->enableRemote("query_set", false);
+        RemoteTimeLogger::getInstance()->initFormat("query_set", "%Y%m%d%H");
+        RemoteTimeLogger::getInstance()->enableRemote("query_set", false);
 
-        TarsTimeLogger::getInstance()->initFormat("query_idc", "%Y%m%d%H");
-        TarsTimeLogger::getInstance()->enableRemote("query_idc", false);
+        RemoteTimeLogger::getInstance()->initFormat("query_idc", "%Y%m%d%H");
+        RemoteTimeLogger::getInstance()->enableRemote("query_idc", false);
 
-        TarsTimeLogger::getInstance()->initFormat("query", "%Y%m%d%H");
-        TarsTimeLogger::getInstance()->enableRemote("query", false);
+        RemoteTimeLogger::getInstance()->initFormat("query", "%Y%m%d%H");
+        RemoteTimeLogger::getInstance()->enableRemote("query", false);
     }
     catch (TC_Exception& ex)
     {

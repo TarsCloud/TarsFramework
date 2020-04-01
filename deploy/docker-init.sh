@@ -102,7 +102,7 @@ fi
 
 while [ 1 ]
 do
-    sh ${INSTALL_PATH}/tars/tarsnode/util/check.sh
+    sh ${INSTALL_PATH}/tars/tarsnode/util/monitor.sh
     sleep 3
 done
 

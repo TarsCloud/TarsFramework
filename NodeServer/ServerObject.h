@@ -25,7 +25,7 @@
 #include "util/tc_config.h"
 #include "servant/AdminF.h"
 #include "servant/NodeF.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "PlatformInfo.h"
 #include "PropertyReporter.h"
 #include "ServerLimitResource.h"

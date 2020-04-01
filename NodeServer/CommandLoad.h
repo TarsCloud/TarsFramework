@@ -515,7 +515,7 @@ inline void CommandLoad::getRemoteConf()
             //非tars服务配置文件需要node拉取 tars服务配置服务启动时自己拉取
             if (_serverObjectPtr->isTarsServer() != true)
             {
-                TarsRemoteConfig remoteConfig;
+                RemoteConfig remoteConfig;
                 remoteConfig.setConfigInfo(Application::getCommunicator(),ServerConfig::Config,_desc.application, _desc.serverName, _exePath,_desc.setId);
                 remoteConfig.addConfig(vf[i], sResult);
                 g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
