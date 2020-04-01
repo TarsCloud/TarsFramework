@@ -106,7 +106,7 @@ macro(complice_tars_framework OUT_DEPENDS_LIST)
 endmacro()
 
 add_subdirectory(mysql-tool)
-add_subdirectory(tars-client)
+#add_subdirectory(tars-client)
 
 add_subdirectory(tarscpp/servant/protocol/framework)
 add_subdirectory(ConfigServer)
