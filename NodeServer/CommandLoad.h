@@ -126,6 +126,7 @@ inline int CommandLoad::execute(string& sResult)
 //获取服务框架配置文件
     _confPath      = _serverDir + FILE_SEP + "conf" + FILE_SEP;
     _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
+
     //若exePath不合法采用默认路径
     //注意java服务启动方式特殊 可执行文件为java 须特殊处理
     if (_exePath.empty())
@@ -136,11 +137,14 @@ inline int CommandLoad::execute(string& sResult)
             try
             {
                 TC_Config conf;
-                conf.parseFile(_confFile);
+                conf.parseString(_desc.profile);
+    
                 _exeFile = conf.get("/tars/application/server<java>", "java");
             }
             catch(exception &ex)
             {
+                NODE_LOG("KeepAliveThread")->error() << "parse template error:" << ex.what() << endl;
+
                 _exeFile = "java";
             }
         }
@@ -149,11 +153,13 @@ inline int CommandLoad::execute(string& sResult)
             try
             {
                 TC_Config conf;
-                conf.parseFile(_confFile);
+                conf.parseFile(_desc.profile);
                 _exeFile = conf.get("/tars/application/server<nodejs>", "node");
             }
             catch(exception &ex)
             {
+                NODE_LOG("KeepAliveThread")->error() << "parse template error:" << ex.what() << endl;
+
                 _exeFile = "node"; 
             }
         }
@@ -162,11 +168,13 @@ inline int CommandLoad::execute(string& sResult)
             try
             {  
                 TC_Config conf;
-                conf.parseFile(_confFile);
+                conf.parseFile(_desc.profile);
                 _exeFile = conf.get("/tars/application/server<php>", "php");
             }
             catch(exception &ex)
             {
+                NODE_LOG("KeepAliveThread")->error() << "parse template error:" << ex.what() << endl;
+                
                 _exeFile = "php";
             }
         }
