@@ -25,7 +25,7 @@
 #include "util/tc_mysql.h"
 #include "util/tc_config.h"
 #include "util/tc_hash_fun.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "jmem/jmem_hashmap.h"
 #include "servant/StatF.h"
 #include "StatHashMap.h"

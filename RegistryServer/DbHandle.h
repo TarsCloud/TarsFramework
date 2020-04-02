@@ -28,7 +28,7 @@
 
 #include "Registry.h"
 #include "Node.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 
 #define GROUPCACHEFILE      "serverGroupCache.dat"
 #define GROUPPROICACHEFILE  "GroupPrioCache.dat"

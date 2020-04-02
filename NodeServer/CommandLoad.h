@@ -126,6 +126,7 @@ inline int CommandLoad::execute(string& sResult)
 //获取服务框架配置文件
     _confPath      = _serverDir + FILE_SEP + "conf" + FILE_SEP;
     _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
+
     //若exePath不合法采用默认路径
     //注意java服务启动方式特殊 可执行文件为java 须特殊处理
     if (_exePath.empty())
@@ -133,25 +134,49 @@ inline int CommandLoad::execute(string& sResult)
         _exePath =  _serverDir + FILE_SEP + "bin" + FILE_SEP;
         if (_serverType == "tars_java")
         {
-            TC_Config conf;
-            conf.parseFile(_confFile);
-            _exeFile = conf.get("/tars/application/server<java>", "java");
+            try
+            {
+                TC_Config conf;
+                conf.parseString(_desc.profile);
+    
+                _exeFile = conf.get("/tars/application/server<java>", "java");
+            }
+            catch(exception &ex)
+            {
+                NODE_LOG("KeepAliveThread")->error() << "parse template error:" << ex.what() << endl;
+
+                _exeFile = "java";
+            }
         }
         else if (_serverType == "tars_node")
         {
-            string sConfigFile      = _serverObjectPtr->getConfigFile();
+            try
+            {
+                TC_Config conf;
+                conf.parseFile(_desc.profile);
+                _exeFile = conf.get("/tars/application/server<nodejs>", "node");
+            }
+            catch(exception &ex)
+            {
+                NODE_LOG("KeepAliveThread")->error() << "parse template error:" << ex.what() << endl;
 
-            TC_Config conf;
-            conf.parseFile(_confFile);
-            _exeFile = conf.get("/tars/application/server<nodejs>", "node");
+                _exeFile = "node"; 
+            }
         }
         else if(_serverType == "tars_php")
         {
-            string sConfigFile      = _serverObjectPtr->getConfigFile();
-
-            TC_Config conf;
-            conf.parseFile(_confFile);
-            _exeFile = conf.get("/tars/application/server<php>", "php");
+            try
+            {  
+                TC_Config conf;
+                conf.parseFile(_desc.profile);
+                _exeFile = conf.get("/tars/application/server<php>", "php");
+            }
+            catch(exception &ex)
+            {
+                NODE_LOG("KeepAliveThread")->error() << "parse template error:" << ex.what() << endl;
+                
+                _exeFile = "php";
+            }
         }
         else
         {
@@ -515,7 +540,7 @@ inline void CommandLoad::getRemoteConf()
             //非tars服务配置文件需要node拉取 tars服务配置服务启动时自己拉取
             if (_serverObjectPtr->isTarsServer() != true)
             {
-                TarsRemoteConfig remoteConfig;
+                RemoteConfig remoteConfig;
                 remoteConfig.setConfigInfo(Application::getCommunicator(),ServerConfig::Config,_desc.application, _desc.serverName, _exePath,_desc.setId);
                 remoteConfig.addConfig(vf[i], sResult);
                 g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 

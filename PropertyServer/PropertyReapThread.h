@@ -22,7 +22,7 @@
 #include "util/tc_config.h"
 #include "servant/PropertyF.h"
 #include "util/tc_common.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "PropertyImp.h"
 
 

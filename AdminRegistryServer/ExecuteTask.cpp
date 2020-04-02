@@ -16,7 +16,7 @@
 
 #include "ExecuteTask.h"
 #include "servant/Communicator.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "util/tc_timeprovider.h"
 #include <thread>
 extern TC_Config * g_pconf;

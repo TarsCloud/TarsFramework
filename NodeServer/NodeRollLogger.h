@@ -18,7 +18,7 @@
 #define __NODE_ROLL_LOGGER_H__
 
 #include "util/tc_logger.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 
 /**
  * node使用的日志，主要是为了支持多个滚动日志

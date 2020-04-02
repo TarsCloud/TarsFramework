@@ -108,7 +108,7 @@ inline int CommandAddFile::execute(string &sResult)
         }  
         else
         {
-            TarsRemoteConfig remoteConfig;
+            RemoteConfig remoteConfig;
             remoteConfig.setConfigInfo(Application::getCommunicator(), ServerConfig::Config,_desc.application, _desc.serverName, sFilePath,_desc.setId);
 
             bRet = remoteConfig.addConfig(sFileName,sResult);

@@ -166,7 +166,7 @@ int PropertyImp::handlePropMsg(const map<StatPropMsgHead, StatPropMsgBody> &prop
             TLOGERROR("PropertyImp::handlePropMsg add hashmap recourd iRet:" << iRet << endl);
         }
 
-        if(LOG->isNeedLog(TarsRollLogger::INFO_LOG))
+        if(LOG->isNeedLog(LocalRollLogger::INFO_LOG))
         {
             ostringstream os;
             os.str("");

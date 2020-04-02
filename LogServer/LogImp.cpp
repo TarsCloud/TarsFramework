@@ -67,7 +67,7 @@ TC_DayLogger& GlobeInfo::makeDayLogger(const LogInfo & info, const string &logna
 
     TC_DayLogger *p = new TC_DayLogger();
 
-    p->init(sLogPath, format,info.bHasSufix,info.sConcatStr,getTarsLogType(sFormat,sLogType));
+    p->init(sLogPath, format,info.bHasSufix,info.sConcatStr,getLogType(sFormat,sLogType));
     p->setSeparator(info.sSepar);
     p->enableSqareWrapper(info.bHasSquareBracket);
 
@@ -82,9 +82,9 @@ TC_DayLogger& GlobeInfo::makeDayLogger(const LogInfo & info, const string &logna
     return (*p);
 }
 
-TarsLogTypePtr GlobeInfo::getTarsLogType(const string& sFormat,const string& sCutType)
+LogTypePtr GlobeInfo::getLogType(const string& sFormat,const string& sCutType)
 {
-    TarsLogTypePtr  logTypePtr = NULL;
+    LogTypePtr  logTypePtr = NULL;
     if(sCutType != "")
     {
         string sType =  TC_Common::lower(sCutType);
@@ -97,8 +97,8 @@ TarsLogTypePtr GlobeInfo::getTarsLogType(const string& sFormat,const string& sCu
                 n = TC_Common::strto<int>(sType.substr(0,pos));
             }
 
-            string format = (sFormat=="") ? TarsLogByDay::FORMAT : sFormat;
-            logTypePtr = new TarsLogByDay(format,n);
+            string format = (sFormat=="") ? LogByDay::FORMAT : sFormat;
+            logTypePtr = new LogByDay(format,n);
         }
         else if((pos = sType.find("hour")) != string::npos)
         {
@@ -108,8 +108,8 @@ TarsLogTypePtr GlobeInfo::getTarsLogType(const string& sFormat,const string& sCu
                 n = TC_Common::strto<int>(sType.substr(0,pos));
             }
 
-            string format = (sFormat=="") ? TarsLogByHour::FORMAT : sFormat;
-            logTypePtr = new TarsLogByHour(format,n);
+            string format = (sFormat=="") ? LogByHour::FORMAT : sFormat;
+            logTypePtr = new LogByHour(format,n);
         }
         else if((pos = sType.find("minute")) != string::npos)
         {
@@ -119,8 +119,8 @@ TarsLogTypePtr GlobeInfo::getTarsLogType(const string& sFormat,const string& sCu
                 n = TC_Common::strto<int>(sType.substr(0,pos));
             }
 
-            string format = (sFormat=="") ? TarsLogByMinute::FORMAT : sFormat;
-            logTypePtr = new TarsLogByMinute(format,n);
+            string format = (sFormat=="") ? LogByMinute::FORMAT : sFormat;
+            logTypePtr = new LogByMinute(format,n);
         }
     }
 

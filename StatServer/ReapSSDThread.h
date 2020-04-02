@@ -22,7 +22,7 @@
 #include "util/tc_mysql.h"
 #include "servant/StatF.h"
 #include "util/tc_common.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "StatImp.h"
 #include "StatDbManager.h"
 

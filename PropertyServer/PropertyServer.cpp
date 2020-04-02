@@ -23,8 +23,8 @@ void PropertyServer::initialize()
     try
     {
         //关闭远程日志
-        TarsTimeLogger::getInstance()->enableRemote("", false);
-        TarsTimeLogger::getInstance()->enableRemote("PropertyPool", true);
+        RemoteTimeLogger::getInstance()->enableRemote("", false);
+        RemoteTimeLogger::getInstance()->enableRemote("PropertyPool", true);
 
         //增加对象
         addServant<PropertyImp>( ServerConfig::Application + "." + ServerConfig::ServerName +".PropertyObj" );

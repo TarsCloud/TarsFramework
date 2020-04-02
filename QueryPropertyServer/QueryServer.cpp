@@ -203,7 +203,7 @@ main(int argc, char* argv[])
     {
         g_pconf =  & g_app.getConfig();
         g_app.main(argc, argv);
-        TarsTimeLogger::getInstance()->enableRemote("inout",false);
+        RemoteTimeLogger::getInstance()->enableRemote("inout",false);
         g_app.waitForShutdown();
     }
     catch (std::exception& e)

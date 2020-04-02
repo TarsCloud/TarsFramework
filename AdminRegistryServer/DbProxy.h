@@ -24,7 +24,7 @@
 #include "util/tc_file.h"
 #include "util/tc_singleton.h"
 #include "Node.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "AdminReg.h"
 
 using namespace tars;

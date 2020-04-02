@@ -24,7 +24,7 @@
 #include "jmem/jmem_hashmap.h"
 #include "util/tc_file.h"
 #include "util/tc_config.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 // #include <ext/pool_allocator.h>
 using namespace tars;
 

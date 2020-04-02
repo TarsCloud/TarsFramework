@@ -123,7 +123,7 @@ private:
      */
     string getRealLogName(const LogInfo & info);
 
-    TarsLogTypePtr getTarsLogType(const string& sFormat, const string& sCutType);
+    LogTypePtr getLogType(const string& sFormat, const string& sCutType);
 
 public:
     /**

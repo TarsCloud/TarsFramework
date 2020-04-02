@@ -17,7 +17,7 @@
 #include "util/tc_file.h"
 #include "util/tc_config.h"
 #include "util/tc_md5.h"
-#include "servant/TarsLogger.h"
+#include "servant/RemoteLogger.h"
 #include "PatchImp.h"
 #include "PatchCache.h"
 #include "PatchServer.h"
