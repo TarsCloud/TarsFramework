@@ -227,6 +227,9 @@ void StatServer::initHashMap()
 #else
                //避免一台机器上多个docker容器带来冲突
                key_t key = tars::hash<string>()(ServerConfig::LocalIp + "-" + sHashMapFile);
+
+               RemoteNotify::getInstance()->report("shm key:" + TC_Common::tostr(key) + ", size:" + TC_Common::tostr(iSize));
+
                _hashmap[i][k].initStore(key, iSize);
 #endif
                 _hashmap[i][k].setAutoErase(false);
@@ -235,8 +238,12 @@ void StatServer::initHashMap()
             }
             catch(TC_HashMap_Exception &e)
             {
-               TC_File::removeFile(sHashMapFile,false);
-               throw runtime_error(e.what());
+	            RemoteNotify::getInstance()->report(string("init error: ") + e.what());
+	            
+	            TC_Common::msleep(100);
+
+	            TC_File::removeFile(sHashMapFile,false);
+                throw runtime_error(e.what());
             }
             
         }
