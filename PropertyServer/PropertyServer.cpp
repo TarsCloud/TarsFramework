@@ -237,7 +237,7 @@ void PropertyServer::initHashMap()
 #elif TARGET_PLATFORM_WINDOWS
 	            _hashmap[i][k].initStore(sHashMapFile.c_str(), iSize);
 #else
-               key_t key = tars::hash<string>()(sHashMapFile);
+               key_t key = tars::hash<string>()(ServerConfig::LocalIp + "-" + sHashMapFile);
                _hashmap[i][k].initStore(key, iSize);
 #endif
 

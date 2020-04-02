@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source $HOME/.bashrc
+
 npm config set registry ${MIRROR}/npm/ && npm install -g npm pm2 \
     && cd ${TARS_INSTALL}/web && npm install \
     && cd ${TARS_INSTALL}/web/demo && npm install

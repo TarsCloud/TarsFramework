@@ -225,7 +225,8 @@ void StatServer::initHashMap()
 #elif TARGET_PLATFORM_WINDOWS
 	            _hashmap[i][k].initStore(sHashMapFile.c_str(), iSize);
 #else
-               key_t key = tars::hash<string>()(sHashMapFile);
+               //避免一台机器上多个docker容器带来冲突
+               key_t key = tars::hash<string>()(ServerConfig::LocalIp + "-" + sHashMapFile);
                _hashmap[i][k].initStore(key, iSize);
 #endif
                 _hashmap[i][k].setAutoErase(false);

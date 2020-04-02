@@ -501,9 +501,8 @@ do
     fi
 
     # sleep 1
-    LOG_INFO "mkdir -p ${TARS_PATH}/${var} && cp -rf ${FRAMEWORK_TMP}/${var}/* ${TARS_PATH}/${var}"
-    mkdir -p ${TARS_PATH}/${var}
-    cp -rf ${FRAMEWORK_TMP}/${var}/* ${TARS_PATH}/${var}
+    LOG_INFO "cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}"
+    cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}
 
 done
 
