@@ -239,7 +239,7 @@ void StatServer::initHashMap()
             catch(TC_HashMap_Exception &e)
             {
 	            RemoteNotify::getInstance()->report(string("init error: ") + e.what());
-	            
+
 	            TC_Common::msleep(100);
 
 	            TC_File::removeFile(sHashMapFile,false);
