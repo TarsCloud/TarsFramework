@@ -15,19 +15,19 @@ chmod a+x $bin
 
 OS=`uname`
 
-if [[ "$OS" =~ "Darwin" ]]; then
+if [ "$OS" = "Darwin" ]; then
     OS=1
 else
     OS=0
 fi
 
-if [[ $OS == 1 ]]; then
+if [ $OS -eq 1 ]; then
     PID=`ps -eopid,comm | grep "$bin"| grep "${SERVER_NAME}" |  grep -v "grep" |awk '{print $1}'`
 else
     PID=`ps -eopid,cmd | grep "$bin"| grep "${SERVER_NAME}" |  grep -v "grep" |awk '{print $1}'`
 fi
 
-if [ "${COMMAND}" == "stop" ]; then
+if [ "${COMMAND}" = "stop" ]; then
 
     if [ "$PID" != "" ]; then
         kill -9 $PID
@@ -35,7 +35,7 @@ if [ "${COMMAND}" == "stop" ]; then
     fi
 fi
 
-if [ "${COMMAND}" == "start" ]; then
+if [ "${COMMAND}" = "start" ]; then
 
     if [ "$PID" != "" ]; then
         kill -9 $PID
@@ -50,7 +50,7 @@ if [ "${COMMAND}" == "start" ]; then
         CONFIG=TARS_PATH/${SERVER_NAME}/conf/tars.${SERVER_NAME}.config.conf
     fi
 
-    if [ "${SERVER_NAME}" == "tarsnode" ]; then
+    if [ "${SERVER_NAME}" = "tarsnode" ]; then
         echo "start $bin --nodeid=localip.tars.com --config=$CONFIG"
         $bin --nodeid="localip.tars.com" --config=$CONFIG > /dev/null &
     else
