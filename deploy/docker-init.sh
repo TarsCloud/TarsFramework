@@ -84,6 +84,7 @@ mkdir -p /data/tars/app_log
 mkdir -p /data/tars/web_log
 mkdir -p /data/tars/demo_log
 mkdir -p /data/tars/patchs
+mkdir -p /data/tars/remote_app_log
 mkdir -p /data/tars/tarsnode-data
 
 trap 'exit' SIGTERM SIGINT
