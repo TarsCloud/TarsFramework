@@ -9,4 +9,6 @@ do
   TARS_PATH/${var}/util/stop.sh
 done
 
-pm2 stop -s tars-node-web;pm2 stop tars-user-system
+if [ -d TARS_PATH/web ]; then
+  pm2 stop -s tars-node-web;pm2 stop tars-user-system
+fi

@@ -18,15 +18,15 @@ SLAVE=$5
 USER=$6
 PORT=$7
 
-if [ "$USER" == "" ]; then
+if [ "$USER" = "" ]; then
     USER="root"
 fi
 
-if [ "$PORT" == "" ]; then
+if [ "$PORT" = "" ]; then
     PORT="3306"
 fi
 
-if [ "$INET" == "" ]; then
+if [ "$INET" = "" ]; then
     INET=(eth0)
 fi
 
