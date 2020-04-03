@@ -17,7 +17,7 @@ for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
     goto :loop
 )
 
-if exist TARS_PATH\web (
+if exist WEB_PATH\web (
     call pm2 stop -s tars-node-web
     cd WEB_PATH\web
     call npm run prd

@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-sh TARS_PATH/tarsAdminRegistry/util/execute.sh tarsAdminRegistry stop
+TARS_PATH/tarsAdminRegistry/util/execute.sh tarsAdminRegistry stop
 
 

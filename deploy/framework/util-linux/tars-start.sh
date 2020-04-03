@@ -1,3 +1,5 @@
+#!/bin/bash
+
 TARS=(tarsAdminRegistry tarsregistry tarsnotify tarsconfig tarsnode tarslog tarspatch tarsproperty tarsqueryproperty tarsquerystat  tarsstat)
 
 cd TARS_PATH
@@ -11,8 +13,8 @@ do
   fi
 done
 
-if [ -d TARS_PATH/web ]; then
-  pm2 stop -s tars-node-web; cd /usr/local/app/web/; npm run prd;
-  pm2 stop -s tars-user-system; cd /usr/local/app/web/demo; npm run prd;
+if [ -d WEB_PATH/web ]; then
+  pm2 stop -s tars-node-web; cd WEB_PATH/web/; npm run prd;
+  pm2 stop -s tars-user-system; cd WEB_PATH/web/demo; npm run prd;
 fi
 

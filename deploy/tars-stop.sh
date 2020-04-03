@@ -1,3 +1,4 @@
+#!/bin/bash
 
 TARS=(tarsAdminRegistry tarsconfig tarslog tarsnode tarsnotify tarspatch tarsproperty tarsqueryproperty tarsquerystat tarsregistry tarsstat)
 

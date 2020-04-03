@@ -68,10 +68,8 @@ function bash_rc()
 {
   if [ $OS == 3 ]; then
     echo ".bash_profile"
-  elif [ $OS == 1 ]; then
+  else 
     echo ".bashrc"
-  else
-    echo ".profile"
   fi
 }
 
@@ -79,10 +77,8 @@ function exec_profile()
 {
   if [ $OS == 3 ]; then
     source ~/.bash_profile
-  elif [ $OS == 1 ]; then
+  else 
     source ~/.bashrc
-  else
-    source ~/.profile
   fi
 }
 

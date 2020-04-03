@@ -1,4 +1,6 @@
 
+#!/bin/bash
+
 if [ $# -lt 1 ]; then
     echo $0 version
     exit
