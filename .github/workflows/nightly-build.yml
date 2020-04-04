@@ -13,9 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: docker get certs
-      run: |
-        echo -n | openssl s_client -showcerts -connect docker.tarsyun.com:443 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' >> /etc/ssl/certs/ca-certificates.crt
     - name: docker login
       run: |
         docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
@@ -27,10 +24,8 @@ jobs:
     - name: docker push framework
       run: |
         docker push tarscloud/framework:nightly
-        docker push docker.tarsyun.com/tarscloud/framework:nightly
     - name: Build tars image
       run: cd TarsDocker && docker build ./tars/ --file ./tars/Dockerfile --tag tarscloud/tars:nightly
     - name: docker push tars
       run: |
         docker push tarscloud/tars:nightly
-        docker push docker.tarsyun.com/tarscloud/tars:nightly
