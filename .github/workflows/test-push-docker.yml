@@ -3,7 +3,7 @@ name: test push docker
 on: 
   push:
     branches: 
-      - master
+      - ruanshudong-test-docker-push
   schedule:
     - cron: '0 23 * * *'
 jobs:
