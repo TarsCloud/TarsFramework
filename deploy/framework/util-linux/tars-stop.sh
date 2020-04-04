@@ -1,11 +1,11 @@
 
 #!/bin/bash
 
-TARS=(tarsAdminRegistry tarsconfig tarslog tarsnode tarsnotify tarspatch tarsproperty tarsqueryproperty tarsquerystat tarsregistry tarsstat)
+TARS="tarsAdminRegistry tarsconfig tarslog tarsnode tarsnotify tarspatch tarsproperty tarsqueryproperty tarsquerystat tarsregistry tarsstat"
 
 cd TARS_PATH
 
-for var in ${TARS[@]};
+for var in ${TARS};
 do
   echo "stop ${var}"
   TARS_PATH/${var}/util/stop.sh
