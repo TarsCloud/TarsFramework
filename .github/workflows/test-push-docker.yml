@@ -13,9 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: docker get certs
-      run: |
-        sudo echo -n | openssl s_client -showcerts -connect docker.tarsyun.com:443 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' >> /etc/ssl/certs/ca-certificates.crt
     - name: docker login & push
       run: |
         docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
