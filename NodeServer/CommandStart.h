@@ -301,7 +301,7 @@ inline bool CommandStart::startNormal(string& sResult)
     { 
         TC_Config conf;
         conf.parseFile(sConfigFile);
-        string entrance    = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src " + FILE_SEP + "index.php";
+        string entrance    = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php";
         entrance = conf.get("/tars/application/server<entrance>", entrance);
 
         vOptions.push_back(entrance);
