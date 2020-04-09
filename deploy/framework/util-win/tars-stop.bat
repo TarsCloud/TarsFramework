@@ -14,5 +14,7 @@ for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
     goto :loop
 )
 
-call pm2 stop -s tars-node-web
-call pm2 stop tars-user-system
+if exist WEB_PATH\web (
+    call pm2 stop -s tars-node-web
+    call pm2 stop tars-user-system
+)

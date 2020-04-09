@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 cd TARS_PATH/tarsnode/util
 
 bin="TARS_PATH/tarsnode/bin/tarsnode"

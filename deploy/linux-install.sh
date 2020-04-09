@@ -18,15 +18,15 @@ SLAVE=$5
 USER=$6
 PORT=$7
 
-if [ "$USER" == "" ]; then
+if [ "$USER" = "" ]; then
     USER="root"
 fi
 
-if [ "$PORT" == "" ]; then
+if [ "$PORT" = "" ]; then
     PORT="3306"
 fi
 
-if [ "$INET" == "" ]; then
+if [ "$INET" = "" ]; then
     INET=(eth0)
 fi
 
@@ -64,26 +64,10 @@ else
     fi
 fi
 
-function bash_rc()
-{
-  if [ $OS == 3 ]; then
-    echo ".bash_profile"
-  elif [ $OS == 1 ]; then
-    echo ".bashrc"
-  else
-    echo ".profile"
-  fi
-}
-
 function exec_profile()
 {
-  if [ $OS == 3 ]; then
-    source ~/.bash_profile
-  elif [ $OS == 1 ]; then
-    source ~/.bashrc
-  else
-    source ~/.profile
-  fi
+  source /etc/profile
+  source ~/.bashrc
 }
 
 function get_host_ip()
@@ -153,19 +137,24 @@ if [ "${SLAVE}" != "true" ]; then
 
   exec_profile
 
+  CURRENT_NODE_SUCC=`node -e "console.log('succ')"`
   CURRENT_NODE_VERSION=`node --version`
 
   export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release/
 
-  if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
+  if [[ "${CURRENT_NODE_SUCC}" != "succ"  || "${CURRENT_NODE_VERSION}" < "${NODE_VERSION}" ]]; then
 
     rm -rf v0.35.1.zip
     #centos8 need chmod a+x
     chmod a+x /usr/bin/unzip
     wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;/usr/bin/unzip v0.35.1.zip
-    rm -rf $HOME/.nvm; rm -rf $HOME/.npm; cp -rf nvm-0.35.1 $HOME/.nvm; rm -rf nvm-0.35.1;
 
-    echo 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";' >> $HOME/$(bash_rc)
+    NVM_HOME=$HOME
+
+    rm -rf $NVM_HOME/.nvm; rm -rf $NVM_HOME/.npm; cp -rf nvm-0.35.1 $NVM_HOME/.nvm; rm -rf nvm-0.35.1;
+
+    NVM_DIR=$NVM_HOME/.nvm;
+    echo "export NVM_DIR=$NVM_DIR; [ -s $NVM_DIR/nvm.sh ] && \. $NVM_DIR/nvm.sh; [ -s $NVM_DIR/bash_completion ] && \. $NVM_DIR/bash_completion;" >> /etc/profile
 
     exec_profile
 
@@ -176,12 +165,12 @@ if [ "${SLAVE}" != "true" ]; then
   #check node version
   CURRENT_NODE_VERSION=`node --version`
 
-  if [ "${CURRENT_NODE_VERSION}" != "${NODE_VERSION}" ]; then
-      echo "node is not valid, must be:${NODE_VERSION}, please remove your node first."
+  if [[ "${CURRENT_NODE_VERSION}" < "${NODE_VERSION}" ]]; then
+      echo "node is not valid, must be after version:${NODE_VERSION}, please remove your node first."
       exit 1
   fi
 
-  echo "install node success! Version is ${NODE_VERSION}"
+  echo "install node success! Version is ${CURRENT_NODE_VERSION}"
 
   exec_profile
 

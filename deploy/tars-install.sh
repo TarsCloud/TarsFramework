@@ -97,7 +97,7 @@ else
     TARS="tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat"
 fi
 
-if [ $OS != 3]; then
+if [ $OS != 3 ]; then
     if [ "${INSTALL_PATH}" == "" ]; then
         INSTALL_PATH=/usr/local/app
     fi
@@ -501,6 +501,7 @@ do
     fi
 
     # sleep 1
+    LOG_INFO "cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}"
     cp -rf ${FRAMEWORK_TMP}/${var} ${TARS_PATH}
 
 done

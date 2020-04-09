@@ -63,52 +63,52 @@ macro(complice_module MODULE)
     endif()
 endmacro()
 
-#调用tars2cpp, 生成tars对应的文件
-macro(complice_tars_framework OUT_DEPENDS_LIST)
-    set(DEPENDS_LIST)
+# #调用tars2cpp, 生成tars对应的文件
+# macro(complice_tars_framework OUT_DEPENDS_LIST)
+#     set(DEPENDS_LIST)
 
-    set(SERVANT_PROTOCOL "${servant_SOURCE_DIR}/protocol/servant")
+#     set(SERVANT_PROTOCOL "${servant_SOURCE_DIR}/protocol/servant")
 
-    set(CLEAN_LIST)
+#     set(CLEAN_LIST)
 
-    set(CURRENT_PROTOCOL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+#     set(CURRENT_PROTOCOL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-    FILE(GLOB SRC_LIST "${CURRENT_PROTOCOL_DIR}/*.tars")
+#     FILE(GLOB SRC_LIST "${CURRENT_PROTOCOL_DIR}/*.tars")
 
-    foreach (FILE ${SRC_LIST})
+#     foreach (FILE ${SRC_LIST})
 
-        #设置tars文件搜索路径
-        set(INCLUDE_STRING "--include=\"${SERVANT_PROTOCOL}\"")
+#         #设置tars文件搜索路径
+#         set(INCLUDE_STRING "--include=\"${SERVANT_PROTOCOL}\"")
 
-        get_filename_component(NAME_WE ${FILE} NAME_WE)
+#         get_filename_component(NAME_WE ${FILE} NAME_WE)
 
-        # 生成tars文件
-        set(TARS_IN ${FILE})
-        set(TARS_H ${NAME_WE}.h)
+#         # 生成tars文件
+#         set(TARS_IN ${FILE})
+#         set(TARS_H ${NAME_WE}.h)
 
-        add_custom_command(
-                OUTPUT ${CURRENT_PROTOCOL_DIR}/${TARS_H}
-                WORKING_DIRECTORY ${CURRENT_PROTOCOL_DIR}
-                DEPENDS tars2cpp ${TARS_IN}
-                COMMAND ${TARS2CPP} --with-tars ${INCLUDE_STRING} ${TARS_IN}
-                COMMENT "${TARS2CPP} --with-tars ${INCLUDE_STRING} ${TARS_IN}")
+#         add_custom_command(
+#                 OUTPUT ${CURRENT_PROTOCOL_DIR}/${TARS_H}
+#                 WORKING_DIRECTORY ${CURRENT_PROTOCOL_DIR}
+#                 DEPENDS tars2cpp ${TARS_IN}
+#                 COMMAND ${TARS2CPP} --with-tars ${INCLUDE_STRING} ${TARS_IN}
+#                 COMMENT "${TARS2CPP} --with-tars ${INCLUDE_STRING} ${TARS_IN}")
 
-        list(APPEND DEPENDS_LIST ${CURRENT_PROTOCOL_DIR}/${TARS_H})
+#         list(APPEND DEPENDS_LIST ${CURRENT_PROTOCOL_DIR}/${TARS_H})
 
-        #设置需要清除的文件
-        list(APPEND CLEAN_LIST ${CURRENT_PROTOCOL_DIR}/${TARS_H})
+#         #设置需要清除的文件
+#         list(APPEND CLEAN_LIST ${CURRENT_PROTOCOL_DIR}/${TARS_H})
 
-    endforeach ()
+#     endforeach ()
 
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEAN_LIST}")
+#     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEAN_LIST}")
 
-    set(OUT_DEPENDS_LIST ${DEPENDS_LIST})
-endmacro()
+#     set(OUT_DEPENDS_LIST ${DEPENDS_LIST})
+# endmacro()
 
 add_subdirectory(mysql-tool)
 #add_subdirectory(tars-client)
 
-add_subdirectory(tarscpp/servant/protocol/framework)
+# add_subdirectory(tarscpp/servant/protocol/framework)
 add_subdirectory(ConfigServer)
 add_subdirectory(NodeServer)
 add_subdirectory(NotifyServer)

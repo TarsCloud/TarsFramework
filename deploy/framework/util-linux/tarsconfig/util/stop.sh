@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-sh TARS_PATH/tarsconfig/util/execute.sh tarsconfig stop
+TARS_PATH/tarsconfig/util/execute.sh tarsconfig stop
 
 

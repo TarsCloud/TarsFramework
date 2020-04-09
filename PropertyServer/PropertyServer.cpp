@@ -237,7 +237,10 @@ void PropertyServer::initHashMap()
 #elif TARGET_PLATFORM_WINDOWS
 	            _hashmap[i][k].initStore(sHashMapFile.c_str(), iSize);
 #else
-               key_t key = tars::hash<string>()(sHashMapFile);
+               key_t key = tars::hash<string>()(ServerConfig::LocalIp + "-" + sHashMapFile);
+
+               RemoteNotify::getInstance()->report("shm key:" + TC_Common::tostr(key) + ", size:" + TC_Common::tostr(iSize), false);
+
                _hashmap[i][k].initStore(key, iSize);
 #endif
 
@@ -245,8 +248,12 @@ void PropertyServer::initHashMap()
             }
             catch(TC_HashMap_Exception &e)
             {
-               TC_File::removeFile(sHashMapFile,false);
-               throw runtime_error(e.what());
+	            RemoteNotify::getInstance()->report(string("init error: ") + e.what(), false);
+
+	            TC_Common::msleep(100);
+
+	            TC_File::removeFile(sHashMapFile,false);
+                throw runtime_error(e.what());
             }
             
         }

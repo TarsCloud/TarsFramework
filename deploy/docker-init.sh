@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 #docker run -d -p3001:3000 -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxxx -eREBUILD=false -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
 #docker run -d --net=host -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxxx -eREBUILD=true -eINET=enp3s0 -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
 #docker run --net=host -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxxx -eREBUILD=true -eINET=enp3s0 -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
 #docker run --net=host -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxx -eREBUILD=false -eINET=enp3s0 -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
 
-env
+#env
 
 NODE_VERSION="v12.13.0"
 MYSQLIP=`echo ${MYSQL_HOST}`
@@ -66,7 +66,7 @@ WORKDIR=$(cd $(dirname $0); pwd)
 #######################################################
 INSTALL_PATH=/usr/local/app
 
-mkdir -p ${TARS_PATH}
+mkdir -p ${INSTALL_PATH}
 
 source ~/.bashrc
 
@@ -79,13 +79,17 @@ fi
 
 cd ${WORKDIR}
 
+#mkdir dir for docker run
 mkdir -p /data/tars/app_log
 mkdir -p /data/tars/web_log
 mkdir -p /data/tars/demo_log
 mkdir -p /data/tars/patchs
+mkdir -p /data/tars/remote_app_log
 mkdir -p /data/tars/tarsnode-data
 
 trap 'exit' SIGTERM SIGINT
+
+echo "start tars install"
 
 ./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER} ${PORT} ${INSTALL_PATH}
 if [ $? != 0 ]; then
