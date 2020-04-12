@@ -452,7 +452,12 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
     // }
     time_t now  = TNOW;
     setLastKeepAliveTime(now,adapter);
-    setPid(pid);
+    
+    //Java KeepAliive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
+    if (0 != checkPid() || _state != ServerObject::Active)
+    {    
+        setPid(pid);
+    }
 
     //心跳不改变正在转换期状态(Activating除外)
     if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
@@ -721,7 +726,7 @@ void ServerObject::doMonScript()
                  }
             }
         }
-        else if(_startScript.empty() || isTarsServer() == false)
+        else if(!_startScript.empty() || isTarsServer() == false)
         {
             int64_t pid = savePid();
             if(pid >= 0)
