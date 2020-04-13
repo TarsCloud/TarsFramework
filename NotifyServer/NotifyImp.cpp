@@ -217,82 +217,8 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
 	{
 		nodeId = current->getIp();
 	}
-
     switch (info.eType)
     {
-        case (REPORT):
-        {
-            TLOGDEBUG("NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getHostName() 
-                << "|nodeName:" << info.sNodeName << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << endl);
-
-            if (IsNeedFilte(info.sApp + info.sServer, info.sMessage))
-            {
-                TLOGWARN("NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|ip:" << current->getHostName() 
-	                         << "|nodeName:" << info.sNodeName << "|sThreadId:" << info.sThreadId << "|sMessage:" << info.sMessage << "|filted" << endl);
-
-                return;
-            }
-
-            string sql;
-            TC_Mysql::RECORD_DATA rd;
-
-            rd["application"]    = make_pair(TC_Mysql::DB_STR, info.sApp);
-            rd["server_name"]    = make_pair(TC_Mysql::DB_STR, info.sServer);
-            rd["container_name"] = make_pair(TC_Mysql::DB_STR, info.sContainer);
-            rd["server_id"]      = make_pair(TC_Mysql::DB_STR, info.sApp +"."+ info.sServer + "_" + nodeId);
-            rd["node_name"]      = make_pair(TC_Mysql::DB_STR, nodeId);
-            rd["thread_id"]      = make_pair(TC_Mysql::DB_STR, info.sThreadId);
-
-            if (!info.sSet.empty())
-            {
-                vector<string> v = TC_Common::sepstr<string>(info.sSet, ".");
-                if (v.size() != 3 || (v.size() == 3 && (v[0] == "*" || v[1] == "*")))
-                {
-                    TLOGERROR("NotifyImp::reportNotifyInfo bad set name:" << info.sSet << endl);
-                }
-                else
-                {
-                    rd["set_name"]  = make_pair(TC_Mysql::DB_STR, v[0]);
-                    rd["set_area"]  = make_pair(TC_Mysql::DB_STR, v[1]);
-                    rd["set_group"] = make_pair(TC_Mysql::DB_STR, v[2]);
-                }
-                
-            }
-            else
-            {
-                rd["set_name"]  = make_pair(TC_Mysql::DB_STR, "");
-                rd["set_area"]  = make_pair(TC_Mysql::DB_STR, "");
-                rd["set_group"] = make_pair(TC_Mysql::DB_STR, "");
-            }
-            
-            rd["result"]     = make_pair(TC_Mysql::DB_STR, info.sMessage);
-            rd["notifytime"] = make_pair(TC_Mysql::DB_INT, "now()");
-            string sTable = "t_server_notifys";
-            try
-            {
-                _mysqlConfig.insertRecord(sTable, rd);
-            }
-            catch (TC_Mysql_Exception& ex)
-            {
-                string err = string(ex.what());
-                if (std::string::npos != err.find("doesn't exist"))
-                {
-                    creatTb(sTable);
-                }
-                else
-                {
-                    string sInfo = string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application + "." + ServerConfig::ServerName;
-                    TARS_NOTIFY_ERROR(sInfo);
-                }
-                TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
-            }
-            catch (exception& ex)
-            {
-                TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
-                string sInfo = string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application + "." + ServerConfig::ServerName;
-                //TARS_NOTIFY_ERROR(sInfo);
-            }
-        }
         case (NOTIFY):
         {
             TLOGDEBUG("NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|nodeId:" << nodeId
@@ -344,8 +270,85 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
             stInfo0.notifyItems.push_back(stItem);
             iRet = g_notifyHash->set(stKey0, stInfo0);
         }
-        default:
-            break;
+        case (REPORT):
+        default: {
+	        TLOGDEBUG(
+		        "NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet
+		                                                    << "|sContainer:" << info.sContainer << "|ip:"
+		                                                    << current->getHostName()
+		                                                    << "|nodeName:" << info.sNodeName << "|sThreadId:"
+		                                                    << info.sThreadId << "|sMessage:" << info.sMessage << endl);
+
+	        if (IsNeedFilte(info.sApp + info.sServer, info.sMessage)) {
+		        TLOGWARN(
+			        "NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:"
+			                                                           << info.sSet << "|sContainer:" << info.sContainer
+			                                                           << "|ip:" << current->getHostName()
+			                                                           << "|nodeName:" << info.sNodeName
+			                                                           << "|sThreadId:" << info.sThreadId
+			                                                           << "|sMessage:" << info.sMessage << "|filted"
+			                                                           << endl);
+
+		        return;
+	        }
+
+	        string sql;
+	        TC_Mysql::RECORD_DATA rd;
+
+	        rd["application"] = make_pair(TC_Mysql::DB_STR, info.sApp);
+	        rd["server_name"] = make_pair(TC_Mysql::DB_STR, info.sServer);
+	        rd["container_name"] = make_pair(TC_Mysql::DB_STR, info.sContainer);
+	        rd["server_id"] = make_pair(TC_Mysql::DB_STR, info.sApp + "." + info.sServer + "_" + nodeId);
+	        rd["node_name"] = make_pair(TC_Mysql::DB_STR, nodeId);
+	        rd["thread_id"] = make_pair(TC_Mysql::DB_STR, info.sThreadId);
+
+	        if (!info.sSet.empty()) {
+		        vector<string> v = TC_Common::sepstr<string>(info.sSet, ".");
+		        if (v.size() != 3 || (v.size() == 3 && (v[0] == "*" || v[1] == "*"))) {
+			        TLOGERROR("NotifyImp::reportNotifyInfo bad set name:" << info.sSet << endl);
+		        }
+		        else {
+			        rd["set_name"] = make_pair(TC_Mysql::DB_STR, v[0]);
+			        rd["set_area"] = make_pair(TC_Mysql::DB_STR, v[1]);
+			        rd["set_group"] = make_pair(TC_Mysql::DB_STR, v[2]);
+		        }
+
+	        }
+	        else {
+		        rd["set_name"] = make_pair(TC_Mysql::DB_STR, "");
+		        rd["set_area"] = make_pair(TC_Mysql::DB_STR, "");
+		        rd["set_group"] = make_pair(TC_Mysql::DB_STR, "");
+	        }
+
+	        rd["result"] = make_pair(TC_Mysql::DB_STR, info.sMessage);
+	        rd["notifytime"] = make_pair(TC_Mysql::DB_INT, "now()");
+	        string sTable = "t_server_notifys";
+	        try {
+		        _mysqlConfig.insertRecord(sTable, rd);
+	        }
+	        catch (TC_Mysql_Exception & ex) {
+		        string err = string(ex.what());
+		        if (std::string::npos != err.find("doesn't exist")) {
+			        creatTb(sTable);
+		        }
+		        else {
+			        string sInfo =
+				        string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application
+					        + "." + ServerConfig::ServerName;
+			        TARS_NOTIFY_ERROR(sInfo);
+		        }
+		        TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
+	        }
+	        catch (exception & ex) {
+		        TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
+		        string sInfo =
+			        string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application + "."
+				        + ServerConfig::ServerName;
+	        }
+
+	        TLOGERROR("reportNotifyInfo unknown type:" << info.writeToJsonString() << endl);
+	        break;
+        }
     }
 
     return;
