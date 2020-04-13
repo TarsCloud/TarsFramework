@@ -303,78 +303,85 @@ cp -rf ${WORKDIR}/framework/sql/* ${SQL_TMP}
 
 replacePath localip.tars.com $HOSTIP ${SQL_TMP}
 
-if [ "$REBUILD" == "true" ]; then
-    exec_mysql_script "drop database if exists db_tars"
-    exec_mysql_script "drop database if exists tars_stat"
-    exec_mysql_script "drop database if exists tars_property"
-    exec_mysql_script "drop database if exists db_tars_web"    
-    exec_mysql_script "drop database if exists db_user_system"    
-    exec_mysql_script "drop database if exists db_cache_web"
-fi
-
 cd ${SQL_TMP}
 
 MYSQL_VER=`${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --version`
 
-MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, CREATE TABLESPACE"
-
 LOG_INFO "mysql version is: $MYSQL_VER"
 
-if [ `echo $MYSQL_VER|grep ^8.` ]; then
-    exec_mysql_script "CREATE USER '${TARS_USER}'@'%' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
-    exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'%' WITH GRANT OPTION;"
-    exec_mysql_script "CREATE USER '${TARS_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
-    exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'localhost' WITH GRANT OPTION;"
-    exec_mysql_script "CREATE USER '${TARS_USER}'@'${HOSTIP}' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
-    exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'${HOSTIP}' WITH GRANT OPTION;"
-fi
+if [ "${SLAVE}" != "true" ]; then
+
+    if [ "$REBUILD" == "true" ]; then
+        exec_mysql_script "drop database if exists db_tars"
+        exec_mysql_script "drop database if exists tars_stat"
+        exec_mysql_script "drop database if exists tars_property"
+        exec_mysql_script "drop database if exists db_tars_web"    
+        exec_mysql_script "drop database if exists db_user_system"    
+        exec_mysql_script "drop database if exists db_cache_web"
+    fi
+
+    #MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, CREATE TABLESPACE"
+    MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE TABLESPACE"
+
+    if [ `echo $MYSQL_VER|grep ^8.` ]; then
+        exec_mysql_script "CREATE USER '${TARS_USER}'@'%' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
+        exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'%' WITH GRANT OPTION;"
+        exec_mysql_script "CREATE USER '${TARS_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
+        exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'localhost' WITH GRANT OPTION;"
+        exec_mysql_script "CREATE USER '${TARS_USER}'@'${HOSTIP}' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
+        exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'${HOSTIP}' WITH GRANT OPTION;"
+    fi
 
 # if [ `echo $MYSQL_VER|grep ^5.7` ]; then
 #     exec_mysql_script "set global validate_password_policy=LOW;"
 # fi
 
-if [ `echo $MYSQL_VER|grep ^5.` ]; then
-    exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'%' identified by '${TARS_PASS}' with grant option;"
-    if [ $? != 0 ]; then
-        LOG_DEBUG "grant error, exit." 
-        exit 1
-    fi
+    if [ `echo $MYSQL_VER|grep ^5.` ]; then
+        exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'%' identified by '${TARS_PASS}' with grant option;"
+        if [ $? != 0 ]; then
+            LOG_DEBUG "grant error, exit." 
+            exit 1
+        fi
 
-    exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'localhost' identified by '${TARS_PASS}' with grant option;"
-    exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'$HOSTIP' identified by '${TARS_PASS}' with grant option;"
-    exec_mysql_script "flush privileges;"
+        exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'localhost' identified by '${TARS_PASS}' with grant option;"
+        exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'$HOSTIP' identified by '${TARS_PASS}' with grant option;"
+        exec_mysql_script "flush privileges;"
+    fi
 fi
 
 ################################################################################
 #check mysql
 
-check_mysql ${TARS_USER} ${TARS_PASS}
+    check_mysql ${TARS_USER} ${TARS_PASS}
 
 ################################################################################
-exec_mysql_has "db_tars"
-if [ $? != 0 ]; then
 
-    LOG_INFO "no db_tars exists, begin build db_tars..."  
+if [ "${SLAVE}" != "true" ]; then
+    exec_mysql_has "db_tars"
+    if [ $? != 0 ]; then
 
-    LOG_INFO "modify ip in sqls:${WORKDIR}/framework/sql";
+        LOG_INFO "no db_tars exists, begin build db_tars..."  
 
-    LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
+        LOG_INFO "modify ip in sqls:${WORKDIR}/framework/sql";
 
-    exec_mysql_script "create database db_tars"
-    exec_mysql_script "create database tars_stat"
-    exec_mysql_script "create database tars_property"
-    exec_mysql_script "create database db_tars_web"
+        LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
 
-    exec_mysql_sql db_tars db_tars.sql
-    exec_mysql_sql db_tars_web db_tars_web.sql
-fi
+        exec_mysql_script "create database db_tars"
+        exec_mysql_script "create database tars_stat"
+        exec_mysql_script "create database tars_property"
+        exec_mysql_script "create database db_tars_web"
 
-exec_mysql_has "db_cache_web"
-if [ $? != 0 ]; then
-    LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
-    exec_mysql_script "create database db_cache_web"
+        exec_mysql_sql db_tars db_tars.sql
+        exec_mysql_sql db_tars_web db_tars_web.sql
+    fi
 
-    exec_mysql_sql db_cache_web db_cache_web.sql
+    exec_mysql_has "db_cache_web"
+    if [ $? != 0 ]; then
+        LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
+        exec_mysql_script "create database db_cache_web"
+
+        exec_mysql_sql db_cache_web db_cache_web.sql
+    fi
 fi
 
 function update_template()
@@ -416,18 +423,18 @@ function update_template()
     read_dir
 }
 
-update_template
+if [ "${SLAVE}" != "true" ]; then
+    update_template
 
-exec_mysql_has "db_user_system"
-if [ $? != 0 ]; then
-    LOG_INFO "db_user_system not exists, begin build db_user_system..."  
+    exec_mysql_has "db_user_system"
+    if [ $? != 0 ]; then
+        LOG_INFO "db_user_system not exists, begin build db_user_system..."  
 
-    exec_mysql_script "create database db_user_system"
+        exec_mysql_script "create database db_user_system"
 
-    exec_mysql_sql db_user_system db_user_system.sql
-fi
+        exec_mysql_sql db_user_system db_user_system.sql
+    fi
 
-if [ "$SLAVE" != "true" ]; then
     #current master server info
     LOG_INFO "create master servers";
 
