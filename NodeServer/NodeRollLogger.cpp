@@ -26,7 +26,6 @@ RollLoggerManager::RollLoggerManager()
 
 RollLoggerManager::~RollLoggerManager()
 {
-
     map<string, RollLogger*>::iterator it = _loggers.begin();
     while(it != _loggers.end())
     {
@@ -37,7 +36,6 @@ RollLoggerManager::~RollLoggerManager()
 }
 
 void RollLoggerManager::setLogInfo(const string &sApp, const string &sServer, const string &sLogpath, int iMaxSize, int iMaxNum, const CommunicatorPtr &comm, const string &sLogObj)
-//void RollLoggerManager::setLogInfo(const string &sApp, const string &sServer, const string &sLogpath, int iMaxSize, int iMaxNum, const string &sLogObj)
 {
     _app       = sApp;
     _server    = sServer;
@@ -80,7 +78,6 @@ RollLoggerManager::RollLogger* RollLoggerManager::logger(const string &sFile)
     if( it == _loggers.end())
     {
         RollLogger *p = new RollLogger();
-        //p->modFlag(RollLogger::HAS_MTIME);
         initRollLogger(p, sFile, "%Y%m%d");
         _loggers[sFile] = p;
         return p;
@@ -91,17 +88,14 @@ RollLoggerManager::RollLogger* RollLoggerManager::logger(const string &sFile)
 
 void RollLoggerManager::initRollLogger(RollLogger *pRollLogger, const string &sFile, const string &sFormat)
 {
-
     //初始化本地循环日志
-    pRollLogger->init(_logpath + "/" + _app + "/" + _server + "/" + _app + "." + _server + "_" + sFile, _maxSize, _maxNum);
+    pRollLogger->init(_logpath + FILE_SEP + _app + FILE_SEP + _server + FILE_SEP + _app + "." + _server + "_" + sFile, _maxSize, _maxNum);
     pRollLogger->modFlag(TC_DayLogger::HAS_TIME, false);
     pRollLogger->modFlag(TC_DayLogger::HAS_TIME|TC_DayLogger::HAS_LEVEL|TC_DayLogger::HAS_PID, true);
 
     //设置为异步
     sync(pRollLogger, false);
 
-
     //设置染色日志信息
     pRollLogger->getWriteT().setDyeingLogInfo(_app, _server, _logpath, _maxSize, _maxNum, _comm, _logObj);
-//    pRollLogger->getWriteT().setDyeingLogInfo(_app, _server, _logpath, _maxSize, _maxNum, _logObj);
 }

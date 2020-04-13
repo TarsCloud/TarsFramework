@@ -31,7 +31,7 @@
  * 循环日志单件是永生不死的, 保证任何地方都可以使用
  * 当该对象析构以后, 则直接cout出来
  */
-class RollLoggerManager : public TC_ThreadLock, public TC_Singleton<RollLoggerManager, CreateUsingNew, DefaultLifetime>
+class RollLoggerManager : public TC_ThreadLock, public TC_Singleton<RollLoggerManager, CreateUsingNew, NoDestroyLifetime>
 {
 public:
     enum
@@ -40,7 +40,7 @@ public:
         ERROR_LOG   = 2,    /**写错误log*/
         WARN_LOG    = 3,    /**写错误,警告log*/
         DEBUG_LOG   = 4,    /**写错误,警告,调试log*/
-        INFO_LOG    = 5        /**写错误,警告,调试,Info log*/
+        INFO_LOG    = 5     /**写错误,警告,调试,Info log*/
     };
 public:
 
@@ -94,10 +94,10 @@ protected:
      */
     string                  _logpath;
 
-    int                        _maxSize;
-    int                        _maxNum;
+    int                      _maxSize;
+    int                      _maxNum;
     CommunicatorPtr         _comm;
-    string                     _logObj;
+    string                   _logObj;
 
     /**
      * 本地线程组
