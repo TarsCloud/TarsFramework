@@ -18,6 +18,7 @@
 #define __STOP_COMMAND_H_
 
 #include "ServerCommand.h"
+#include "NodeRollLogger.h"
 
 class CommandStop : public ServerCommand
 {
