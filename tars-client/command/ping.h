@@ -16,7 +16,6 @@ void ping(TarsClient* tarsClient, TC_Option& option)
     {
         ServantPrx prx = tarsClient->getCommunicator()->stringToProxy<ServantPrx>(obj);
         prx->tars_ping();
-        cout << "ping succ" << endl;
     }
     catch(exception &ex)
     {
