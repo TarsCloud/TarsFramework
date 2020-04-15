@@ -409,7 +409,10 @@ inline int CommandPatch::execute(string &sResult)
             string busybox;
     #if TARGET_PLATFORM_WINDOWS
             busybox = ServerConfig::TarsPath + string(FILE_SEP) + "tarsnode\\util\\busybox.exe";
-    #endif		
+            string cmdDelimiter="&";//多命令分隔符";" 对应Windows是"&"                  
+#else
+            string cmdDelimiter=";";
+#endif
             //解压
             TC_Config conf;
             conf.parseFile(_serverObjectPtr->getConfigFile());
@@ -421,12 +424,16 @@ inline int CommandPatch::execute(string &sResult)
                 if(packageFormat=="jar")
                 {
                     sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".jar"); 
-                    cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + ";";
+                    cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + cmdDelimiter;
                 }
                 else
                 {
                     sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".war");
-                    cmd += busybox + " mv " + sLocalTgzFile +" " + sLocalTgzFile_bak + ";";
+                    cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + cmdDelimiter;
+#if TARGET_PLATFORM_WINDOWS
+                    //unzip -oq -d 在Windows 下不像Liunx会自动创建目录
+                    cmd += busybox + " mkdir -p "  + sLocalExtractPach + FILE_SEP +sServerName + cmdDelimiter;
+#endif
                     cmd += busybox + " unzip -oq  " + sLocalTgzFile_bak+ " -d "+ sLocalExtractPach + FILE_SEP +sServerName;
                 }
             }
