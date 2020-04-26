@@ -174,7 +174,7 @@ string ServerObject::getRunningTmpPath()
 void ServerObject::setExeFile(const string &sExeFile)
 {
     string ext = TC_Common::trim(TC_File::extractFileExt(sExeFile));
-    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << sExeFile << ", ext:" << ext <<endl;
+    // NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << sExeFile << ", ext:" << ext <<endl;
 
 #if TARGET_PLATFORM_WINDOWS
     if(ext.empty())
@@ -188,7 +188,7 @@ void ServerObject::setExeFile(const string &sExeFile)
 #else
     _exeFile = sExeFile;
 #endif    
-    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << _exeFile <<endl;
+    NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile: " << _exeFile <<endl;
 }
 
 ServerState ServerObject::getState()
