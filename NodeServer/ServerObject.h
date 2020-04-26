@@ -397,7 +397,7 @@ public:
 public:
     ServerDescriptor getServerDescriptor() { return  _desc; }
     ActivatorPtr getActivator() { return  _activatorPtr; }
-    string getRunningTmpPath();
+    // string getRunningTmpPath();
     const string & getExePath() {return _exePath;}
     const string & getExeFile() {return _exeFile;}
     const string & getConfigFile(){return _confFile;}

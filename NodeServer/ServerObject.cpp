@@ -166,10 +166,10 @@ bool ServerObject::isAutoStart()
     return true;
 }
 
-string ServerObject::getRunningTmpPath() 
-{
-    return _exePath + FILE_SEP + ".." + FILE_SEP + "bin.tmp";
-}
+// string ServerObject::getRunningTmpPath() 
+// {
+//     return _exePath + FILE_SEP + ".." + FILE_SEP + "bin.tmp";
+// }
 
 void ServerObject::setExeFile(const string &sExeFile)
 {
