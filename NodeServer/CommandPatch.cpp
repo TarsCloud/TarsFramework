@@ -828,28 +828,15 @@ int CommandPatch::backupBinFiles(const string &srcPath, const string &destPath, 
         NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "removeFile:"<< destPathBak << " error,"<< err <<endl;
     }
 
-    // if(TC_File::makeDir(destPathBak))
-    // {
     if(!TC_File::isFileExistEx(existFile,S_IFDIR)) //不存在这个目录，先创建
     {
         NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< existFile << " backup file is not exist,create it... "<<endl;
         TC_File::makeDir(existFile);
     }
     
-    // TC_File::copyFile(existFile,destPathBak);
-    TC_File::removeFile(destPathBak.c_str(), true);
     int ret = rename(existFile.c_str(), destPathBak.c_str());
 
     NODE_LOG(_serverObjectPtr->getServerId())->debug()   <<FILE_FUN<< "rename :"<< existFile << " to "<< destPathBak << " finished, ret:" << ret << ", " << TC_Exception::parseError(TC_Exception::getSystemCode())<<endl;
-        // if(TC_File::removeFile(existFile,true) == 0)
-        // {
-        //     NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "removeFile:"<< existFile << " finished!"<<endl;
-        //     if(TC_File::makeDir(existFile))
-        //     {
-        //         NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "makeDir:"<< existFile << " finished!"<<endl;
-        //     }
-        // }
-    // }
 
     TC_File::makeDir(existFile);
 
