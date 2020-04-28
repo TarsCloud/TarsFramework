@@ -15,11 +15,11 @@ PASS=$2
 INET=$3
 REBUILD=$4
 SLAVE=$5
-USER=$6
+DBUSER=$6
 PORT=$7
 
-if [ "$USER" = "" ]; then
-    USER="root"
+if [ "$DBUSER" = "" ]; then
+    DBUSER="root"
 fi
 
 if [ "$PORT" = "" ]; then
@@ -185,7 +185,7 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 cd ${TARS_INSTALL}
 
-./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${USER}  ${PORT} ${INSTALL_PATH}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${DBUSER}  ${PORT} ${INSTALL_PATH}
 
 
 ################################################################################
