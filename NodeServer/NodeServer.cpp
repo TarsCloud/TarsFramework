@@ -416,7 +416,7 @@ void NodeServer::reportServer(const string& sServerId, const string &sSet, const
     }
 }
 
-int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
+int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, bool first)
 {
 	try
 	{
@@ -431,7 +431,9 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile)
 		RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
 
 		//if registry is dead, do not block too match time, avoid monitor check tarsnode is dead(first start)
-		pRegistryPrx->tars_set_timeout(500)->tars_ping();
+		if(first) {
+			pRegistryPrx->tars_set_timeout(500)->tars_ping();
+		}
 
 		string sLocalIp;
 

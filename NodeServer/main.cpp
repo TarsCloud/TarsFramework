@@ -37,7 +37,7 @@ void monitorNode(const string &configFile)
     string nodeObj = "AdminObj@"+conf["/tars/application/server<local>"];
 
     ServantPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServantPrx>(nodeObj);
-    prx->tars_set_timeout(500)->tars_ping();
+    prx->tars_set_timeout(1000)->tars_ping();
 }
 
 void parseConfig(int argc, char *argv[])
@@ -88,47 +88,7 @@ void parseConfig(int argc, char *argv[])
         sNodeId = "";
     }
 
-	NodeServer::onUpdateConfig(sNodeId, sConfigFile);
-
-//
-//    if(!TC_File::isAbsolute(sConfigFile))
-//    {
-//        char sCwd[PATH_MAX];
-//        if ( getcwd( sCwd, PATH_MAX ) == NULL )
-//        {
-//            TLOGERROR("cannot get the current directory:\n" << endl);
-//            exit( 0 );
-//        }
-//        sConfigFile = string(sCwd) +"/"+ sConfigFile;
-//    }
-//    sConfigFile = TC_File::simplifyDirectory(sConfigFile);
-//    if(sLocator != "")
-//    {
-//        if(sRegistryObj == "")
-//        {
-//            sRegistryObj = "tars.tarsregistry.RegistryObj";
-//        }
-//        bool bCloseOut=true;
-//        if(tOp.hasParam("closecout"))
-//        {
-//            if(TC_Common::lower(tOp.getValue("closecout"))=="n")
-//            {
-//                bCloseOut = false;
-//            }
-//        }
-//        bool bRet = getConfig(sLocator,sRegistryObj,sNodeId, sLocalIp, sConfigFile, bCloseOut);
-//        if(bRet == false)
-//        {
-//            cerr<<"reload config erro. use old config";
-//        }
-//    }
-//    cout <<endl;
-//    map<string,string> mOp = tOp.getMulti();
-//    for(map<string,string>::const_iterator it = mOp.begin(); it != mOp.end(); ++it)
-//    {
-//        cout << outfill( it->first)<< it->second << endl;
-//    }
-
+	NodeServer::onUpdateConfig(sNodeId, sConfigFile, true);
 }
 
 int main( int argc, char* argv[] )

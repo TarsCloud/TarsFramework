@@ -42,7 +42,7 @@ public:
 	/**
 	 * update config
 	 */
-	static int onUpdateConfig(const string &nodeId, const string &sConfigFile);
+	static int onUpdateConfig(const string &nodeId, const string &sConfigFile, bool first = false);
 
 	/**
      * 获取Adapter Endpoint
