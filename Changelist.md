@@ -1,3 +1,17 @@
+## v2.4.0 2020.05.06
+### en:
+1 fix windows tarsnode start script bug
+2 fix tarsnode patch server, backup conf bug
+3 tarsnode onUpdateConfig add tars_ping
+4 fix udp server bug
+5 fix install framework, where OS has USER env, overload.profile,USER env invalid bug
+### cn:
+1 修复windows tarsnode启动脚本的bug
+2 修复tarsnode中发布应用, 备份的逻辑
+3 tarsnode onUpdateConfig add tars_ping
+4 fix udp server bug
+5 fix 安装过程中操作系统有USER的环境变量，当你重载.profile,USER会失效的bug
+
 ## v2.3.0 2020.04.24
 ### en:
 - fix deploy script, Deployment script, the preparation work of actual installation is centralized for subsequent maintenance
