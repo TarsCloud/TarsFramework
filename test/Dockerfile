@@ -5,9 +5,9 @@ WORKDIR /root/
 
 ENV TARS_INSTALL  /usr/local/tars/cpp/deploy
 
-ARG WEB_TAG=master 
 ARG FRAMEWORK_DIR=/home/github/actions-runner/TarsFramework/_work/TarsFramework
 COPY "${FRAMEWORK_DIR}/TarsFramework" /tmp/Tars/framework
+COPY "${FRAMEWORK_DIR}/web" /tmp/Tars/web
 
 # RUN rpm -ivh https://repo.mysql.com/mysql57-community-release-el7.rpm
 RUN yum makecache fast \
@@ -23,7 +23,6 @@ RUN yum makecache fast \
 	# Install Tars framework
 	&& mkdir -p /tmp/Tars \
 	&& cd /tmp/Tars \
-	&& git clone --branch $WEB_TAG https://github.com/TarsCloud/TarsWeb web \
 	&& mkdir -p /data \
 	&& chmod u+x /tmp/Tars/framework/build/build.sh \
 	&& cd /tmp/Tars/framework/build/ \
