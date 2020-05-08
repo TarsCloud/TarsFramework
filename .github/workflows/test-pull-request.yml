@@ -1,0 +1,28 @@
+name: test-pull-request
+
+on:
+  pull_request:
+    branches:
+      - release/*
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v1
+      - name: test framework
+        run: |
+          echo $GITHUB_SHA
+          echo $GITHUB_REF
+          echo $GITHUB_REF > /tmp/$GITHUB_SHA
+          release=$(sed "s/refs\/heads\/release\///g" /tmp/$GITHUB_SHA)
+          cp test/Dockerfile ../
+          git clone --branch "release/$release" https://github.com/TarsCloud/TarsWeb web
+          cd web
+          webLatestTag=$(git describe --tags `git rev-list --tags --max-count=1`  --abbrev=0 --always)
+          git checkout $webLatestTag
+          cd ..
+          workDir=$(pwd)
+          docker build . --file Dockerfile --tag tarscloud/framework:$release --build-arg FRAMEWORK_DIR="$workDir" --build-arg WEB_TAG=$webLatestTag
+          git clone https://github.com/TarsCloud/TarsDemo
+          cd TarsDemo
+          ./autorun.sh $release latest false false
