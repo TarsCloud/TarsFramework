@@ -36,5 +36,3 @@ jobs:
           git clone https://github.com/TarsCloud/TarsDemo
           cd TarsDemo
           ./autorun.sh $release latest false false
-        env:
-          BASE_BRANCH: ${{ github.base_ref }}
