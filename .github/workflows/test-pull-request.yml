@@ -19,10 +19,11 @@ jobs:
           cd ..
       - name: test framework
         run: |
-          echo "Pull request's base branch is: ${BASE_BRANCH}"
+          echo "Pull request's base branch is: ${{ github.base_ref }}"
+          BASE_BRANCH=${{ github.base_ref }}
           echo $GITHUB_SHA
           echo $GITHUB_REF
-          echo $GITHUB_REF > /tmp/$GITHUB_SHA
+          echo $BASE_BRANCH > /tmp/$GITHUB_SHA
           release=$(sed "s/refs\/heads\/release\///g" /tmp/$GITHUB_SHA)
           cp test/Dockerfile ../
           git clone --branch "release/$release" https://github.com/TarsCloud/TarsWeb web
@@ -35,5 +36,3 @@ jobs:
           git clone https://github.com/TarsCloud/TarsDemo
           cd TarsDemo
           ./autorun.sh $release latest false false
-        env:
-          BASE_BRANCH: ${{ github.base_ref }}
