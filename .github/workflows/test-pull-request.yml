@@ -19,6 +19,7 @@ jobs:
           cd ..
       - name: test framework
         run: |
+          echo "Pull request's base branch is: ${BASE_BRANCH}"
           echo $GITHUB_SHA
           echo $GITHUB_REF
           echo $GITHUB_REF > /tmp/$GITHUB_SHA
@@ -34,3 +35,5 @@ jobs:
           git clone https://github.com/TarsCloud/TarsDemo
           cd TarsDemo
           ./autorun.sh $release latest false false
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
