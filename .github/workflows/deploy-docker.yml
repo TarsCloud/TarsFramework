@@ -1,0 +1,21 @@
+name: deploy-docker
+
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: docker login
+        run: |
+          docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
+      - name: deploy docker
+        run: |
+          echo $GITHUB_SHA
+          tag=$(git describe --tags $(git rev-list --tags --max-count=1) --abbrev=0 --always)
+          echo $tag
+          git clone https://github.com/TarsCloud/TarsDocker
+          cd TarsDocker/framework
+          ./build-docker.sh $tag
