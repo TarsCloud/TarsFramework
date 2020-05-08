@@ -24,9 +24,9 @@ jobs:
           echo $GITHUB_SHA
           echo $GITHUB_REF
           echo $BASE_BRANCH > /tmp/$GITHUB_SHA
-          release=$(sed "s/refs\/heads\/release\///g" /tmp/$GITHUB_SHA)
+          release=$(sed "s/release\///g" /tmp/$GITHUB_SHA)
           cp test/Dockerfile ../
-          git clone --branch "release/$release" https://github.com/TarsCloud/TarsWeb web
+          git clone --branch $BASE_BRANCH https://github.com/TarsCloud/TarsWeb web
           cd web
           webLatestTag=$(git describe --tags `git rev-list --tags --max-count=1`  --abbrev=0 --always)
           git checkout $webLatestTag
