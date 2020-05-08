@@ -1,0 +1,38 @@
+name: test-pull-request
+
+on:
+  pull_request:
+    branches:
+      - release/*
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v1
+      - name: init submodules
+        run: |
+          git submodule init tarscpp
+          git submodule update
+          cd tarscpp
+          git submodule init unittest servant/protocol
+          git submodule update
+          cd ..
+      - name: test framework
+        run: |
+          echo "Pull request's base branch is: ${{ github.base_ref }}"
+          BASE_BRANCH=${{ github.base_ref }}
+          echo $GITHUB_SHA
+          echo $GITHUB_REF
+          echo $BASE_BRANCH > /tmp/$GITHUB_SHA
+          release=$(sed "s/release\///g" /tmp/$GITHUB_SHA)
+          cp test/Dockerfile ../
+          cd ..
+          git clone --branch $BASE_BRANCH https://github.com/TarsCloud/TarsWeb
+          cd web
+          webLatestTag=$(git describe --tags `git rev-list --tags --max-count=1`  --abbrev=0 --always)
+          git checkout $webLatestTag
+          cd ..
+          docker build . --file Dockerfile --tag tarscloud/framework:$release
+          git clone https://github.com/TarsCloud/TarsDemo
+          cd TarsDemo
+          ./autorun.sh $release latest false false
