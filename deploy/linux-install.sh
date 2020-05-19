@@ -52,15 +52,21 @@ OS=`uname`
 if [[ "$OS" =~ "Darwin" ]]; then
     OS=3
 else
-    OS=`cat /etc/os-release`
-    if [[ "$OS" =~ "CentOS" ]] || [[ "$OS" =~ "Tencent tlinux" ]]; then
+    OS=`cat /etc/redhat-release`
+    if [[ "$OS" =~ "CentOS release 6" ]]; then
       OS=1
-    elif [[ "$OS" =~ "Ubuntu" ]]; then
-      OS=2
+      NODE_VERSION="v10.20.1"
     else
-      echo "OS not support:"
-      echo $OS
-      exit 1
+      OS=`cat /etc/os-release`
+      if [[ "$OS" =~ "CentOS" ]] || [[ "$OS" =~ "Tencent tlinux" ]]; then
+        OS=1
+      elif [[ "$OS" =~ "Ubuntu" ]]; then
+        OS=2
+      else
+        echo "OS not support:"
+        echo $OS
+        exit 1
+      fi
     fi
 fi
 
@@ -73,7 +79,7 @@ function exec_profile()
 function get_host_ip()
 {
   if [ $OS == 1 ]; then
-    IP=`ifconfig | grep $1 -A3 | grep inet | grep broad | awk '{print $2}'`
+    IP=`ifconfig | grep $1 -A 1 | tail -1 | awk '{print $2}' | cut -d ':' -f 2`
   elif [ $OS == 2 ]; then
     IP=`ifconfig | sed 's/addr//g' | grep $1 -A3 | grep "inet " | awk -F'[ :]+' '{print $3}'`
   elif [ $OS == 3 ]; then
@@ -147,7 +153,7 @@ if [ "${SLAVE}" != "true" ]; then
     rm -rf v0.35.1.zip
     #centos8 need chmod a+x
     chmod a+x /usr/bin/unzip
-    wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;/usr/bin/unzip v0.35.1.zip
+    wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip --no-check-certificate;/usr/bin/unzip v0.35.1.zip
 
     NVM_HOME=$HOME
 
