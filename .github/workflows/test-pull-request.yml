@@ -27,9 +27,9 @@ jobs:
           release=$(sed "s/release\///g" /tmp/$GITHUB_SHA)
           cp test/Dockerfile ../
           cd ..
-          rm -rf web
-          git clone --branch $BASE_BRANCH https://github.com/TarsCloud/TarsWeb web
-          cd web
+          rm -rf TarsWeb
+          git clone --branch $BASE_BRANCH https://github.com/TarsCloud/TarsWeb
+          cd TarsWeb
           webLatestTag=$(git describe --tags `git rev-list --tags --max-count=1`  --abbrev=0 --always)
           git checkout $webLatestTag
           cd ..
