@@ -67,10 +67,10 @@ void LoadDbThread::init()
 void LoadDbThread::run()
 {
     size_t iLastTime = 0;
-    size_t iNow = TNOW;
 
     while (!_terminate)
     {
+        size_t iNow = TNOW;
         if(iNow - iLastTime >= _interval)
         {
             iLastTime = iNow;
