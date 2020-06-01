@@ -59,7 +59,7 @@ int ReapThread::init()
     _registryTimeout      = TC_Common::strto<int>((*g_pconf)["/tars/reap<registryTimeout>"]);
 
     //是否启用DB恢复保护功能
-    _recoverProtect       = (*g_pconf).get("/tars/reap<recoverProtect>", "Y") == "N"?false:true;
+    _recoverProtect       = (*g_pconf).get("/tars/reap<recoverProtect>", "N") == "N"?false:true;
 
     //启用DB恢复保护功能状态下极限值
     _recoverProtectRate   = TC_Common::strto<int>((*g_pconf).get("/tars/reap<recoverProtectRate>", "30"));
@@ -74,7 +74,7 @@ int ReapThread::init()
 
     _recoverProtectRate    = _recoverProtectRate   < 1 ? 30: _recoverProtectRate;
 
-    _recoverProtect        = false;
+    //_recoverProtect        = false;
 
     //加载对象列表
     _db.loadObjectIdCache(_recoverProtect, _recoverProtectRate,0,true, true);
