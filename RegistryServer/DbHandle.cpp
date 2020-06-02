@@ -1072,7 +1072,7 @@ int CDbHandle::computeInactiveRate()
             return -2;
         }
 
-        return (iInactive + iActive) <= 0 ? 0 : static_cast<int>(iInactive / (iInactive + iActive) * 100);
+        return (iInactive + iActive) <= 0 ? 0 : static_cast<int>(100 * iInactive / (iInactive + iActive));
     }
     catch (TC_Mysql_Exception& ex)
     {
