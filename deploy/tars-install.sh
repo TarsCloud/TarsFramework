@@ -190,17 +190,21 @@ function check_ports()
 
 function check_mysql()
 {
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user="$1" --pass="$2" --port=${PORT} --check
+    while [ 1 ]
+    do
+        ${MYSQL_TOOL} --host=${MYSQLIP} --user="$1" --pass="$2" --port=${PORT} --check
 
-    if [ $? == 0 ]; then
-        LOG_INFO "mysql is alive"
-        return
-    fi
+        if [ $? == 0 ]; then
+            LOG_INFO "mysql is alive"
+            return
+        fi
 
-    LOG_ERROR "check mysql is not alive: ${MYSQL_TOOL} --host=${MYSQLIP} --user="$1" --pass="$2" --port=${PORT} --check"
+        LOG_ERROR "check mysql is not alive: ${MYSQL_TOOL} --host=${MYSQLIP} --user="$1" --pass="$2" --port=${PORT} --check, try again"
 
-    exit 1
+        sleep 3
+    done
 }
+
 ################################################################################
 #check mysql
 

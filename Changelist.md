@@ -1,3 +1,13 @@
+## v2.4.1 2020.06.02
+### en:
+1 fix registry db protect bug
+2 deploy support centos 6
+3 when mysql is not alive, Cycle detection
+### cn:
+1 修复registry db protect的功能
+2 部署支持centos 6
+3 部署时, mysql如果不连通, 循环检测
+
 ## v2.4.0 2020.05.06
 ### en:
 1 fix windows tarsnode start script bug
