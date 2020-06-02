@@ -26,6 +26,7 @@ void QueryImp::initialize()
     //初始化配置db连接
     _db.init(g_pconf);
 
+	_openDayLog = g_pconf->get("/tars/reap<openDayLog>", "N") == "Y";
 }
 
 vector<EndpointF> QueryImp::findObjectById(const string & id, tars::TarsCurrentPtr current)
@@ -119,49 +120,46 @@ Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string
 
 void QueryImp::doDaylog(const FUNID eFnId,const string& id,const vector<tars::EndpointF> &activeEp, const vector<tars::EndpointF> &inactiveEp, const tars::TarsCurrentPtr& current,const ostringstream& os,const string& sSetid)
 {
-    string sEpList;
-    for(size_t i = 0; i < activeEp.size(); i++)
-    {
-        if(0 != i)
-        {
-            sEpList += ";";
-        }
-        sEpList += activeEp[i].host + ":" + TC_Common::tostr(activeEp[i].port);
-    }
+	if(_openDayLog) {
+		string sEpList;
+		for (size_t i = 0; i < activeEp.size(); i++) {
+			if (0 != i) {
+				sEpList += ";";
+			}
+			sEpList += activeEp[i].host + ":" + TC_Common::tostr(activeEp[i].port);
+		}
 
-    sEpList += "|";
+		sEpList += "|";
 
-    for(size_t i = 0; i < inactiveEp.size(); i++)
-    {
-        if(0 != i)
-        {
-            sEpList += ";";
-        }
-        sEpList += inactiveEp[i].host + ":" + TC_Common::tostr(inactiveEp[i].port);
-    }
+		for (size_t i = 0; i < inactiveEp.size(); i++) {
+			if (0 != i) {
+				sEpList += ";";
+			}
+			sEpList += inactiveEp[i].host + ":" + TC_Common::tostr(inactiveEp[i].port);
+		}
 
-    switch(eFnId)
-    {
-        case FUNID_findObjectById4All:
-        case FUNID_findObjectByIdInSameGroup:
-        {
-            FDLOG("query_idc") << eFunTostr(eFnId)<<"|"<<current->getHostName()  << "|"<< current->getPort() << "|" << id << "|" <<sSetid << "|" << sEpList <<os.str()<< endl;
-        }
-        break;
-        case FUNID_findObjectByIdInSameSet:
-        {
-            FDLOG("query_set") << eFunTostr(eFnId)<<"|"<<current->getHostName()  << "|"<< current->getPort() << "|" << id << "|" <<sSetid << "|" << sEpList <<os.str()<< endl;
-        }
-        break;
-        case FUNID_findObjectById4Any:
-        case FUNID_findObjectById:
-        case FUNID_findObjectByIdInSameStation:
-        default:
-        {
-            FDLOG("query") << eFunTostr(eFnId)<<"|"<<current->getHostName() << "|"<< current->getPort() << "|" << id << "|" <<sSetid << "|" << sEpList <<os.str()<< endl;
-        }
-        break;
-    }
+		switch (eFnId) {
+			case FUNID_findObjectById4All:
+			case FUNID_findObjectByIdInSameGroup: {
+				FDLOG("query_idc") << eFunTostr(eFnId) << "|" << current->getHostName() << "|" << current->getPort()
+				                   << "|" << id << "|" << sSetid << "|" << sEpList << os.str() << endl;
+			}
+				break;
+			case FUNID_findObjectByIdInSameSet: {
+				FDLOG("query_set") << eFunTostr(eFnId) << "|" << current->getHostName() << "|" << current->getPort()
+				                   << "|" << id << "|" << sSetid << "|" << sEpList << os.str() << endl;
+			}
+				break;
+			case FUNID_findObjectById4Any:
+			case FUNID_findObjectById:
+			case FUNID_findObjectByIdInSameStation:
+			default: {
+				FDLOG("query") << eFunTostr(eFnId) << "|" << current->getHostName() << "|" << current->getPort() << "|"
+				               << id << "|" << sSetid << "|" << sEpList << os.str() << endl;
+			}
+				break;
+		}
+	}
 }
 
 string QueryImp::eFunTostr(const FUNID eFnId)
