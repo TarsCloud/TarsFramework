@@ -1,0 +1,21 @@
+name: test-release
+
+on:
+  push:
+    branches:
+      - release/*
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: test release
+        run: |
+          echo $GITHUB_SHA
+          echo $GITHUB_REF
+          echo $GITHUB_REF > /tmp/$GITHUB_SHA
+          release=$(sed "s/refs\/heads\/release\///g" /tmp/$GITHUB_SHA)
+          echo $release
+          rm -rf TarsDocker
+          git clone https://github.com/TarsCloud/TarsDocker
+          cd TarsDocker/framework
+          ./test-release.sh $release

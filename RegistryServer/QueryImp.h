@@ -102,6 +102,8 @@ protected:
     //数据库操作
     CDbHandle      _db;
 
+    bool           _openDayLog = false;
+
 };
 
 #endif

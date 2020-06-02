@@ -3,10 +3,13 @@
 1 fix registry db protect bug
 2 deploy support centos 6
 3 when mysql is not alive, Cycle detection
+3 deploy tars, when mysql is not alive, Cycle detection
+4 registry default close day log
 ### cn:
 1 修复registry db protect的功能
 2 部署支持centos 6
 3 部署时, mysql如果不连通, 循环检测
+4 registry默认关闭按天日志
 
 ## v2.4.0 2020.05.06
 ### en:
