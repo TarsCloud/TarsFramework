@@ -1,29 +1,29 @@
 ## v2.4.1 2020.06.02
 ### en:
-1 fix registry db protect bug
-2 deploy support centos 6
-3 when mysql is not alive, Cycle detection
-3 deploy tars, when mysql is not alive, Cycle detection
-4 registry default close day log
+- fix registry db protect bug
+- deploy support centos 6
+- deploy tars, when mysql is not alive, Cycle detection
+- registry default close day log
 ### cn:
-1 修复registry db protect的功能
-2 部署支持centos 6
-3 部署时, mysql如果不连通, 循环检测
-4 registry默认关闭按天日志
+- 修复registry db protect的功能
+- 部署支持centos 6
+- 部署时, mysql如果不连通, 循环检测
+- registry默认关闭按天日志
+
 
 ## v2.4.0 2020.05.06
 ### en:
-1 fix windows tarsnode start script bug
-2 fix tarsnode patch server, backup conf bug
-3 tarsnode onUpdateConfig add tars_ping
-4 fix udp server bug
-5 fix install framework, where OS has USER env, overload.profile,USER env invalid bug
+- fix windows tarsnode start script bug
+- fix tarsnode patch server, backup conf bug
+- tarsnode onUpdateConfig add tars_ping
+- fix udp server bug
+- fix install framework, where OS has USER env, overload.profile,USER env invalid bug
 ### cn:
-1 修复windows tarsnode启动脚本的bug
-2 修复tarsnode中发布应用, 备份的逻辑
-3 tarsnode onUpdateConfig add tars_ping
-4 fix udp server bug
-5 fix 安装过程中操作系统有USER的环境变量，当你重载.profile,USER会失效的bug
+- 修复windows tarsnode启动脚本的bug
+- 修复tarsnode中发布应用, 备份的逻辑
+- tarsnode onUpdateConfig add tars_ping
+- fix udp server bug
+- fix 安装过程中操作系统有USER的环境变量，当你重载.profile,USER会失效的bug
 
 ## v2.3.0 2020.04.24
 ### en:
