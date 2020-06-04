@@ -496,7 +496,7 @@ int CommandPatch::backupfiles(std::string &sResult)
     try
     {
         string srcPath = ServerConfig::TarsPath + "tarsnode" + FILE_SEP + "data" + FILE_SEP + _patchRequest.appname + "." + _patchRequest.servername + FILE_SEP;
-        string destPath = ServerConfig::TarsPath + "tarsnode" + FILE_SEP + "tmp" + FILE_SEP + _patchRequest.appname + "." + _patchRequest.servername + FILE_SEP;
+        string destPath = ServerConfig::TarsPath + "tarsnode" + FILE_SEP + "data" + FILE_SEP + "tmp" + FILE_SEP + _patchRequest.appname + "." + _patchRequest.servername + FILE_SEP;
 
         backupBinFiles(srcPath, destPath, sResult);
 

@@ -123,7 +123,7 @@ string PlatformInfo::getDownLoadDir()
             string::size_type pos =  sDataDir.find_last_of(FILE_SEP);
             if(pos != string::npos)
             {
-                sDownLoadDir    = sDataDir.substr(0,pos) + FILE_SEP + "tmp" + FILE_SEP + "download" + FILE_SEP;
+                sDownLoadDir    = sDataDir.substr(0,pos) + FILE_SEP + "data" + FILE_SEP + "tmp" + FILE_SEP + "download" + FILE_SEP;
             }
         }
 
