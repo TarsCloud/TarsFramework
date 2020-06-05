@@ -413,18 +413,6 @@ int CommandPatch::execute(string &sResult)
                 break;
             }
 
-            // //把bin目录换个名字
-            // string runningDir = _serverObjectPtr->getRunningTmpPath();
-
-            // TC_File::removeFile(runningDir, true);
-
-            // NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "rename :" <<  _serverObjectPtr->getExePath() << " -> " << runningDir << endl;
-            
-            // rename(_serverObjectPtr->getExePath().c_str(),  runningDir.c_str());
-
-            // //重建bin目录
-            // TC_File::makeDirRecursive(_serverObjectPtr->getExePath());
-
             //copy file失败， 会抛异常
             if (_serverObjectPtr->getServerType() == "tars_nodejs") 
             { 
@@ -449,19 +437,22 @@ int CommandPatch::execute(string &sResult)
 
         } while ( false );
 
-        //设置发布状态到主控
-        iRet = updatePatchResult(sResult);
-        if(0 != iRet)
+        if(iRet == 0)
         {
-            NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|updatePatchResult fail:" << sResult << endl;
+            //设置发布状态到主控
+            iRet = updatePatchResult(sResult);
+            if(0 != iRet)
+            {
+                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|updatePatchResult fail:" << sResult << endl;
+            }
+            else
+            {
+                sResult = "patch " + _patchRequest.appname + "." + _patchRequest.servername + " succ, version " + _patchRequest.version;
+                //发布成功
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< sResult << endl;
+            }
+            NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "setPatched,iPercent=100%" << endl;
         }
-        else
-        {
-            sResult = "patch " + _patchRequest.appname + "." + _patchRequest.servername + " succ, version " + _patchRequest.version;
-            //发布成功
-            NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< sResult << endl;
-        }
-        NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "setPatched,iPercent=100%" << endl;
     
     }
     catch (exception& e)
