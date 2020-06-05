@@ -33,7 +33,8 @@
 using namespace tars;
 using namespace std;
 
-class ServerObject : public TC_ThreadRecLock, public TC_HandleBase
+//class ServerObject : public TC_ThreadRecLock, public TC_HandleBase
+class ServerObject : public TC_ThreadRecLock, public RegistryPrxCallback
 {
 public:
     enum InternalServerState
@@ -468,6 +469,13 @@ public:
     void setServerLimitInfo(const ServerLimitInfo& tInfo);
 
     bool setServerCoreLimit(bool bCloseCore);
+
+public:
+    void onUpdateServerResult(int result);
+
+    virtual void callback_updateServer(tars::Int32 ret);
+
+    virtual void callback_updateServer_exception(tars::Int32 ret);
 
 private:
     bool    _tarsServer;                //是否tars服务
