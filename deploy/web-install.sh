@@ -87,11 +87,6 @@ function replacePath()
     done
 }
 
-# SRC="user: 'tars'"
-# DST="user: '${USER}'"
-
-# sed -i 's#${SRC}#${DST}#g' c:/tars-install/web/config/webConf.js
-
 # exit 0
 function update_conf() 
 {
@@ -113,15 +108,12 @@ function update_conf()
 if [ "$SLAVE" != "true" ]; then
 
     cd ${WORKDIR}
-    LOG_INFO "copy web to web path:${WEB_PATH}/";
-
-    rm -rf web/log
 
     if [ "${TARS_IN_DOCKER}" != "true" ]; then
+      LOG_INFO "copy web to web path:${WEB_PATH}/";
       cp -rf web ${WEB_PATH}
-    else
-      ln -s ${WEB_PATH}/web web
     fi
+    rm -rf web/log
 
     LOG_INFO "update web config";
 

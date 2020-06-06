@@ -81,6 +81,7 @@ cd ${WORKDIR}
 
 export TARS_IN_DOCKER="true"
 
+
 #mkdir dir for docker run
 mkdir -p /data/tars/app_log
 mkdir -p /data/tars/web_log
