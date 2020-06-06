@@ -24,7 +24,6 @@ COPY framework ${TARS_INSTALL}/framework
 COPY tools ${TARS_INSTALL}/tools
 COPY docker-init.sh tars-install.sh tar-server.sh web-install.sh mysql-tool ${TARS_INSTALL}/
 
-RUN mkdir /usr/local/app && ln -s ${TARS_INSTALL}/web /usr/local/app/web 
 
 RUN ${TARS_INSTALL}/tar-server.sh
 
