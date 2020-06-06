@@ -134,19 +134,8 @@ private:
      */
     void loadData();
 
-    /**
-     * is first notify
-     * @return
-     */
-    bool isFirst();
-
-    /**
-     * delete old notifys
-     */
-    void deleteNotifys();
-
 private:
-	int     _retainHistory;
+
     //
     size_t   _interval;
 

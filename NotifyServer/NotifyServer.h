@@ -19,6 +19,7 @@
 
 #include "servant/Application.h"
 #include "LoadDbThread.h"
+#include "util/tc_timer.h"
 
 using namespace tars;
 
@@ -40,9 +41,22 @@ public:
      */
     inline LoadDbThread * getLoadDbThread() { return _loadDbThread; }
 
+	/**
+	 * is first notify
+	 * @return
+	 */
+	bool isFirst();
+
+	/**
+	 * delete old notifys
+	 */
+	void deleteNotifys(int retainHistory);
+
 private:
 
     LoadDbThread *_loadDbThread;
+
+    TC_Timer _timer;
 };
 
 extern NotifyServer g_app;

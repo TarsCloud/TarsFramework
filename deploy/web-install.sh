@@ -116,7 +116,12 @@ if [ "$SLAVE" != "true" ]; then
     LOG_INFO "copy web to web path:${WEB_PATH}/";
 
     rm -rf web/log
-    cp -rf web ${WEB_PATH}
+
+    if [ "${TARS_IN_DOCKER}" != "true" ]; then
+      cp -rf web ${WEB_PATH}
+    else
+      ln -s ${WEB_PATH}/web web
+    fi
 
     LOG_INFO "update web config";
 

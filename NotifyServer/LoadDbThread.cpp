@@ -49,7 +49,6 @@ void LoadDbThread::init()
 {
     try
     {
-	    _retainHistory = TC_Common::strto<int>(g_pconf->get("/tars<retainHistory>", "100"));
 
         map<string, string> mDbConf = g_pconf->getDomainMap("/tars/db");
         assert(!mDbConf.empty());
@@ -59,9 +58,6 @@ void LoadDbThread::init()
 
         _mysql.init(tcDBConf);
 
-
-	    // TLOGDEBUG("eps size:" << eps.size() << endl);
-
 	    TLOGDEBUG("LoadDbThread::init init mysql conf succ." << endl);
     }
     catch(exception &ex)
@@ -70,32 +66,6 @@ void LoadDbThread::init()
         FDLOG("EX") << "LoadDbThread::init ex:" << ex.what() << endl;
         exit(0);
     }
-}
-
-bool LoadDbThread::isFirst()
-{
-	NotifyPrx prx = Application::getCommunicator()->stringToProxy<NotifyPrx>(ServerConfig::Application + "." + ServerConfig::ServerName + ".NotifyObj");
-
-	vector<EndpointInfo> eps1;
-	vector<EndpointInfo> eps2;
-	prx->tars_endpoints(eps1, eps2);
-
-	vector<TC_Endpoint> eps;
-	for_each(eps1.begin(), eps1.end(), [&](const EndpointInfo &e) {
-		eps.push_back(e.getEndpoint());
-	});
-	for_each(eps2.begin(), eps2.end(), [&](const EndpointInfo &e) {
-		eps.push_back(e.getEndpoint());
-	});
-
-	if(eps.empty())
-	{
-		return false;
-	}
-
-	auto adapter = Application::getEpollServer()->getBindAdapter(ServerConfig::Application + "." + ServerConfig::ServerName + ".NotifyObjAdapter");
-
-	return adapter->getEndpoint().getHost() == eps[0].getHost();
 }
 
 void LoadDbThread::run()
@@ -112,65 +82,11 @@ void LoadDbThread::run()
             loadData();
         }
 
-        string now = TC_Common::now2str("%H");
-        if(now == "03") {
-
-//	    deleteNotifys();
-        }
-
         {
             TC_ThreadLock::Lock lock(*this);
             timedWait(1000);
         }
     }
-}
-
-void LoadDbThread::deleteNotifys()
-{
-	try {
-		string sql = "select application,server_name,node_name from t_server_conf";
-
-		auto mysqlData = _mysql.queryRecord(sql);
-
-		vector<pair<string, string>> conditions;
-
-		for (size_t i = 0; i < mysqlData.size(); i++) {
-
-			string serverId = mysqlData[i]["application"] + "." + mysqlData[i]["server_name"] + "." + mysqlData[i]["node_name"];
-
-			sql = "select notifytime from t_server_notifys where server_id = '"
-				+ _mysql.escapeString(serverId) + "' order by notifytime desc limit "
-				+ TC_Common::tostr(_retainHistory) + ", 1";
-
-			auto data = _mysql.queryRecord(sql);
-
-			if (data.size() != 0) {
-				conditions.push_back(std::make_pair(mysqlData[i]["server_id"], data[0]["notifytime"]));
-			}
-
-			if (i == (mysqlData.size() - 1) || conditions.size() >= 500) {
-				TLOGDEBUG("LoadDbThread::deleteNotifys conditions size:" << conditions.size() << endl);
-
-				sql = "delete from t_server_notifys where ";
-
-				for (size_t i = 0; i < conditions.size(); i++) {
-					sql += " ( server_id = '" + _mysql.escapeString(conditions[i].first) + "' and notifytime < '"
-						+ conditions[i].second + "') ";
-					if (i < conditions.size() - 1) {
-						sql += " or ";
-					}
-				}
-
-				_mysql.execute(sql);
-
-				conditions.clear();
-			}
-		}
-	}
-	catch(exception &ex)
-	{
-		TLOGERROR("LoadDbThread::deleteNotifys ex:" << ex.what() << endl);
-	}
 }
 
 void LoadDbThread::loadData()
