@@ -182,6 +182,12 @@ public:
      */
     int updatePatchByPatchId(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ);
 
+    /**
+     * 删除历史数据包
+     * 
+     */   
+    vector<string> deleteHistorys(const string &application, const string &serverName);
+
 protected:
     /**
      * 获取server的配置模板
@@ -291,6 +297,9 @@ protected:
     //分组信息
     static map<string,int> _serverGroupCache;
     static map<string,int> _groupNameIDCache;
+
+    //保留历史发布记录
+    static int _patchHistory;
 };
 
 #define DBPROXY		DbProxy::getInstance()

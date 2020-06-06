@@ -100,6 +100,26 @@ int AdminRegistryImp::setTaskItemInfo_inner(const string & itemNo, const map<str
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
+void AdminRegistryImp::deleteHistorys(const string &application, const string &serverName)
+{
+    TLOGDEBUG("into " << __FUNCTION__ << endl);
+    try
+    {
+        vector<string> patchFiles = DBPROXY->deleteHistorys(application, serverName);
+
+        TLOGDEBUG("into " << __FUNCTION__ << ", patch file size:" << patchFiles.size() << endl);
+
+        for(auto patchFile : patchFiles)
+        {
+            _patchPrx->async_deletePatchFile(NULL, application, serverName, patchFile);
+        }
+    }
+    catch(exception &ex)
+    {
+        TLOGERROR("into " << __FUNCTION__ << ", error:" << ex.what() << endl);
+    }
+}
+
 vector<string> AdminRegistryImp::getAllApplicationNames(string & result, tars::TarsCurrentPtr current)
 {
 	TLOGDEBUG("into " << __FUNCTION__ << endl);
@@ -753,7 +773,7 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
         iRet = DBPROXY->getInfoByPatchId(reqPro.version, patchFile, md5);
         if (iRet != 0)
         {
-            TLOGERROR("AdminRegistryImp::batchPatch"<< ", get patch tgz error:" << reqPro.version << endl);
+            TLOGERROR("AdminRegistryImp::batchPatch, get patch tgz error:" << reqPro.version << endl);
             RemoteNotify::getInstance()->report("get patch tgz error:" + reqPro.version, reqPro.appname, sServerName, reqPro.nodename);
 
             return EM_TARS_GET_PATCH_FILE_ERR;
@@ -767,7 +787,7 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
         iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
         if (iRet != 0)
         {
-            TLOGERROR("AdminRegistryImp::batchPatch"<< ", prepare patch file error:" << patchFile << endl);
+            TLOGERROR("AdminRegistryImp::batchPatch, prepare patch file error:" << patchFile << endl);
             RemoteNotify::getInstance()->report("prepare patch file error:" + patchFile, reqPro.appname, sServerName, reqPro.nodename);
             return EM_TARS_PREPARE_ERR;
         }
@@ -865,6 +885,8 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 		proxy = DBPROXY->getNodePrx(reqPro.nodename);
 		int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
 		iRet = proxy->tars_set_timeout(timeout)->patchPro(reqPro, result);
+
+        deleteHistorys(reqPro.appname, reqPro.servername);
 	}
 	catch (TarsSyncCallTimeoutException& tex)
 	{		
@@ -1236,6 +1258,7 @@ void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
     _nodePrx->tars_timeout(_defaultTime);
 
     AdminReg::async_response_batchPatch(_current, ret, result);
+
 }
 
 void PatchProCallbackImp::callback_patchPro_exception(tars::Int32 ret)

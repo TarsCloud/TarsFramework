@@ -342,6 +342,9 @@ public:
 	virtual int checkServer(const FrameworkServer &server, tars::TarsCurrentPtr current);
 
 protected:
+    void deleteHistorys(const string &application, const string &serverName);
+
+protected:
 
     PatchPrx _patchPrx;
 };

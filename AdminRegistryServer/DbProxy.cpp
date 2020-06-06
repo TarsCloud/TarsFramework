@@ -32,6 +32,8 @@ vector<tars::TC_Mysql*> DbProxy::_mysqlReg;
 vector<TC_ThreadMutex*> DbProxy::_mysqlLocks;
 static std::atomic<int>	g_index(0);
 
+int DbProxy::_patchHistory = 200;
+
 #define MYSQL_LOCK	size_t nowIndex = ++g_index; TC_LockT<TC_ThreadMutex> Lock(*(_mysqlLocks[nowIndex % _mysqlLocks.size()]));
 #define MYSQL_INDEX	_mysqlReg[nowIndex % _mysqlReg.size()]
 int DbProxy::init(TC_Config *pconf)
@@ -55,6 +57,8 @@ int DbProxy::init(TC_Config *pconf)
 		}
 	    TLOGDEBUG("init finish, mysql num:" << _mysqlReg.size() << ", _mysqllock num:" << _mysqlLocks.size() << endl);
 		assert((_mysqlLocks.size() == _mysqlReg.size()) && (_mysqlReg.size() > 0));
+
+        _patchHistory = TC_Common::strto<int>(pconf->get("/tars/patch<patchHistory>", "200"));
     }
     catch (TC_Config_Exception& ex)
     {
@@ -1062,3 +1066,37 @@ int DbProxy::updatePatchByPatchId(const string &application, const string & serv
     return -1;
 }
 
+vector<string> DbProxy::deleteHistorys(const string &application, const string &serverName)
+{
+    vector<string> tgz;
+
+    try
+    {
+		MYSQL_LOCK;
+        string where = "server = '" + MYSQL_INDEX->escapeString(application + "." + serverName) + "'";
+        string sql = "select id from t_server_patchs where " + where + " order by id desc limit " + TC_Common::tostr(_patchHistory) + ", 1";
+
+        auto data = MYSQL_INDEX->queryRecord(sql);
+
+        if(data.size() > 0)
+        {
+            auto dels = MYSQL_INDEX->queryRecord("select tgz from t_server_patchs where " + where + " and id < " + data[0]["id"]);
+
+            for(size_t i = 0; i < dels.size(); i++)
+            {
+                tgz.push_back(dels[i]["tgz"]);
+            }
+
+            MYSQL_INDEX->execute("delete from t_server_patchs where " + where + " and id < " + data[0]["id"]);
+        }
+    }
+    catch (TC_Mysql_Exception& ex)
+    {
+        TLOGERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+    }
+    catch (exception& ex)
+    {
+        TLOGERROR(__FUNCTION__ << " " << ex.what() << endl);
+    }
+    return tgz;
+}
