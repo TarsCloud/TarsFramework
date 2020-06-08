@@ -1,0 +1,7 @@
+<tars>
+    <application>
+        <client>
+            property=DCache.PropertyServer.PropertyObj
+        </client>
+    </application>
+</tars>
