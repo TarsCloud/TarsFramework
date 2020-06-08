@@ -636,7 +636,7 @@ string ServerObject::getPatchVersion()
 
 int ServerObject::getPatchPercent(PatchInfo &tPatchInfo)
 {
-    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent"<< _application << "_" << _serverName << "|"<< _serverId<< endl;
+    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent, "<< _application << "_" << _serverName << "|"<< _serverId<< endl;
 
     Lock lock(*this);
 
@@ -646,7 +646,7 @@ int ServerObject::getPatchPercent(PatchInfo &tPatchInfo)
 
     if (tPatchInfo.bSucc == true || _state == ServerObject::Patching || _state == ServerObject::BatchPatching)
     {
-	    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent "<< _desc.application
+	    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent, "<< _desc.application
             << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl;
         return 0;
     }

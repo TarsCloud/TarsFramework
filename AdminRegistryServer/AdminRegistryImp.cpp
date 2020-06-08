@@ -840,87 +840,180 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
 
 	}
     return iRet;
+
 }
 int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &result)
 {
-	tars::PatchRequest reqPro = req;
-	reqPro.patchobj = (*g_pconf)["/tars/objname<patchServerObj>"];
-//	reqPro.servertype = getServerType(req.appname, req.servername, req.nodename);
-	TLOGDEBUG( "batchPatch_inner: "
-		<< reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|"
-		<< reqPro.binname << "|"
-		<< reqPro.version << "|"
-		<< reqPro.user << "|"
-		<< reqPro.servertype << "|"
-		<< reqPro.patchobj << "|"
-		<< reqPro.md5 << "|"
-		<< reqPro.ostype
-		<< endl);
-	string patchFile;
-	string md5;
-	int iRet = DBPROXY->getInfoByPatchId(reqPro.version, patchFile, md5);
-	if (iRet != 0)
-	{
-		result = "get patch tgz error:" + reqPro.version;
-		TLOGERROR("get patch tgz error:" << reqPro.version << endl);
-		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+    tars::PatchRequest reqPro = req;
+    reqPro.patchobj = (*g_pconf)["/tars/objname<patchServerObj>"];
 
-		return EM_TARS_GET_PATCH_FILE_ERR;
-    }
+    int iRet = 0;
+    string sServerName;
 
-	iRet = _patchPrx->preparePatchFile(reqPro.appname, reqPro.servername, patchFile);
-	if (iRet != 0)
-	{
-		result = "tarspatch::preparePatchFile error, check tarspatch server!";
-		TLOGERROR("call tarspatch::preparePatchFile file error:" << patchFile << endl);
-		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+    try
+    {
+        //让tarspatch准备发布包
+        sServerName  = reqPro.groupname.empty() ? reqPro.servername : reqPro.groupname;
 
-		return EM_TARS_PREPARE_ERR;
-	}
-	reqPro.md5 = md5;
-	iRet = EM_TARS_UNKNOWN_ERR;
-	NodePrx proxy;
-	try
-	{
-		proxy = DBPROXY->getNodePrx(reqPro.nodename);
-		int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
+        TLOGDEBUG("AdminRegistryImp::batchPatch "
+                 << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|"
+                 << reqPro.binname      << "|"
+                 << reqPro.version      << "|"
+                 << reqPro.user         << "|"
+                 << reqPro.servertype   << "|"
+                 << reqPro.patchobj     << "|"
+                 << reqPro.md5          <<"|"
+                 << reqPro.ostype       << "|"
+                 << sServerName
+                 << endl);
+
+        //获取patch包的文件信息和md5值
+        string patchFile;
+        string md5;
+        iRet = DBPROXY->getInfoByPatchId(reqPro.version, patchFile, md5);
+        if (iRet != 0)
+        {
+            TLOGERROR("AdminRegistryImp::batchPatch, get patch tgz error:" << reqPro.version << endl);
+            RemoteNotify::getInstance()->report("get patch tgz error:" + reqPro.version, reqPro.appname, sServerName, reqPro.nodename);
+
+            return EM_TARS_GET_PATCH_FILE_ERR;
+        }
+
+        TLOGDEBUG("AdminRegistryImp::batchPatch "
+                 << sServerName << "|"
+                 << patchFile
+                 << endl); 
+
+        iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
+        if (iRet != 0)
+        {
+            TLOGERROR("AdminRegistryImp::batchPatch, prepare patch file error:" << patchFile << endl);
+            RemoteNotify::getInstance()->report("prepare patch file error:" + patchFile, reqPro.appname, sServerName, reqPro.nodename);
+            return EM_TARS_PREPARE_ERR;
+        }
+
+        reqPro.md5 = md5;
+
+        NodePrx proxy;
+
+        proxy = DBPROXY->getNodePrx(reqPro.nodename);
+        int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
+
 		iRet = proxy->tars_set_timeout(timeout)->patchPro(reqPro, result);
 
-        deleteHistorys(reqPro.appname, reqPro.servername);
-	}
-	catch (TarsSyncCallTimeoutException& tex)
-	{		
-		result = tex.what();
-		iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+        deleteHistorys(reqPro.appname, sServerName);
+    }
+    catch(TarsSyncCallTimeoutException& ex)
+    {
+        result = ex.what();
 
-		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|TarsSyncCallTimeoutException:" << result << endl);
+        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
+        TLOGERROR("AdminRegistryImp::batchPatch " << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|TarsSyncCallTimeoutException:" << result << endl);
+        RemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
 
-	}
-	catch (TarsNodeNotRegistryException& re)
-	{
-		result = re.what();
-		iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
-		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+    }
+    catch(TarsNodeNotRegistryException& ex)
+    {
+        result = ex.what();
+        iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+        TLOGERROR("AdminRegistryImp::batchPatch "<< reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|TarsNodeNotRegistryException:" << result << endl);
+        RemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
+    }
+    catch (std::exception & ex)
+    {
+        result = ex.what();
+        iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+        TLOGERROR("AdminRegistryImp::batchPatch "<< reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename <<"|ret."<<iRet<<"|exception:" << result << endl);
+        RemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
+    }
+    catch (...)
+    {
+        result = "Unknown Exception";
+        TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|Exception...:" << result << endl);
+        RemoteNotify::getInstance()->report(string("patch:") + result, reqPro.appname, sServerName, reqPro.nodename);
 
-		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|TarsNodeNotRegistryException:" << result << endl);
-	}
-	catch (std::exception & ex)
-	{
-		result = ex.what();
-		iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
-		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
-
-		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|exception:" << result << endl);
-	}
-	catch (...)
-	{
-		result = "Unknown Exception";
-		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
-
-		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|Exception...:" << result << endl);
 	}
     return iRet;
+
+// 	tars::PatchRequest reqPro = req;
+// 	reqPro.patchobj = (*g_pconf)["/tars/objname<patchServerObj>"];
+// //	reqPro.servertype = getServerType(req.appname, req.servername, req.nodename);
+// 	TLOGDEBUG( "batchPatch_inner: "
+// 		<< reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|"
+// 		<< reqPro.binname << "|"
+// 		<< reqPro.version << "|"
+// 		<< reqPro.user << "|"
+// 		<< reqPro.servertype << "|"
+// 		<< reqPro.patchobj << "|"
+// 		<< reqPro.groupname << "|"
+// 		<< reqPro.md5 << "|"
+// 		<< reqPro.ostype
+// 		<< endl);
+// 	string patchFile;
+// 	string md5;
+// 	int iRet = DBPROXY->getInfoByPatchId(reqPro.version, patchFile, md5);
+// 	if (iRet != 0)
+// 	{
+// 		result = "get patch tgz error:" + reqPro.version;
+// 		TLOGERROR("get patch tgz error:" << reqPro.version << endl);
+// 		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+
+// 		return EM_TARS_GET_PATCH_FILE_ERR;
+//     }
+
+// 	iRet = _patchPrx->preparePatchFile(reqPro.appname, reqPro.servername, patchFile);
+// 	if (iRet != 0)
+// 	{
+// 		result = "tarspatch::preparePatchFile error, check tarspatch server!";
+// 		TLOGERROR("call tarspatch::preparePatchFile file error:" << patchFile << endl);
+// 		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+
+// 		return EM_TARS_PREPARE_ERR;
+// 	}
+// 	reqPro.md5 = md5;
+// 	iRet = EM_TARS_UNKNOWN_ERR;
+// 	NodePrx proxy;
+// 	try
+// 	{
+// 		proxy = DBPROXY->getNodePrx(reqPro.nodename);
+// 		int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
+// 		iRet = proxy->tars_set_timeout(timeout)->patchPro(reqPro, result);
+
+//         deleteHistorys(reqPro.appname, reqPro.servername);
+// 	}
+// 	catch (TarsSyncCallTimeoutException& tex)
+// 	{		
+// 		result = tex.what();
+// 		iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
+// 		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+
+// 		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|TarsSyncCallTimeoutException:" << result << endl);
+
+// 	}
+// 	catch (TarsNodeNotRegistryException& re)
+// 	{
+// 		result = re.what();
+// 		iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+// 		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+
+// 		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|TarsNodeNotRegistryException:" << result << endl);
+// 	}
+// 	catch (std::exception & ex)
+// 	{
+// 		result = ex.what();
+// 		iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+// 		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+
+// 		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|exception:" << result << endl);
+// 	}
+// 	catch (...)
+// 	{
+// 		result = "Unknown Exception";
+// 		RemoteNotify::getInstance()->report(result, reqPro.appname, reqPro.servername, reqPro.nodename);
+
+// 		TLOGERROR( "|" << reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << "|ret." << iRet << "|Exception...:" << result << endl);
+// 	}
+//     return iRet;
 }
 
 int AdminRegistryImp::updatePatchLog(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ, tars::TarsCurrentPtr current)

@@ -280,23 +280,23 @@ int CommandPatch::execute(string &sResult)
             string sShortFile;
             string sRemoteTgzPath;
 
-            // if(_patchRequest.ostype != "")
-            // {
-            //     //新发布
-            //     sShortFile =  _patchRequest.appname + "." + sServerName + "."+ _patchRequest.version + "." + _patchRequest.ostype + ".tgz";
-            //     sRemoteTgzPath = FILE_SEP + string("TARSBatchPatchingV2") + FILE_SEP + _patchRequest.appname + FILE_SEP + sServerName;
+            if(_patchRequest.ostype != "")
+            {
+                //新发布
+                sShortFile =  _patchRequest.appname + "." + sServerName + "."+ _patchRequest.version + "." + _patchRequest.ostype + ".tgz";
+                sRemoteTgzPath = "/TARSBatchPatchingV2/" + _patchRequest.appname + "/" + sServerName;
 
-            //     //使用新路径下载
-            //     iRet = download(sRemoteTgzPath, sLocalTgzPath, sShortFile, _patchRequest.md5, sResult);
-            //     if(iRet != 0)
-            //     {
-            //         NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< sRemoteTgzPath << "|" <<  sLocalTgzPath << "|old download error:" << sShortFile
-            //                 <<"|"<<sResult << "|" << iRet << endl;
-            //         iRet -= 100;
-            //     }
-            // }
-            // else
-            // {
+                //使用新路径下载
+                iRet = download(sRemoteTgzPath, sLocalTgzPath, sShortFile, _patchRequest.md5, sResult);
+                if(iRet != 0)
+                {
+                    NODE_LOG("patchPro")->error() <<FILE_FUN<< sRemoteTgzPath << "|" <<  sLocalTgzPath << "|old download error:" << sShortFile
+                            <<"|"<<sResult << "|" << iRet << endl;
+                    iRet -= 100;
+                }
+            }
+            else
+            {
                 sShortFile = _patchRequest.appname + "." + sServerName + ".tgz";
                 sRemoteTgzPath = FILE_SEP + string("TARSBatchPatching") + FILE_SEP + _patchRequest.appname + FILE_SEP + sServerName;
                 iRet = download(sRemoteTgzPath, sLocalTgzPath, sShortFile, _patchRequest.md5, sResult);
@@ -307,7 +307,7 @@ int CommandPatch::execute(string &sResult)
                     iRet -= 100;
                     break;
                 }
-            // }
+            }
 
             string sLocalTgzFile = sLocalTgzPath + FILE_SEP + sShortFile;
 
@@ -416,7 +416,7 @@ int CommandPatch::execute(string &sResult)
             //copy file失败， 会抛异常
             if (_serverObjectPtr->getServerType() == "tars_nodejs") 
             { 
-                NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
 
                 TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true); 
             }
@@ -424,13 +424,13 @@ int CommandPatch::execute(string &sResult)
             { 
                 if(packageFormat!="jar")
                 {
-                    NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
+                    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
                     TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true); 
                 }
                 else
                 {
                     string  cpCmd = busybox + " cp -f "+sLocalTgzFile_bak + " " + _serverObjectPtr->getExePath();
-                    NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<"|copy :" << cpCmd << endl;
+                    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << endl;
                     system(cpCmd.c_str());
                 }
             }
