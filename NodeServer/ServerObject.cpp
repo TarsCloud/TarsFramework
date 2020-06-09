@@ -166,15 +166,9 @@ bool ServerObject::isAutoStart()
     return true;
 }
 
-// string ServerObject::getRunningTmpPath() 
-// {
-//     return _exePath + FILE_SEP + ".." + FILE_SEP + "bin.tmp";
-// }
-
 void ServerObject::setExeFile(const string &sExeFile)
 {
     string ext = TC_Common::trim(TC_File::extractFileExt(sExeFile));
-    // NODE_LOG(_serverId)->debug() << "ServerObject::setExeFile " << sExeFile << ", ext:" << ext <<endl;
 
 #if TARGET_PLATFORM_WINDOWS
     if(ext.empty())
@@ -462,7 +456,6 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
     //心跳不改变正在转换期状态(Activating除外)
     if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
     {
-	    // NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << ", state:" << toStringState(_state) << endl;
         setState(ServerObject::Active);
     }
     // else
@@ -571,7 +564,7 @@ bool ServerObject::isStartTimeOut()
 	Lock lock(*this);
 	int64_t now = TNOWMS;
 
-	int timeout = 2000;
+	int timeout = 11000;
 	if (now - _startTime >= timeout && now - _keepAliveTime >= timeout)
 	{
 		NODE_LOG(_serverId)->debug()<<FILE_FUN<<"server start time  out "<<now - _startTime << ">" <<timeout<<endl;
@@ -774,8 +767,6 @@ void ServerObject::checkServer(int iTimeout)
 					CommandStop command(this, false);
 					command.doProcess();
 				}
-//				NODE_LOG(_serverId)->debug()<<FILE_FUN<< _serverId << " is not be started"<<endl;
-//				NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN << _serverId <<" is not be started"<<endl;
 			}
 		}
 
