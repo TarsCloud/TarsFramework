@@ -901,7 +901,7 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 
 		iRet = proxy->tars_set_timeout(timeout)->patchPro(reqPro, result);
 
-        deleteHistorys(reqPro.appname, sServerName);
+//        deleteHistorys(reqPro.appname, sServerName);
     }
     catch(TarsSyncCallTimeoutException& ex)
     {

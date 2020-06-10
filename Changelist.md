@@ -1,3 +1,17 @@
+
+## v2.4.2 2020.06.10
+### en:
+- speed tars docker start
+- clear t_server_notifys records
+- support dcache deploy 
+- fix tarsnode start server timeout limit
+### cn:
+- 加速docker启动速度
+- 清除t_server_notifys记录
+- 支持dcache部署优化
+- 修复tarsnode启动服务超时太短的bug
+
+
 ## v2.4.1 2020.06.02
 ### en:
 - fix registry db protect bug
