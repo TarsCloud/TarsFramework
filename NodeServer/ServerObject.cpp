@@ -996,5 +996,3 @@ void ServerObject::callback_updateServer_exception(tars::Int32 ret)
 {
     onUpdateServerResult(ret == 0 ? -1 : ret);
 }
-
-}
