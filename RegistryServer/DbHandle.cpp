@@ -638,7 +638,12 @@ int CDbHandle::doUpdateServerStateBatch(const std::vector<tars::ServerStateInfo>
                           << "|cost:" << (TNOWMS - iStart) << endl);
 
                 TC_ThreadLock::Lock lock(_mapServantStatusLock);
-                _mapServantStatus.insert(updated_map.begin(), updated_map.end());
+                //insert will fail when map has same key
+                //_mapServantStatus.insert(updated_map.begin(), updated_map.end());
+                for(auto &kv : updated_map)
+                {
+                    _mapServantStatus[kv.first] = kv.second;
+                }
             }
         }
         return 0;

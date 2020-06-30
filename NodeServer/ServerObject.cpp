@@ -258,11 +258,12 @@ void ServerObject::synState()
         //防止主控超时导致阻塞服务上报心跳
         if(_noticeFailTimes < 3)
         {
-            AdminProxy::getInstance()->getRegistryProxy()->tars_set_timeout(1000)->updateServer( _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
+            int ret = AdminProxy::getInstance()->getRegistryProxy()->tars_set_timeout(1000)->updateServer( _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
+            onUpdateServerResult(ret);
         }
         else
         {
-            AdminProxy::getInstance()->getRegistryProxy()->async_updateServer(NULL, _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
+            AdminProxy::getInstance()->getRegistryProxy()->async_updateServer(this, _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
         }
 
         //日志
@@ -270,8 +271,8 @@ void ServerObject::synState()
         tServerStateInfo.displaySimple(ss);
         NODE_LOG(_serverId)->debug()<<FILE_FUN << "synState" << "|"<< _nodeInfo.nodeName << "|" <<  _serverId << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
 
-        _noticed = true;
-        _noticeFailTimes = 0;
+        //_noticed = true;
+        //_noticeFailTimes = 0;
     }
     catch (exception &e)
     {
@@ -290,7 +291,7 @@ void ServerObject::asyncSynState()
         ServerStateInfo tServerStateInfo;
         tServerStateInfo.serverState    = (IsEnSynState()?toServerState(_state):tars::Inactive);
         tServerStateInfo.processId      = _pid;
-        AdminProxy::getInstance()->getRegistryProxy()->async_updateServer( NULL, _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
+        AdminProxy::getInstance()->getRegistryProxy()->async_updateServer( this, _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
 
         //日志
         stringstream ss;
@@ -966,4 +967,32 @@ void ServerObject::setStartTime(int64_t iStartTime)
 {
 	Lock lock(*this);
 	_startTime = iStartTime;
+}
+
+void ServerObject::onUpdateServerResult(int result)
+{
+    if(result < 0)
+    {
+        _noticed = false;
+        _noticeFailTimes ++;
+
+        TLOGERROR("Update server:"<<_application<<"."<<_serverName<<" failed, error times:"<<_noticeFailTimes<<", result:"<<result<< endl);
+    }
+    else
+    {
+        _noticed = true;
+        _noticeFailTimes = 0;
+
+        TLOGDEBUG("Update server: "<<_application<<"."<<_serverName<<" ok"<<endl);
+    }
+}
+
+void ServerObject::callback_updateServer(tars::Int32 ret)
+{
+    onUpdateServerResult(ret);
+}
+
+void ServerObject::callback_updateServer_exception(tars::Int32 ret)
+{
+    onUpdateServerResult(ret == 0 ? -1 : ret);
 }
