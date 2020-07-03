@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
     try
     {
         g_pconf =  & g_app.getConfig();
+
         g_app.main(argc, argv);
 
         g_app.waitForShutdown();

@@ -120,11 +120,16 @@ struct MysqlCommand
 	{
 		string content = replaceConfig(option.getValue("profile"), option);
 
-//		string content = TC_File::load2str(option.getValue("profile"));
+		string sql = "select * from t_profile_template where template_name = '" + mysql.realEscapeString(option.getValue("template")) + "'";
 
-		string sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(option.getValue("template")) + "','" + mysql.realEscapeString(option.getValue("parent")) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";
+		auto data = mysql.queryRecord(sql);
+		if(data.size() == 0) 
+		{
+			//不要覆盖模板, 否则容易导致升级时的bug
+			sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(option.getValue("template")) + "','" + mysql.realEscapeString(option.getValue("parent")) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";
 
-		mysql.execute(sql);
+			mysql.execute(sql);
+		}
 	}
 
 	string replaceConfig(const string &file, TC_Option &option)

@@ -101,16 +101,17 @@ if [ $? != 0 ]; then
 fi
 
 echo "install tars success. begin check server..."
-if [ "$SLAVE" != "true" ]; then
-  TARS=(tarsAdminRegistry  tarsnode  tarsregistry)
-else
-  TARS=(tarsnode tarsregistry)
-fi
+# if [ "$SLAVE" != "true" ]; then
+#   TARS=(tarsAdminRegistry  tarsnode  tarsregistry)
+# else
+#   TARS=(tarsnode tarsregistry)
+# fi
 
 while [ 1 ]
 do
+    sh ${INSTALL_PATH}/tars/tarsregistry/util/monitor.sh
     sh ${INSTALL_PATH}/tars/tarsnode/util/monitor.sh
-    sleep 3
+    sleep 5
 done
 
 

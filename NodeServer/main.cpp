@@ -37,7 +37,7 @@ void monitorNode(const string &configFile)
     string nodeObj = "AdminObj@"+conf["/tars/application/server<local>"];
 
     ServantPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServantPrx>(nodeObj);
-    prx->tars_set_timeout(1000)->tars_ping();
+    prx->tars_set_timeout(2000)->tars_ping();
 }
 
 void parseConfig(int argc, char *argv[])
