@@ -360,34 +360,6 @@ fi
 
 ################################################################################
 
-if [ "${SLAVE}" != "true" ]; then
-    exec_mysql_has "db_tars"
-    if [ $? != 0 ]; then
-
-        LOG_INFO "no db_tars exists, begin build db_tars..."  
-
-        LOG_INFO "modify ip in sqls:${WORKDIR}/framework/sql";
-
-        LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
-
-        exec_mysql_script "create database db_tars"
-        exec_mysql_script "create database tars_stat"
-        exec_mysql_script "create database tars_property"
-        exec_mysql_script "create database db_tars_web"
-
-        exec_mysql_sql db_tars db_tars.sql
-        exec_mysql_sql db_tars_web db_tars_web.sql
-    fi
-
-    exec_mysql_has "db_cache_web"
-    if [ $? != 0 ]; then
-        LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
-        exec_mysql_script "create database db_cache_web"
-
-        exec_mysql_sql db_cache_web db_cache_web.sql
-    fi
-fi
-
 function update_template()
 {
     LOG_INFO "create t_profile_template";
@@ -428,6 +400,37 @@ function update_template()
 }
 
 if [ "${SLAVE}" != "true" ]; then
+    exec_mysql_has "db_tars"
+    if [ $? != 0 ]; then
+
+        LOG_INFO "no db_tars exists, begin build db_tars..."  
+
+        LOG_INFO "modify ip in sqls:${WORKDIR}/framework/sql";
+
+        LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
+
+        exec_mysql_script "create database db_tars"
+        exec_mysql_script "create database tars_stat"
+        exec_mysql_script "create database tars_property"
+        exec_mysql_script "create database db_tars_web"
+
+        exec_mysql_sql db_tars db_tars.sql
+        exec_mysql_sql db_tars_web db_tars_web.sql
+
+        #only new to create tarslog, becouse tarslog may be transfer to other node
+        LOG_INFO "create log servers";
+        exec_mysql_sql db_tars tars_servers_logs.sql
+    fi
+
+    exec_mysql_has "db_cache_web"
+    if [ $? != 0 ]; then
+        LOG_INFO "no db_cache_web exists, begin build db_cache_web..."
+        exec_mysql_script "create database db_cache_web"
+
+        exec_mysql_sql db_cache_web db_cache_web.sql
+    fi
+
+    #update template
     update_template
 
     exec_mysql_has "db_user_system"
@@ -437,6 +440,15 @@ if [ "${SLAVE}" != "true" ]; then
         exec_mysql_script "create database db_user_system"
 
         exec_mysql_sql db_user_system db_user_system.sql
+    fi
+
+    exec_mysql_has "db_base"
+    if [ $? != 0 ]; then
+        LOG_INFO "db_base not exists, begin build db_base..."  
+
+        exec_mysql_script "create database db_base"
+
+        exec_mysql_sql db_base db_base.sql
     fi
 
     #current master server info
