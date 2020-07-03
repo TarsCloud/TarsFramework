@@ -1,4 +1,23 @@
 
+
+## v2.4.3 2020.07.03
+### en:
+- tarsregistry add monitor.sh
+- tarsnode get real ip of registry & admin
+- update framework not install tarslog
+- update framework not replace template
+- create db_base for gateway when install framework
+- fix tarsnode server state error
+
+### cn:
+- tarsregistry 增加监控脚本, docker内使用
+- tarsnode 获取registry & admin的ip, 存在代理的情况下
+- 升级framework时, 不再安装tarslog(因为tarslog通常会部署在其他机器)
+- 升级framework时不在替换template
+- 安装framework时创建网关需要的db_base
+- 修复tarsnode server state error
+
+
 ## v2.4.2 2020.06.10
 ### en:
 - speed tars docker start
