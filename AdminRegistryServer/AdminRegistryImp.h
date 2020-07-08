@@ -249,6 +249,8 @@ public:
      */
     virtual int notifyServer(const string & application, const string & serverName, const string & nodeName,
             const string &command, string &result, tars::TarsCurrentPtr current);
+    virtual int notifyServer_inner(const string & application, const string & serverName, const string & nodeName,
+    		const string &command, string &result);
 
     /**
      * 批量发布

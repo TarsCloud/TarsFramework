@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -158,6 +158,33 @@ EMTaskItemStatus TaskList::restart(const TaskItemReq &req, string &log)
 		ret = _adminPrx->restartServer_inner(req.application, req.serverName, req.nodeName, log);
         if (ret == 0) {
 	        return EM_I_SUCCESS;
+        }
+    }
+    catch (exception &ex)
+    {
+        log = ex.what();
+        TLOGERROR("TaskList::restartServer error:" << log << endl);
+    }
+
+    TLOGERROR("TaskList::restartServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    return EM_I_FAILED;
+}
+
+EMTaskItemStatus TaskList::graceRestart(const TaskItemReq &req, string &log)
+{
+    int ret = -1;
+    try
+    {
+        vector<ServerDescriptor> server;
+        server = DBPROXY->getServers(req.application, req.serverName, req.nodeName, true);
+        if (server.size() != 0 && server[0].serverType != "tars_go")
+        {
+            TLOGERROR("TaskList::graceRestartServer error: server is not tars go, grace restart command is not allowed" << endl);
+            return EM_I_FAILED;
+        }
+        ret = _adminPrx->notifyServer_inner(req.application, req.serverName, req.nodeName, "tars.gracerestart",log);
+        if (ret == 0) {
+            return EM_I_SUCCESS;
         }
     }
     catch (exception &ex)
@@ -376,6 +403,15 @@ EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &re
         {
             //不是备机, 需要重启
             ret = restart(req, log); 
+        }
+    }
+    else if (req.command == "grace_patch_tars")
+    {
+        ret = patch(index, req, log);
+        if (ret == EM_I_SUCCESS && get("bak_flag", req.parameters) != "1")
+        {
+            //不是备机, 需要重启
+            ret = graceRestart(req, log);
         }
     }
     else if (req.command == "undeploy_tars")

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -55,11 +55,12 @@ protected:
 
     EMTaskItemStatus executeSingleTask(size_t index, const TaskItemReq &req);
 
-    EMTaskItemStatus start   (const TaskItemReq &req, string &log);
-    EMTaskItemStatus restart (const TaskItemReq &req, string &log);
-    EMTaskItemStatus stop    (const TaskItemReq &req, string &log);
-    EMTaskItemStatus patch   (size_t index, const TaskItemReq &req, string &log);
-    EMTaskItemStatus undeploy(const TaskItemReq &req, string &log);
+    EMTaskItemStatus start        (const TaskItemReq &req, string &log);
+    EMTaskItemStatus restart      (const TaskItemReq &req, string &log);
+    EMTaskItemStatus graceRestart (const TaskItemReq &req, string &log);
+    EMTaskItemStatus stop         (const TaskItemReq &req, string &log);
+    EMTaskItemStatus patch        (size_t index, const TaskItemReq &req, string &log);
+    EMTaskItemStatus undeploy     (const TaskItemReq &req, string &log);
 //    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);
 
