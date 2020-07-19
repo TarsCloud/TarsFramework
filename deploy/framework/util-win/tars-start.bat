@@ -21,7 +21,9 @@ if exist WEB_PATH\web (
     call pm2 stop -s tars-node-web
     cd WEB_PATH\web
     call npm run prd
+)
 
+if exist WEB_PATH\web\demo\package.json (
     call pm2 stop -s tars-user-system
     cd WEB_PATH\web\demo
     call npm run prd

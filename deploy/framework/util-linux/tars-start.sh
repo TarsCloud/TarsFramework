@@ -15,6 +15,10 @@ done
 
 if [ -d WEB_PATH/web ]; then
   pm2 stop -s tars-node-web; cd WEB_PATH/web/; npm run prd;
+fi
+
+if [ -f WEB_PATH/web/demo/package.json ]; then
   pm2 stop -s tars-user-system; cd WEB_PATH/web/demo; npm run prd;
 fi
+
 

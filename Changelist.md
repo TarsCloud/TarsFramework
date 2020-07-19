@@ -1,4 +1,8 @@
 
+fix tarsnode save config bug(when disk is full)
+update deploy script support web(v2.4.7)
+fix tarstat & tarspropery only install in master framework
+
 
 ## v2.4.3 2020.07.03
 ### en:
