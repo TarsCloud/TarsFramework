@@ -79,7 +79,7 @@ int DbProxy::addTaskReq(const TaskReq &taskReq)
 	    for (size_t i = 0; i < taskReq.taskItemReq.size(); i++)
 	    {
 	    	//不是发布, 不需要记录
-	    	if(taskReq.taskItemReq[i].command != "patch_tars")
+	    	if(taskReq.taskItemReq[i].command != "patch_tars" && taskReq.taskItemReq[i].command != "grace_patch_tars")
 	    		return 0;
 	    }
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -737,6 +737,38 @@ int AdminRegistryImp::notifyServer(const string & application, const string & se
         current->setResponse(true);
         TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
                 + "' TarsException:" + ex.what())<<endl);
+        RemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
+    }
+    return iRet;
+}
+
+int AdminRegistryImp::notifyServer_inner(const string & application, const string & serverName, const string & nodeName, const string &command, string &result)
+{
+    TLOGDEBUG("AdminRegistryImp::notifyServer: " << application << "." << serverName << "_" << nodeName <<endl);
+    int iRet = EM_TARS_UNKNOWN_ERR;
+    try
+    {
+        NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
+        iRet = nodePrx->notifyServer(application, serverName, command, result);
+	}
+    catch(TarsSyncCallTimeoutException& ex)
+    {
+        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
+        TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
+            + "' TarsSyncCallTimeoutException:" + ex.what())<<endl);
+    	RemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
+	}
+	catch(TarsNodeNotRegistryException& ex)
+	{
+    	iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+    	TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
+    	    + "' TarsNodeNotRegistryException:" + ex.what())<<endl);
+    	RemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
+    }
+	catch(TarsException & ex)
+	{
+		TLOGERROR("AdminRegistryImp::notifyServer '"<<(application  + "." + serverName + "_" + nodeName
+			+ "' TarsException:" + ex.what())<<endl);
         RemoteNotify::getInstance()->report(string("notify server:") + ex.what(), application, serverName, nodeName);
     }
     return iRet;
