@@ -177,9 +177,9 @@ EMTaskItemStatus TaskList::graceRestart(const TaskItemReq &req, string &log)
     {
         vector<ServerDescriptor> server;
         server = DBPROXY->getServers(req.application, req.serverName, req.nodeName, true);
-        if (server.size() != 0 && server[0].serverType != "tars_go")
+        if (server.size() != 0)
         {
-            TLOGERROR("TaskList::graceRestartServer error: server is not tars go, grace restart command is not allowed" << endl);
+            // TLOGERROR("TaskList::graceRestartServer error: server is not tars go, grace restart command is not allowed" << endl);
             return EM_I_FAILED;
         }
         ret = _adminPrx->notifyServer_inner(req.application, req.serverName, req.nodeName, "tars.gracerestart",log);

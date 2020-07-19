@@ -3,10 +3,12 @@
 - fix tarsnode save config bug(when disk is full)
 - update deploy script support web(v2.4.7)
 - fix tarstat & tarspropery only install in master framework
+- tarsAdminRegistry support tarsgo gracefull deploy(web>=v2.4.7)
 ### en
 - 修改tarsnode当硬盘满或者掉电时, 写配置失败的bug
 - 更新部署脚本, 支持web(v2.4.7)
 - 修改安装脚本, tarstat & tarspropery只安装在主节点上
+- tarsAdminRegistry 支持tarsgo优雅发布(需要新版本web >=v2.4.7以上支持)
 
 ## v2.4.3 2020.07.03
 ### en:
