@@ -46,16 +46,19 @@ if [ "${SLAVE}" != "true" ]; then
       exit 1
   fi
 
-  if [ ! -d ${TARS_INSTALL}\\web\\demo ]; then
-      echo "web not the newest version, please update to the newest version."
-      exit 1
-  fi
+  # if [ ! -d ${TARS_INSTALL}\\web\\demo ]; then
+  #     echo "web not the newest version, please update to the newest version."
+  #     exit 1
+  # fi
 fi
-  ################################################################################
-  #check node version
+################################################################################
+#check node version
    
-  cd web; npm install;
+cd web; npm install;
+
+if [ ! -d ${TARS_INSTALL}\\web\\demo\\package.json ]; then
   cd demo; npm install;
+fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 

@@ -25,20 +25,11 @@ replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapt
 
 replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`) VALUES ('tars','tarsnotify','','localip.tars.com',now(),'','/usr/local/app/tars/tarsnotify/bin/tarsnotify','tars.tarsnotify',0,'active','active',0,'2.1.0',now(),'','2.1.0',now(),'admin','tars_cpp');
 
--- tarsproperty
-replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapter_name`,`registry_timestamp`, `thread_num`, `endpoint`, `max_connections`, `allow_ip`, `servant`, `queuecap`, `queuetimeout`,`posttime`,`lastuser`,`protocol`, `handlegroup`) VALUES ('tars','tarsproperty','localip.tars.com','tars.tarsproperty.PropertyObjAdapter',now(),5,'tcp -h localip.tars.com -t 60000 -p 18493',200000,'','tars.tarsproperty.PropertyObj',100000,60000,now(),'admin','tars','');
-
-replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`) VALUES ('tars','tarsproperty','','localip.tars.com',now(),'','/usr/local/app/tars/tarsproperty/bin/tarsproperty','tars.tarsproperty',0,'active','active',0,'2.1.0',now(),'','2.1.0',now(),'admin','tars_cpp');
-
 -- tarsquerystat
 replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapter_name`,`registry_timestamp`, `thread_num`, `endpoint`, `max_connections`, `allow_ip`, `servant`, `queuecap`, `queuetimeout`,`posttime`,`lastuser`,`protocol`, `handlegroup`) VALUES ('tars','tarsquerystat','localip.tars.com','tars.tarsquerystat.QueryObjAdapter',now(),5,'tcp -h localip.tars.com -t 60000 -p 18393',200000,'','tars.tarsquerystat.QueryObj',100000,60000,now(),'admin','tars','');
 
 replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`, `profile`) VALUES ('tars','tarsquerystat','','localip.tars.com',now(),'','/usr/local/app/tars/tarsquerystat/bin/tarsquerystat','tars.tarsquerystat',0,'active','active',0,'2.1.0',now(),'','2.1.0',now(),'admin','tars_cpp','');
 
--- tarsstat
-replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapter_name`,`registry_timestamp`, `thread_num`, `endpoint`, `max_connections`, `allow_ip`, `servant`, `queuecap`, `queuetimeout`,`posttime`,`lastuser`,`protocol`, `handlegroup`) VALUES ('tars','tarsstat','localip.tars.com','tars.tarsstat.StatObjAdapter',now(),5,'tcp -h localip.tars.com -t 60000 -p 18293',200000,'','tars.tarsstat.StatObj',100000,60000,now(),'admin','tars','');
-
-replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`) VALUES ('tars','tarsstat','','localip.tars.com',now(),'','/usr/local/app/tars/tarsstat/bin/tarsstat','tars.tarsstat',0,'active','active',0,'2.1.0',now(),'','1.1.0',now(),'admin','tars_cpp');
 
 -- v2.1.0, tarsquerystat & tarsqueryproperty change to tars server
 delete from t_adapter_conf where application = 'tars' and server_name = 'tarsqueryproperty' and adapter_name = 'tars.tarsqueryproperty.NoTarsObjAdapter';

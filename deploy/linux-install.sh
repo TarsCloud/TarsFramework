@@ -133,10 +133,10 @@ if [ "${SLAVE}" != "true" ]; then
       exit 1
   fi
 
-  if [ ! -d ${TARS_INSTALL}/web/demo ]; then
-      echo "web not the newest version, please update to the newest version."
-      exit 1
-  fi
+  # if [ ! -d ${TARS_INSTALL}/web/demo ]; then
+  #     echo "web not the newest version, please update to the newest version."
+  #     exit 1
+  # fi
 
   ################################################################################
   #download nodejs
@@ -181,7 +181,11 @@ if [ "${SLAVE}" != "true" ]; then
   exec_profile
 
   cd web; npm install;
-  cd demo; npm install;
+
+  if [ -f demo/package.json ]; then
+    cd demo; npm install;
+  fi
+
 fi
 
 npm config set registry ${MIRROR}/npm/; npm install -g npm pm2

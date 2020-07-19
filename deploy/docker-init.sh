@@ -1,10 +1,5 @@
 #!/bin/bash
 
-#docker run -d -p3001:3000 -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxxx -eREBUILD=false -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
-#docker run -d --net=host -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxxx -eREBUILD=true -eINET=enp3s0 -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
-#docker run --net=host -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxxx -eREBUILD=true -eINET=enp3s0 -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
-#docker run --net=host -e MYSQL_HOST=192.168.7.152 -e MYSQL_ROOT_PASSWORD=xxxxxx -eREBUILD=false -eINET=enp3s0 -v/data/log/app_log:/usr/local/app/tars/app_log -v/data/log/web_log:/usr/local/app/web/log -v/data/patchs:/usr/local/app/patchs tars-docker:v1 sh /root/tars-install/docker-init.sh
-
 #env
 
 NODE_VERSION="v12.13.0"
@@ -81,7 +76,6 @@ cd ${WORKDIR}
 
 export TARS_IN_DOCKER="true"
 
-
 #mkdir dir for docker run
 mkdir -p /data/tars/app_log
 mkdir -p /data/tars/web_log
@@ -101,11 +95,6 @@ if [ $? != 0 ]; then
 fi
 
 echo "install tars success. begin check server..."
-# if [ "$SLAVE" != "true" ]; then
-#   TARS=(tarsAdminRegistry  tarsnode  tarsregistry)
-# else
-#   TARS=(tarsnode tarsregistry)
-# fi
 
 while [ 1 ]
 do

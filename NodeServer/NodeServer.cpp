@@ -509,13 +509,18 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 
 		configfile.close();
 
-		string sFileBak     = CONFIG + ".bak";
+		string sFileBak = CONFIG + ".bak";
+
 		if(TC_File::isFileExist(CONFIG))
 		{
 			TC_File::copyFile(CONFIG, sFileBak,true);
 		}
 
-		TC_File::copyFile(sFileTemp, CONFIG,true);
+		if(TC_File::isFileExist(sFileTemp) && TC_File::getFileSize(sFileTemp) > 10)
+        {
+    		TC_File::copyFile(sFileTemp, CONFIG, true);
+        }
+
 		TC_File::removeFile(sFileTemp,false);
 	}
 	catch(exception &e)

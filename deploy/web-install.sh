@@ -111,6 +111,16 @@ if [ "$SLAVE" != "true" ]; then
 
     if [ "${TARS_IN_DOCKER}" != "true" ]; then
       LOG_INFO "copy web to web path:${WEB_PATH}/";
+
+       #delete old version: web/demo
+      if [ ! -f web/demo/package.json ]; then
+        LOG_INFO "update to new version, delete ${WEB_PATH}/web/demo";
+
+        rm -rf ${WEB_PATH}/web/demo/*
+
+        pm2 -s delete tars-user-system;
+      fi
+
       cp -rf web ${WEB_PATH}
     fi
     rm -rf web/log
@@ -119,14 +129,18 @@ if [ "$SLAVE" != "true" ]; then
 
     update_conf ${WEB_PATH}/web/config
 
-    LOG_INFO "update web/demo config";
-
-    update_conf ${WEB_PATH}/web/demo/config
+    if [ -f ${WEB_PATH}/web/demo/package.json ]; then
+        LOG_INFO "update web/demo config";
+        update_conf ${WEB_PATH}/web/demo/config
+    fi
 
     LOG_INFO "start web";
 
     cd ${WEB_PATH}/web; pm2 -s stop tars-node-web ; pm2 -s delete tars-node-web; npm run prd; 
-    cd ${WEB_PATH}/web/demo; pm2 -s stop tars-user-system;  pm2 -s delete tars-user-system; npm run prd
+
+    if [ -f ${WEB_PATH}/web/demo/package.json ]; then
+        cd ${WEB_PATH}/web/demo; pm2 -s stop tars-user-system;  pm2 -s delete tars-user-system; npm run prd
+    fi
 
     LOG_INFO "INSTALL TARS SUCC: http://$HOSTIP:3000/ to open the tars web."
     LOG_INFO "If in Docker, please check you host ip and port."

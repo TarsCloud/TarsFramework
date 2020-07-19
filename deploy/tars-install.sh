@@ -94,7 +94,7 @@ fi
 if [ "${SLAVE}" != "true" ]; then
     TARS="tarsAdminRegistry tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat tarslog tarspatch"
 else
-    TARS="tarsregistry tarsconfig tarsnode tarsnotify tarsproperty tarsqueryproperty tarsquerystat tarsstat"
+    TARS="tarsregistry tarsconfig tarsnode tarsnotify tarsqueryproperty tarsquerystat"
 fi
 
 if [ $OS != 3 ]; then
