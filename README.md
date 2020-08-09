@@ -17,4 +17,3 @@ PropertyServer        |Attribute statistics service
 NotifyServer          |Abnormal reporting service
 deploy                |Template configuration and tool scripts for core infrastructure services
 tarscpp               |The source implementation of the Tars RPC framework C++ language
-
