@@ -3,7 +3,7 @@ name: deploy-docker
 on:
   push:
     tags:
-      - v*
+      - master
 jobs:
   build:
     runs-on: self-hosted
@@ -15,8 +15,7 @@ jobs:
       - name: deploy docker
         run: |
           echo $GITHUB_SHA
-          tag=$(git describe --tags $(git rev-list --tags --max-count=1) --abbrev=0 --always)
-          echo $tag
+          rm -rf TarsDocker
           git clone https://github.com/TarsCloud/TarsDocker
           cd TarsDocker/framework
-          ./build-docker.sh $tag
+          ./build-master.sh
