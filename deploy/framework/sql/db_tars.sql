@@ -215,6 +215,7 @@ CREATE TABLE `t_node_info` (
   `template_name` varchar(128) NOT NULL DEFAULT '',
   `modify_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `group_id` int(11) DEFAULT '-1',
+  `label` TEXT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `node_name` (`node_name`),
   KEY `indx_node_info_1` (`last_heartbeat`)

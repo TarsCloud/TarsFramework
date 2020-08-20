@@ -10,6 +10,7 @@
 	<reap>
 		updateHeartInterval=15
 		registryTimeout=150
+        patch_wait_timeout = 300
 	</reap>
     <patch>
         patchHistory=200

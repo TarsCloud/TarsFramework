@@ -288,7 +288,11 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
         }
 
 		time_t tNow = TNOW;
-        while (TNOW < tNow + 60)
+        // while (TNOW < tNow + 60)
+        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/reap/<patch_wait_timeout>", "300"));
+
+        EMTaskItemStatus retStatus = EM_I_FAILED;
+        while (TNOW < tNow + patchTimeout)
         {
             PatchInfo pi;
 
@@ -317,6 +321,7 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
             {
 				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
                 TLOGDEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl); 
+                retStatus = EM_I_SUCCESS;
                 break;
             }
             
@@ -324,6 +329,8 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
 
 			std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+
+        return retStatus;
 
     }
     catch (exception &ex)
