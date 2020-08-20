@@ -1,3 +1,13 @@
+## v2.4.5 2020.08.20
+### en
+- fix tarsnode write config file empty when disk is full 
+- AdminRegistry support patch time > 1 min 
+- fix windows install script
+### en
+- 继续修复tarsnode写配置文件可能为空的bug(硬盘满的情况下)
+- tarsAdminRegistry支持发布超大文件(发布超过一分钟), 可配置超时时间
+- 修复windows install script
+
 ## v2.4.4 2020.07.19
 ### en
 - fix tarsnode save config bug(when disk is full)
