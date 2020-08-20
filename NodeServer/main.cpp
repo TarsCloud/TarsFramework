@@ -45,11 +45,18 @@ void parseConfig(int argc, char *argv[])
     TC_Option tOp;
     tOp.decode(argc, argv);
 
-     if (tOp.hasParam("nodeversion"))
+    if (tOp.hasParam("version"))
     {
-        cout << "Node:" << TARS_VERSION << "." << NODE_VERSION << endl;
+        cout << "TARS:" << Application::getTarsVersion() << endl;
         exit(0);
     }
+    
+    if (tOp.hasParam("nodeversion"))
+    {
+        cout << "Node:" << Application::getTarsVersion() << "_" << NODE_VERSION << endl;
+        exit(0);
+    }
+
 
     if (tOp.hasParam("monitor"))
     {
@@ -80,6 +87,9 @@ void parseConfig(int argc, char *argv[])
         cerr <<"start server with config, for example: "<<endl;
         cerr << argv[0] << " --config=config.conf --nodeid=172.25.38.67" << endl;
         cerr << argv[0] << " --config=config.conf" << endl;
+        cout << TC_Common::outfill("", '-') << endl;
+        cerr << argv[0] << " --version  for view tars-version" << endl;
+        cerr << argv[0] << " --nodeversion  for view tarsnode-version" << endl;
         exit(0);
     }
 

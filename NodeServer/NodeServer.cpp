@@ -19,6 +19,7 @@
 #include "ServerImp.h"
 #include "RegistryProxy.h"
 #include "NodeRollLogger.h"
+#include "util/tc_md5.h"
 
 string NodeServer::g_sNodeIp;
 string NodeServer::NODE_ID = "";
@@ -509,6 +510,13 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 
 		configfile.close();
 
+        // 如果新template config 和 现在的template config一样， 那么就不写文件更新
+        if ((TC_MD5::md5file(sFileTemp) == TC_MD5::md5file(CONFIG)))
+        {
+            TLOGTARS("NodeServer::onUpdateConfig new-template-file = now-template-file, do not update it." << endl);
+            return 0;
+        }
+
 		string sFileBak = CONFIG + ".bak";
 
 		if(TC_File::isFileExist(CONFIG))
@@ -516,12 +524,29 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 			TC_File::copyFile(CONFIG, sFileBak,true);
 		}
 
-		if(TC_File::isFileExist(sFileTemp) && TC_File::getFileSize(sFileTemp) > 10)
+        // 备份失败， 也不更新
+        if ((TC_MD5::md5file(sFileBak) != TC_MD5::md5file(CONFIG)))
         {
-    		TC_File::copyFile(sFileTemp, CONFIG, true);
+            TLOGERROR("NodeServer::onUpdateConfig bak tempalte file error." << endl);
+            return -1;
         }
 
-		TC_File::removeFile(sFileTemp,false);
+		if(TC_File::isFileExist(sFileTemp) && TC_File::getFileSize(sFileTemp) > 10)
+        {
+            TC_Config checkConfig;
+
+            //如果解析失败, 直接跑异常, 就不会执行后续的copy file, 避免错误文件覆盖正常文件
+            checkConfig.parseFile(sFileTemp);
+
+    		TC_File::renameFile(sFileTemp, CONFIG);
+        }
+        else if (TC_File::isFileExist(sFileTemp))
+        {
+            TLOGERROR("NodeServer::onUpdateConfig update template config fail!" << endl);
+            TC_File::removeFile(sFileTemp,false);
+        }
+
+        TLOGDEBUG("NodeServer::onUpdateConfig update tempalte config succ." << endl);
 	}
 	catch(exception &e)
 	{
