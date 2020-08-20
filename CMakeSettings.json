@@ -1,16 +1,22 @@
 ﻿{
-  // 请参阅 https://go.microsoft.com//fwlink//?linkid=834763 了解有关此文件的详细信息。
-  "configurations": [
-    {
-      "name": "x64-Debug",
-      "generator": "Visual Studio 16 2019 Win64",
-      "configurationType": "Debug",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${projectDir}\\out\\build\\${name}",
-      "installRoot": "${projectDir}\\out\\install\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": ""
-    }
-  ]
+    "configurations": [
+        {
+            "name": "Release",
+            "generator": "Visual Studio 16 2019 Win64",
+            "configurationType": "Debug",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "buildRoot": "${projectDir}\\out\\build\\${name}",
+            "installRoot": "${projectDir}\\out\\install\\${name}",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "variables": [
+                {
+                    "name": "CMAKE_BUILD_TYPE",
+                    "value": "Release",
+                    "type": "STRING"
+                }
+            ]
+        }
+    ]
 }

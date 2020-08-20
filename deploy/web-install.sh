@@ -107,6 +107,8 @@ function update_conf()
 #deploy & start web
 if [ "$SLAVE" != "true" ]; then
 
+     npm install -g pm2
+
     cd ${WORKDIR}
 
     if [ "${TARS_IN_DOCKER}" != "true" ]; then
@@ -116,9 +118,10 @@ if [ "$SLAVE" != "true" ]; then
       if [ ! -f web/demo/package.json ]; then
         LOG_INFO "update to new version, delete ${WEB_PATH}/web/demo";
 
-        rm -rf ${WEB_PATH}/web/demo/*
-
         pm2 -s delete tars-user-system;
+
+        rm -rf ${WEB_PATH}/web/demo
+
       fi
 
       cp -rf web ${WEB_PATH}

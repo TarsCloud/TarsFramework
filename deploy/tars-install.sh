@@ -301,7 +301,10 @@ SQL_TMP=${WORKDIR}/sql.tmp
 mkdir -p ${SQL_TMP}
 
 cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
-cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
+
+if [ -d ${WORKDIR}/web/demo ]; then
+  cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
+fi
 
 cp -rf ${WORKDIR}/framework/sql/* ${SQL_TMP}
 
