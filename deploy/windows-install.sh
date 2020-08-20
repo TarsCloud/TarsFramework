@@ -56,7 +56,7 @@ fi
    
 cd web; npm install;
 
-if [ ! -d ${TARS_INSTALL}\\web\\demo\\package.json ]; then
+if [ -f ${TARS_INSTALL}\\web\\demo\\package.json ]; then
   cd demo; npm install;
 fi
 

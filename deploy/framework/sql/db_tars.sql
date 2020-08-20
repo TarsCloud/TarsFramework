@@ -44,7 +44,7 @@ CREATE TABLE `t_adapter_conf` (
   UNIQUE KEY `application` (`application`,`server_name`,`node_name`,`adapter_name`),
   KEY `adapter_conf_endpoint_index` (`endpoint`),
   KEY `index_regtime_1` (`registry_timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -63,7 +63,7 @@ CREATE TABLE `t_ats_cases` (
   `posttime` datetime DEFAULT NULL,
   `lastuser` varchar(30) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -87,7 +87,7 @@ CREATE TABLE `t_ats_interfaces` (
   `response_charset` varchar(16) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `objname` (`objname`,`funcname`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,7 +112,7 @@ CREATE TABLE `t_config_files` (
   `config_flag` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `application` (`server_name`,`filename`,`host`,`level`,`set_name`,`set_area`,`set_group`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,7 +131,7 @@ CREATE TABLE `t_config_history_files` (
   `posttime` datetime DEFAULT NULL,
   `lastuser` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -187,7 +187,7 @@ CREATE TABLE `t_machine_tars_info` (
   PRIMARY KEY (`application`,`server_name`,`node_name`),
   UNIQUE KEY `id` (`id`),
   KEY `tmachine_i_2` (`node_name`,`server_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -218,7 +218,7 @@ CREATE TABLE `t_node_info` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `node_name` (`node_name`),
   KEY `indx_node_info_1` (`last_heartbeat`)
-) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -237,7 +237,7 @@ CREATE TABLE `t_profile_template` (
   `lastuser` varchar(30) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `template_name` (`template_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=366 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -259,7 +259,7 @@ CREATE TABLE `t_registry_info` (
   `enable_group` char(1) DEFAULT 'N',
   PRIMARY KEY (`id`),
   UNIQUE KEY `locator_id` (`locator_id`,`servant`)
-) ENGINE=InnoDB AUTO_INCREMENT=456487 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -312,7 +312,7 @@ CREATE TABLE `t_server_conf` (
   KEY `node_name` (`node_name`),
   KEY `index_i_3` (`setting_state`,`server_type`,`application`,`server_name`,`node_name`),
   KEY `index_regtime` (`registry_timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -388,7 +388,7 @@ CREATE TABLE `t_server_patchs` (
   KEY `server_patchs_server_index` (`server`),
   KEY `index_patchs_i1` (`server`),
   KEY `index_i_2` (`tgz`(50))
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -406,7 +406,7 @@ CREATE TABLE `t_task` (
   `create_time` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `f_task` (`task_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -434,7 +434,7 @@ CREATE TABLE `t_task_item` (
   UNIQUE KEY `f_uniq` (`item_no`,`task_no`),
   KEY `f_task_no` (`task_no`),
   KEY `f_index` (`application`,`server_name`,`command`)
-) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
