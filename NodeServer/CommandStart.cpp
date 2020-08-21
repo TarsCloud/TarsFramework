@@ -238,7 +238,7 @@ bool CommandStart::startNormal(string& sResult)
         {
             s = _serverObjectPtr->getJvmParams() +  " " + _serverObjectPtr->getMainClass();
         }else {
-            s = _serverObjectPtr->getJvmParams() + " -cp " + sClassPath + " " + _serverObjectPtr->getMainClass();
+            s = _serverObjectPtr->getJvmParams() + " -cp " + sClassPath +"/*" + " " + _serverObjectPtr->getMainClass();
         }
         vector<string> v = TC_Common::sepstr<string>(s, " \t");
         vOptions.insert(vOptions.end(), v.begin(), v.end());
