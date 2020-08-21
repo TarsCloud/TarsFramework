@@ -11,7 +11,7 @@
     slavefile=hashmap_slave.txt
     insertInterval=5
     enableStatCount=0
-    size=256M
+    size=64M
   </hashmap>
 
   <reapSql>
