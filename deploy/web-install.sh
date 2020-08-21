@@ -107,8 +107,6 @@ function update_conf()
 #deploy & start web
 if [ "$SLAVE" != "true" ]; then
 
-     npm install -g pm2
-
     cd ${WORKDIR}
 
     if [ "${TARS_IN_DOCKER}" != "true" ]; then
