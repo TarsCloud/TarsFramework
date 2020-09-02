@@ -228,23 +228,28 @@ bool CommandStart::startNormal(string& sResult)
     if (_serverObjectPtr->getServerType() == "tars_java")
     {
         //java服务
+        TC_Config conf;
+        conf.parseFile(_serverObjectPtr->getConfigFile());
+        string packageFormat= conf.get("/tars/application/server<packageFormat>","war");
         string sClassPath       = _serverObjectPtr->getClassPath();
-        string sJarList         = sExePath + FILE_SEP + "classes";
-
-        sJarList = sJarList + ":" + sClassPath + FILE_SEP + "*";
-
         vOptions.push_back("-Dconfig=" + sConfigFile);
-        string s = _serverObjectPtr->getJvmParams() + " -cp " + sJarList + " " + _serverObjectPtr->getMainClass();
+        string s ;
+        if("jar" ==packageFormat)
+        {
+            s = _serverObjectPtr->getJvmParams() +  " " + _serverObjectPtr->getMainClass();
+        }else {
+            s = _serverObjectPtr->getJvmParams() + " -cp " + sClassPath +"/*" + " " + _serverObjectPtr->getMainClass();
+        }
         vector<string> v = TC_Common::sepstr<string>(s, " \t");
         vOptions.insert(vOptions.end(), v.begin(), v.end());
 
 		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions);
     }
-    else if (_serverObjectPtr->getServerType() == "tars_nodejs") 
-    { 
+    else if (_serverObjectPtr->getServerType() == "tars_nodejs")
+    {
         vOptions.push_back(sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node-agent") + FILE_SEP + string("bin") + FILE_SEP + string("node-agent"));
-        string s = sExePath + FILE_SEP + "src" + FILE_SEP +" -c " + sConfigFile; 
-        vector<string> v = TC_Common::sepstr<string>(s," \t"); 
+        string s = sExePath + FILE_SEP + "src" + FILE_SEP +" -c " + sConfigFile;
+        vector<string> v = TC_Common::sepstr<string>(s," \t");
         vOptions.insert(vOptions.end(), v.begin(), v.end());
 
         //对于tars_nodejs类型需要修改下_exeFile
@@ -252,8 +257,8 @@ bool CommandStart::startNormal(string& sResult)
 
         osStartStcript << TARS_START << _exeFile <<" "<<TC_Common::tostr(vOptions);
     }
-    else if (_serverObjectPtr->getServerType() == "tars_php") 
-    { 
+    else if (_serverObjectPtr->getServerType() == "tars_php")
+    {
         TC_Config conf;
         conf.parseFile(sConfigFile);
         string entrance    = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php";
@@ -429,7 +434,7 @@ int CommandStart::execute(string& sResult)
         //     bSucc = startByScriptPHP(sResult);
 
         // }else 
-        
+
         if (!_serverObjectPtr->getStartScript().empty() || _serverObjectPtr->isTarsServer() == false){
 
             bSucc = startByScript(sResult);
@@ -465,10 +470,11 @@ int CommandStart::execute(string& sResult)
     }
 
     NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << _desc.application << "." << _desc.serverName << " start  failed :" << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
-    
+
     _serverObjectPtr->setPid(0);
     _serverObjectPtr->setState(ServerObject::Inactive);
 	_serverObjectPtr->setStarted(false);
 
     return -1;
 }
+
