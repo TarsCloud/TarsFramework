@@ -17,6 +17,7 @@
 #include "ServerImp.h"
 #include "util.h"
 #include "NodeRollLogger.h"
+#include "NodeServer.h"
 
 int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current )
 {
@@ -110,4 +111,23 @@ int ServerImp::reportVersion( const string &app,const string &serverName,const s
     return -1;
 }
 
+unsigned int ServerImp::getLatestKeepAliveTime(tars::CurrentPtr current)
+{
+    try
+    {
+        if (g_app.getKeepAliveThread())
+        {
+            return g_app.getKeepAliveThread()->getLatestKeepAliveTime();
+        }
+    }
+    catch ( exception& e )
+    {
+        TLOGERROR("ServerImp::getLatestKeepAliveTime catch exception :" << e.what() << endl);
+    }
+    catch ( ... )
+    {
+        TLOGERROR("ServerImp::getLatestKeepAliveTime unkown exception catched" << endl);
+    }
+    return 0;
+}
 

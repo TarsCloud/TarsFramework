@@ -396,7 +396,7 @@ string ServerObject::toStringState(InternalServerState eState) const
 
 int ServerObject::checkPid()
 {
-    Lock lock(*this);
+    // Lock lock(*this);
 	int iRet = 0;
 
 	if(_pid != 0)

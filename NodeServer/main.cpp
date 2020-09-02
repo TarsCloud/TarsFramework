@@ -34,10 +34,20 @@ void monitorNode(const string &configFile)
     TC_Config conf;
     conf.parseFile(configFile);
 
-    string nodeObj = "AdminObj@"+conf["/tars/application/server<local>"];
+    string serverObj = "tars.tarsnode.ServerObj@" + conf["/tars/application/server/ServerAdapter<endpoint>"];
+    ServerFPrx sprx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServerFPrx>(serverObj);
+    unsigned int latestKeepAliveTime = sprx->tars_set_timeout(2000)->getLatestKeepAliveTime();
+    unsigned int kaTimeout = TC_Common::strto<unsigned int>(conf.get("/tars/node/keepalive<synTimeout>", "300"));
+    if (latestKeepAliveTime + kaTimeout < TNOW)
+    {
+        cerr << "MonitorNode fail, keepalive timeout! LatestKeepAliveTime:" << latestKeepAliveTime << ", kaTimeout:" << kaTimeout << ", now:" << TNOW << endl;
+        throw TC_Exception("KeepAlive Timeout", -1);
+    }
+    else
+    {
+        cerr << "MonitorNode ok, latestKeepAliveTime:" << latestKeepAliveTime << ", kaTimeout:" << kaTimeout << endl;
+    }
 
-    ServantPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServantPrx>(nodeObj);
-    prx->tars_set_timeout(2000)->tars_ping();
 }
 
 void parseConfig(int argc, char *argv[])

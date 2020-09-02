@@ -76,6 +76,12 @@ public:
      */
     virtual int reportVersion( const string &app,const string &serverName,const string &version,tars::TarsCurrentPtr current) ;
 
+    /**
+    * 获取最近keepalive的时间戳
+    * @return 最后一次keepalive的时间戳
+    */
+    unsigned int getLatestKeepAliveTime(tars::CurrentPtr current);
+
 private:
 };
 

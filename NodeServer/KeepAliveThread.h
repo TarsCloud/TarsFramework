@@ -44,6 +44,11 @@ public:
      */
     void terminate();
 
+    time_t getLatestKeepAliveTime() const
+    {
+        return _latestKeepAliveTime;
+    }
+
 protected:
 
     virtual void run();
@@ -93,6 +98,8 @@ protected:
     string              _synStatBatch;         //批量同步
 
     RegistryPrx         _registryPrx;
+
+    time_t _latestKeepAliveTime;  
 
 private:
 

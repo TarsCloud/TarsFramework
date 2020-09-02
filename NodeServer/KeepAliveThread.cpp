@@ -35,6 +35,8 @@ KeepAliveThread::KeepAliveThread()
     _synStatBatch      = g_pconf->get("/tars/node/keepalive<synStatBatch>", "Y");
     _monitorInterval   = _monitorInterval > 10 ? 10 : (_monitorInterval < 1 ? 1 : _monitorInterval);
 
+    _latestKeepAliveTime = TNOW;
+
 }
 
 KeepAliveThread::~KeepAliveThread()
@@ -135,6 +137,8 @@ void KeepAliveThread::run()
         }
 
         NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "run use:" << TNOWMS - startMs << " ms, wait:" << _monitorInterval << "ms" << endl;
+
+        _latestKeepAliveTime = TNOW;
 
         timedWait(_monitorInterval * 1000);
     }

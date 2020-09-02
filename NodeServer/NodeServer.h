@@ -76,6 +76,11 @@ public:
      */
     bool cmdReLoadConfig(const string& command, const string& params, string& result);
 
+    KeepAliveThread* getKeepAliveThread()
+    {
+        return _keepAliveThread;
+    }
+
 protected:
 
     //host 换成ip
