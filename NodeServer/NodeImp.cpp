@@ -426,7 +426,7 @@ int NodeImp::startServer( const string& application, const string& serverName,st
             pServerObjectPtr->setEnabled(true);
         }
 
-        result += "error::cannot load server description from regisrty.\n" + s;
+        result += "error::cannot load server description from registry.\n" + s;
         iRet = EM_TARS_LOAD_SERVICE_DESC_ERR;
     }
     catch ( exception& e )

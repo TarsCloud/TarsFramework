@@ -86,7 +86,7 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
     {
         vServerDescriptor = getServerFromCache(application,serverName,result);
 
-        NODE_LOG("KeepAliveThread")->debug() << "ServerFactory::getServerFromCache size:" << vServerDescriptor.size() << endl;
+        NODE_LOG("KeepAliveThread")->debug() << "app.server: '" << application << "." << serverName << "', ServerFactory::getServerFromCache size:" << vServerDescriptor.size() << endl;
     }
 
     if(vServerDescriptor.size() < 1)
@@ -125,7 +125,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
     vector<ServerDescriptor> vServerDescriptor;
     try
     {
-	    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << ", nodeName:" << _tPlatformInfo.getNodeName() << endl;
+	    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "app.server: '" << application << "." << serverName << "', nodeName:" << _tPlatformInfo.getNodeName() << endl;
 
         RegistryPrx _pRegistryPrx = AdminProxy::getInstance()->getRegistryProxy();
 
@@ -137,7 +137,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
 
 	    vServerDescriptor =_pRegistryPrx->getServers( application, serverName, _tPlatformInfo.getNodeName());
 
-	    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << ", nodeName:" << _tPlatformInfo.getNodeName() << ", size:" << vServerDescriptor.size() << endl;
+	    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "app.server: '" << application << "." << serverName << "', nodeName:" << _tPlatformInfo.getNodeName() << ", size:" << vServerDescriptor.size() << endl;
 
 	    //清空cache
         if( vServerDescriptor.size() > 0 && application == "" && serverName == "")

@@ -263,6 +263,8 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                "    left join t_adapter_conf as adapter using(application, server_name, node_name) "
                "where " + sCondition;
 
+        TLOGDEBUG("CDbHandle::getServers sSql:" << sSql << endl);
+
         tars::TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
         num = res.size();
         //对应server在vector的下标
