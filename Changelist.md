@@ -4,11 +4,13 @@
 - fix node monitor, check keepalive
 - fix java class path
 - add tarsregistry log
+- fix build docker bug, copy tars2case to docker
 
 ### en
 - 修改tarnode的监控逻辑, 增加keepalive的监控
 - 修改tarsnode java path
 - 增加tarsregistry日志
+- 修复build docker的bug, copy tars2case到容器中
 
 ## v2.4.5 2020.08.21
 ### en
