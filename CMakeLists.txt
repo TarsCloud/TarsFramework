@@ -145,6 +145,8 @@ else(WIN32)
 install(DIRECTORY deploy DESTINATION ./ 
         PATTERN "*.sh"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_READ WORLD_EXECUTE)
+install(FILES ${PROJECT_BINARY_DIR}/bin/tars2case DESTINATION deploy)
+
 ENDIF(WIN32)
 
 ############################################################################################

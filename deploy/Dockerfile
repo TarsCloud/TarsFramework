@@ -2,7 +2,7 @@ FROM centos/systemd
 
 #ENV MIRROR http://mirrors.cloud.tencent.com
 ENV MIRROR http://mirrors.cloud.tencent.com
-ENV TARS_INSTALL /usr/local/tars/cpp/deploy/
+ENV TARS_INSTALL /usr/local/tars/cpp/deploy
 
 COPY centos7_base.repo /etc/yum.repos.d/
 
@@ -20,12 +20,12 @@ RUN echo 'NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 RUN source $HOME/.bashrc \
     && export NVM_NODEJS_ORG_MIRROR=${MIRROR}/nodejs-release && nvm install v12.13.0
 
+COPY tars2case ${TARS_INSTALL}/../tools/tars2case 
 COPY framework ${TARS_INSTALL}/framework
 COPY tools ${TARS_INSTALL}/tools
 COPY docker-init.sh tars-install.sh tar-server.sh web-install.sh mysql-tool ${TARS_INSTALL}/
 
-
-RUN ${TARS_INSTALL}/tar-server.sh
+RUN chmod a+x ${TARS_INSTALL}/../tools/tars2case && ${TARS_INSTALL}/tar-server.sh
 
 ENTRYPOINT [ "/usr/local/tars/cpp/deploy/docker-init.sh"]
 
