@@ -302,7 +302,7 @@ mkdir -p ${SQL_TMP}
 
 cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
 
-if [ -d ${WORKDIR}/web/demo ]; then
+if [ -d ${WORKDIR}/web/demo/sql ]; then
   cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
 fi
 
@@ -312,9 +312,22 @@ replacePath localip.tars.com $HOSTIP ${SQL_TMP}
 
 cd ${SQL_TMP}
 
-MYSQL_VER=`${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --version`
+while [ 1 ]
+do
+    MYSQL_VER=`${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --version`
 
-LOG_INFO "mysql version is: $MYSQL_VER"
+    if [ $? == 0 ]; then
+        LOG_INFO "mysql is alive, version: $MYSQL_VER"
+        break
+    fi
+
+    LOG_ERROR "check mysql version failed, try again later!"
+
+    sleep 3
+done
+
+
+# LOG_INFO "mysql version is: $MYSQL_VER"
 
 if [ "${SLAVE}" != "true" ]; then
 
@@ -327,7 +340,6 @@ if [ "${SLAVE}" != "true" ]; then
         exec_mysql_script "drop database if exists db_cache_web"
     fi
 
-    #MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, CREATE TABLESPACE"
     MYSQL_GRANT="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, REFERENCES, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE USER"
 
     if [ `echo $MYSQL_VER|grep ^8.` ]; then
@@ -338,10 +350,6 @@ if [ "${SLAVE}" != "true" ]; then
         exec_mysql_script "CREATE USER '${TARS_USER}'@'${HOSTIP}' IDENTIFIED WITH mysql_native_password BY '${TARS_PASS}';"
         exec_mysql_script "GRANT ${MYSQL_GRANT} ON *.* TO '${TARS_USER}'@'${HOSTIP}' WITH GRANT OPTION;"
     fi
-
-# if [ `echo $MYSQL_VER|grep ^5.7` ]; then
-#     exec_mysql_script "set global validate_password_policy=LOW;"
-# fi
 
     if [ `echo $MYSQL_VER|grep ^5.` ]; then
         exec_mysql_script "grant ${MYSQL_GRANT} on *.* to '${TARS_USER}'@'%' identified by '${TARS_PASS}' with grant option;"
@@ -359,7 +367,7 @@ fi
 ################################################################################
 #check mysql
 
-    check_mysql ${TARS_USER} ${TARS_PASS}
+check_mysql ${TARS_USER} ${TARS_PASS}
 
 ################################################################################
 
