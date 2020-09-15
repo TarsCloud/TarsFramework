@@ -1,4 +1,4 @@
-The scripts of buiding Tars framework project
+The scripts is used for buiding TarsFramework
 
 If you need multi-threaded compilation, you need to make the following modifications:
 before modify
