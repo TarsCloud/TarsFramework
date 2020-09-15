@@ -1,12 +1,14 @@
 The scripts is used for buiding TarsFramework
 
 If you need multi-threaded compilation, you need to make the following modifications:
-before modify
+
+modify before as below:
 ```
     all)
         cd $BASEPATH;  cmake ..;  make
 ```
-after:
+
+modify after as below:
 ```
     all)
         cd $BASEPATH;  cmake ..;  make -j 4
