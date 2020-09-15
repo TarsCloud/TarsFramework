@@ -24,7 +24,7 @@ then, compile:
 ```
 build.sh all
 ```
-then, cleanup
+then, cleanup:
 ```
 build.sh cleanall
 ```
