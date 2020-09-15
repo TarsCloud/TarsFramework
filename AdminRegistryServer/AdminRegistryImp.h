@@ -261,6 +261,7 @@ public:
      * @return : 0-成功 others-失败
      */
     virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::TarsCurrentPtr current);
+    virtual int preparePatch_inner(tars::PatchRequest & req, string &result, bool waitOtherThreadPreparePatchFile, std::shared_ptr<atomic_int>& preparePatchRet);
 	virtual int batchPatch_inner(const tars::PatchRequest & req, string &result);
 
     /**
@@ -331,12 +332,12 @@ public:
      */
     virtual int getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current);
 
-//    virtual int gridPatchServer(const vector<ServerGridDesc> &gridDescList, vector<ServerGridDesc> &gridFailDescList, std::string & resultDesc, tars::TarsCurrentPtr current);
 
     virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,tars::TarsCurrentPtr current);
 
     virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::TarsCurrentPtr current);
 
+	virtual int getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, tars::CurrentPtr current);
 	virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::TarsCurrentPtr current);
 
 	virtual int getServers(vector<FrameworkServer> &servers, tars::TarsCurrentPtr current);
@@ -348,7 +349,9 @@ protected:
 
 protected:
 
+	string getServerType(const std::string & application, const std::string & serverName, const std::string & nodeName);
     PatchPrx _patchPrx;
+	string	 _remoteLogIp;
 };
 
 class PatchProCallbackImp: public NodePrxCallback

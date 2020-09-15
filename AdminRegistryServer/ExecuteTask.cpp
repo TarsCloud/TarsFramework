@@ -145,7 +145,7 @@ EMTaskItemStatus TaskList::start(const TaskItemReq &req, string &log)
         TLOGERROR("TaskList::executeSingleTask startServer error:" << log << endl);
     }
 
-    TLOGERROR("TaskList::startServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    TLOGDEBUG("TaskList::startServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
 
     return EM_I_FAILED;
 }
@@ -270,6 +270,13 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
 
         try
         {
+            std::shared_ptr<atomic_int> taskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
+            ret = _adminPrx->preparePatch_inner(patchReq,log, false,taskItemSharedState);
+            if (ret!=0){
+                log = "batchPatch err:" + log;
+                TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
+                return EM_I_FAILED;
+            }
             ret = _adminPrx->batchPatch_inner(patchReq, log);
         }
         catch (exception &ex)
@@ -287,8 +294,8 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
             return EM_I_FAILED;
         }
 
-		time_t tNow = TNOW;
-        // while (TNOW < tNow + 60)
+        // 这里做个超时保护， 否则如果tafnode状态错误， 这里一直循环调用。 add by kivenchen-20180608
+        time_t tNow = TNOW;
         unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/reap/<patch_wait_timeout>", "300"));
 
         EMTaskItemStatus retStatus = EM_I_FAILED;
@@ -340,47 +347,97 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
     }
     return EM_I_SUCCESS; 
 }
-//
-//EMTaskItemStatus TaskList::gridPatchServer(const TaskItemReq &req, string &log)
-//{
-//    int ret = -1;
-//    try
-//    {
-//        TLOGDEBUG("TaskList::grid_server:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
-//
-//        string status   = get("grid_status", req.parameters);
-//
-//        vector<ServerGridDesc> gridDescList;
-//
-//        tars::ServerGridDesc serverGridDesc;
-//        serverGridDesc.application    = req.application;
-//        serverGridDesc.servername = req.serverName;
-//        serverGridDesc.nodename   = req.nodeName;
-//
-//        if(TC_Common::strto<int>(status) == tars::NORMAL)
-//            serverGridDesc.status    = tars::NORMAL;
-//        else if(TC_Common::strto<int>(status) == tars::NO_FLOW)
-//            serverGridDesc.status    = tars::NO_FLOW;
-//        else if(TC_Common::strto<int>(status) == tars::GRID)
-//            serverGridDesc.status    = tars::GRID;
-//        else
-//            serverGridDesc.status    = tars::NORMAL;
-//
-//        gridDescList.push_back(serverGridDesc);
-//
-//        vector<ServerGridDesc> gridFailDescList;
-//        ret = _adminPrx->gridPatchServer_inner(gridDescList, gridFailDescList,log);
-//        if (ret == 0)
-//            return EM_I_SUCCESS;
-//    }
-//    catch (exception &ex)
-//    {
-//        log = ex.what();
-//        TLOGERROR("TaskList::gridPatchServer error:" << log << endl);
-//    }
-//
-//    return EM_I_FAILED;
-//}
+
+EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t index ,shared_ptr<atomic_int>& taskItemSharedState) {
+    //[area_code]=[SZ]|[error]=[stop]|[group_id]=[0]|[module_name]=[tafnotify]|[name]=[patch_tars]|[patch_id]=[74509]|[patch_type]=[new_version]|[process_ip]=[172.16.124.131]|[process_name]=[tarsnotify]|[service]=[tars]|[svn_version]=[]|[type]=[tars]|[update_text]=[]
+
+    try {
+
+        int ret = EM_TARS_UNKNOWN_ERR;
+
+        TLOGDEBUG("TaskList::patch:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end())
+                                     << req.application << "." << req.serverName << ", " << req.nodeName << endl);
+
+        string patchId = get("patch_id", req.parameters);
+        string patchType = get("patch_type", req.parameters);
+
+        tars::PatchRequest patchReq;
+        patchReq.appname = req.application;
+        patchReq.servername = req.serverName;
+        patchReq.nodename = req.nodeName;
+        patchReq.version = patchId;
+        patchReq.user = req.userName;
+
+        try {
+            ret = _adminPrx->preparePatch_inner(patchReq, log, index != 0, taskItemSharedState);
+            if (ret != 0) {
+                log = "batchPatch err:" + log;
+                TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
+                return EM_I_FAILED;
+            }
+			ret = _adminPrx->batchPatch_inner(patchReq, log);
+        }
+        catch (exception &ex)
+        {
+            log = ex.what();
+            TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
+            return EM_I_FAILED;
+        }
+
+        if (ret != EM_TARS_SUCCESS)
+        {
+            log = "batchPatch err:" + log;
+            return EM_I_FAILED;
+        }
+
+		// 这里做个超时保护， 否则如果tarsnode状态错误， 这里一直循环调用。 add by kivenchen-20180608
+		time_t tNow = TNOW;
+        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/reap/<patch_wait_timeout>", "300"));
+
+        EMTaskItemStatus retStatus = EM_I_FAILED;
+        while (TNOW < tNow + patchTimeout)
+        {
+            PatchInfo pi;
+
+            try
+            {
+				ret = _adminPrx->getPatchPercent_inner(req.application, req.serverName, req.nodeName, pi);
+            }
+            catch (exception &ex)
+            {
+                log = ex.what();
+                TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
+            }
+
+            if (ret != 0)
+            {
+				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
+                TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
+                return EM_I_FAILED;
+            }
+
+            if(pi.iPercent == 100 && pi.bSucc)
+            {
+				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
+                TLOGDEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl);
+                retStatus = EM_I_SUCCESS;
+                break;
+            }
+            
+            TLOGDEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl); 
+
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        return retStatus;
+    }
+    catch (exception &ex)
+    {
+        TLOGERROR("TaskList::patch error:" << ex.what() << endl);
+        return EM_I_FAILED;
+    }
+    return EM_I_FAILED; 
+}
+
 EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &req)
 {
     TLOGDEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo 
@@ -426,10 +483,6 @@ EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &re
     {
         ret = undeploy(req, log);
     }
-//    else if (req.command == "grid_server")
-//    {
-//        ret = gridPatchServer(req,log);
-//    }
     else 
     {
         ret = EM_I_FAILED;
@@ -440,6 +493,55 @@ EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &re
     setRspLog(index, log);
 
     return ret; 
+}
+
+
+EMTaskItemStatus TaskList::executeSingleTaskWithSharedState(size_t index, const TaskItemReq &req,shared_ptr<atomic_int> &taskItemSharedState)
+{
+    TLOGDEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo
+                                                     << ",application=" << req.application
+                                                     << ",serverName=" << req.serverName
+                                                     << ",nodeName=" << req.nodeName
+                                                     << ",setName=" << req.setName
+                                                     << ",command=" << req.command << endl);
+
+    EMTaskItemStatus ret = EM_I_FAILED;
+    string log;
+    if (req.command == "stop")
+    {
+        ret = stop(req, log);
+    }
+    else if (req.command == "start")
+    {
+        ret = start(req, log);
+    }
+    else if (req.command == "restart")
+    {
+        ret = restart(req, log);
+    }
+    else if (req.command == "patch_tars")
+    {
+        ret = patch(req, log, index, taskItemSharedState);
+        if (ret == EM_I_SUCCESS && get("bak_flag", req.parameters) != "1")
+        {
+            //不是备机, 需要重启
+            ret = restart(req, log);
+        }
+    }
+    else if (req.command == "undeploy_tars")
+    {
+        ret = undeploy(req, log);
+    }
+    else
+    {
+        ret = EM_I_FAILED;
+        log = "command not support!";
+        TLOGDEBUG("TaskList::executeSingleTask command not support!" << endl);
+    }
+
+    setRspLog(index, log);
+
+    return ret;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -499,6 +601,8 @@ TaskListParallel::TaskListParallel(const TaskReq &taskReq)
 {
     //最大并行线程数
     size_t num = taskReq.taskItemReq.size() > 10 ? 10 : taskReq.taskItemReq.size();
+    num = num < 1 ? 1:num;
+    TLOGDEBUG("TaskListParallel::TaskListParallel req thread num:" << taskReq.taskItemReq.size() << ", realnum:" << num << endl);
     _pool.init(num); 
     _pool.start();
 }
@@ -509,14 +613,15 @@ void TaskListParallel::execute()
     
     TC_LockT<TC_ThreadMutex> lock(*this);
 
+    std::shared_ptr<atomic_int> TaskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
     for (size_t i=0; i < _taskReq.taskItemReq.size(); i++)
     {
-        auto cmd = std::bind(&TaskListParallel::doTask, this, _taskReq.taskItemReq[i], i);
-        _pool.exec(cmd);
+
+        _pool.exec(std::bind(&TaskListParallel::doTask, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), _taskReq.taskItemReq[i], i,TaskItemSharedState);
     }
 }
 
-void TaskListParallel::doTask(TaskItemReq req, size_t index)
+void TaskListParallel::doTask(TaskItemReq req, size_t index,std::shared_ptr<atomic_int> taskItemSharedState)
 {
     setRspInfo(index, true, EM_I_RUNNING);
 
@@ -527,7 +632,7 @@ void TaskListParallel::doTask(TaskItemReq req, size_t index)
                 << ",setName="     << req.setName 
                 << ",command="     << req.command << endl);
 
-    EMTaskItemStatus status = executeSingleTask(index, req); 
+    EMTaskItemStatus status = executeSingleTaskWithSharedState(index, req, taskItemSharedState);
 
     setRspInfo(index, false, status);
 }
@@ -609,25 +714,25 @@ int ExecuteTask::addTaskReq(const TaskReq &taskReq)
         _task[taskReq.taskNo] = p;
 
         //删除历史数据, 当然最好是在定时独立做, 放在这里主要是途方便
-        map<string, TaskList*>::iterator it = _task.begin();
-        while (it != _task.end())
-        {
-            static time_t diff = 24 *60 *60;//1天
-            //大于两天数据任务就干掉
-            if(TC_TimeProvider::getInstance()->getNow() - it->second->getCreateTime() > diff)
-            {
-                TaskList *temp = it->second;
-
-                _task.erase(it++);
-
-                delete temp;
-                temp = NULL;
-            }
-            else
-            {
-                ++it;
-            }
-        }
+        // map<string, TaskList*>::iterator it = _task.begin();
+        // while (it != _task.end())
+        // {
+        //     //static time_t diff = 2 * 24 *60 *60;//2天
+        //     static time_t diff = 30;//2
+        //     //大于两天数据任务就干掉
+        //     if(TC_TimeProvider::getInstance()->getNow() - it->second->getCreateTime() > diff)
+        //     {
+        //         TLOGDEBUG("ExecuteTask::clear old task, taskNo=" << it->first << endl);
+        //         //it->second
+        //         TaskList *pTmp = it->second;
+        //         _task.erase(it++);
+        //         delete pTmp;
+        //     }
+        //     else
+        //     {
+        //         ++it;
+        //     }
+        // }
     }
 
     p->execute();

@@ -18,7 +18,7 @@
 #define __UTIL_H_
 
 #include "util/tc_common.h"
-#include "servant/tars_logger.h"
+#include "servant/RemoteLogger.h"
 
 #define FILE_FUN   __FILE__<<":"<<__FUNCTION__<<":"<<__LINE__<<"|"
 #define FILE_FUN_STR  TC_Common::tostr(__FILE__)+":"+TC_Common::tostr(__FUNCTION__)+":"+TC_Common::tostr(__LINE__)+"|"

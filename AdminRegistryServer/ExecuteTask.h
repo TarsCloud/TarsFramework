@@ -24,7 +24,7 @@
 #include "AdminRegistryImp.h"
 
 using namespace tars;
-
+constexpr int TASK_ITEM_SHARED_STATED_DEFAULT = 23232323;
 class TaskList : public TC_ThreadMutex
 {
 public:
@@ -55,11 +55,13 @@ protected:
 
     EMTaskItemStatus executeSingleTask(size_t index, const TaskItemReq &req);
 
+    EMTaskItemStatus executeSingleTaskWithSharedState(size_t index, const TaskItemReq &req,std::shared_ptr<atomic_int> &taskItemSharedState);
     EMTaskItemStatus start        (const TaskItemReq &req, string &log);
     EMTaskItemStatus restart      (const TaskItemReq &req, string &log);
     EMTaskItemStatus graceRestart (const TaskItemReq &req, string &log);
     EMTaskItemStatus stop         (const TaskItemReq &req, string &log);
     EMTaskItemStatus patch        (size_t index, const TaskItemReq &req, string &log);
+    EMTaskItemStatus patch(const TaskItemReq &req, string &log, size_t index, std::shared_ptr<atomic_int> &TaskItemSharedState);
     EMTaskItemStatus undeploy     (const TaskItemReq &req, string &log);
 //    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);
@@ -97,7 +99,7 @@ public:
     virtual void execute();
 
 protected:
-    void doTask(TaskItemReq req, size_t index);
+    void doTask(TaskItemReq req, size_t index, std::shared_ptr<atomic_int> taskItemSharedState);
 };
 
 class ExecuteTask : public TC_Singleton<ExecuteTask>, public TC_ThreadLock, public TC_Thread
