@@ -1,6 +1,6 @@
 [点我查看中文版](README.zh.md)
 
-This project is the basic service of the whole Tars framework and is also the basic operational framework for all the languages in TARS Project.
+TarsFramework is the basic service for the whole Tars Project and is also the basic operational framework for all the languages in TARS Project.
 
 
 Directory |Features
