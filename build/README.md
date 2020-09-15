@@ -28,7 +28,7 @@ then, cleanup:
 ```
 build.sh cleanall
 ```
-at last, install
+at last, install:
 ```
 build.sh install
 ```
