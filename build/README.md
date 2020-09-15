@@ -20,7 +20,7 @@ first, download all associated projects:
 ```
 build.sh prepare
 ```
-then, compile
+then, compile:
 ```
 build.sh all
 ```
