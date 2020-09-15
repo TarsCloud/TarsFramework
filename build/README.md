@@ -20,15 +20,15 @@ first, download all associated projects:
 ```
 build.sh prepare
 ```
-compile
+then, compile
 ```
 build.sh all
 ```
-cleanup
+then, cleanup
 ```
 build.sh cleanall
 ```
-install
+at last, install
 ```
 build.sh install
 ```
