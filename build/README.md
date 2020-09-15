@@ -15,7 +15,8 @@ modify after as below:
 ```
 
 
-download all associated projects firstly
+
+first, download all associated projects:
 ```
 build.sh prepare
 ```
