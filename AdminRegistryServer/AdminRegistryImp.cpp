@@ -26,7 +26,7 @@ void AdminRegistryImp::initialize()
 
     _patchPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<PatchPrx>("tars.tarspatch.PatchObj");
 
-	int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "30000"));
+	int timeout = TC_Common::strto<int>(g_pconf->get("/tars/patch<patch_timeout>", "30000"));
 
 	_patchPrx->tars_set_timeout(timeout);
 
@@ -790,7 +790,6 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
 
     try
     {
-
         sServerName  = reqPro.groupname.empty() ? reqPro.servername : reqPro.groupname;
 
         TLOGDEBUG("AdminRegistryImp::batchPatch "
@@ -820,11 +819,11 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
 
 	    TLOGDEBUG("AdminRegistryImp::batchPatch " << sServerName << "|" << patchFile << endl); 
 
-	    //让tafpatch准备发布包
+	    //让tarspatch准备发布包
 	    iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
 	    if (iRet != 0)
 	    {
-	        result = "gpreparePatchFile error, check tafpatch server!";
+	        result = "preparePatchFile error, check tarspatch server!";
 	        TLOGERROR("AdminRegistryImp::batchPatch, prepare patch file error:" << patchFile << endl);
 	        RemoteNotify::getInstance()->report("prepare patch file error:" + patchFile, reqPro.appname, sServerName, reqPro.nodename);
 	        return EM_TARS_PREPARE_ERR;
@@ -837,11 +836,10 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
         NodePrx proxy;
 
         proxy = DBPROXY->getNodePrx(reqPro.nodename);
-        int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
 
         current->setResponse(false);
         NodePrxCallbackPtr callback = new PatchProCallbackImp(reqPro, proxy, defaultTime, current);
-        proxy->tars_set_timeout(timeout)->async_patchPro(callback, reqPro);
+        proxy->async_patchPro(callback, reqPro);
     }
     catch(TarsSyncCallTimeoutException& ex)
     {
@@ -880,8 +878,6 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
     return iRet;
 
 }
-
-
 
 int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &result)
 {
@@ -927,7 +923,7 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 	    iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
 	    if (iRet != 0)
 	    {
-	        result = "gpreparePatchFile error, check tafpatch server!";
+	        result = "preparePatchFile error, check tarspatch server!";
 	        TLOGERROR("AdminRegistryImp::batchPatch, prepare patch file error:" << patchFile << endl);
             RemoteNotify::getInstance()->report("prepare patch file error:" + patchFile, reqPro.appname, sServerName, reqPro.nodename);
             return EM_TARS_PREPARE_ERR;
@@ -941,7 +937,7 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 
 		iRet = proxy->patchPro(reqPro, result);
 
-//        deleteHistorys(reqPro.appname, sServerName);
+        deleteHistorys(reqPro.appname, sServerName);
     }
     catch(TarsSyncCallTimeoutException& ex)
     {
@@ -1065,8 +1061,6 @@ int AdminRegistryImp::getPatchPercent_inner(const string &application, const str
 	}
 	return iRet;
 }
-
-
 
 int AdminRegistryImp::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd, std::string &fileData, tars::TarsCurrentPtr current)
 {
@@ -1312,14 +1306,15 @@ int AdminRegistryImp::preparePatch_inner(PatchRequest &req, string &result, bool
         return EM_TARS_GET_PATCH_FILE_ERR;
     }
 
-
     req.md5 = md5;
 
     // do preparePatchFile
     if (!waitOtherThreadPreparePatchFile) {
-        try {
+        try{
             TLOGDEBUG("call preparePatchFile" << endl);
             iRet = _patchPrx->preparePatchFile(req.appname, req.servername, patchFile);
+
+	        deleteHistorys(req.appname, req.servername);
         }
         catch (...) {
             result = "Unknown Exception";
@@ -1338,8 +1333,8 @@ int AdminRegistryImp::preparePatch_inner(PatchRequest &req, string &result, bool
     }
 
     if (iRet != 0) {
-        result = "gpreparePatchFile error, check tafpatch server!";
-        TLOGERROR(", prepare patch file error:" << patchFile << endl);
+        result = "preparePatchFile error, check tarspatch server!";
+        TLOGERROR("prepare patch file error:" << patchFile << endl);
         return EM_TARS_PREPARE_ERR;
     }
 
@@ -1349,7 +1344,9 @@ int AdminRegistryImp::deletePatchFile(const string &application, const string &s
 {
 	TLOGDEBUG(__FUNCTION__ << ":" << application << ", " << serverName << ", " << patchFile << endl);
 
-	return _patchPrx->deletePatchFile(application, serverName, patchFile);
+	_patchPrx->async_deletePatchFile(NULL, application, serverName, patchFile);
+
+	return 0;
 }
 
 int AdminRegistryImp::getServers(vector<tars::FrameworkServer> &servers, tars::TarsCurrentPtr current)

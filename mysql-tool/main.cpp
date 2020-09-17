@@ -123,7 +123,8 @@ struct MysqlCommand
 		string sql = "select * from t_profile_template where template_name = '" + mysql.realEscapeString(option.getValue("template")) + "'";
 
 		auto data = mysql.queryRecord(sql);
-		if(data.size() == 0) 
+
+		if(data.size() == 0 || option.getValue("overwrite") == "true")
 		{
 			//不要覆盖模板, 否则容易导致升级时的bug
 			sql =  "replace into `t_profile_template` (`template_name`, `parents_name` , `profile`, `posttime`, `lastuser`) VALUES ('" + mysql.realEscapeString(option.getValue("template")) + "','" + mysql.realEscapeString(option.getValue("parent")) + "','" + mysql.realEscapeString(content) + "', now(),'admin')";

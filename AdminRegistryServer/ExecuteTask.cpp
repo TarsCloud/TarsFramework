@@ -294,9 +294,9 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
             return EM_I_FAILED;
         }
 
-        // 这里做个超时保护， 否则如果tafnode状态错误， 这里一直循环调用。 add by kivenchen-20180608
+        // 这里做个超时保护， 否则如果tafnode状态错误， 这里一直循环调用
         time_t tNow = TNOW;
-        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/reap/<patch_wait_timeout>", "300"));
+        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/patch/<patch_wait_timeout>", "300"));
 
         EMTaskItemStatus retStatus = EM_I_FAILED;
         while (TNOW < tNow + patchTimeout)
@@ -390,9 +390,9 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t
             return EM_I_FAILED;
         }
 
-		// 这里做个超时保护， 否则如果tarsnode状态错误， 这里一直循环调用。 add by kivenchen-20180608
+		// 这里做个超时保护， 否则如果tarsnode状态错误， 这里一直循环调用
 		time_t tNow = TNOW;
-        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/reap/<patch_wait_timeout>", "300"));
+        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/patch/<patch_wait_timeout>", "300"));
 
         EMTaskItemStatus retStatus = EM_I_FAILED;
         while (TNOW < tNow + patchTimeout)

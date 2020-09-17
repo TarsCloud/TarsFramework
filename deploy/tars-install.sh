@@ -73,8 +73,8 @@ function LOG_INFO()
 	echo -e "\033[32m $msg \033[0m"  	
 }
 
-if [ $# -lt 8 ]; then
-    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT INSTALL_PATH";
+if [ $# -lt 9 ]; then
+    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT INSTALL_PATH OVERWRITE";
     exit 1
 fi
 
@@ -86,9 +86,14 @@ SLAVE=$5
 USER=$6
 PORT=$7
 INSTALL_PATH=$8
+OVERWRITE=$9
 
 if [ "${SLAVE}" != "true" ]; then
     SLAVE="false"
+fi
+
+if [ "$OVERWRITE" != "true" ]; then
+    OVERWRITE="false"
 fi
 
 if [ "${SLAVE}" != "true" ]; then
@@ -247,7 +252,7 @@ function exec_mysql_sql()
 function exec_mysql_template()
 {
     #echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --parent=$1 --template=$2 --profile=$3"
-    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${TARS_USER} --pass=${TARS_PASS} --port=${PORT} --charset=utf8 --db=db_tars --upload-path=${UPLOAD_PATH} --tars-path=${TARS_PATH} --parent=$1 --template=$2 --profile=$3
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${TARS_USER} --pass=${TARS_PASS} --port=${PORT} --charset=utf8 --db=db_tars --upload-path=${UPLOAD_PATH} --tars-path=${TARS_PATH} --parent=$1 --template=$2 --profile=$3 --overwrite=$OVERWRITE
 
     ret=$?
 

@@ -59,6 +59,11 @@ int DbProxy::init(TC_Config *pconf)
 		assert((_mysqlLocks.size() == _mysqlReg.size()) && (_mysqlReg.size() > 0));
 
         _patchHistory = TC_Common::strto<int>(pconf->get("/tars/patch<patchHistory>", "200"));
+
+        if(_patchHistory < 10)
+        {
+	        _patchHistory = 10;
+        }
     }
     catch (TC_Config_Exception& ex)
     {

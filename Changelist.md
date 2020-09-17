@@ -1,12 +1,24 @@
 
+## v2.4.7 2020.09.16
+### en
+- fix the deployment script, support the overwrite mode, and cover the configuration and template files
+- tarsAdminRegistry supports only historical publishing records (the latest 200 by default), and the configuration can be modified in the template
+- tarsAdminRegistry supports patch timeout configuration, which can be modified in the template
+- Support parameters during deployment, covering configuration files and templates
+  
+### cn
+- 完善部署脚本, 支持overwrite模式, 覆盖配置和模板文件 
+- tarsAdminRegistry支持保存历史发布记录(每个服务缺省200条), 可以在模板中修改配置
+- tarsAdminRegistry发布支持超时配置, 可以在模板中修改配置
+- 部署时支持参数, 覆盖配置文件和模板
+
 ## v2.4.6 2020.09.02
 ### en
 - fix node monitor, check keepalive
 - fix java class path
 - add tarsregistry log
 - fix build docker bug, copy tars2case to docker
-
-### en
+### cn
 - 修改tarnode的监控逻辑, 增加keepalive的监控
 - 修改tarsnode java path
 - 增加tarsregistry日志
@@ -19,7 +31,7 @@
 - fix windows install script
 - Reduce tarsstat & tarsproperty shm memory consumption
 
-### en
+### cn
 - 继续修复tarsnode写配置文件可能为空的bug(硬盘满的情况下)
 - tarsAdminRegistry支持发布超大文件(发布超过一分钟), 可配置超时时间
 - 修复windows install script
@@ -31,7 +43,7 @@
 - update deploy script support web(v2.4.7)
 - fix tarstat & tarspropery only install in master framework
 - tarsAdminRegistry support tarsgo gracefull deploy(web>=v2.4.7)
-### en
+### cn
 - 修改tarsnode当硬盘满或者掉电时, 写配置失败的bug
 - 更新部署脚本, 支持web(v2.4.7)
 - 修改安装脚本, tarstat & tarspropery只安装在主节点上

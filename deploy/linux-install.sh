@@ -6,7 +6,7 @@
 if (( $# < 7 ))
 then
     echo $#
-    echo "$0 MYSQL_IP MYSQL_PASSWORD INET REBUILD(true/false) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT";
+    echo "$0 MYSQL_IP MYSQL_PASSWORD INET REBUILD(true/false) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT OVERWRITE(false/true[default])";
     exit 1
 fi
 
@@ -17,6 +17,7 @@ REBUILD=$4
 SLAVE=$5
 DBUSER=$6
 PORT=$7
+OVERWRITE=$8
 
 if [ "$DBUSER" = "" ]; then
     DBUSER="root"
@@ -36,6 +37,10 @@ fi
 
 if [ "$SLAVE" != "true" ]; then
     SLAVE="false"
+fi
+
+if [ "$OVERWRITE" != "true" ]; then
+    OVERWRITE="false"
 fi
 
 #########################################################################
@@ -192,10 +197,9 @@ npm config set registry ${MIRROR}/npm/; npm install -g npm pm2
 
 ################################################################################
 
-
 cd ${TARS_INSTALL}
 
-./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${DBUSER}  ${PORT} ${INSTALL_PATH}
+./tars-install.sh ${MYSQLIP} ${PASS} ${HOSTIP} ${REBUILD} ${SLAVE} ${DBUSER}  ${PORT} ${INSTALL_PATH} ${OVERWRITE}
 
 
 ################################################################################
