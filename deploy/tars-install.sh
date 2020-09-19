@@ -471,6 +471,12 @@ if [ "${SLAVE}" != "true" ]; then
     LOG_INFO "create master servers";
 
     exec_mysql_sql db_tars tars_servers_master.sql
+else
+    exec_mysql_has "db_tars"
+    if [ $? != 0 ]; then
+        LOG_ERROR "no db_tars exists, please install master first, install will exit"  
+        exit 1
+    fi
 fi
 
 #current server info
