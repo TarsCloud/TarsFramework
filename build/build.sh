@@ -1,3 +1,10 @@
+# Copyright (c) 2020
+# Linux Foundation Projects
+#       Link: https://www.linuxfoundation.org/projects/
+# TARS Foundation Projects
+#       Link: https://github.com/TarsCloud
+# All rights reserved.
+
 #!/bin/sh
 
 ARGS=$1
@@ -27,6 +34,6 @@ case $ARGS in
         echo "$0 prepare:  download dependent project."
         echo "$0 all:      build all target"
         echo "$0 install:  install framework"
-        echo "$0 cleanall: remove all temp file"
+        echo "$0 cleanall: remove all temp files"
         ;;
 esac
