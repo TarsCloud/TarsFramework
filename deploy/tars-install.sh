@@ -73,8 +73,8 @@ function LOG_INFO()
 	echo -e "\033[32m $msg \033[0m"  	
 }
 
-if [ $# -lt 9 ]; then
-    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT INSTALL_PATH OVERWRITE";
+if [ $# -lt 8 ]; then
+    echo "$0 MYSQL_IP MYSQL_PASSWORD  HOSTIP REBUILD(false[default]/true) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT INSTALL_PATH OVERWRITE(false[default]/true)";
     exit 1
 fi
 
