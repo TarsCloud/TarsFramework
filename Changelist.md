@@ -5,12 +5,14 @@
 - tarsAdminRegistry supports only historical publishing records (the latest 200 by default), and the configuration can be modified in the template
 - tarsAdminRegistry supports patch timeout configuration, which can be modified in the template
 - Support parameters during deployment, covering configuration files and templates
-  
+- When installing framework slave, if db_tars has not been created, exit
+
 ### cn
 - 完善部署脚本, 支持overwrite模式, 覆盖配置和模板文件 
 - tarsAdminRegistry支持保存历史发布记录(每个服务缺省200条), 可以在模板中修改配置
 - tarsAdminRegistry发布支持超时配置, 可以在模板中修改配置
 - 部署时支持参数, 覆盖配置文件和模板
+- 安装framework slave时, 如果db_tars还没有创建, 则退出
 
 ## v2.4.6 2020.09.02
 ### en
