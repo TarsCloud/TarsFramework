@@ -73,9 +73,11 @@ void CheckNodeThread::run()
             //轮询心跳超时的node
             if(tNow - tLastCheckNode >= _nodeTimeoutInterval)
             {
+			
+                tLastCheckNode = tNow;
+				
                 _db.checkNodeTimeout(_nodeTimeout);
 
-                tLastCheckNode = tNow;
             }
 
             TC_ThreadLock::Lock lock(*this);

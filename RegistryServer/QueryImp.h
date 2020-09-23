@@ -59,38 +59,38 @@ public:
     /** 
      * 根据id获取所有该对象的活动endpoint列表
      */
-    virtual vector<EndpointF> findObjectById(const string & id, tars::TarsCurrentPtr current);
+    virtual vector<EndpointF> findObjectById(const string & id, CurrentPtr current);
 
     /**
      * 根据id获取所有对象,包括活动和非活动对象
      */
-    virtual tars::Int32 findObjectById4Any(const std::string & id, vector<tars::EndpointF> &activeEp, vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current);
+    virtual Int32 findObjectById4Any(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
 
     /** 
      * 根据id获取对象所有endpoint列表
      */
-    Int32 findObjectById4All(const std::string & id, vector<tars::EndpointF> &activeEp, vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current);
+    Int32 findObjectById4All(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
 
     /** 
      * 根据id获取对象同组endpoint列表
      */
-    Int32 findObjectByIdInSameGroup(const std::string & id, vector<tars::EndpointF> &activeEp, vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current);
+    Int32 findObjectByIdInSameGroup(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
 
     /** 
      * 根据id获取对象指定归属地的endpoint列表
      */
-    Int32 findObjectByIdInSameStation(const std::string & id, const std::string & sStation, vector<tars::EndpointF> &activeEp, vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current);
+    Int32 findObjectByIdInSameStation(const std::string & id, const std::string & sStation, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
 
     /** 
      * 根据id获取对象同set endpoint列表
      */
-    Int32 findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<tars::EndpointF> &activeEp,vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current);
+    Int32 findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp, CurrentPtr current);
 
 private:
     /**
      * 打印按天日志
      */
-    void doDaylog(const FUNID eFnId,const string& id,const vector<tars::EndpointF> &activeEp, const vector<tars::EndpointF> &inactiveEp, const tars::TarsCurrentPtr& current,const std::ostringstream& os,const string& sSetid="");
+    void doDaylog(const FUNID eFnId,const string& id,const vector<EndpointF> &activeEp, const vector<EndpointF> &inactiveEp, const CurrentPtr& current,const std::ostringstream& os,const string& sSetid="");
 
     /**
      * 转化成字符串

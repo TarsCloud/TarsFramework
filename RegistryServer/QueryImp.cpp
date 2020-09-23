@@ -29,7 +29,7 @@ void QueryImp::initialize()
 	_openDayLog = g_pconf->get("/tars/reap<openDayLog>", "N") == "Y";
 }
 
-vector<EndpointF> QueryImp::findObjectById(const string & id, tars::TarsCurrentPtr current)
+vector<EndpointF> QueryImp::findObjectById(const string & id, CurrentPtr current)
 {
     vector<EndpointF> eps = _db.findObjectById(id);
 
@@ -39,7 +39,7 @@ vector<EndpointF> QueryImp::findObjectById(const string & id, tars::TarsCurrentP
     return eps;
 }
 
-tars::Int32 QueryImp::findObjectById4Any(const std::string & id,vector<tars::EndpointF> &activeEp,vector<tars::EndpointF> &inactiveEp,tars::TarsCurrentPtr current)
+int QueryImp::findObjectById4Any(const std::string & id,vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp,CurrentPtr current)
 {
     int iRet = _db.findObjectById4All(id, activeEp, inactiveEp);
 
@@ -49,7 +49,7 @@ tars::Int32 QueryImp::findObjectById4Any(const std::string & id,vector<tars::End
     return iRet;
 }
 
-int QueryImp::findObjectById4All(const std::string & id, vector<tars::EndpointF> &activeEp,vector<tars::EndpointF> &inactiveEp,tars::TarsCurrentPtr current)
+int QueryImp::findObjectById4All(const std::string & id, vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp,CurrentPtr current)
 {
     ostringstream os;
 
@@ -60,7 +60,7 @@ int QueryImp::findObjectById4All(const std::string & id, vector<tars::EndpointF>
     return iRet;
 }
 
-int QueryImp::findObjectByIdInSameGroup(const std::string & id, vector<tars::EndpointF> &activeEp,vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current)
+int QueryImp::findObjectByIdInSameGroup(const std::string & id, vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp, CurrentPtr current)
 {
     ostringstream os;
     TLOGINFO(__FUNCTION__ << ":" << __LINE__ << "|" << id << "|" << current->getHostName()  << endl);
@@ -72,7 +72,7 @@ int QueryImp::findObjectByIdInSameGroup(const std::string & id, vector<tars::End
     return iRet;
 }
 
-Int32 QueryImp::findObjectByIdInSameStation(const std::string & id, const std::string & sStation, vector<tars::EndpointF> &activeEp, vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current)
+int QueryImp::findObjectByIdInSameStation(const std::string & id, const std::string & sStation, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current)
 {
     ostringstream os;
 
@@ -83,7 +83,7 @@ Int32 QueryImp::findObjectByIdInSameStation(const std::string & id, const std::s
     return iRet;
 }
 
-Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<tars::EndpointF> &activeEp,vector<tars::EndpointF> &inactiveEp, tars::TarsCurrentPtr current)
+Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp, CurrentPtr current)
 {
     vector<string> vtSetInfo = TC_Common::sepstr<string>(setId,".");
 
@@ -118,7 +118,7 @@ Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string
     return iRet;
 }
 
-void QueryImp::doDaylog(const FUNID eFnId,const string& id,const vector<tars::EndpointF> &activeEp, const vector<tars::EndpointF> &inactiveEp, const tars::TarsCurrentPtr& current,const ostringstream& os,const string& sSetid)
+void QueryImp::doDaylog(const FUNID eFnId,const string& id,const vector<EndpointF> &activeEp, const vector<EndpointF> &inactiveEp, const CurrentPtr& current,const ostringstream& os,const string& sSetid)
 {
 	if(_openDayLog) {
 		string sEpList;
