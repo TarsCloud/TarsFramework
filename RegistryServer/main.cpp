@@ -22,12 +22,51 @@ using namespace tars;
 RegistryServer g_app;
 TC_Config * g_pconf;
 
+void doMonitor(const string &configFile)
+{
+	TC_Config conf;
+	conf.parseFile(configFile);
+
+	string obj = "AdminObj@" + conf["/tars/application/server<local>"];
+
+	ServantPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServantPrx>(obj);
+	prx->tars_ping();
+}
+
+void doCommand(int argc, char *argv[])
+{
+	TC_Option tOp;
+	tOp.decode(argc, argv);
+	//直接输出编译的TAF版本
+	if (tOp.hasParam("version"))
+	{
+		cout << "TARS:" << Application::getTarsVersion() << endl;
+		exit(0);
+	}
+
+	if (tOp.hasParam("monitor"))
+	{
+		try
+		{
+			string configFile = tOp.getValue("config");
+			doMonitor(configFile);
+		}
+		catch (exception &ex)
+		{
+			cout << "doMonitor failed:" << ex.what() << endl;
+			exit(-1);
+		}
+		exit(0);
+		return;
+	}
+}
 int main(int argc, char *argv[])
 {
     try
     {
-        g_pconf =  & g_app.getConfig();
+		doCommand(argc, argv);
 
+        g_pconf =  & g_app.getConfig();
         g_app.main(argc, argv);
 
         g_app.waitForShutdown();
