@@ -1,3 +1,8 @@
+## v2.4.8 2020.09.23
+### en
+- tarsregistry sync internel code
+### cn
+- 主控同步内部代码
 
 ## v2.4.7 2020.09.16
 ### en
