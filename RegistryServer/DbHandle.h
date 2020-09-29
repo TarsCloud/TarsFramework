@@ -206,7 +206,7 @@ public:
      *
      * @return server信息列表
      */
-    int updateServerState(const string & app, const string & serverName, const string & nodeName, const string & stateFields, tars::ServerState state, int processId = -1);
+    int updateServerState(const string & app, const string & serverName, const string & nodeName, const string & stateFields, ServerState state, int processId = -1);
 
     /**
      * 量批更新server状态
@@ -215,7 +215,7 @@ public:
      *
      * @return server信息列表
      */
-    int updateServerStateBatch(const std::vector<tars::ServerStateInfo> & vecStateInfo);
+    int updateServerStateBatch(const std::vector<ServerStateInfo> & vecStateInfo);
 
     /** 根据id获取对象
      *
@@ -446,7 +446,7 @@ protected:
     /**
      * updateServerStateBatch的底层实现函数
      */
-    int doUpdateServerStateBatch(const std::vector<tars::ServerStateInfo> & vecStateInfo, const size_t sizeBegin, const size_t sizeEnd);
+    int doUpdateServerStateBatch(const std::vector<ServerStateInfo> & vecStateInfo, const size_t sizeBegin, const size_t sizeEnd);
 
 private:
     /**
@@ -502,7 +502,7 @@ protected:
     bool _enMultiSql;
 
     //mysql连接对象
-    tars::TC_Mysql _mysqlReg;
+    TC_Mysql _mysqlReg;
 
     //node节点代理列表
     static map<string , NodePrx> _mapNodePrxCache;

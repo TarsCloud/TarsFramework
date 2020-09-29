@@ -54,7 +54,7 @@ public:
      *
      * @return int
      */
-    int get(int &i, tars::TarsCurrentPtr current);
+    int get(int &i, CurrentPtr current);
 
     /**
      * node启动的时候往registry注册一个session
@@ -65,7 +65,7 @@ public:
      *
      * @return 注册是否成功
      */
-    virtual int registerNode(const string & name, const NodeInfo & ni, const LoadInfo & li, tars::TarsCurrentPtr current);
+    virtual int registerNode(const string & name, const NodeInfo & ni, const LoadInfo & li, CurrentPtr current);
 
     /**
      * node上报心跳负载
@@ -75,7 +75,7 @@ public:
      *
      * @return 心跳接收状态
      */
-    virtual int keepAlive(const string& name, const LoadInfo & li, tars::TarsCurrentPtr current);
+    virtual int keepAlive(const string& name, const LoadInfo & li, CurrentPtr current);
 
     /**
      * 获取在该node部署的server列表
@@ -84,7 +84,7 @@ public:
      *
      * @return server名称列表
      */
-    virtual vector<tars::ServerDescriptor> getServers(const std::string & app, const std::string & serverName, const std::string & nodeName, tars::TarsCurrentPtr current);
+    virtual vector<ServerDescriptor> getServers(const std::string & app, const std::string & serverName, const std::string & nodeName, CurrentPtr current);
 
     /**
      * 更新server状态
@@ -96,7 +96,7 @@ public:
      *
      * @return server信息列表
      */
-    virtual int updateServer(const string & nodeName, const string & app, const string & serverName, const tars::ServerStateInfo & stateInfo, tars::TarsCurrentPtr current);
+    virtual int updateServer(const string & nodeName, const string & app, const string & serverName, const ServerStateInfo & stateInfo, CurrentPtr current);
 
     /**
      * 量批更新server状态
@@ -105,14 +105,14 @@ public:
      *
      * @return server信息列表
      */
-    virtual int updateServerBatch(const std::vector<tars::ServerStateInfo> & vecStateInfo, tars::TarsCurrentPtr current);
+    virtual int updateServerBatch(const std::vector<ServerStateInfo> & vecStateInfo, CurrentPtr current);
 
     /**
      * node停止，释放node的会话
      *
      * @param name    node名称
      */
-    virtual int destroyNode(const string & name, tars::TarsCurrentPtr current);
+    virtual int destroyNode(const string & name, CurrentPtr current);
 
     /**
      * 上报server的tars库版本
@@ -123,7 +123,7 @@ public:
      *
      * @return 0-成功 others-失败
      */
-    virtual int reportVersion(const string & app, const string & serverName, const string & nodeName, const string & version, tars::TarsCurrentPtr current);
+    virtual int reportVersion(const string & app, const string & serverName, const string & nodeName, const string & version, CurrentPtr current);
     
     /**
      * 获取node的模板配置
@@ -132,7 +132,7 @@ public:
      *
      * @return 0-成功 others-失败
      */
-    virtual tars::Int32 getNodeTemplate(const std::string & nodeName, std::string &profileTemplate, tars::TarsCurrentPtr current);
+    virtual Int32 getNodeTemplate(const std::string & nodeName, std::string &profileTemplate, CurrentPtr current);
 
     /**
      * node通过接口获取连接上主控的node ip
@@ -140,7 +140,7 @@ public:
      *
      * @return 0-成功 others-失败
      */
-    virtual tars::Int32 getClientIp(std::string &sClientIp, tars::TarsCurrentPtr current);
+    virtual Int32 getClientIp(std::string &sClientIp, CurrentPtr current);
     
     /**
      * 发布任务完成后，UPDATE版本号和发布人 
@@ -148,7 +148,7 @@ public:
      *  
      * @return 0-成功 othres-失败 
      */
-    virtual tars::Int32 updatePatchResult(const PatchResult & result, tars::TarsCurrentPtr current);
+    virtual Int32 updatePatchResult(const PatchResult & result, CurrentPtr current);
 
 protected:
 

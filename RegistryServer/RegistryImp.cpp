@@ -34,12 +34,12 @@ void RegistryImp::initialize()
 
 }
 
-int RegistryImp::registerNode(const string & name, const NodeInfo & ni, const LoadInfo & li, tars::TarsCurrentPtr current)
+int RegistryImp::registerNode(const string & name, const NodeInfo & ni, const LoadInfo & li, CurrentPtr current)
 {
     return _db.registerNode(name, ni, li);
 }
 
-int RegistryImp::keepAlive(const string & name, const LoadInfo & ni, tars::TarsCurrentPtr current)
+int RegistryImp::keepAlive(const string & name, const LoadInfo & ni, CurrentPtr current)
 {
     RegistryProcInfo procInfo;
     procInfo.nodeName = name;
@@ -52,27 +52,27 @@ int RegistryImp::keepAlive(const string & name, const LoadInfo & ni, tars::TarsC
     return 0;
 }
 
-vector<tars::ServerDescriptor> RegistryImp::getServers(const std::string & app,const std::string & serverName,const std::string & nodeName,tars::TarsCurrentPtr current)
+vector<ServerDescriptor> RegistryImp::getServers(const std::string & app,const std::string & serverName,const std::string & nodeName,CurrentPtr current)
 {
     return  _db.getServers(app, serverName, nodeName);
 }
 
-int RegistryImp::updateServer(const string & nodeName, const string & app, const string & serverName, const tars::ServerStateInfo & stateInfo, tars::TarsCurrentPtr current)
+int RegistryImp::updateServer(const string & nodeName, const string & app, const string & serverName, const ServerStateInfo & stateInfo, CurrentPtr current)
 {
     return _db.updateServerState(app, serverName, nodeName, "present_state", stateInfo.serverState, stateInfo.processId);
 }
 
-int RegistryImp::updateServerBatch(const std::vector<tars::ServerStateInfo> & vecStateInfo, tars::TarsCurrentPtr current)
+int RegistryImp::updateServerBatch(const std::vector<ServerStateInfo> & vecStateInfo, CurrentPtr current)
 {
     return _db.updateServerStateBatch(vecStateInfo);
 }
 
-int RegistryImp::destroyNode(const string & name, tars::TarsCurrentPtr current)
+int RegistryImp::destroyNode(const string & name, CurrentPtr current)
 {
     return _db.destroyNode(name);
 }
 
-int RegistryImp::reportVersion(const string & app, const string & serverName, const string & nodeName, const string & version, tars::TarsCurrentPtr current)
+int RegistryImp::reportVersion(const string & app, const string & serverName, const string & nodeName, const string & version, CurrentPtr current)
 {
     RegistryProcInfo procInfo;
     procInfo.appName    = app;
@@ -87,7 +87,7 @@ int RegistryImp::reportVersion(const string & app, const string & serverName, co
     return 0;
 }
 
-int RegistryImp::getNodeTemplate(const std::string & nodeName,std::string &profileTemplate,tars::TarsCurrentPtr current)
+int RegistryImp::getNodeTemplate(const std::string & nodeName,std::string &profileTemplate,CurrentPtr current)
 {
     string sTemplateName;
     int iRet = _db.getNodeTemplateName(nodeName, sTemplateName);
@@ -105,7 +105,7 @@ int RegistryImp::getNodeTemplate(const std::string & nodeName,std::string &profi
     return 0;
 }
 
-int RegistryImp::getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current)
+int RegistryImp::getClientIp(std::string &sClientIp,CurrentPtr current)
 {
     sClientIp = current->getIp();
     TLOGDEBUG("RegistryImp::getClientIp ip: " << sClientIp <<  endl);
@@ -113,7 +113,7 @@ int RegistryImp::getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current
     return 0;
 }
 
-int RegistryImp::updatePatchResult(const PatchResult & result, tars::TarsCurrentPtr current)
+int RegistryImp::updatePatchResult(const PatchResult & result, CurrentPtr current)
 {
     TLOGDEBUG( "RegistryImp::updatePatchResult " << result.sApplication + "." + result.sServerName + "_" + result.sNodeName << "|V:" << result.sVersion << "|U:" <<  result.sUserName << endl);
 

@@ -1,31 +1,34 @@
-The scripts of buiding Tars framework project
+The scripts is used for buiding TarsFramework
 
 If you need multi-threaded compilation, you need to make the following modifications:
-before modify
+
+modify before as below:
 ```
     all)
         cd $BASEPATH;  cmake ..;  make
 ```
-after:
+
+modify after as below:
 ```
     all)
         cd $BASEPATH;  cmake ..;  make -j 4
 ```
 
 
-download all associated projects firstly
+
+first, download all associated projects:
 ```
 build.sh prepare
 ```
-compile
+then, compile:
 ```
 build.sh all
 ```
-cleanup
+then, cleanup:
 ```
 build.sh cleanall
 ```
-install
+at last, install:
 ```
 build.sh install
 ```

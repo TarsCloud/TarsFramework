@@ -1,3 +1,8 @@
+## v2.4.8 2020.09.23
+### en
+- tarsregistry sync internel code
+### cn
+- 主控同步内部代码
 
 ## v2.4.7 2020.09.16
 ### en
@@ -6,7 +11,7 @@
 - tarsAdminRegistry supports patch timeout configuration, which can be modified in the template
 - Support parameters during deployment, covering configuration files and templates
 - When installing framework slave, if db_tars has not been created, exit
-
+  
 ### cn
 - 完善部署脚本, 支持overwrite模式, 覆盖配置和模板文件 
 - tarsAdminRegistry支持保存历史发布记录(每个服务缺省200条), 可以在模板中修改配置
