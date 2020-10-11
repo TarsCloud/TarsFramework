@@ -1,8 +1,10 @@
 ## v2.4.9 2020.10.11
 ### en
 - Fix Windows compilation errors 
+- The NPM of nodejs in the installation script supports the selection of Tencent cloud / aliyun
 ### cn
 - 修复windows编译错误
+- 安装脚本中nodejs的npm支持tencent cloud/aliyun的选择
 
 ## v2.4.8 2020.09.23
 ### en
