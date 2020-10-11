@@ -1,3 +1,9 @@
+## v2.4.9 2020.10.11
+### en
+- Fix Windows compilation errors 
+### cn
+- 修复windows编译错误
+
 ## v2.4.8 2020.09.23
 ### en
 - tarsregistry sync internel code

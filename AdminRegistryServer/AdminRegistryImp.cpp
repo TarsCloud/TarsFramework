@@ -1327,7 +1327,7 @@ int AdminRegistryImp::preparePatch_inner(PatchRequest &req, string &result, bool
     if (waitOtherThreadPreparePatchFile) {
         TLOGDEBUG("wait other thread call preparePatchFile" << endl);
         while (*preparePatchRet == TASK_ITEM_SHARED_STATED_DEFAULT) {
-            usleep(100);
+            TC_Common::msleep(10);
         };
         iRet = *preparePatchRet;
     }
