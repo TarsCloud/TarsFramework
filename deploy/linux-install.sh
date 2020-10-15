@@ -57,12 +57,12 @@ if [ "$MIRROR" = "tencentcloud" ]; then
     NODEJS_MIRROR=http://mirrors.cloud.tencent.com/nodejs-release/
     NPM_MIRROR=http://mirrors.cloud.tencent.com/npm/
     rm -rf centos7_base.repo
-    wget -O http://mirrors.cloud.tencent.com/repo/centos7_base.repo
+    curl -O http://mirrors.cloud.tencent.com/repo/centos7_base.repo
 elif [ "$MIRROR" = "aliyun" ]; then
     NODEJS_MIRROR=http://npm.taobao.org/mirrors/node/
     NPM_MIRROR=https://registry.npm.taobao.org
     rm -rf centos7_base.repo
-    wget -O centos7_base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    curl -O centos7_base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 else
     echo "Mirror not support, please add it to this script manually."
     exit 1
