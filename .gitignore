@@ -10,3 +10,4 @@ download/
 # ignore generated files by vscode
 .code/
 *.code-workspace
+.devcontainer/
