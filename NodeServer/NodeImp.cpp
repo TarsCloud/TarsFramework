@@ -973,7 +973,7 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 		fileData += "#this-top-begin#" + string(100, '-');
 		fileData += "\n";
         
-        string errstr;
+        errstr.clear();
         fileData += TC_Port::exec(cmd.c_str(), errstr);
         if (fileData.empty()) {
             if (!errstr.empty()) {
@@ -994,7 +994,7 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	fileData += "#core-file-begin#" + string(100, '-');
 	fileData += "\n";
 
-    string errstr;
+    errstr.clear();
     fileData += TC_Port::exec(cmd.c_str(), errstr);
     if (fileData.empty()) {
         if (!errstr.empty()) {
