@@ -565,7 +565,8 @@ bool ServerObject::isStartTimeOut()
 	Lock lock(*this);
 	int64_t now = TNOWMS;
 
-	int timeout = 11000;
+	//int timeout = 11000;
+	int timeout=_activatingTimeout >0 ? _activatingTimeout : 11000;
 	if (now - _startTime >= timeout && now - _keepAliveTime >= timeout)
 	{
 		NODE_LOG(_serverId)->debug()<<FILE_FUN<<"server start time  out "<<now - _startTime << ">" <<timeout<<endl;
