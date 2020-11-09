@@ -68,7 +68,7 @@ void AdminRegistryServer::initialize()
 int AdminRegistryServer::loadServantEndpoint()
 {
     map<string, string> mapAdapterServant;
-    mapAdapterServant = ServantHelperManager::getInstance()->getAdapterServant();
+    mapAdapterServant = _servantHelper->getAdapterServant();
 
     map<string, string>::iterator iter;
     for(iter = mapAdapterServant.begin(); iter != mapAdapterServant.end(); iter++ )

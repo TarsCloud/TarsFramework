@@ -93,7 +93,7 @@ RegistryProcThread* RegistryServer::getRegProcThread()
 
 int RegistryServer::loadServantEndpoint()
 {
-    map<string, string> mapAdapterServant = ServantHelperManager::getInstance()->getAdapterServant();
+    map<string, string> mapAdapterServant = _servantHelper->getAdapterServant();
 
     map<string, string>::iterator iter;
     for (iter = mapAdapterServant.begin(); iter != mapAdapterServant.end(); iter++)

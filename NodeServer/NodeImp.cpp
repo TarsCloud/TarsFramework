@@ -259,7 +259,7 @@ int NodeImp::shutdown( string &result,TarsCurrentPtr current )
             TLOGERROR(FILE_FUN << result << endl);
             return -1;
         }
-        Application::terminate();
+        getApplication()->terminate();
         return 0;
     }
     catch ( exception& e )
