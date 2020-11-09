@@ -1,3 +1,13 @@
+## v2.4.10 2020.11.09
+### en
+- fix tarsregisty not return inactive ip of tarsAdminRegistry
+- fix tarsnotify deadcycle bug
+- fix compiler bug, in tarscpp v2.4.14 version
+### cn
+- 修改tarsregisty不返回inactive的tarsAdminRegistry ip
+- 修改tarsnotify可能的死循环问题
+- 修改编译问题, 支持到v2.4.14版本的tarscpp
+
 ## v2.4.9 2020.10.11
 ### en
 - Fix Windows compilation errors 

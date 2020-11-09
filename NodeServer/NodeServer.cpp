@@ -165,7 +165,7 @@ TC_Endpoint NodeServer::getAdapterEndpoint(const string& name) const
 {
     TLOGINFO("NodeServer::getAdapterEndpoint:" << name << endl);
 
-    TC_EpollServerPtr pEpollServerPtr = Application::getEpollServer();
+    TC_EpollServerPtr pEpollServerPtr = getEpollServer();
     assert(pEpollServerPtr);
 
     TC_EpollServer::BindAdapterPtr pBindAdapterPtr = pEpollServerPtr->getBindAdapter(name);

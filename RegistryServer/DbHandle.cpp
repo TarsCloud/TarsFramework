@@ -1232,8 +1232,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
 
                 ServantStatusKey statusKey = { res[i]["application"], res[i]["server_name"], res[i]["node_name"] }; 
                 
-                if ((res[i]["setting_state"] == "active" && res[i]["present_state"] == "active") 
-                    || res[i]["servant"] == "tars.tarsAdminRegistry.AdminRegObj") //如果是管理服务, 强制认为它是活的
+                if ((res[i]["setting_state"] == "active" && res[i]["present_state"] == "active"))
                 {
                     //存活列表
                     objectsCache[res[i]["servant"]].vActiveEndpoints.push_back(epf);
