@@ -235,7 +235,7 @@ int PatchCache::__loadFile(const std::string & sFile, char * szBuff, size_t size
         return -4;
     }
 
-    FILE * fp = fopen(sFile.c_str(), "r");
+    FILE * fp = fopen(sFile.c_str(), "rb");
     if (fp == NULL)
     {
         TLOGERROR("PatchCache::__loadFile sFile:" << sFile << "|sizeLen:" << sizeLen << "|open file error:" << strerror(errno) << endl);
