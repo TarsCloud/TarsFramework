@@ -3,10 +3,17 @@
 - fix tarsregisty not return inactive ip of tarsAdminRegistry
 - fix tarsnotify deadcycle bug
 - fix compiler bug, in tarscpp v2.4.14 version
+- add tarsnode start timeout config
+- fix the error of tarspatch reading file in Windows
+- Filter some files and not submit them to GIT
+
 ### cn
 - 修改tarsregisty不返回inactive的tarsAdminRegistry ip
 - 修改tarsnotify可能的死循环问题
 - 修改编译问题, 支持到v2.4.14版本的tarscpp
+- tarsnode添加启动超时配置
+- 修复windows下tarspatch 读取文件错误
+- 过滤某些文件, 不提交到git上 
 
 ## v2.4.9 2020.10.11
 ### en
