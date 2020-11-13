@@ -436,6 +436,8 @@ public:
 
     void setEnv(const string & sEnv) { _env = sEnv; }
     void setHeartTimeout(int iTimeout) { _timeout = iTimeout; }
+    //设置启动activating超时时间 ms
+    void setActivatingTimeout(int iTimeout) { _activatingTimeout = iTimeout; }
 
     //java服务
     void setJvmParams(const string &sJvmParams){_jvmParams = sJvmParams;}
@@ -533,6 +535,7 @@ private:
     int                 _timeout;              //心跳超时时间
     string              _env;                  //环境变量字符串
     string              _backupFiles;          //针对java服务发布时bin目录下需要保留的文件；可以用;|来分隔
+    int                 _activatingTimeout;    //服务启动activating状态超时时间
 
 private:
     bool                 _limitStateUpdated;    //服务的limit配置是否有更新，重启也算更新

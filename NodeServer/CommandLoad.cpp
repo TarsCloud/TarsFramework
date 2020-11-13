@@ -390,6 +390,7 @@ int CommandLoad::updateConfigFile(string& sResult)
         _serverObjectPtr->setClassPath(tConf.get("/tars/application/server<classpath>", ""));
         _serverObjectPtr->setEnv(tConf.get("/tars/application/server<env>", ""));
         _serverObjectPtr->setHeartTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<hearttimeout>", "")));
+        _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "")));
 
         _serverObjectPtr->setRedirectPath(tConf.get("/tars/application/<redirectpath>", ""));
 
