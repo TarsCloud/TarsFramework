@@ -1,0 +1,13 @@
+# ignore temporal files
+*~
+
+# ignore generated files by cmake
+build/
+!build/build.sh
+!build/README.md
+download/
+
+# ignore generated files by vscode
+.code/
+*.code-workspace
+.devcontainer/
