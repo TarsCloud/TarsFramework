@@ -55,12 +55,14 @@ void BatchPatch::terminate()
         }
     }
 
+    {
+        TC_ThreadLock::Lock lock(_queueMutex);
+        _queueMutex.notifyAll();
+    }
+
     for (size_t i = 0; i < _runners.size(); ++i)
     {
-        if(_runners[i]->isAlive())
-        {
-            _runners[i]->getThreadControl().join();
-        }
+        _runners[i]->getThreadControl().join();
     }
 
 }
@@ -127,11 +129,6 @@ BatchPatchThread::~BatchPatchThread()
 void BatchPatchThread::terminate()
 {
     _shutDown = true;
-
-    if (isAlive())
-    {
-        getThreadControl().join();
-    }
 }
 
 void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, ServerObjectPtr server)

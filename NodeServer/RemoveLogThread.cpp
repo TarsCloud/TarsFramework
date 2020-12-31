@@ -53,15 +53,15 @@ void RemoveLogManager::terminate()
         }
     }
 
-    for (size_t i = 0; i < _runners.size(); ++i)
     {
-        if(_runners[i]->isAlive())
-        {
-            _runners[i]->getThreadControl().join();
-        }
+        TC_ThreadLock::Lock lock(_queueMutex);
+        _queueMutex.notifyAll();
     }
 
-    _queueMutex.notifyAll();
+    for (size_t i = 0; i < _runners.size(); ++i)
+    {
+        _runners[i]->getThreadControl().join();
+    }
 }
 
 int RemoveLogManager::push_back(const string& logPath)
@@ -119,11 +119,6 @@ RemoveLogThread::~RemoveLogThread()
 void RemoveLogThread::terminate()
 {
     _shutDown = true;
-
-    if (isAlive())
-    {
-        getThreadControl().join();
-    }
 }
 
 void RemoveLogThread::run()

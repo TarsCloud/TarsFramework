@@ -41,9 +41,10 @@ void ReportMemThread::terminate()
 
     if(isAlive())
     {
+        TC_ThreadLock::Lock lock(_lock);
         _lock.notifyAll();
-        getThreadControl().join();
     }
+    getThreadControl().join();
 }
 
 bool ReportMemThread::timedWait(int millsecond)

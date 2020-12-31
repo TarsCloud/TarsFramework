@@ -33,9 +33,10 @@ void monitorNode(const string &configFile)
 {
     TC_Config conf;
     conf.parseFile(configFile);
+    CommunicatorPtr c = new Communicator();
 
     string serverObj = "tars.tarsnode.ServerObj@" + conf["/tars/application/server/ServerAdapter<endpoint>"];
-    ServerFPrx sprx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServerFPrx>(serverObj);
+    ServerFPrx sprx = c->stringToProxy<ServerFPrx>(serverObj);
     unsigned int latestKeepAliveTime = sprx->tars_set_timeout(2000)->getLatestKeepAliveTime();
     unsigned int kaTimeout = TC_Common::strto<unsigned int>(conf.get("/tars/node/keepalive<synTimeout>", "300"));
     if (latestKeepAliveTime + kaTimeout < TNOW)
