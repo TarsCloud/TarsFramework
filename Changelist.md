@@ -1,3 +1,16 @@
+## v2.4.11 2021.01.06
+### en
+- fix tarsnode, not registerNode when nodeName is empty
+- fix tars-install.sh create database bug in k8s
+- tars.default add activating-timeout
+- fix tarsnode start scripts all success bug
+
+### cn
+- 修复tarsnode, 当nodeName为空时, 不要调用registerNode 
+- 修复 tars-install.sh 创建 database 的问题
+- tars.default 添加 activating-timeout 参数
+- 修复tarsnode启动脚本的时候, 总是判断成功的问题
+
 ## v2.4.10 2020.11.09
 ### en
 - fix tarsregisty not return inactive ip of tarsAdminRegistry

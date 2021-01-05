@@ -94,7 +94,7 @@ int64_t ServerObject::savePid()
 
     string data = TC_File::load2str(sPidFile);
 
-    int64_t iPid = -1;
+    int64_t iPid = 0;
     vector<string> v = TC_Common::sepstr<string>(data, " \t");
     if(v.size() > 2)
     {
