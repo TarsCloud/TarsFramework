@@ -148,12 +148,15 @@ bool KeepAliveThread::registerNode()
     NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "registerNode begin===============|node name|" << _nodeInfo.nodeName << endl;
     try
     {
-        int iRet = _registryPrx->tars_set_timeout(1000)->registerNode(_nodeInfo.nodeName, _nodeInfo, _platformInfo.getLoadInfo());
-
-        if (iRet == 0)
+        if(!_nodeInfo.nodeName.empty())
         {
-            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "register node succ" << endl;
-            return true;
+            int iRet = _registryPrx->tars_set_timeout(1000)->registerNode(_nodeInfo.nodeName, _nodeInfo, _platformInfo.getLoadInfo());
+
+            if (iRet == 0)
+            {
+                NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "register node succ" << endl;
+                return true;
+            }
         }
     }
     catch (exception& e)
