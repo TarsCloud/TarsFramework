@@ -421,21 +421,41 @@ if [ "${SLAVE}" != "true" ]; then
 
         LOG_INFO "no db_tars exists, begin build db_tars..."  
 
-        LOG_INFO "modify ip in sqls:${WORKDIR}/framework/sql";
-
-        LOG_INFO "create database (db_tars, tars_stat, tars_property, db_tars_web)";
+        LOG_INFO "create database db_tars";
 
         exec_mysql_script "create database db_tars"
-        exec_mysql_script "create database tars_stat"
-        exec_mysql_script "create database tars_property"
-        exec_mysql_script "create database db_tars_web"
 
         exec_mysql_sql db_tars db_tars.sql
-        exec_mysql_sql db_tars_web db_tars_web.sql
-
+        
         #only new to create tarslog, becouse tarslog may be transfer to other node
         LOG_INFO "create log servers";
         exec_mysql_sql db_tars tars_servers_logs.sql
+    fi
+
+    exec_mysql_has "db_tars_web"
+    if [ $? != 0 ]; then
+
+        LOG_INFO "no db_tars_web exists, begin build db_tars_web..."  
+
+        exec_mysql_script "create database db_tars_web"
+
+        exec_mysql_sql db_tars_web db_tars_web.sql
+    fi
+
+    exec_mysql_has "tars_stat"
+    if [ $? != 0 ]; then
+
+        LOG_INFO "no tars_stat exists, begin build tars_stat..."  
+
+        exec_mysql_script "create database tars_stat"
+    fi
+
+    exec_mysql_has "tars_property"
+    if [ $? != 0 ]; then
+
+        LOG_INFO "no tars_property exists, begin build tars_property..."  
+
+        exec_mysql_script "create database tars_property"
     fi
 
     exec_mysql_has "db_cache_web"
