@@ -46,7 +46,7 @@ void monitorNode(const string &configFile)
     }
     else
     {
-        cerr << "MonitorNode ok, latestKeepAliveTime:" << latestKeepAliveTime << ", kaTimeout:" << kaTimeout << endl;
+//        cerr << "MonitorNode ok, latestKeepAliveTime:" << latestKeepAliveTime << ", kaTimeout:" << kaTimeout << endl;
     }
 
 }
