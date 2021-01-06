@@ -53,7 +53,6 @@ void KeepAliveThread::terminate()
 	    TC_ThreadLock::Lock lock(_lock);
 
 	    _lock.notifyAll();
-        getThreadControl().join();
     }
 
     getThreadControl().join();
