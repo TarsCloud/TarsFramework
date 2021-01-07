@@ -19,4 +19,11 @@
         #path wait timeout(s)
         patch_wait_timeout = 300
     </patch>
+    <db_reserve>
+        #stat reserve time(day)
+        stat_reserve_time = 31
+        #stat reserve time(day)
+        property_reserve_time = 31
+    </db_reserve>
+
 </tars>

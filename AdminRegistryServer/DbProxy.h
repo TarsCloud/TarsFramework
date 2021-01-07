@@ -23,6 +23,7 @@
 #include "util/tc_mysql.h"
 #include "util/tc_file.h"
 #include "util/tc_singleton.h"
+#include "util/tc_timer.h"
 #include "Node.h"
 #include "servant/RemoteLogger.h"
 #include "AdminReg.h"
@@ -278,6 +279,11 @@ public:
     */
     int loadIPPhysicalGroupInfo();
 
+    /**
+     * 只保留必要的数据
+     */
+    void doReserveDb(const string path, TC_Config *pconf);
+
 //    int getServerInfo(const tars::srvRequestInfo & info,vector<tars::serverInfo>& vServerInfo);
 protected:
     //mysql连接对象
@@ -300,6 +306,15 @@ protected:
 
     //保留历史发布记录
     static int _patchHistory;
+
+    //定时器
+    static TC_Timer _timer;
+
+    //statdb表保留天数
+    static int _statReserveDay;
+
+    //property表保留天数
+	static int _propertyReserveDay;
 };
 
 #define DBPROXY		DbProxy::getInstance()
