@@ -13,5 +13,10 @@
     Interval=10
     sql=insert ignore into t_master_property select  master_name, property_name, policy from ${TABLE}  group by  master_name, property_name, policy;
   </reapSql>
+
+  <db_reserve>
+    #property reserve time(day)
+    property_reserve_time = 31
+  </db_reserve>  
 </tars>
 

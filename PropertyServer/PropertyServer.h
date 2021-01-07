@@ -16,6 +16,7 @@
 
 #ifndef __PROPERTY_SERVER_H_
 #define __PROPERTY_SERVER_H_
+#include "util/tc_timer.h"
 
 #include "servant/Application.h"
 #include "PropertyReapThread.h"
@@ -55,7 +56,9 @@ public:
     PropertyHashMap * getHashMapBuff(int iIndex, int iBuffer) { return &(_hashmap[iIndex][iBuffer]); }
 
     int getBuffNum() { return _buffNum; }    
-        
+
+    void doReserveDb(const string path, TC_Config *pconf);
+    
 protected:
     /**
      * 初始化, 只会进程调用一次
@@ -92,6 +95,9 @@ private:
 
     int     _buffNum;
 
+    int _reserveDay = 31;
+
+    TC_Timer _timer;
 };
 
 extern PropertyServer g_app;

@@ -23,7 +23,6 @@
 #include "util/tc_thread_mutex.h"
 #include "util/tc_lock.h"
 #include "util/tc_thread_pool.h"
-// #include "util/tc_atomic.h"
 #include "DbThread.h"
 #include "QueryDbThread.h"
 
@@ -115,6 +114,7 @@ private:
     TC_ThreadPool        _poolDb;             //具体查询压缩维度后的数据库实例数据的线程池
 
     set<string>            _notTarsSlaveName;        //匹配非tars被调服务名
+
 };
 
 extern QueryServer g_app;

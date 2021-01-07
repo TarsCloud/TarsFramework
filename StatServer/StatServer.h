@@ -17,6 +17,7 @@
 #ifndef __STAT_SERVER_H_
 #define __STAT_SERVER_H_
 
+#include "util/tc_timer.h"
 #include "servant/Application.h"
 #include "servant/StatF.h"
 #include "StatHashMap.h"
@@ -66,6 +67,8 @@ public:
 
     int getBuffNum() { return _iBuffNum; }
 
+    void doReserveDb(const string path, TC_Config *pconf);
+
 private:
     void initHashMap();
 
@@ -93,6 +96,10 @@ private:
     StatHashMap **_hashmap;
 
     int _iBuffNum;
+
+    int _reserveDay = 31;
+
+    TC_Timer _timer;
 };
 
 extern TC_Config* g_pconf;

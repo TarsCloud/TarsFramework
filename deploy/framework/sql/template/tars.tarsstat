@@ -18,4 +18,9 @@
     interval=5
     insertDbThreadNum=4
   </reapSql>
+
+  <db_reserve>
+    #stat reserve time(day)
+    stat_reserve_time = 31
+  </db_reserve> 
 </tars>

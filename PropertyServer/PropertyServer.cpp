@@ -35,6 +35,12 @@ void PropertyServer::initialize()
             _insertInterval = 5;
         }
 
+	    _reserveDay = TC_Common::strto<int>(g_pconf->get("/tars/db_reserve<property_reserve_time>", "31"));
+	    if(_reserveDay < 2)
+	    {
+		    _reserveDay = 2;
+        }
+
         //获取业务线程个数
         string sAdapter = ServerConfig::Application + "." + ServerConfig::ServerName + ".PropertyObjAdapter";
         string sHandleNum = "/tars/application/server/";
@@ -77,6 +83,10 @@ void PropertyServer::initialize()
         
         _reapThread->start();
 
+	    _timer.startTimer();
+        // _timer.postRepeated(10000, false, std::bind(&PropertyServer::doReserveDb, this, "propertydb", g_pconf));
+	    _timer.postCron("0 0 3 * * *", std::bind(&PropertyServer::doReserveDb, this, "propertydb", g_pconf));
+
         TARS_ADD_ADMIN_CMD_PREFIX("tars.tarsproperty.randorder", PropertyServer::cmdSetRandOrder);
     }
     catch ( exception& ex )
@@ -90,6 +100,55 @@ void PropertyServer::initialize()
         exit( 0 );
     }
 }
+
+
+void PropertyServer::doReserveDb(const string path, TC_Config *pconf)
+{
+	try
+	{
+
+		vector<string> dbs = pconf->getDomainVector("/tars/" + path);
+
+		for(auto &db : dbs)
+		{
+			TC_DBConf tcDBConf;
+			tcDBConf.loadFromMap(pconf->getDomainMap("/tars/" + path + "/" + db));
+
+			TC_Mysql mysql(tcDBConf);
+
+			string sql = "select table_name from information_schema.tables where table_schema='" + tcDBConf._database + "' and table_type='base table' order by table_name";
+
+			string suffix = TC_Common::tm2str(TNOW - _reserveDay * 24 * 60 * 60, "%Y%m%d") + "00";
+
+			string tableName = pconf->get("/tars/" + path + "/" + db + "<tbname>") + suffix;
+
+            // TLOGDEBUG(__FUNCTION__ << " tableName: " << tableName<< endl);
+
+			auto datas = mysql.queryRecord(sql);
+
+			for(size_t i = 0; i < datas.size(); i++)
+			{
+				string name = datas[i]["table_name"];
+
+				if(name < tableName)
+				{
+                    TLOGDEBUG(__FUNCTION__ << ", drop name:" << name << ", tableName: " << tableName << ", " << (name < tableName) << endl);
+
+					mysql.execute("drop table " + name);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+	}catch(exception &ex)
+	{
+		TLOGERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+	}
+}
+
 string PropertyServer::getRandOrder(void)
 {
     return _randOrder;
