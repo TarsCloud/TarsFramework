@@ -104,10 +104,10 @@ void KeepAliveThread::run()
             {
                 bRegistered = registerNode();
             }
-	    else
-	    {
-		_nodeInfo = _platformInfo.getNodeInfo();
-	    }
+            else
+            {
+                _nodeInfo = _platformInfo.getNodeInfo();
+            }
 
             //加载服务
             if (bLoaded == false)
