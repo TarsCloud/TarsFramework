@@ -11,8 +11,6 @@
       property=tars.tarsproperty.PropertyObj
       report-interval=60000
       modulename=${modulename}
-      sample-rate=100000
-      max-sample-count=50
    </client>
    <server>
       app=${app}

@@ -417,6 +417,46 @@ void NodeServer::reportServer(const string& sServerId, const string &sSet, const
     }
 }
 
+string NodeServer::getQueryEndpoint()
+{
+    QueryFPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<QueryFPrx>("tars.tarsregistry.QueryObj");
+
+    string str;
+
+    vector<EndpointF> activeEp;
+    vector<EndpointF> inactiveEp;
+
+    prx->findObjectById4All("tars.tarsregistry.QueryObj", activeEp, inactiveEp);
+
+    if(activeEp.empty())
+    {
+        return str;
+    }
+    
+    for(size_t i = 0; i < inactiveEp.size(); i++)
+    {
+        activeEp.push_back(inactiveEp[i]);
+    }
+
+    for(size_t i = 0; i < activeEp.size(); i++)
+    {
+        str += "tcp -h " + activeEp[i].host + " -p " + TC_Common::tostr(activeEp[i].port); 
+
+        if(i != activeEp.size() -1) 
+        {
+            str += ":";
+        }
+    }
+
+    if(!str.empty())
+    {
+        str = "tars.tarsregistry.QueryObj@" + str;
+    }
+
+    return str;
+}
+
+
 int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, bool first)
 {
 	try
@@ -472,6 +512,12 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 			return -1;
 		}
 
+        string nNewLocator = getQueryEndpoint();
+        if(!nNewLocator.empty())
+        {
+            sLocator = nNewLocator;
+        }
+
 		sTemplate = TC_Common::replace(sTemplate, "${enableset}", config.get("/tars/application/server<enableset>", "n"));
 		sTemplate = TC_Common::replace(sTemplate, "${setdivision}", config.get("/tars/application/server<setdivision>", ""));
 		sTemplate = TC_Common::replace(sTemplate, "${locator}", sLocator);
@@ -483,6 +529,8 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 	    sTemplate = TC_Common::replace(sTemplate, "${logpath}", config.get("/tars/application/server<logpath>", "tars"));
         sTemplate = TC_Common::replace(sTemplate, "${localip}",sLocalIp);
 		sTemplate = TC_Common::replace(sTemplate, "${local}", config.get("/tars/application/server<local>", ""));
+		sTemplate = TC_Common::replace(sTemplate, "${modulename}", "tars.tarsnode");
+
 
 //		cout << TC_Common::outfill("", '-') << endl;
 

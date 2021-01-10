@@ -100,6 +100,12 @@ protected:
      * 初始化hashmap
      */
     void initHashMap();
+
+    /**
+    * 获取主控地址 
+    */
+    static string getQueryEndpoint();
+
 private:
     /**
      *初始化主控obj名字
