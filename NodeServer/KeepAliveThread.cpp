@@ -100,7 +100,7 @@ void KeepAliveThread::run()
             }
 
             //注册node信息
-            if (_registryPrx && bRegistered == false && !nodeInfo.nodeName.empty())
+            if (_registryPrx && bRegistered == false && !_nodeInfo.nodeName.empty())
             {
                 bRegistered = registerNode();
             }
