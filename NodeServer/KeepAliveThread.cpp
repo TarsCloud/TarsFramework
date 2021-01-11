@@ -100,9 +100,13 @@ void KeepAliveThread::run()
             }
 
             //注册node信息
-            if (_registryPrx && bRegistered == false)
+            if (_registryPrx && bRegistered == false && !nodeInfo.nodeName.empty())
             {
                 bRegistered = registerNode();
+            }
+            else
+            {
+                _nodeInfo = _platformInfo.getNodeInfo();
             }
 
             //加载服务
