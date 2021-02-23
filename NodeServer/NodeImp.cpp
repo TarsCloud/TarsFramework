@@ -995,10 +995,10 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	fileData += "\n";
 
     errstr.clear();
-    fileData += TC_Port::exec(cmd.c_str(), errstr);
+    fileData = TC_Port::exec(cmd.c_str(), errstr);
     if (fileData.empty()) {
         if (!errstr.empty()) {
-            fileData += errstr;
+            fileData = errstr;
             NODE_LOG(serverId)->error() << errstr << endl;
         }
     }
