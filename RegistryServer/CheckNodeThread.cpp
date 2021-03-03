@@ -48,7 +48,7 @@ int CheckNodeThread::init()
     _nodeTimeout = _nodeTimeout < 15 ? 15 : _nodeTimeout;
 
     _nodeTimeoutInterval = TC_Common::strto<int>((*g_pconf).get("/tars/reap<nodeTimeoutInterval>", "60"));
-    _nodeTimeoutInterval = _nodeTimeoutInterval < 15 ? 5 : _nodeTimeoutInterval;
+    _nodeTimeoutInterval = _nodeTimeoutInterval < 15 ? 15 : _nodeTimeoutInterval;
 
     TLOGDEBUG("CheckNodeThread init ok."<<endl);
 
