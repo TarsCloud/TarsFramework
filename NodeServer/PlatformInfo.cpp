@@ -51,7 +51,15 @@ LoadInfo PlatformInfo::getLoadInfo()
     // info.avg15  = static_cast<float>( loadAvg[2] );
     }
 #else
-    string data = TC_Port::exec("wmic cpu get loadpercentage");
+    string errstr;
+    string data = TC_Port::exec("wmic cpu get loadpercentage", errstr);
+    if (data.empty()) {
+        if (!errstr.empty()) {
+            TLOGERROR(errstr << endl);
+            return info;
+        }
+    }
+
     vector<string> v = TC_Common::sepstr<string>(data, "\n");
     for(auto s : v)
     {

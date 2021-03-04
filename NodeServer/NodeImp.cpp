@@ -887,7 +887,14 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 
 	NODE_LOG(serverId)->debug() << "[NodeImp::getLogData] newcmd:" << newCmd << endl;
 
-    fileData = TC_Port::exec(newCmd.c_str());
+    string errstr;
+    fileData = TC_Port::exec(newCmd.c_str(), errstr);
+    if (fileData.empty()) {
+        if (!errstr.empty()) {
+            fileData = errstr;
+            NODE_LOG(serverId)->error() << errstr << endl;
+        }
+    }
     
 // #if TARGET_PLATFORM_WINDOWS
 
@@ -939,7 +946,15 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 #else
 	string cmd = "top -c -bw 160 -n 1 -o '%CPU' -o '%MEM'";
 
-    fileData = TC_Port::exec(cmd.c_str()); 
+    string errstr;
+    fileData = TC_Port::exec(cmd.c_str(), errstr);
+    if (fileData.empty()) {
+        if (!errstr.empty()) {
+            fileData = errstr;
+            NODE_LOG(serverId)->error() << errstr << endl;
+        }
+    }
+    
 	// FILE* fpTop = popen(cmd.c_str(), "r");
 	// char   buf[1 * 1024 * 1024] = { 0 };
 	// fread(buf, sizeof(char), sizeof(buf)-1, fpTop);
@@ -957,7 +972,15 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 		fileData += "\n\n";
 		fileData += "#this-top-begin#" + string(100, '-');
 		fileData += "\n";
-        fileData += TC_Port::exec(cmd.c_str()); 
+        
+        errstr.clear();
+        fileData += TC_Port::exec(cmd.c_str(), errstr);
+        if (fileData.empty()) {
+            if (!errstr.empty()) {
+                fileData += errstr;
+                NODE_LOG(serverId)->error() << errstr << endl;
+            }
+        }
 		// fileData += string(buf);
 		fileData += "#this-top-end#";
 	}
@@ -970,7 +993,15 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	fileData += "\n\n";
 	fileData += "#core-file-begin#" + string(100, '-');
 	fileData += "\n";
-    fileData = TC_Port::exec(cmd.c_str()); 
+
+    errstr.clear();
+    fileData = TC_Port::exec(cmd.c_str(), errstr);
+    if (fileData.empty()) {
+        if (!errstr.empty()) {
+            fileData = errstr;
+            NODE_LOG(serverId)->error() << errstr << endl;
+        }
+    }
 	// fileData += string(buf);
 
 	NODE_LOG(serverId)->debug() << fileData << endl;
