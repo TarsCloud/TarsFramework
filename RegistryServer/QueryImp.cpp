@@ -126,7 +126,8 @@ void QueryImp::doDaylog(const FUNID eFnId,const string& id,const vector<Endpoint
 			if (0 != i) {
 				sEpList += ";";
 			}
-			sEpList += activeEp[i].host + ":" + TC_Common::tostr(activeEp[i].port);
+        sEpList += activeEp[i].host + ":" + TC_Common::tostr(activeEp[i].port) + ", " + TC_Common::tostr(activeEp[i].weight)
+                + ", " + TC_Common::tostr(activeEp[i].weightType);
 		}
 
 		sEpList += "|";
@@ -135,7 +136,8 @@ void QueryImp::doDaylog(const FUNID eFnId,const string& id,const vector<Endpoint
 			if (0 != i) {
 				sEpList += ";";
 			}
-			sEpList += inactiveEp[i].host + ":" + TC_Common::tostr(inactiveEp[i].port);
+        sEpList += inactiveEp[i].host + ":" + TC_Common::tostr(inactiveEp[i].port) + ", " + TC_Common::tostr(inactiveEp[i].weight)
+                + ", " + TC_Common::tostr(inactiveEp[i].weightType);
 		}
 
 		switch (eFnId) {
