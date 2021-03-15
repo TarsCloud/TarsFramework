@@ -184,6 +184,8 @@ public:
      */
     string getProfileTemplate(const string & sTemplateName, string & sResultDesc);
 
+    void getAllDynamicWeightServant(std::vector<string> &vtServant);
+
 protected:
     /**
      * 获取server的配置模板
@@ -393,6 +395,14 @@ public:
     int loadGroupPriority(bool fromInit);
 
     /**
+     * 加载stat统计数据到内存
+     * @param vtServer 要加载的服务列表
+     * @param statData 加载的db数据
+     * @return
+     */
+    int loadStatData(const vector<string> &vtServer, tars::TC_Mysql::MysqlData &statData);
+
+    /**
      * 更新registry信息到db
      */
     int updateRegistryInfo2Db(bool bRegHeartbeatOff=false);
@@ -527,6 +537,9 @@ protected:
     static TC_ReadersWriterData<map<string,int> > _groupIdMap;
     static TC_ReadersWriterData<map<string,int> > _groupNameMap;
 
+     // stat监控数据mysql连接对象
+     static tars::TC_Mysql _mysqlQueryStat;
+     static bool _isMysqlQueryStatInited;
 };
 
 #endif

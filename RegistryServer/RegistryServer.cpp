@@ -15,6 +15,9 @@
  */
 
 #include "RegistryServer.h"
+#include "util.h"
+
+#include "LoadBalanceThread.h"
 
 extern TC_Config *g_pconf;
 
@@ -42,6 +45,10 @@ void RegistryServer::initialize()
         //监控所有服务状态的线程
         _checksetingThread.init();
         _checksetingThread.start();
+
+        // 启动动态负载均衡加载线程
+        LOAD_BALANCE_INS->init();
+        LOAD_BALANCE_INS->start();
 
         //异步处理线程
         _registryProcThread = new RegistryProcThread();
