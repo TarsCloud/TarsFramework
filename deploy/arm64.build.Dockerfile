@@ -1,4 +1,4 @@
-FROM centos/systemd
+FROM arm64v8/centos:7
 
 RUN yum install -y yum-utils psmisc net-tools gcc gcc-c++ make wget unzip telnet \
     yum clean all && rm -rf /var/cache/yum
@@ -20,3 +20,14 @@ RUN mkdir -p /tmp/cmake/  \
     && ./configure  \
     && make -j4 && make install \
     && rm -rf /tmp/cmake
+
+
+RUN yum install git -y && yum clean all && rm -rf /var/cache/yum
+
+RUN cd /data && mkdir -p build-tmp && cd build-tmp && cmake .. && make -j4 && make install
+
+ENV TARS_INSTALL /usr/local/tars/cpp/deploy
+
+RUN web ${TARS_INSTALL}/web
+
+ENTRYPOINT [ "/usr/local/tars/cpp/deploy/docker-init.sh"]
