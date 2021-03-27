@@ -2,7 +2,7 @@ FROM centos/systemd
 
 # RUN curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 
-RUN yum makecache && yum install -y wget unzip \
+RUN yum makecache && yum install -y wget unzip git \
     yum clean all && rm -rf /var/cache/yum
 
 RUN wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip; cp -rf nvm-0.35.1 $HOME/.nvm
@@ -14,7 +14,6 @@ RUN source $HOME/.bashrc && ls && nvm install v12.13.0
 RUN yum install -y yum-utils psmisc make net-tools gcc gcc-c++ telnet openssl-devel bison flex \
     yum clean all && rm -rf /var/cache/yum
 
-
 # Install cmake for cpp
 RUN mkdir -p /tmp/cmake/  \
     && cd /tmp/cmake \
@@ -25,15 +24,14 @@ RUN mkdir -p /tmp/cmake/  \
     && make -j4 && make install \
     && rm -rf /tmp/cmake
 
-RUN yum install git -y && yum clean all && rm -rf /var/cache/yum
-
-COPY . /data
-RUN cd /data && mkdir -p build-tmp && cd build-tmp && cmake .. && make -j4 && make install
-
 ENV TARS_INSTALL /usr/local/tars/cpp/deploy
 
 COPY web ${TARS_INSTALL}/web
 
-RUN rm -rf /data
+COPY . /data
+
+RUN cd /data && mkdir -p build-tmp && cd build-tmp && cmake .. && make -j4 && make install && strip ${TARS_INSTALL}/framework/servers/tars*/bin/tars* && cd / && rm -rf /data
+
+RUN ${TARS_INSTALL}/tar-server.sh
 
 ENTRYPOINT [ "/usr/local/tars/cpp/deploy/docker-init.sh"]

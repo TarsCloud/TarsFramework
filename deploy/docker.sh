@@ -1,15 +1,20 @@
-
 #!/bin/bash
 
-if [ $# -lt 1 ]; then
-    echo $0 version
-    exit
+if [ $# -lt 2  ]; then
+    echo $0 version dockerfile
+    echo "example: "$0 v2.4.15 deploy/x64.build.Dockerfile
+    echo "example: "$0 v2.4.15 deploy/arm64.build.Dockerfile
+    exit 1      
+fi              
+
+SRC=`pwd`
+
+if [ ! -d "deploy" ]; then
+    echo "you must execute $0 in framework directory."
+    exit 1
 fi
 
-workdir=$(cd $(dirname $0); pwd)
+docker build . -t $1 -f $2
 
-strip ${workdir}/framework/servers/tars*/bin/tars*
-docker rmi -f tarscloud/framework:$1
-#docker build --no-cache ${workdir}/. -t tarscloud/framework:$1
-docker build --no-cache ${workdir}/. -t tarscloud/framework:$1
+
 
