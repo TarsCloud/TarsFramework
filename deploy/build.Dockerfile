@@ -1,13 +1,15 @@
-FROM arm64v8/centos:7
+FROM centos/systemd
 
-RUN yum makecache && yum install -y wget unzip git \
+# RUN curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+
+RUN yum makecache && yum install -y yum-utils psmisc make net-tools gcc gcc-c++ wget unzip telnet \
     yum clean all && rm -rf /var/cache/yum
 
 RUN wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip;unzip v0.35.1.zip; cp -rf nvm-0.35.1 $HOME/.nvm
 
 RUN echo 'NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion";' >> $HOME/.bashrc;
 
-RUN source $HOME/.bashrc && nvm install v12.13.0
+RUN source $HOME/.bashrc && ls && nvm install v12.13.0
 
 RUN curl -O https://tars-thirdpart-1300910346.cos.ap-guangzhou.myqcloud.com/src/helm-v3.5.2-linux-amd64.tar.gz
 
@@ -20,15 +22,3 @@ RUN mkdir -p /tmp/cmake/  \
     && ./configure  \
     && make -j4 && make install \
     && rm -rf /tmp/cmake
-
-ENV TARS_INSTALL /usr/local/tars/cpp/deploy
-
-COPY web ${TARS_INSTALL}/web
-
-COPY . /data
-
-RUN cd /data && mkdir -p build-tmp && cd build-tmp && cmake .. && make -j4 && make install && strip ${TARS_INSTALL}/framework/servers/tars*/bin/tars* && cd / && rm -rf /data
-
-RUN ${TARS_INSTALL}/tar-server.sh
-
-ENTRYPOINT [ "/usr/local/tars/cpp/deploy/docker-init.sh"]
