@@ -3,8 +3,11 @@
 source $HOME/.bashrc
 
 npm install -g npm pm2 \
-    && cd ${TARS_INSTALL}/web && npm install \
-    && cd ${TARS_INSTALL}/web/demo && npm install
+    && cd ${TARS_INSTALL}/web && npm install 
+
+if [ -d ${TARS_INSTALL}/web/demo ]; then
+    cd ${TARS_INSTALL}/web/demo && npm install
+fi
 
 mkdir /usr/local/app && ln -s ${TARS_INSTALL}/web /usr/local/app/web 
 

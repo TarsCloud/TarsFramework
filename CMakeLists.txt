@@ -6,6 +6,8 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 
 set(TARS_CPP_COMMON "1")
 
+include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/GenVersion.cmake")
+
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Common.cmake")
 
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/BuildTarsCpp.cmake")
@@ -15,6 +17,17 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/Thirdparty.cmake")
 include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
 add_subdirectory(tarscpp)
+
+set(major "")
+set(minor "")
+set(patch "")
+get_version(major minor patch)
+set(FRAMEWORK_VERSION ${major}.${minor}.${patch})
+add_definitions(-DFRAMEWORK_VERSION="${FRAMEWORK_VERSION}")
+add_definitions(-DTARS_VERSION="${TARS_VERSION}")
+
+message("FRAMEWORK_VERSION:         ${FRAMEWORK_VERSION}")
+message("----------------------------------------------------")
 
 include_directories(${servant_SOURCE_DIR})
 
@@ -78,7 +91,6 @@ add_subdirectory(patchclient)
 add_subdirectory(StatServer)
 add_subdirectory(QueryStatServer)
 add_subdirectory(QueryPropertyServer)
-#add_subdirectory(AuthServer)
 ############################################################################################
 # 打包deploy, 用于部署
 
@@ -129,6 +141,10 @@ foreach (MODULE ${DEPENDS_LIST})
 endforeach ()
 
 ############################################################################################
+
+file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/FRAMEWORK_VERSION.txt CONTENT "${FRAMEWORK_VERSION}")
+
+install(FILES ${CMAKE_BINARY_DIR}/FRAMEWORK_VERSION.txt DESTINATION deploy)
 
 install(DIRECTORY ${PROJECT_BINARY_DIR}/${BUILD_SERVER}/ DESTINATION deploy/framework/${BUILD_SERVER}
         PATTERN "tars*"

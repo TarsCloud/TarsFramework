@@ -14,7 +14,7 @@ if [ ! -d "deploy" ]; then
     exit 1
 fi
 
-docker build . -t $1 -f $2
+docker build . -t tarscloud/framework:$1 -f $2
 
 
 

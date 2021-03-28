@@ -35,7 +35,7 @@ void AdminRegistryImp::initialize()
     TLOGDEBUG("AdminRegistryImp init ok."<<endl);
 }
 
-int AdminRegistryImp::undeploy(const string & application, const string & serverName, const string & nodeName, const string &user, string &log, tars::TarsCurrentPtr current)
+int AdminRegistryImp::undeploy(const string & application, const string & serverName, const string & nodeName, const string &user, string &log, tars::CurrentPtr current)
 {
 	TLOGDEBUG("application:" << application
 		<< ", serverName:" << serverName
@@ -54,7 +54,7 @@ int AdminRegistryImp::undeploy_inner(const string & application, const string & 
 	return DBPROXY->undeploy(application, serverName, nodeName, user, log);
 }
 
-int AdminRegistryImp::addTaskReq(const TaskReq &taskReq, tars::TarsCurrentPtr current)
+int AdminRegistryImp::addTaskReq(const TaskReq &taskReq, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::addTaskReq taskNo:" << taskReq.taskNo <<endl);
 
@@ -70,7 +70,7 @@ int AdminRegistryImp::addTaskReq(const TaskReq &taskReq, tars::TarsCurrentPtr cu
     return 0;
 }
 
-int AdminRegistryImp::getTaskRsp(const string &taskNo, TaskRsp &taskRsp, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getTaskRsp(const string &taskNo, TaskRsp &taskRsp, tars::CurrentPtr current)
 {
     //优先从内存中获取
     bool ret = ExecuteTask::getInstance()->getTaskRsp(taskNo, taskRsp);
@@ -85,14 +85,14 @@ int AdminRegistryImp::getTaskRsp(const string &taskNo, TaskRsp &taskRsp, tars::T
     return DBPROXY->getTaskRsp(taskNo, taskRsp);
 }
 
-int AdminRegistryImp::getTaskHistory(const string & application, const string & serverName, const string & command, vector<TaskRsp> &taskRsp, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getTaskHistory(const string & application, const string & serverName, const string & command, vector<TaskRsp> &taskRsp, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::getTaskHistory application:" << application << "|serverName:" << serverName <<endl);
 
     return DBPROXY->getTaskHistory(application, serverName, command, taskRsp);
 }
 
-int AdminRegistryImp::setTaskItemInfo(const string & itemNo, const map<string, string> &info, tars::TarsCurrentPtr current)
+int AdminRegistryImp::setTaskItemInfo(const string & itemNo, const map<string, string> &info, tars::CurrentPtr current)
 {
 	return setTaskItemInfo_inner(itemNo, info);
 }
@@ -123,13 +123,13 @@ void AdminRegistryImp::deleteHistorys(const string &application, const string &s
     }
 }
 
-vector<string> AdminRegistryImp::getAllApplicationNames(string & result, tars::TarsCurrentPtr current)
+vector<string> AdminRegistryImp::getAllApplicationNames(string & result, tars::CurrentPtr current)
 {
 	TLOGDEBUG("into " << __FUNCTION__ << endl);
     return DBPROXY->getAllApplicationNames(result);
 }
 
-vector<string> AdminRegistryImp::getAllNodeNames(string & result, tars::TarsCurrentPtr current)
+vector<string> AdminRegistryImp::getAllNodeNames(string & result, tars::CurrentPtr current)
 {
     map<string, string> mNodes = DBPROXY->getActiveNodeList(result);
     map<string, string>::iterator it;
@@ -144,7 +144,7 @@ vector<string> AdminRegistryImp::getAllNodeNames(string & result, tars::TarsCurr
     return vNodes;
 }
 
-int AdminRegistryImp::getNodeVesion(const string &nodeName, string &version, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getNodeVesion(const string &nodeName, string &version, string & result, tars::CurrentPtr current)
 {
     try
     {
@@ -159,7 +159,7 @@ int AdminRegistryImp::getNodeVesion(const string &nodeName, string &version, str
     return -1;
 }
 
-bool AdminRegistryImp::pingNode(const string & name, string & result, tars::TarsCurrentPtr current)
+bool AdminRegistryImp::pingNode(const string & name, string & result, tars::CurrentPtr current)
 {
     try
     {
@@ -183,7 +183,7 @@ bool AdminRegistryImp::pingNode(const string & name, string & result, tars::Tars
     return false;
 }
 
-int AdminRegistryImp::shutdownNode(const string & name, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::shutdownNode(const string & name, string & result, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::shutdownNode name:"<<name<<"|"<<current->getHostName()<<":"<<current->getPort()<<endl);
     try
@@ -200,14 +200,14 @@ int AdminRegistryImp::shutdownNode(const string & name, string & result, tars::T
 }
 
 ///////////////////////////////////
-vector<vector<string> > AdminRegistryImp::getAllServerIds(string & result, tars::TarsCurrentPtr current)
+vector<vector<string> > AdminRegistryImp::getAllServerIds(string & result, tars::CurrentPtr current)
 {
     TLOGDEBUG(__FILE__ << "|" << __LINE__ << "|into " << __FUNCTION__ << "|" << current->getHostName() << ":" << current->getPort() << endl);
 
     return DBPROXY->getAllServerIds(result);
 }
 
-int AdminRegistryImp::getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string &result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string &result, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::getServerState:" << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
@@ -293,7 +293,7 @@ int AdminRegistryImp::getServerState(const string & application, const string & 
 
 }
 
-int AdminRegistryImp::getGroupId(const string & ip, int &groupId, string &result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getGroupId(const string & ip, int &groupId, string &result, tars::CurrentPtr current)
 {
     try
     {
@@ -308,7 +308,7 @@ int AdminRegistryImp::getGroupId(const string & ip, int &groupId, string &result
     }
 }
 
-int AdminRegistryImp::startServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::startServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::startServer: "<< application << "." << serverName << "_" << nodeName
         << "|" << current->getHostName() << ":" << current->getPort() <<endl);
@@ -423,7 +423,7 @@ int AdminRegistryImp::startServer_inner(const string & application, const string
 	return iRet;
 }
 
-int AdminRegistryImp::stopServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::stopServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::stopServer: "<< application << "." << serverName << "_" << nodeName
         << "|" << current->getHostName() << ":" << current->getPort() <<endl);
@@ -541,7 +541,7 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 	return iRet;
 }
 
-int AdminRegistryImp::restartServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::restartServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current)
 {
     TLOGDEBUG(" AdminRegistryImp::restartServer: " << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
 
@@ -709,7 +709,7 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
     return iRet;
 }
 
-int AdminRegistryImp::notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string &result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string &result, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::notifyServer: " << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
     int iRet = EM_TARS_UNKNOWN_ERR;
@@ -780,7 +780,7 @@ int AdminRegistryImp::notifyServer_inner(const string & application, const strin
     return iRet;
 }
 
-int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result, tars::CurrentPtr current)
 {
     tars::PatchRequest reqPro = req;
     reqPro.patchobj = (*g_pconf)["/tars/objname<patchServerObj>"];
@@ -973,7 +973,7 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 
 }
 
-int AdminRegistryImp::updatePatchLog(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ, tars::TarsCurrentPtr current)
+int AdminRegistryImp::updatePatchLog(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ, tars::CurrentPtr current)
 {
 	return updatePatchLog_inner(application, serverName, nodeName, patchId, user, patchType, succ);
 }
@@ -982,7 +982,7 @@ int AdminRegistryImp::updatePatchLog_inner(const string &application, const stri
 	return DBPROXY->updatePatchByPatchId(application, serverName, nodeName, patchId, user, patchType, succ);
 }
 
-int AdminRegistryImp::getPatchPercent( const string& application, const string& serverName,  const string & nodeName, PatchInfo &tPatchInfo, TarsCurrentPtr current)
+int AdminRegistryImp::getPatchPercent( const string& application, const string& serverName,  const string & nodeName, PatchInfo &tPatchInfo, CurrentPtr current)
 {
     int iRet = EM_TARS_UNKNOWN_ERR;
     string &result = tPatchInfo.sResult;
@@ -1062,7 +1062,7 @@ int AdminRegistryImp::getPatchPercent_inner(const string &application, const str
 	return iRet;
 }
 
-int AdminRegistryImp::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd, std::string &fileData, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd, std::string &fileData, tars::CurrentPtr current)
 {
     string result = "succ";
     try
@@ -1111,7 +1111,7 @@ int AdminRegistryImp::getLogData(const std::string & application, const std::str
 }
 
 
-int AdminRegistryImp::getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::TarsCurrentPtr current)
+int AdminRegistryImp::getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::CurrentPtr current)
 {
 	string result = "succ";
    try
@@ -1213,7 +1213,7 @@ string AdminRegistryImp::getServerType(const std::string & application, const st
 	return server[0].serverType;
 }
 
-int AdminRegistryImp::loadServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::TarsCurrentPtr current)
+int AdminRegistryImp::loadServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current)
 {
     try
     {
@@ -1244,7 +1244,7 @@ int AdminRegistryImp::loadServer(const string & application, const string & serv
 
 }
 
-int AdminRegistryImp::getProfileTemplate(const std::string & profileName,std::string &profileTemplate, std::string & resultDesc, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getProfileTemplate(const std::string & profileName,std::string &profileTemplate, std::string & resultDesc, tars::CurrentPtr current)
 {
     profileTemplate = DBPROXY->getProfileTemplate(profileName, resultDesc);
 
@@ -1252,7 +1252,7 @@ int AdminRegistryImp::getProfileTemplate(const std::string & profileName,std::st
     return 0;
 }
 
-int AdminRegistryImp::getServerProfileTemplate(const string & application, const string & serverName, const string & nodeName,std::string &profileTemplate, std::string & resultDesc, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getServerProfileTemplate(const string & application, const string & serverName, const string & nodeName,std::string &profileTemplate, std::string & resultDesc, tars::CurrentPtr current)
 {
     TLOGDEBUG("AdminRegistryImp::getServerProfileTemplate get " << application<<"."<<serverName<<"_"<<nodeName<< endl);
 
@@ -1284,7 +1284,7 @@ int AdminRegistryImp::getServerProfileTemplate(const string & application, const
     return iRet;
 }
 
-int AdminRegistryImp::getClientIp(std::string &sClientIp,tars::TarsCurrentPtr current)
+int AdminRegistryImp::getClientIp(std::string &sClientIp,tars::CurrentPtr current)
 {
     sClientIp = current->getHostName();
     return 0;
@@ -1340,7 +1340,7 @@ int AdminRegistryImp::preparePatch_inner(PatchRequest &req, string &result, bool
 
     return EM_TARS_SUCCESS;
 }
-int AdminRegistryImp::deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::TarsCurrentPtr current)
+int AdminRegistryImp::deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::CurrentPtr current)
 {
 	TLOGDEBUG(__FUNCTION__ << ":" << application << ", " << serverName << ", " << patchFile << endl);
 
@@ -1349,7 +1349,7 @@ int AdminRegistryImp::deletePatchFile(const string &application, const string &s
 	return 0;
 }
 
-int AdminRegistryImp::getServers(vector<tars::FrameworkServer> &servers, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getServers(vector<tars::FrameworkServer> &servers, tars::CurrentPtr current)
 {
 	TLOGDEBUG(__FUNCTION__ << endl);
 
@@ -1363,7 +1363,15 @@ int AdminRegistryImp::getServers(vector<tars::FrameworkServer> &servers, tars::T
 	return 0;
 }
 
-int AdminRegistryImp::checkServer(const FrameworkServer &server, tars::TarsCurrentPtr current)
+int AdminRegistryImp::getVersion(string &version, tars::CurrentPtr current)
+{
+	TLOGDEBUG(__FUNCTION__ << "version:" << FRAMEWORK_VERSION << endl);
+
+    version = FRAMEWORK_VERSION;
+    return 0;
+}
+
+int AdminRegistryImp::checkServer(const FrameworkServer &server, tars::CurrentPtr current)
 {
 	TLOGDEBUG(__FUNCTION__ << ", " << server.objName << endl);
 

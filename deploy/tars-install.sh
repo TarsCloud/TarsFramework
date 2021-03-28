@@ -307,6 +307,11 @@ mkdir -p ${SQL_TMP}
 
 cp -rf ${WORKDIR}/web/sql/*.sql ${WORKDIR}/framework/sql/
 
+FRAMEWORK_VERSION=`cat FRAMEWORK_VERSION.txt`
+if [ "${FRAMEWORK_VERSION}" != "" ]; then 
+    replacePath "2.1.0" ${FRAMEWORK_VERSION} ${WORKDIR}/framework/sql/
+fi
+
 if [ -d ${WORKDIR}/web/demo/sql ]; then
   cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
 fi
