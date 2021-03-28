@@ -18,6 +18,8 @@
 #include <algorithm>
 #include "DbHandle.h"
 #include "RegistryServer.h"
+#include "LoadBalanceThread.h"
+#include "util.h"
 
 TC_ReadersWriterData<ObjectsCache> CDbHandle::_objectsCache;
 
@@ -36,6 +38,9 @@ TC_ReadersWriterData<map<string, int> > CDbHandle::_groupNameMap;
 
 TC_ReadersWriterData<CDbHandle::SetDivisionCache> CDbHandle::_setDivisionCache;
 
+tars::TC_Mysql CDbHandle::_mysqlQueryStat;
+bool CDbHandle::_isMysqlQueryStatInited = false;
+
 extern RegistryServer g_app;
 extern TC_Config *g_pconf;
 
@@ -53,6 +58,14 @@ int CDbHandle::init(TC_Config *pconf)
             TLOGDEBUG("CDbHandle::init tcDBConf._flag: " << option << endl);
         }
         _mysqlReg.init(tcDBConf);
+
+        if (!_isMysqlQueryStatInited)
+        {
+            _isMysqlQueryStatInited = true;
+            TC_DBConf statDBConf;
+            statDBConf.loadFromMap(pconf->getDomainMap("/tars/querystatdb"));
+            _mysqlQueryStat.init(statDBConf);
+        }
     }
     catch (TC_Config_Exception& ex)
     {
@@ -381,6 +394,27 @@ string CDbHandle::getProfileTemplate(const string& sTemplateName, string& sResul
 {
     map<string, int> mapRecursion;
     return getProfileTemplate(sTemplateName, mapRecursion, sResultDesc);
+}
+
+void CDbHandle::getAllDynamicWeightServant(std::vector<string> &vtServant)
+{
+    ostringstream log;
+    const auto &objectCache = _objectsCache.getReaderData();
+    log << objectCache.size() << "|";
+    for (const auto &objPair : objectCache)
+    {
+        if (!objPair.second.vActiveEndpoints.empty())
+        {
+            if (LOAD_BALANCE_DYNAMIC_WEIGHT == objPair.second.vActiveEndpoints[0].weightType)
+            {
+                vtServant.push_back(objPair.first);
+                log << objPair.first << "; ";
+            }
+        }
+    }
+
+    log << "|vtServant size: " << vtServant.size();
+    TLOGDEBUG(log.str() << "|" << endl);
 }
 
 string CDbHandle::getProfileTemplate(const string& sTemplateName, map<string, int>& mapRecursion, string& sResultDesc)
@@ -1053,6 +1087,92 @@ int CDbHandle::loadGroupPriority(bool fromInit)
     return 0;
 }
 
+int CDbHandle::loadStatData(const vector<string> &vtServer, tars::TC_Mysql::MysqlData &statData)
+{
+    if (vtServer.empty())
+    {
+        TLOGERROR("CDbHandle::loadStatData empty vtServer!!!" << endl);
+
+        return LOAD_BALANCE_DB_EMPTY_LIST;
+    }
+
+    auto now(TNOW);
+    auto dateHour(TC_Common::tm2str(now, "%Y%m%d%H"));
+    auto date(TC_Common::tm2str(now, "%Y%m%d"));
+    ostringstream sql;
+    /*sql << "select stattime, f_date, slave_name, slave_ip, succ_count, timeout_count, ave_time from tars_stat_" << dateHour
+        << " where f_date = '" << date
+        << "' and stattime >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) and slave_name in(";
+
+    auto SIZE{vtServer.size()};
+    decltype(SIZE) count{0};
+    for (const string &server : vtServer)
+    {
+        ++count;
+        sql << "'" << server << "'" << (count < SIZE ? ", " : "");
+    }
+
+    sql << ")";*/
+
+    sql << "select stattime, f_date, slave_name, slave_ip, succ_count, timeout_count, ave_time from tars_stat_" << dateHour
+        << " where f_date = '" << date
+        << "' and stattime >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) and slave_name regexp '";
+
+    auto SIZE(vtServer.size());
+    decltype(SIZE) count(0);
+    for (const string &server : vtServer)
+    {
+        ++count;
+        auto pos(server.find_last_of(static_cast<string>(".")));
+        if (string::npos != pos)
+        {
+            sql << server.substr(0, pos) << (count < SIZE ? "|" : "");
+        }
+    }
+
+    sql << "'";
+
+    auto getData = [] (tars::TC_Mysql::MysqlData &statData, const string &sql) {
+        try
+        {
+            statData = _mysqlQueryStat.queryRecord(sql);
+        }
+        catch (TC_Mysql_Exception& ex)
+        {
+            TLOGERROR("CDbHandle::loadStatData exception: " << ex.what() << endl);
+
+            return LOAD_BALANCE_DB_FAILED;
+        }
+        catch (exception& ex)
+        {
+            TLOGERROR("CDbHandle::loadStatData " << ex.what() << endl);
+
+            return LOAD_BALANCE_DB_FAILED;
+        }
+
+        return LOAD_BALANCE_DB_SUCCESS;
+    };
+
+    int ret(getData(statData, sql.str()));
+    if (LOAD_BALANCE_DB_SUCCESS == ret && !statData.size())
+    {
+        // 跨小时的情况下可能查不到整点的数据，返回上个表再查一次
+        auto query(TC_Common::replace(sql.str(), dateHour, TC_Common::tm2str(now - 3600, "%Y%m%d%H")));
+        ret = getData(statData, query);
+    }
+
+    ostringstream log;
+    log << "vtServer size: " << SIZE << "|"
+        << "now: " << now << "|"
+        << "dateHour: " << dateHour << "|"
+        << "date: " << date << "|"
+        << "sql: " << sql.str() << "|"
+        << "statData size: " << statData.size() << "|";
+
+    TLOGDEBUG(log.str() << endl);
+
+    return ret;
+}
 
 int CDbHandle::computeInactiveRate()
 {
@@ -1226,7 +1346,11 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 epf.weight = ep.getWeight();
                 epf.weightType = ep.getWeightType();
 
-                TLOGDEBUG("CDbHandle::loadObjectIdCache :" << res[i]["servant"] << "." << epf.host << "|" << epf.grouprealid << "|" << epf.groupworkid << "|" << res[i]["setting_state"] << "|" << res[i]["present_state"] << endl);
+                TLOGDEBUG("CDbHandle::loadObjectIdCache :" << res[i]["servant"] << "." << epf.host << "|"
+                                                           << epf.grouprealid << "|" << epf.groupworkid << "|"
+                                                           << "weightType: " << epf.weightType << "|" << epf.weight << "|"
+                                                           << res[i]["setting_state"] << "|" << res[i]["present_state"]
+                                                           << endl);
 
                 bool bActive = true;
 
@@ -1391,7 +1515,12 @@ vector<EndpointF> CDbHandle::findObjectById(const string& id)
 
     if ((it = usingCache.find(id)) != usingCache.end())
     {
-        return it->second.vActiveEndpoints;
+        // 不能是引用，会改变原始缓存数据
+        std::vector<tars::EndpointF> vtEp = it->second.vActiveEndpoints;
+
+        LOAD_BALANCE_INS->getDynamicWeight(id, vtEp);
+
+        return vtEp;
     }
     else
     {
@@ -1399,7 +1528,6 @@ vector<EndpointF> CDbHandle::findObjectById(const string& id)
         return activeEp;
     }
 }
-
 
 int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp)
 {
@@ -1413,6 +1541,8 @@ int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp,
     {
         activeEp   = it->second.vActiveEndpoints;
         inactiveEp = it->second.vInactiveEndpoints;
+
+        LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
     }
     else
     {
@@ -1499,6 +1629,8 @@ int CDbHandle::findObjectByIdInSameGroup(const string& id, const string& ip, vec
         }
     }
 
+    LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
+
     return  0;
 }
 
@@ -1555,6 +1687,8 @@ int CDbHandle::findObjectByIdInGroupPriority(const std::string& sID, const std::
         os << "|(In All: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
     }
 
+    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
+
     return 0;
 }
 
@@ -1586,6 +1720,8 @@ int CDbHandle::findObjectByIdInSameStation(const std::string& sID, const std::st
     //查找对应所有组下的IP地址
     vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
     vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
+
+    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
 
     return 0;
 }
@@ -1632,6 +1768,8 @@ int CDbHandle::findObjectByIdInSameSet(const string& sID, const vector<string>& 
             }
         }
 
+        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
+
         return (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
     }
     else
@@ -1645,6 +1783,8 @@ int CDbHandle::findObjectByIdInSameSet(const string& sID, const vector<string>& 
             string sWildSetId =  vtSetInfo[0] + "." + vtSetInfo[1] + ".*";
             iRet = findObjectByIdInSameSet(sWildSetId, setNameIt->second, vecActive, vecInactive, os);
         }
+
+        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
 
         return iRet;
     }
