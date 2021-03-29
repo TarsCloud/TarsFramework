@@ -1,3 +1,24 @@
+
+## v2.4.11 2021.03.29
+### en
+- perfect docker.sh Script and compilation are also execute in docker
+- Making docker supporting arm64
+- Support dynamic load balancing
+- Modify the version of the service and the Framework version in SQL when the framework is installed
+- tarsAdimnRegistry supports obtaining the interface of the Framework version for web use
+- Fix nodetimeoutinterval minimum
+- Try to fix node with certain probability on Windows platform_ The ID cannot be obtained normally
+- Fix the bug that tarsnode occasionally fails to update the service status of registry
+### cn
+- 完善docker.sh脚本, 编译也放在docker里面进行
+- 支持arm64的docker制作
+- 支持动态负载均衡
+- framework安装时修改sql中服务的版本和framework版本匹配
+- tarsAdminRegistry支持获取framework版本的接口, 以便web使用
+- 修复nodeTimeoutInterval最小值的问题
+- 尝试修复在windows平台上一定概率NODE_ID无法正常获取的问题
+- 修复tarsnode更新registry的服务状态偶尔失败的bug
+
 ## v2.4.11 2021.01.07
 ### en
 - fix tarsnode, not registerNode when nodeName is empty
