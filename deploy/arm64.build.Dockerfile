@@ -9,7 +9,8 @@ RUN echo 'NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 RUN source $HOME/.bashrc && nvm install v12.13.0
 
-RUN curl -O https://tars-thirdpart-1300910346.cos.ap-guangzhou.myqcloud.com/src/helm-v3.5.2-linux-amd64.tar.gz
+RUN yum install -y yum-utils psmisc make net-tools gcc gcc-c++ telnet openssl-devel bison flex \
+    yum clean all && rm -rf /var/cache/yum
 
 # Install cmake for cpp
 RUN mkdir -p /tmp/cmake/  \
