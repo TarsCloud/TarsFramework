@@ -61,7 +61,7 @@ void LoadBalanceThread::run()
             TLOGERROR("LoadBalanceThread::run catch unkown exception." << endl);
         }
 
-        sleep(_loadInterval);
+        TC_Common::sleep(_loadInterval);
     }
 }
 
