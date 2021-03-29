@@ -1,5 +1,5 @@
 
-## v2.4.11 2021.03.29
+## v2.4.12 2021.03.29
 ### en
 - perfect docker.sh Script and compilation are also execute in docker
 - Making docker supporting arm64
