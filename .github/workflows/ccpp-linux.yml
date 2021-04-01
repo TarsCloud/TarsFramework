@@ -19,6 +19,7 @@ jobs:
     - name: git
       run: git submodule update --init --recursive
     - name: configure
-      run: ls ..; ls tarscpp; cd build;cmake ..
+      run: cd build;cmake ..
     - name: make
       run: cd build; make
+
