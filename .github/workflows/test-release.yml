@@ -15,9 +15,19 @@ jobs:
           echo $GITHUB_SHA
           echo $GITHUB_REF
           echo $GITHUB_REF > /tmp/$GITHUB_SHA
+          BASE_BRANCH=${{ github.base_ref }}
+
           release=$(sed "s/refs\/heads\/release\///g" /tmp/$GITHUB_SHA)
           echo $release
           rm -rf TarsDocker
           git clone https://github.com/TarsCloud/TarsDocker
           cd TarsDocker/framework
-          ./build-docker.sh $release master $release
+
+          rm -rf TarsWeb
+          git clone --branch $BASE_BRANCH https://github.com/TarsCloud/TarsWeb
+          cd TarsWeb
+          webLatestTag=$(git describe --tags `git rev-list --tags --max-count=1`  --abbrev=0 --always)
+
+          cd ..
+          
+          ./build-docker.sh $BASE_BRANCH $webLatestTag $release
