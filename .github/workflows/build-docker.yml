@@ -23,4 +23,4 @@ jobs:
           echo $tag
           git clone https://github.com/TarsCloud/TarsDocker
           cd TarsDocker/framework
-          ./build-docker.sh $tag master $tag
+          ./build-docker.sh $tag master latestRelease

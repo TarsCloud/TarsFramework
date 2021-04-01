@@ -21,12 +21,6 @@ jobs:
     - name: get docker file
       run: git clone https://github.com/TarsCloud/TarsDocker
     - name: Build framework image
-      run: cd TarsDocker/framework/ && ./build-docker.sh master master nightly
-    - name: docker push framework
-      run: |
-        docker push tarscloud/framework:nightly
+      run: cd TarsDocker/framework/ && ./build-docker.sh master master nightly true
     - name: Build tars image
-      run: cd TarsDocker/tars && ./build-docker.sh master master nightly
-    - name: docker push tars
-      run: |
-        docker push tarscloud/tars:nightly
+      run: cd TarsDocker/tars && ./build-docker.sh master master nightly true
