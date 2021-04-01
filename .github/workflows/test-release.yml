@@ -8,8 +8,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: cmake 
-        run: sudo apt remove -y cmake && sudo apt install -y cmake=3.16.3-1ubuntu1
       - name: test release
         run: |
           echo $GITHUB_SHA

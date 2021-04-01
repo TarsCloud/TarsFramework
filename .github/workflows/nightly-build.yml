@@ -16,8 +16,6 @@ jobs:
     - name: docker login
       run: |
         docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
-    - name: cmake 
-      run: sudo apt remove -y cmake && sudo apt install -y cmake=3.16.3-1ubuntu1
     - name: get docker file
       run: git clone https://github.com/TarsCloud/TarsDocker
     - name: Build framework image

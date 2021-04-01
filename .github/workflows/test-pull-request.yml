@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: cmake 
-        run: sudo apt remove -y cmake && sudo apt install -y cmake=3.16.3-1ubuntu1
       - name: init submodules
         run: |
           git submodule init tarscpp

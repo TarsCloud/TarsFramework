@@ -13,9 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install
-      run: sudo apt-get install -y bison flex zlib1g-dev
-    - name: cmake 
-      run: sudo apt list | grep cmake && sudo apt remove -y cmake && sudo apt list | grep cmake && cmake --version && sudo apt install -y cmake=3.16.3-1ubuntu1  && cmake --version 
+      run: sudo apt-get install -y bison flex zlib1g-dev cmake
     - name: git
       run: git submodule update --init --recursive
     - name: configure
