@@ -11,6 +11,9 @@ jobs:
       - name: docker login
         run: |
           docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
+          env
+      - name: cmake 
+        run: apt remove -y cmake && apt install -y cmake=3.16.3-1ubuntu1
       - uses: actions/checkout@v1
       - name: deploy docker
         run: |
