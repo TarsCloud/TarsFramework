@@ -15,7 +15,7 @@ jobs:
     - name: install
       run: sudo apt-get install -y bison flex zlib1g-dev
     - name: cmake 
-      run: sudo apt remove -y cmake && sudo apt install -y cmake=3.16.3-1ubuntu1
+      run: sudo apt remove -y cmake && cmake --version && sudo apt install -y cmake=3.16.3-1ubuntu1  && cmake --version 
     - name: git
       run: git submodule update --init --recursive
     - name: configure
