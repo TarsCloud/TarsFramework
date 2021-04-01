@@ -6,7 +6,7 @@ on:
       - release/*
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: test release
         run: |
@@ -18,4 +18,4 @@ jobs:
           rm -rf TarsDocker
           git clone https://github.com/TarsCloud/TarsDocker
           cd TarsDocker/framework
-          ./test-release.sh $release
+          ./build-docker.sh $release master $release
