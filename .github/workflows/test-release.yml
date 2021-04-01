@@ -15,10 +15,6 @@ jobs:
           echo $GITHUB_SHA
           echo $GITHUB_REF
           echo $GITHUB_REF > /tmp/$GITHUB_SHA
-          echo "ref: "${{ github.ref }}
-          echo "base_ref: "${{ github.base_ref }}
-          BASE_BRANCH=${{ github.base_ref }}
-          echo $BASE_BRANCH
 
           release=$(sed "s/refs\/heads\/release\///g" /tmp/$GITHUB_SHA)
           echo $release
@@ -33,4 +29,4 @@ jobs:
 
           cd ..
           
-          ./build-docker.sh $BASE_BRANCH $webLatestTag $release
+          ./build-docker.sh release/$release $webLatestTag $release
