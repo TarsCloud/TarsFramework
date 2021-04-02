@@ -1,4 +1,10 @@
 
+## v2.4.13 2021.04.02
+### en
+- Fix docker production, switch to ubuntu:20.04 , using buildx to make arm64/amd64 image
+### cn
+- 完善docker制作, 切换到ubuntu:20.04版本, 同时使用buildx同时制作arm64/amd64镜像
+
 ## v2.4.12 2021.03.29
 ### en
 - perfect docker.sh Script and compilation are also execute in docker
