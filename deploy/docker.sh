@@ -23,7 +23,9 @@ fi
 export DOCKER_CLI_EXPERIMENTAL=enabled 
 docker buildx create --use --name tars-builder 
 docker buildx inspect tars-builder --bootstrap
-docker run --rm --privileged docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64
+#docker run --rm --privileged docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64
+
+docker run --rm --privileged tonistiigi/binfmt:qemu-v5.2.0
 
 if [ "$2" == "amd64" ]; then
     docker buildx build . --file "deploy/Dockerfile" --tag tarscloud/framework:$1 --platform=linux/amd64 -o type=docker
