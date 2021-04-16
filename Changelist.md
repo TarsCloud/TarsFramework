@@ -1,4 +1,9 @@
 
+## v2.4.14 2021.04.16
+### en
+- update tarscpp to v2.4.18, to avoid connection crash bug
+### cn
+- 升级tarscpp到v2.4.18版本, 以避免连接crash的问题
 ## v2.4.13 2021.04.02
 ### en
 - Fix docker production, switch to ubuntu:20.04 , using buildx to make arm64/amd64 image
