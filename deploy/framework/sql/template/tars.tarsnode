@@ -13,6 +13,7 @@
 
     <node>
         registryObj = tars.tarsregistry.RegistryObj
+        cmd_white_list_ip=
         <keepalive>
             #业务心跳超时时间(s)
             heartTimeout    = 45
