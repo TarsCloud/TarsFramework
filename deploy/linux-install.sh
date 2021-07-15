@@ -149,6 +149,8 @@ if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
     exit 1
 fi
 
+function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" != "$1"; }
+
 if [ "${SLAVE}" != "true" ]; then
 
   if [ ! -d ${TARS_INSTALL}/web ]; then
@@ -172,7 +174,7 @@ if [ "${SLAVE}" != "true" ]; then
 
   export NVM_NODEJS_ORG_MIRROR=${NODEJS_MIRROR}
 
-  if [[ "${CURRENT_NODE_SUCC}" != "succ"  || "${CURRENT_NODE_VERSION}" < "${NODE_VERSION}" ]]; then
+  if [[ "${CURRENT_NODE_SUCC}" != "succ" ]] || version_lt "${CURRENT_NODE_VERSION}" "${NODE_VERSION}" ; then
 
     rm -rf v0.35.1.zip
     #centos8 need chmod a+x
