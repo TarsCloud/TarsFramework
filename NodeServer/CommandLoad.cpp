@@ -16,6 +16,10 @@
 
 #include "CommandLoad.h"
 #include "RegistryProxy.h"
+
+std::mutex CommandLoad::_mutex;
+set<int> CommandLoad::_allPorts;
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandLoad::canExecute(string& sResult)
@@ -232,7 +236,13 @@ int CommandLoad::updateConfigFile(string& sResult)
             }
 
             tEp.parse(itAdapters->second.endpoint);
-            m["endpoint"]     = tEp.toString();
+
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                _allPorts.insert(tEp.getPort());
+            }
+
+            m["endpoint"] = tEp.toString();
             m["allow"]        = itAdapters->second.allowIp;
             m["queuecap"]     = TC_Common::tostr(itAdapters->second.queuecap);
             m["queuetimeout"] = TC_Common::tostr(itAdapters->second.queuetimeout);
@@ -240,42 +250,77 @@ int CommandLoad::updateConfigFile(string& sResult)
             m["threads"]      = TC_Common::tostr(itAdapters->second.threadNum);
             m["servant"]      = TC_Common::tostr(itAdapters->second.servant);
             m["protocol"]     = itAdapters->second.protocol == "" ? "tars" : itAdapters->second.protocol;
-            m["handlegroup"]  = itAdapters->second.handlegroup == "" ? itAdapters->first : itAdapters->second.handlegroup;
+            // m["handlegroup"]  = itAdapters->second.handlegroup == "" ? itAdapters->first : itAdapters->second.handlegroup;
 
             tConf.insertDomainParam("/tars/application/server/" + itAdapters->first, m, true);
         }
 
         //获取本地socket
-        TC_Endpoint tLocalEndpoint;
         uint16_t p = tEp.getPort();
-        if (p == 0)
+        TC_Endpoint tLocalEndpoint;
+        try
         {
-            try
-            {
-                //原始配置文件中有admin端口了, 直接使用
-                TC_Config conf;
-                conf.parseFile(_confFile);
-                TC_Endpoint ep;
-                ep.parse(conf.get("/tars/application/server<local>"));
-                p = ep.getPort();
-            }
-            catch (exception& ex)
-            {
-                //随机分配一个端口
-                TC_Socket t;
-                t.createSocket();
-                t.bind("127.0.0.1", 0);
-                string d;
-                t.getSockName(d, p);
-                t.close();
-            }
-
+            //原始配置文件中有admin端口了, 直接使用
+            TC_Config conf;
+            conf.parseFile(_confFile);
+            TC_Endpoint ep;
+            ep.parse(conf.get("/tars/application/server<local>"));
+            p = ep.getPort();            
         }
+        catch(const std::exception& e)
+        {
+            //随机分配不冲突的端口
+            for (;;)
+            {
+                p = 30000 + rand() % 15000;
+                TC_Socket s;
+                s.createSocket(SOCK_STREAM, AF_INET);
+                int ret = s.connectNoThrow("127.0.0.1", p);
+
+                if(ret != 0 && _allPorts.find(p) == _allPorts.end())
+                {
+                    //端口无法连接且之前没用过, 则使用之
+                    break;
+                }
+            }
+        }
+
+
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _allPorts.insert(tEp.getPort());
+        }
+
+
+        // uint16_t p = tEp.getPort();
+        // if (p == 0)
+        // {
+        //     try
+        //     {
+        //         //原始配置文件中有admin端口了, 直接使用
+        //         TC_Config conf;
+        //         conf.parseFile(_confFile);
+        //         TC_Endpoint ep;
+        //         ep.parse(conf.get("/tars/application/server<local>"));
+        //         p = ep.getPort();
+        //     }
+        //     catch (exception& ex)
+        //     {
+        //         //随机分配一个端口
+        //         TC_Socket t;
+        //         t.createSocket();
+        //         t.bind("127.0.0.1", 0);
+        //         string d;
+        //         t.getSockName(d, p);
+        //         t.close();
+        //     }
+
+        // }
 
         tLocalEndpoint.setPort(p);
         tLocalEndpoint.setHost("127.0.0.1");
         tLocalEndpoint.setType(TC_Endpoint::TCP);
-        tLocalEndpoint.setTimeout(3000);
+        tLocalEndpoint.setTimeout(10000);
 	    // NODE_LOG("KeepAliveThread")->debug() << tConf.tostr() << endl;
 
         //需要宏替换部分配置

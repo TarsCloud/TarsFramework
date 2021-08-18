@@ -144,10 +144,10 @@ do
     fi
 done
 
-if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
-    echo "HOSTIP is [$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
-    exit 1
-fi
+#if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
+#    echo "HOSTIP is [$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
+#    exit 1
+#fi
 
 function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" != "$1"; }
 

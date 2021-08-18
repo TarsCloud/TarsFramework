@@ -454,8 +454,10 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
         NODE_LOG(serverId)->debug() <<FILE_FUN<<result << endl;
 
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
-        if ( pServerObjectPtr )
+
+        if (pServerObjectPtr)
         {
+            NODE_LOG(serverId)->debug() << "server exists" << endl;
 
             string s;
             bool bByNode = true;
