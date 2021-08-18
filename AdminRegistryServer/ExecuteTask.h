@@ -31,18 +31,26 @@ public:
     /**
      * 构造函数
      */
-    TaskList(const TaskReq &taskReq);
+    TaskList(const TaskReq &taskReq, unsigned int t = 300);
 
     ~TaskList();
 
     TaskRsp getTaskRsp();
 
+    void cancelTask();
 
     virtual void execute() = 0;
     /**
      * 创建时间
      */
     time_t getCreateTime() { return _createTime; }
+
+    bool isTimeout();
+
+    bool isFinished() const
+    {
+        return _finished;
+    }
 
 protected:
 
@@ -66,6 +74,11 @@ protected:
 //    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);
 
+    void finish()
+    {
+        _finished = true;
+    }
+
 protected:
     
     //线程池
@@ -78,12 +91,14 @@ protected:
     //AdminRegPrx     _adminPrx;
 	AdminRegistryImp*	_adminPrx;
     time_t          _createTime;
+    unsigned int    _timeout;
+    bool            _finished;
 };
 
 class TaskListSerial : public TaskList
 {
 public:
-    TaskListSerial(const TaskReq &taskReq);
+    TaskListSerial(const TaskReq &taskReq, unsigned int t = 300);
 
     virtual void execute();
 
@@ -94,12 +109,28 @@ protected:
 class TaskListParallel : public TaskList
 {
 public:
-    TaskListParallel(const TaskReq &taskReq);
+    TaskListParallel(const TaskReq &taskReq, unsigned int t = 300);
 
     virtual void execute();
 
 protected:
     void doTask(TaskItemReq req, size_t index, std::shared_ptr<atomic_int> taskItemSharedState);
+};
+
+class TaskListElegant : public TaskList
+{
+public:
+    TaskListElegant(const TaskReq &taskReq, unsigned int t = 600);
+
+    virtual void execute();
+
+protected:
+    void doTask();
+    void doTaskSerial();
+    void doTaskParallel(TaskItemReq req, size_t index, std::shared_ptr<atomic_int> taskItemSharedState);
+
+protected:
+    TC_ThreadPool   _poolMaster;
 };
 
 class ExecuteTask : public TC_Singleton<ExecuteTask>, public TC_ThreadLock, public TC_Thread
@@ -115,6 +146,8 @@ public:
      * @return string
      */
     int addTaskReq(const TaskReq &taskReq);
+
+    int cancelTask(const string& taskNo);
 
     /**
      * 获取任务状态
@@ -132,10 +165,15 @@ public:
      */
     void checkTaskRspStatus(TaskRsp &taskRsp);
 
+    unsigned int getElegantWaitSecond() const
+    {
+        return _elegantWaitSecond;
+    }
+
     void terminate();
 public:
      ExecuteTask();
-	 void init();
+	 void init(TC_Config *conf);
 	 AdminRegistryImp* getAdminImp() { return _adminImp; }
     ~ExecuteTask();
     virtual void run();
@@ -143,8 +181,14 @@ protected:
 
 	TC_ThreadMutex	_initLock;
     map<string, TaskList*> _task;
+    map<string, string> _server2ElegantTask;
 
 	AdminRegistryImp*	_adminImp;
+
+	unsigned int _elegantWaitSecond;
+
+
+
     //线程结束标志
     bool _terminate;
 };

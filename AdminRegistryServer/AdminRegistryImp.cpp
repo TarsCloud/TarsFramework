@@ -17,6 +17,8 @@
 #include "AdminRegistryImp.h"
 #include "ExecuteTask.h"
 #include "servant/Application.h"
+#include "servant/RemoteNotify.h"
+#include "AdminRegistryServer.h"
 
 extern TC_Config * g_pconf;
 
@@ -32,7 +34,10 @@ void AdminRegistryImp::initialize()
 
 	_remoteLogIp = g_pconf->get("/tars/log<remotelogip>", "");
 
-    TLOGDEBUG("AdminRegistryImp init ok."<<endl);
+
+    _remoteLogObj = g_pconf->get("/tars/log<remotelogobj>", "tars.tarslog.LogObj");
+
+    TLOGDEBUG("AdminRegistryImp init ok. _remoteLogIp:" << _remoteLogIp << ", _remoteLogObj:" << _remoteLogObj << endl);
 }
 
 int AdminRegistryImp::undeploy(const string & application, const string & serverName, const string & nodeName, const string &user, string &log, tars::CurrentPtr current)
@@ -70,6 +75,11 @@ int AdminRegistryImp::addTaskReq(const TaskReq &taskReq, tars::CurrentPtr curren
     return 0;
 }
 
+int AdminRegistryImp::cancelTask(const string& taskNo, CurrentPtr current)
+{
+    TLOG_DEBUG("taskNo:" << taskNo << endl);
+    return ExecuteTask::getInstance()->cancelTask(taskNo);
+}
 int AdminRegistryImp::getTaskRsp(const string &taskNo, TaskRsp &taskRsp, tars::CurrentPtr current)
 {
     //优先从内存中获取
@@ -668,6 +678,8 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
 		try
 		{
 			DBPROXY->updateServerState(application, serverName, nodeName, "setting_state", tars::Active);
+            // 重启后， 流量状态恢复正常
+            DBPROXY->updateServerFlowStateOne(application, serverName, nodeName, true);
 			if (isDnsServer == true)
 			{
 				TLOGDEBUG( "|" << " '" + application + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
@@ -836,10 +848,11 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
         NodePrx proxy;
 
         proxy = DBPROXY->getNodePrx(reqPro.nodename);
+        int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
 
         current->setResponse(false);
         NodePrxCallbackPtr callback = new PatchProCallbackImp(reqPro, proxy, defaultTime, current);
-        proxy->async_patchPro(callback, reqPro);
+        proxy->tars_set_timeout(timeout)->async_patchPro(callback, reqPro);
     }
     catch(TarsSyncCallTimeoutException& ex)
     {
@@ -918,9 +931,10 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
         }
 
 	    TLOGDEBUG("AdminRegistryImp::batchPatch " << sServerName << "|" << patchFile << endl); 
+		int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
 
 	    //让tafpatch准备发布包
-	    iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
+	    iRet = _patchPrx->tars_set_timeout(timeout)->preparePatchFile(reqPro.appname, sServerName, patchFile);
 	    if (iRet != 0)
 	    {
 	        result = "preparePatchFile error, check tarspatch server!";
@@ -931,11 +945,13 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 
         reqPro.md5 = md5;
 
+	    iRet = EM_TARS_UNKNOWN_ERR;
+		
         NodePrx proxy;
 
         proxy = DBPROXY->getNodePrx(reqPro.nodename);
 
-		iRet = proxy->patchPro(reqPro, result);
+		iRet = proxy->tars_set_timeout(timeout)->patchPro(reqPro, result);
 
         deleteHistorys(reqPro.appname, sServerName);
     }
@@ -1062,7 +1078,7 @@ int AdminRegistryImp::getPatchPercent_inner(const string &application, const str
 	return iRet;
 }
 
-int AdminRegistryImp::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd, std::string &fileData, tars::CurrentPtr current)
+int AdminRegistryImp::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd, std::string &fileData,CurrentPtr current)
 {
     string result = "succ";
     try
@@ -1131,6 +1147,7 @@ int AdminRegistryImp::getLogFileList(const std::string & application,const std::
 
 		if (nodeIp.empty())
 		{
+            TLOG_ERROR("no nodeIp error." << endl);
 			return -2;
 		}
 
@@ -1162,7 +1179,24 @@ int AdminRegistryImp::getLogFileList(const std::string & application,const std::
     }
 
     return -1;
+}
 
+string AdminRegistryImp::getRemoteLogIp(const string& serverIp)
+{
+    try
+    {
+        vector<TC_Endpoint> ep = Application::getCommunicator()->getEndpoint(_remoteLogObj);
+        if (ep.size() > 0)
+        {
+            return ep[0].getHost();
+        }
+        return "";    
+    }
+    catch(const std::exception& e)
+    {
+        TLOG_ERROR(e.what() << '\n');
+    }
+    return "";
 }
 int AdminRegistryImp::getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, tars::CurrentPtr current)
 {
@@ -1312,7 +1346,8 @@ int AdminRegistryImp::preparePatch_inner(PatchRequest &req, string &result, bool
     if (!waitOtherThreadPreparePatchFile) {
         try{
             TLOGDEBUG("call preparePatchFile" << endl);
-            iRet = _patchPrx->preparePatchFile(req.appname, req.servername, patchFile);
+			int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
+            iRet = _patchPrx->tars_set_timeout(timeout)->preparePatchFile(req.appname, req.servername, patchFile);
 
 	        deleteHistorys(req.appname, req.servername);
         }
@@ -1571,3 +1606,16 @@ void GetPatchPercentCallbackImp::callback_getPatchPercent_exception(tars::Int32 
     AdminReg::async_response_getPatchPercent(_current, iRet, tPatchInfo);
 }
 
+int AdminRegistryImp::updateServerFlowState(const string& application, const string& serverName, const vector<string>& nodeList, bool bActive, CurrentPtr current)
+{
+    TLOGDEBUG(__FUNCTION__ << endl);
+
+	int ret = DBPROXY->updateServerFlowState(application, serverName, nodeList, bActive);
+
+	if(ret < 0)
+	{
+		return -1;
+	}
+
+	return 0; 
+}

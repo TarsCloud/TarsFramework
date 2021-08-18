@@ -25,7 +25,8 @@ TC_ThreadLock DbProxy::_mutex;
 map<string, NodePrx> DbProxy::_mapNodePrxCache;
 
 TC_ThreadLock DbProxy::_NodePrxLock;
-vector<map<string, string> >DbProxy::_serverGroupRule;
+vector<map<string, string>> DbProxy::_serverGroupRule;
+
 //key-ip, value-组编号
 map<string, int> DbProxy::_serverGroupCache;
 
@@ -1109,3 +1110,84 @@ vector<string> DbProxy::deleteHistorys(const string &application, const string &
     }
     return tgz;
 }
+
+int DbProxy::updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive)
+{
+    try
+    {
+        int64_t iStart = TC_TimeProvider::getInstance()->getNowMs();
+       
+        if (nodeList.size() == 0)
+        {
+            TLOGERROR("updateServerFlowState nodeList is empty!" << endl);
+            return -1;
+        }
+        string sStatus = (bActive ? "active": "inactive");
+        string nodeListIn = "(";
+
+        MYSQL_LOCK;
+        for (size_t i = 0; i < nodeList.size(); i++)
+        {
+            if (i != 0)
+            {
+                nodeListIn += ", '" + MYSQL_INDEX->escapeString(nodeList[i]) + "' ";
+            }
+            else
+            {
+                nodeListIn += " '" + MYSQL_INDEX->escapeString(nodeList[i]) + "' ";
+            }
+        }
+        nodeListIn += ")";
+        
+        string sSql = "update t_server_conf "
+                      "set flow_state = '" + sStatus + "' "
+                      "where application='" + MYSQL_INDEX->escapeString(app) + "' "
+                      "    and server_name='" + MYSQL_INDEX->escapeString(serverName) + "' "
+                      "    and node_name in " + nodeListIn;
+
+        MYSQL_INDEX->execute(sSql);
+        TLOGDEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeListIn
+			<< " affected:" << MYSQL_INDEX->getAffectedRows()
+                  << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
+        return (int)(MYSQL_INDEX->getAffectedRows());
+
+    }
+    catch (TC_Mysql_Exception& ex)
+    {
+        TLOGERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << TC_Common::tostr(nodeList)
+                  << " exception: " << ex.what() << endl);
+    }
+    return -1;
+}
+
+int DbProxy::updateServerFlowStateOne(const string & app, const string & serverName, const string& nodeName, bool bActive)
+{
+    try
+    {
+        int64_t iStart = TC_TimeProvider::getInstance()->getNowMs();
+       
+        string sStatus = (bActive ? "active": "inactive");
+
+        MYSQL_LOCK;
+        
+        string sSql = "update t_server_conf "
+                      "set flow_state = '" + sStatus + "' "
+                      "where application='" + MYSQL_INDEX->escapeString(app) + "' "
+                      "    and server_name='" + MYSQL_INDEX->escapeString(serverName) + "' "
+                      "    and node_name = '" + nodeName + "'";
+
+        MYSQL_INDEX->execute(sSql);
+        size_t ar = MYSQL_INDEX->getAffectedRows();
+        TLOGDEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+			<< " affected:" << ar
+                  << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
+        return (int)ar;
+    }
+    catch (TC_Mysql_Exception& ex)
+    {
+        TLOGERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName 
+                  << " exception: " << ex.what() << endl);
+    }
+    return -1;
+}
+

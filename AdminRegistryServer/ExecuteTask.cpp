@@ -21,7 +21,7 @@
 #include <thread>
 extern TC_Config * g_pconf;
 
-TaskList::TaskList(const TaskReq &taskReq)
+TaskList::TaskList(const TaskReq &taskReq, unsigned int t)
 : _taskReq(taskReq)
 {
     //_adminPrx = Communicator::getInstance()->stringToProxy<AdminRegPrx>(g_pconf->get("/tars/objname<AdminRegObjName>", ""));
@@ -31,6 +31,7 @@ TaskList::TaskList(const TaskReq &taskReq)
     _taskRsp.serial   = _taskReq.serial;
     _taskRsp.userName = _taskReq.userName;
 	_taskRsp.createTime = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
+	_taskRsp.status = EM_T_NOT_START;
 
     for (size_t i=0; i < taskReq.taskItemReq.size(); i++)
     {
@@ -45,6 +46,13 @@ TaskList::TaskList(const TaskReq &taskReq)
     }
 
     _createTime = TC_TimeProvider::getInstance()->getNow();
+    _timeout = t;
+    _finished = false;
+}
+
+bool TaskList::isTimeout()
+{
+    return (_createTime + _timeout < TNOW);
 }
 
 TaskList::~TaskList()
@@ -60,6 +68,27 @@ TaskRsp TaskList::getTaskRsp()
     return _taskRsp;
 }
 
+void TaskList::cancelTask()
+{
+    TC_LockT<TC_ThreadMutex> lock(*this);
+
+    int cancelNum = 0;
+    for (size_t i = 0; i < _taskRsp.taskItemRsp.size(); ++i)
+    {
+        if (_taskRsp.taskItemRsp[i].status == EM_I_NOT_START)
+        {
+            _taskRsp.taskItemRsp[i].status = EM_I_CANCEL;
+            cancelNum++;
+            TLOG_DEBUG("cancel taskItem:" << _taskRsp.taskItemRsp[i].req.taskNo << endl);
+        }
+    }
+
+    if (cancelNum > 0)
+    {
+        _taskRsp.status = EM_T_CANCEL;
+        TLOG_DEBUG("cancel task:" << _taskRsp.taskNo << ", cancel item num:" << cancelNum << endl);
+    }
+}
 
 void TaskList::setRspInfo(size_t index, bool start, EMTaskItemStatus status)
 {
@@ -545,8 +574,8 @@ EMTaskItemStatus TaskList::executeSingleTaskWithSharedState(size_t index, const 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-TaskListSerial::TaskListSerial(const TaskReq &taskReq)
-: TaskList(taskReq)
+TaskListSerial::TaskListSerial(const TaskReq &taskReq, unsigned int t)
+: TaskList(taskReq, t)
 {
     _pool.init(1);
     _pool.start();
@@ -593,14 +622,185 @@ void TaskListSerial::doTask()
 
         setRspInfo(i, false, status);
     }
+
+    finish();
+}
+
+TaskListElegant::TaskListElegant(const TaskReq &taskReq, unsigned int t)
+: TaskList(taskReq, t)
+{
+    _poolMaster.init(1);
+    _poolMaster.start();
+}
+
+void TaskListElegant::execute()
+{
+    TLOGDEBUG("TaskListElegant::execute" << endl);
+    
+    auto cmd = std::bind(&TaskListElegant::doTask, this);
+    _poolMaster.exec(cmd);
+}
+
+void TaskListElegant::doTask()
+{
+    size_t len = 0;
+    size_t eachNum = 0;
+    bool isSerial = true;
+    {
+        TC_LockT<TC_ThreadMutex> lock(*this);
+        len = _taskReq.taskItemReq.size();
+        eachNum = (size_t)_taskReq.eachNum;
+        isSerial = _taskReq.serial;
+    }
+
+    if (isSerial)
+    {
+        _pool.init(1);
+    }
+    else
+    {
+        size_t num = eachNum > 5 ? 5 : eachNum;
+        num = num < 1 ? 1:num;
+        TLOG_DEBUG("each num:" << eachNum << ", realnum:" << num << endl);
+        _pool.init(num); 
+    }
+    _pool.start();
+
+    //EMTaskItemStatus status = EM_I_SUCCESS;
+
+    for (size_t i = 0; i < len; i += eachNum)
+    {
+        if (!isSerial)
+        {
+            std::shared_ptr<atomic_int> TaskItemSharedState;
+
+            if (0 == i)
+            {
+                TaskItemSharedState =std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
+            }
+            else
+            {
+                TaskItemSharedState =std::make_shared<atomic_int>(0);
+            }
+
+            vector<pair<size_t, TaskItemReq> >  tl;
+            vector<string>  nodeList;
+
+            {
+                TC_LockT<TC_ThreadMutex> lock(*this);
+                // 先确认任务是否取消
+                if (_taskRsp.status == EM_T_CANCEL)
+                {
+                    TLOG_DEBUG("task has canceled:" << _taskRsp.taskNo << endl);
+                    break;
+                }
+
+                for (size_t j=i;  j < len && j-i < eachNum; j++)
+                {
+                    tl.push_back(make_pair(j, _taskReq.taskItemReq[j]));
+                    nodeList.push_back((_taskReq.taskItemReq[j].nodeName));
+                    _taskRsp.taskItemRsp[j].status = EM_I_PAUSE_FLOW;
+                }
+            }
+
+            // 停掉流量
+            int affectNum = DBPROXY->updateServerFlowState(tl[0].second.application, tl[0].second.serverName, nodeList, false);
+
+            if (affectNum > 0) {
+                TLOG_DEBUG("sleep " << ExecuteTask::getInstance()->getElegantWaitSecond() << "s wait for close flow..." << endl);
+                //sleep(75);
+                sleep(ExecuteTask::getInstance()->getElegantWaitSecond());
+            }
+            else
+            {
+                TLOG_DEBUG("donot need sleep wait for close flow." << endl);
+            }
+
+            TLOG_DEBUG("bind task func..." << endl);
+            // 执行task
+            for (size_t x = 0; x < tl.size(); ++x)
+            {
+                _pool.exec(std::bind(&TaskListElegant::doTaskParallel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), tl[x].second, tl[x].first, TaskItemSharedState);
+            }
+
+            TLOG_DEBUG("worker pool waitForAllDone, item num:" << tl.size() << endl);
+            _pool.waitForAllDone(-1);
+
+            TLOG_DEBUG("_pool.waitForAllDone finish, stop pool." << endl);
+        }
+        else
+        {
+            TLOG_ERROR("Elegant not support serial task!" << endl);
+            break;
+        }
+
+    }
+
+    _pool.waitForAllDone(-1);
+    TLOG_DEBUG("Elegant task finish." << endl);
+    _pool.stop();
+
+    finish();
+}
+
+void TaskListElegant::doTaskSerial()
+{
+    size_t len = 0;
+    {
+        TC_LockT<TC_ThreadMutex> lock(*this);
+        len = _taskReq.taskItemReq.size();
+    }
+
+    EMTaskItemStatus status = EM_I_SUCCESS;
+
+    for (size_t i=0; i < len; i++)
+    {
+        TaskItemReq req;
+
+        setRspInfo(i, true, EM_I_RUNNING);
+        {
+            TC_LockT<TC_ThreadMutex> lock(*this);
+
+            req = _taskReq.taskItemReq[i];
+        }
+
+        if (EM_I_SUCCESS == status)
+        {
+            status = executeSingleTask(i, req); 
+        }
+        else
+        {
+            //上一个任务不成功, 后续的任务都cancel掉
+            status = EM_I_CANCEL;
+        }
+
+        setRspInfo(i, false, status);
+    }
+}
+
+void TaskListElegant::doTaskParallel(TaskItemReq req, size_t index,std::shared_ptr<atomic_int> taskItemSharedState)
+{
+    TLOG_DEBUG("begin..." << endl);
+    setRspInfo(index, true, EM_I_RUNNING);
+
+    //do work
+    TLOG_DEBUG("taskNo=" << req.taskNo 
+                << ",application=" << req.application 
+                << ",serverName=" << req.serverName 
+                << ",setName=" << req.setName 
+                << ",command=" << req.command << endl);
+
+    EMTaskItemStatus status = executeSingleTaskWithSharedState(index, req, taskItemSharedState);
+
+    setRspInfo(index, false, status);
 }
 
 //////////////////////////////////////////////////////////////////////////////
-TaskListParallel::TaskListParallel(const TaskReq &taskReq)
-: TaskList(taskReq)
+TaskListParallel::TaskListParallel(const TaskReq &taskReq, unsigned int t)
+: TaskList(taskReq, t)
 {
     //最大并行线程数
-    size_t num = taskReq.taskItemReq.size() > 10 ? 10 : taskReq.taskItemReq.size();
+    size_t num = taskReq.taskItemReq.size() > 5 ? 5 : taskReq.taskItemReq.size();
     num = num < 1 ? 1:num;
     TLOGDEBUG("TaskListParallel::TaskListParallel req thread num:" << taskReq.taskItemReq.size() << ", realnum:" << num << endl);
     _pool.init(num); 
@@ -660,7 +860,7 @@ void ExecuteTask::terminate()
 
 void ExecuteTask::run()
 {
-    const time_t diff = 2*60;//2分钟
+    // const time_t diff = 2*60;//2分钟
     while (!_terminate)
     {
         {
@@ -668,7 +868,11 @@ void ExecuteTask::run()
             map<string, TaskList* >::iterator it = _task.begin();
             while (it != _task.end())
             {
-                if(TC_TimeProvider::getInstance()->getNow() - it->second->getCreateTime() > diff)
+                //static time_t diff = 2 * 24 *60 *60;//2天
+                //static time_t diff = 5*60;  //5分钟
+                //大于diff 时间数据任务就干掉
+                //if(TC_TimeProvider::getInstance()->getNow() - it->second->getCreateTime() > diff)
+                if (it->second->isTimeout())
                 {
                     TLOGDEBUG("==============ExecuteTask::run, delete old task, taskNo=" << it->first << endl);
                     TaskList *tmp = it->second;
@@ -693,13 +897,25 @@ void ExecuteTask::run()
 int ExecuteTask::addTaskReq(const TaskReq &taskReq)
 {
     TLOGDEBUG("ExecuteTask::addTaskReq" <<
-              ", taskNo="  << taskReq.taskNo <<   
-              ", size="    << taskReq.taskItemReq.size() <<
-              ", serial="  << taskReq.serial <<
-              ", userName="<< taskReq.userName << endl);
+              ", taskNo=" << taskReq.taskNo <<   
+              ", size=" << taskReq.taskItemReq.size() <<
+              ", serial=" << taskReq.serial <<
+              ", isElegant:" << taskReq.isElegant <<
+              ", eachNum:" << taskReq.eachNum <<
+              ", userName=" << taskReq.userName << endl);
+
+    if (taskReq.taskItemReq.size() == 0)
+    {
+        TLOG_ERROR("empty task item." << endl);
+        return -1;
+    }
 
     TaskList *p = NULL;
-    if (taskReq.serial)
+    if (taskReq.isElegant)
+    {
+        p = new TaskListElegant(taskReq);
+    }
+    else if (taskReq.serial)
     {
         p = new TaskListSerial(taskReq);
     }
@@ -708,34 +924,73 @@ int ExecuteTask::addTaskReq(const TaskReq &taskReq)
         p = new TaskListParallel(taskReq);
     }
 
+    string runningElegantTask;
     {
         TC_ThreadLock::Lock lock(*this);
 
         _task[taskReq.taskNo] = p;
 
-        //删除历史数据, 当然最好是在定时独立做, 放在这里主要是途方便
-        // map<string, TaskList*>::iterator it = _task.begin();
-        // while (it != _task.end())
-        // {
-        //     //static time_t diff = 2 * 24 *60 *60;//2天
-        //     static time_t diff = 30;//2
-        //     //大于两天数据任务就干掉
-        //     if(TC_TimeProvider::getInstance()->getNow() - it->second->getCreateTime() > diff)
-        //     {
-        //         TLOGDEBUG("ExecuteTask::clear old task, taskNo=" << it->first << endl);
-        //         //it->second
-        //         TaskList *pTmp = it->second;
-        //         _task.erase(it++);
-        //         delete pTmp;
-        //     }
-        //     else
-        //     {
-        //         ++it;
-        //     }
-        // }
+        string serverId = taskReq.taskItemReq[0].application + "." + taskReq.taskItemReq[0].serverName;
+        auto it = _server2ElegantTask.find(serverId);
+        if (it != _server2ElegantTask.end())
+        {
+            auto it2 = _task.find(it->second);
+
+            if (it2 != _task.end() && (!(it2->second->isFinished())))
+            {
+                runningElegantTask = it->second;
+            }
+            else
+            {
+                _server2ElegantTask.erase(serverId);
+            }
+        }
+
+        if (taskReq.isElegant)
+        {
+            _server2ElegantTask[serverId] = taskReq.taskNo;
+        }
+    }
+
+    if (runningElegantTask != "")
+    {
+        // 取消正在跑的无损task
+        cancelTask(runningElegantTask);
     }
 
     p->execute();
+
+    TLOG_DEBUG("add task finish!" << endl);
+
+    return 0;
+}
+
+int ExecuteTask::cancelTask(const string &taskNo)
+{
+    TLOGDEBUG("ExecuteTask::cancelTask, taskNo=" << taskNo << endl);
+
+    TaskList* pTask = NULL;
+
+    {
+        TC_ThreadLock::Lock lock(*this);
+
+        map<string, TaskList*>::iterator it = _task.find(taskNo);
+
+        if( it == _task.end())
+        {
+            TLOG_ERROR("camnot find task:" << taskNo << endl);
+            return -1;
+        }
+        else
+        {
+            pTask = it->second;
+        }
+    }
+
+    if (pTask)
+    {
+        pTask->cancelTask();
+    }
 
     return 0;
 }
@@ -780,6 +1035,7 @@ void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp)
             ++not_start;
             break;
         case EM_I_RUNNING:
+        case EM_I_PAUSE_FLOW:
             ++running;
             break;
         case EM_I_SUCCESS:
@@ -803,8 +1059,13 @@ void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp)
 
 }
 
-void ExecuteTask::init()
+void ExecuteTask::init(TC_Config *conf)
 {
+    _elegantWaitSecond = TC_Common::strto<unsigned int>(conf->get("/taf/application/server/<elegant_wait_second>", "75"));
+    if (_elegantWaitSecond < 2 || _elegantWaitSecond > 180)
+    {
+        _elegantWaitSecond = 75;
+    }
 	_adminImp = new AdminRegistryImp();
 	_adminImp->initialize();
 }

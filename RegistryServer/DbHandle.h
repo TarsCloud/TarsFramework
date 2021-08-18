@@ -185,6 +185,14 @@ public:
     string getProfileTemplate(const string & sTemplateName, string & sResultDesc);
 
     void getAllDynamicWeightServant(std::vector<string> &vtServant);
+    /**
+     * 暂停服务， 关闭服务流量
+    * @param app:       应用
+     * @param serverName: server 名
+     * @param nodeList : node id list
+     * @return 0-成功 others-失败
+     */
+    int updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive);
 
 protected:
     /**
@@ -469,6 +477,15 @@ private:
     void updateStatusCache(const std::map<ServantStatusKey, int>& mStatus,bool updateAll=false);
 
     /**
+     * 更新缓存中的服务流量状态值
+     *
+     * @param mStatus
+     * @param updateAll 是否全部更新
+     * @param bFirstLoad  是否是第一次全量加载
+     */
+    void updateFlowStatusCache(const std::map<ServantStatusKey, int>& mStatus, bool updateAll);
+
+    /**
      * 更新缓存中的服务信息
      *
      * @param objCache
@@ -530,8 +547,14 @@ protected:
     //servant状态表
     static std::map<ServantStatusKey, int> _mapServantStatus;
 
+    //servant流量状态表
+    static std::map<ServantStatusKey, int> _mapServantFlowStatus;
+
     //存在多线程更新_mapServantStatus，需要加锁
     static TC_ThreadLock _mapServantStatusLock;
+
+    //存在多线程更新_mapServantFlowStatus，需要加锁
+    static TC_ThreadLock _mapServantFlowStatusLock;
 
     //分组信息
     static TC_ReadersWriterData<map<string,int> > _groupIdMap;

@@ -53,7 +53,7 @@ void AdminRegistryServer::initialize()
         {
             addServant<AdminRegistryImp>(adminObj);
         }
-		ExecuteTask::getInstance()->init();
+		ExecuteTask::getInstance()->init(g_pconf);
     }
     catch(TC_Exception & ex)
     {

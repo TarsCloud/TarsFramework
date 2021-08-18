@@ -54,6 +54,13 @@ public:
      * @return string, TaskNo
      */
    virtual int addTaskReq(const TaskReq &taskReq, tars::CurrentPtr current);
+    /**
+    * 取消异步任务
+    *
+    * @param taskNo : 任务id
+    * @return 0: 成功, <0:失败
+    */
+    int cancelTask(const string& taskNo, tars::CurrentPtr current);
 
     /**
      * 获取任务状态
@@ -345,14 +352,18 @@ public:
 	virtual int checkServer(const FrameworkServer &server, tars::CurrentPtr current);
 
     virtual int getVersion(string &version, tars::CurrentPtr current);
+	
+    int updateServerFlowState(const string& application, const string& serverName, const vector<string>& nodeList, bool bActive, CurrentPtr current);
+	
 protected:
     void deleteHistorys(const string &application, const string &serverName);
-
+    string getRemoteLogIp(const string& serverIp);
 protected:
 
 	string getServerType(const std::string & application, const std::string & serverName, const std::string & nodeName);
     PatchPrx _patchPrx;
 	string	 _remoteLogIp;
+    string   _remoteLogObj;
 };
 
 class PatchProCallbackImp: public NodePrxCallback

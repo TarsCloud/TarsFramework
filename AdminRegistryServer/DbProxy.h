@@ -56,17 +56,17 @@ public:
      */
     int init(TC_Config *pconf);
 
+
+    /**
+     * 获取框架服务
+     */
+    int getFramework(vector<tars::FrameworkServer> &servers);
     /**
      * 获取特定node id的对象代理
      * @param nodeName : node id
      * @return :  对象代理的智能指针
      */
     NodePrx getNodePrx(const string & nodeName);
-
-    /**
-     * 获取框架服务
-     */
-    int getFramework(vector<tars::FrameworkServer> &servers);
 
     /**
      * 增加异步任务
@@ -213,6 +213,8 @@ public:
     int updateServerState(const string & app, const string & serverName, const string & nodeName,
             const string & stateFields, tars::ServerState state, int processId = -1);
 
+    int updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive);
+    int updateServerFlowStateOne(const string & app, const string & serverName, const string& nodeName, bool bActive);
 
     /**
      * 获取application列表
@@ -294,7 +296,7 @@ protected:
     static TC_ThreadLock _NodePrxLock;
 
     //匹配分组信息
-    static vector<map<string,string> > _serverGroupRule;
+    static vector<map<string,string>> _serverGroupRule;
 
     //用于初始化保护
     static TC_ThreadLock _mutex;
