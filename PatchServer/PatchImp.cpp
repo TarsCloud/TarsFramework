@@ -197,6 +197,49 @@ int PatchImp::__listFileInfo(const string &path, vector<FileInfo> &vf)
     return 0;
 }
 
+
+int PatchImp::upload(const std::string & app,const std::string & serverName,const tars::FileContent & content, tars::CurrentPtr current)
+{
+    LOG->debug() << __FUNCTION__ << "|" << current->getIp() << "|" << content.md5 << "|" << content.name
+                 << "|" << content.firstChunk << "|" << content.lastChunk << "|" << content.content.size() << "|" << endl;
+
+    string uploadDir = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName;
+
+    if (!TC_File::makeDirRecursive(uploadDir)) {
+        TLOGERROR("upload, error mkdir: " << uploadDir << endl);
+        return -1;
+    }
+
+    ofstream writer;
+
+    string uploadFile = uploadDir + FILE_SEP + content.name;
+
+    if (content.firstChunk) {
+        writer.open(uploadFile, ios_base::binary);
+    } else {
+        writer.open(uploadFile, ios_base::app | ios_base::binary);
+    }
+    if (!writer.is_open()) {
+        TLOGERROR("upload, open file error: " << strerror(errno) << endl);
+        return -2;
+    }
+
+    writer.write((char*)content.content.data(), content.content.size());
+
+    writer.close();
+
+    if (content.lastChunk) {
+        string md5 = TC_MD5::md5file(uploadFile);
+
+        if (md5 != content.md5) {
+            TLOGERROR("upload, file md5 error!" << uploadFile << ", " << md5 << "!=" << content.md5 << endl);
+            return -3;
+        }
+    }
+
+    return 0;
+}
+
 int PatchImp::__downloadFromMem (const string & file, size_t pos, vector<char> & vb)
 {
     TLOGDEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|size:" << _size << endl);

@@ -75,6 +75,12 @@ public:
      * @return
      */
 	int deletePatchFile(const string & app, const string & serverName, const string & patchFile, TarsCurrentPtr current);
+    /**
+     * upload file content
+     * @param content
+     * @return
+     */
+    int upload(const std::string & app,const std::string & serverName,const tars::FileContent & content,tars::CurrentPtr current);
 protected:
     int __listFileInfo(const string &path, vector<FileInfo> &vf);
     
