@@ -642,11 +642,11 @@ int PropertyDbManager::checkLastTime(const string &sLastTime,const string &sTbNa
 
         iRet = pMysql->getRecordCount("t_ecstatus", sCondition);
 
-        TLOGDEBUG("StatDbManager::checkLastTime iRet: " <<iRet <<" "<<pMysql->getLastSQL()<< endl);
+        TLOGDEBUG("PropertyDbManager::checkLastTime iRet: " <<iRet <<" "<<pMysql->getLastSQL()<< endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("StatDbManager::checkLastTime exception: " << ex.what() << endl);
+        TLOGERROR("PropertyDbManager::checkLastTime exception: " << ex.what() << endl);
         creatEscTb("t_ecstatus", _sqlStatus, pMysql);
         return 0;
     }
