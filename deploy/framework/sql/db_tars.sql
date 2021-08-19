@@ -308,7 +308,7 @@ CREATE TABLE `t_server_conf` (
   `remote_log_compress_time` varchar(32) NOT NULL DEFAULT '2',
   `remote_log_type` int(1) NOT NULL DEFAULT '0',
   `grid_flag` varchar(16) NOT NULL DEFAULT 'NORMAL',
-  `flow_state ` enum ('active','inactive') NOT NULL DEFAULT 'active',
+  `flow_state` enum ('active','inactive') NOT NULL DEFAULT 'active',
   PRIMARY KEY (`id`),
   UNIQUE KEY `application` (`application`,`server_name`,`node_name`),
   KEY `node_name` (`node_name`),
