@@ -1,4 +1,26 @@
 
+
+## v2.4.15 2021.08.19
+### en
+- update tarscpp to v2.4.21
+- support gracefull patch
+- tarspatch add upload interface
+- framework support install in INET:127.0.0.1
+- tarsnode create local port by rand
+- fix node version compare
+- fix TARS_NOTIFY_XXXX not show in web
+- tarsnode template add cmd_white_list_ip
+- deploy Dockerfile add psmisc
+### cn
+- 升级tarscpp to v2.4.21, 必须依赖这个版本才能编译通过
+- tarsAdminRegistry&tarregistry支持了无损发布, 还需要等web支持
+- tarspatch 增加了 upload 接口, 给将来部署到k8s中的web平台使用
+- framework 支持安装到127.0.0.1上了, 方便调试
+- tarsnode 随机创建local端口了
+- 修复安装是node版本比较
+- 修复 TARS_NOTIFY_XXXX 在web上不显示的问题
+- tarsnode 模板增加 cmd_white_list_ip
+- 制作docker的Dockerfile 增加 psmisc,支持killall命令
 ## v2.4.14 2021.04.16
 ### en
 - update tarscpp to v2.4.18, to avoid connection crash bug
