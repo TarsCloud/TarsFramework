@@ -116,6 +116,11 @@ public:
     int init(TC_Config *pconf);
 
     /**
+     * 升级表结构
+     */ 
+    void updateMysql();
+
+    /**
      * 获取特定node id的对象代理
      * @param nodeName : node id
      * @return :  对象代理的智能指针
