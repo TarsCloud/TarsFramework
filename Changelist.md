@@ -11,6 +11,7 @@
 - fix TARS_NOTIFY_XXXX not show in web
 - tarsnode template add cmd_white_list_ip
 - deploy Dockerfile add psmisc
+- update tarsregistry, support auto upgrade sql add flow_state
 ### cn
 - 升级tarscpp to v2.4.21, 必须依赖这个版本才能编译通过
 - tarsAdminRegistry&tarregistry支持了无损发布, 还需要等web支持
@@ -21,6 +22,7 @@
 - 修复 TARS_NOTIFY_XXXX 在web上不显示的问题
 - tarsnode 模板增加 cmd_white_list_ip
 - 制作docker的Dockerfile 增加 psmisc,支持killall命令
+- tarsregistry 启动自动升级sql, 添加flow_state字段
 ## v2.4.14 2021.04.16
 ### en
 - update tarscpp to v2.4.18, to avoid connection crash bug
