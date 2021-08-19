@@ -83,6 +83,17 @@ int CDbHandle::init(TC_Config *pconf)
     return 0;
 }
 
+void CDbHandle::updateMysql()
+{
+    try
+    {
+        _mysqlReg.execute("alter table `t_server_conf` add `flow_state` enum ('active','inactive') NOT NULL DEFAULT 'active'");
+    }
+    catch(const std::exception& e)
+    {
+    }
+}
+
 int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadInfo& li)
 {
     try

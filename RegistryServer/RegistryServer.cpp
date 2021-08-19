@@ -27,6 +27,10 @@ void RegistryServer::initialize()
 
     try
     {
+        CDbHandle handle;
+        handle.init(g_pconf);
+        handle.updateMysql();
+
         //加载registry对象的端口信息
         loadServantEndpoint(); 
 
