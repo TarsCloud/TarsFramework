@@ -709,7 +709,7 @@ void TaskListElegant::doTask()
             if (affectNum > 0) {
                 TLOG_DEBUG("sleep " << ExecuteTask::getInstance()->getElegantWaitSecond() << "s wait for close flow..." << endl);
                 //sleep(75);
-                sleep(ExecuteTask::getInstance()->getElegantWaitSecond());
+                TC_Common::sleep(ExecuteTask::getInstance()->getElegantWaitSecond());
             }
             else
             {
