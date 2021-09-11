@@ -16,7 +16,6 @@
 #include "util/tc_platform.h"
 #include "Activator.h"
 #include "NodeServer.h"
-#include "NodeRollLogger.h"
 
 #if TARGET_PLATFORM_LINUX
 #include <sys/wait.h>

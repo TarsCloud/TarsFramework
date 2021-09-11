@@ -18,6 +18,7 @@
 #define _UTIL_H
 
 #include "util/tc_common.h"
+#include "servant/RemoteLogger.h"
 
 using namespace tars;
 
@@ -30,4 +31,5 @@ using namespace tars;
 #define FILE_FUN   __FILENAME__<<":"<<__FUNCTION__<<":"<<__LINE__<<"|"
 #define FILE_FUN_STR  TC_Common::tostr(__FILENAME__)+":"+TC_Common::tostr(__FUNCTION__)+":"+TC_Common::tostr(__LINE__)+"|"
 
+#define NODE_LOG(x) LOG_EX(x)
 #endif

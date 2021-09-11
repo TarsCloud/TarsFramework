@@ -16,7 +16,6 @@
 
 #include "ReportMemThread.h"
 #include "RegistryProxy.h"
-#include "NodeRollLogger.h"
 #include "util/tc_timeprovider.h"
 #include "util.h"
 

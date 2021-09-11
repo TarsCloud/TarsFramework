@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
 
     try
     {
+		CommunicatorPtr comm = new Communicator();
 
         TC_Option option;
         option.decode(argc, argv);
@@ -107,9 +108,9 @@ int main(int argc, char *argv[])
             return 0;
         }
 
-        CommunicatorFactory::getInstance()->getCommunicator()->setProperty("sync-invoke-timeout", "60000");
+		comm->setProperty("sync-invoke-timeout", "60000");
         PatchPrx pPtr;
-        CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy(server, pPtr);
+		comm->stringToProxy(server, pPtr);
 
         //远程目录的相对路径
         string remote_dir = option.getValue("remote");

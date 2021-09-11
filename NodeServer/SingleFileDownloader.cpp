@@ -16,7 +16,6 @@
 
 #include "SingleFileDownloader.h"
 #include "NodeServer.h"
-#include "NodeRollLogger.h"
 #include "util.h"
 
 DownloadTaskFactory* DownloadTaskFactory::_instance = new DownloadTaskFactory();

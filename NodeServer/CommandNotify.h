@@ -18,7 +18,6 @@
 #define __NOTIFY_COMMAND_H_
 
 #include "ServerCommand.h"
-#include "NodeRollLogger.h"
 
 /**
  * 通知服务

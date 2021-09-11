@@ -17,7 +17,6 @@
 #include "ServerFactory.h"
 #include "RegistryProxy.h"
 #include "CommandLoad.h"
-#include "NodeRollLogger.h"
 
 HashMap g_serverInfoHashmap;
 

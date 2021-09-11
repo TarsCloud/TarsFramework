@@ -16,7 +16,6 @@
 
 #include "ServerImp.h"
 #include "util.h"
-#include "NodeRollLogger.h"
 #include "NodeServer.h"
 
 int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current )

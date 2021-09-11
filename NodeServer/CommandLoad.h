@@ -18,7 +18,6 @@
 #define __LOAD_COMMAND_H_
 
 #include "ServerCommand.h"
-#include "NodeRollLogger.h"
 
 /**
  * 加载服务

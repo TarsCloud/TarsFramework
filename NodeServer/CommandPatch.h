@@ -24,7 +24,6 @@
 #include "util/tc_file.h"
 #include "util/tc_md5.h"
 #include "ServerCommand.h"
-#include "NodeRollLogger.h"
 #include "CommandStop.h"
 #include "util.h"
 

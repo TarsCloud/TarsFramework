@@ -17,7 +17,6 @@
 #include "ServerLimitResource.h"
 #include "util/tc_timeprovider.h"
 #include "servant/RemoteLogger.h"
-#include "NodeRollLogger.h"
 #include "util.h"
 
 ServerLimitResource::ServerLimitResource( int iMaxCount,int iTimeInterval/*分钟*/ ,int iExpiredTime/*分钟*/,const string& app,const string& servername)

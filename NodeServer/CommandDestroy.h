@@ -18,7 +18,6 @@
 #define __DESTROY_COMMAND_H_
 
 #include "ServerCommand.h"
-#include "NodeRollLogger.h"
 
 /**
  * 销毁服务

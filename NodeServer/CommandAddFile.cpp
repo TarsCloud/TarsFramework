@@ -15,7 +15,6 @@
  */
 
 #include "CommandAddFile.h"
-#include "NodeRollLogger.h"
 //////////////////////////////////////////////////////////////////////////////
 // 
 ServerCommand::ExeStatus CommandAddFile::canExecute(string &sResult)

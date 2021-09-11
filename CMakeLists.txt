@@ -77,8 +77,6 @@ macro(complice_module MODULE)
 endmacro()
 
 add_subdirectory(mysql-tool)
-#add_subdirectory(tars-client)
-
 add_subdirectory(ConfigServer)
 add_subdirectory(NodeServer)
 add_subdirectory(NotifyServer)

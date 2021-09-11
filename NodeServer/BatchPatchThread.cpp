@@ -18,7 +18,6 @@
 #include "BatchPatchThread.h"
 #include "ServerFactory.h"
 #include "CommandPatch.h"
-#include "NodeRollLogger.h"
 #include "util.h"
 
 using namespace tars;

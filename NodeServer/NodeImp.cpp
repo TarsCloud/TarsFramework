@@ -25,7 +25,6 @@
 #include "CommandDestroy.h"
 #include "CommandAddFile.h"
 #include "CommandPatch.h"
-#include "NodeRollLogger.h"
 #include "AdminReg.h"
 #include "util/tc_timeprovider.h"
 

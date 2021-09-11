@@ -18,7 +18,7 @@
 #include "NodeImp.h"
 #include "ServerImp.h"
 #include "RegistryProxy.h"
-#include "NodeRollLogger.h"
+//#include "NodeRollLogger.h.bak"
 #include "util/tc_md5.h"
 
 string NodeServer::g_sNodeIp;
@@ -33,11 +33,11 @@ void NodeServer::initialize()
     //滚动日志也打印毫秒
     LocalRollLogger::getInstance()->logger()->modFlag(TC_DayLogger::HAS_MTIME);
 
-    //node使用的循环日志初始化
-    RollLoggerManager::getInstance()->setLogInfo(ServerConfig::Application,
-            ServerConfig::ServerName, ServerConfig::LogPath,
-            ServerConfig::LogSize, ServerConfig::LogNum, _communicator,
-            ServerConfig::Log);
+//    //node使用的循环日志初始化
+//    RollLoggerManager::getInstance()->setLogInfo(ServerConfig::Application,
+//            ServerConfig::ServerName, ServerConfig::LogPath,
+//            ServerConfig::LogSize, ServerConfig::LogNum, _communicator,
+//            ServerConfig::Log);
 
     initRegistryObj();
 
@@ -419,7 +419,7 @@ void NodeServer::reportServer(const string& sServerId, const string &sSet, const
 
 string NodeServer::getQueryEndpoint()
 {
-    QueryFPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<QueryFPrx>("tars.tarsregistry.QueryObj");
+    QueryFPrx prx = Application::getCommunicator()->stringToProxy<QueryFPrx>("tars.tarsregistry.QueryObj");
 
     string str;
 
@@ -468,8 +468,8 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 		config.parseFile(CONFIG);
 
 		string sLocator = config.get("/tars/application/client<locator>");
-		CommunicatorFactory::getInstance()->getCommunicator()->setProperty("locator", sLocator);
-		RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
+		Application::getCommunicator()->setProperty("locator", sLocator);
+		RegistryPrx pRegistryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
 
 		//if registry is dead, do not block too match time, avoid monitor check tarsnode is dead(first start)
 		if(first) {

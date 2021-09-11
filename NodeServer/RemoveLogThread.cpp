@@ -17,7 +17,6 @@
 #include "util/tc_md5.h"
 #include "RemoveLogThread.h"
 #include "ServerFactory.h"
-#include "NodeRollLogger.h"
 #include "util/tc_timeprovider.h"
 #include "util.h"
 

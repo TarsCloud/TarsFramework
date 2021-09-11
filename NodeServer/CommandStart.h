@@ -18,7 +18,6 @@
 #define __START_COMMAND_H_
 
 #include "ServerCommand.h"
-#include "NodeRollLogger.h"
 #include "util/tc_timeprovider.h"
 
 class CommandStart : public ServerCommand

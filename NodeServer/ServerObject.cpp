@@ -26,7 +26,6 @@
 #include "CommandStop.h"
 #include "CommandDestroy.h"
 #include "CommandAddFile.h"
-#include "NodeRollLogger.h"
 
 ServerObject::ServerObject( const ServerDescriptor& tDesc)
 : _tarsServer(true)

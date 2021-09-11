@@ -15,7 +15,6 @@
  */
 
 #include "CommandStop.h"
-#include "NodeRollLogger.h"
 #include "servant/AdminF.h"
 //////////////////////////////////////////////////////////////
 //

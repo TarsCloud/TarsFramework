@@ -29,7 +29,7 @@ void doMonitor(const string &configFile)
 
 	string obj = "AdminObj@" + conf["/tars/application/server<local>"];
 
-	ServantPrx prx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<ServantPrx>(obj);
+	ServantPrx prx = Application::getCommunicator()->stringToProxy<ServantPrx>(obj);
 	prx->tars_ping();
 }
 

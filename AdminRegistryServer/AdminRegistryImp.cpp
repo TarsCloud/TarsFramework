@@ -26,7 +26,7 @@ void AdminRegistryImp::initialize()
 {
     TLOGDEBUG("begin AdminRegistryImp init"<<endl);
 
-    _patchPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<PatchPrx>("tars.tarspatch.PatchObj");
+    _patchPrx = Application::getCommunicator()->stringToProxy<PatchPrx>("tars.tarspatch.PatchObj");
 
 	int timeout = TC_Common::strto<int>(g_pconf->get("/tars/patch<patch_timeout>", "30000"));
 
