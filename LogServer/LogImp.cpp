@@ -17,6 +17,9 @@
 #include "LogImp.h"
 
 GlobeInfo   g_globe;
+const string    TRACE_LOG_FILE = "_t_trace_";
+const string    TRACE_LOG_APP = "_tars_";
+const string    TRACE_LOG_SERVER = "_trace_";
 
 TC_DayLogger& GlobeInfo::makeDayLogger(const string &app, const string &server, const string &logname, const string &format,const string& ip)
 {
@@ -430,6 +433,10 @@ void LogImp::loggerbyInfo(const LogInfo & info,const vector<std::string> & buffe
     // {
     //     nodeName = current->getIp();
     // }
+    if (info.sFilename == TRACE_LOG_FILE)
+    {
+        return logTrace(info.appname, info.servername, info.sFilename, info.sFormat, buffer, current);
+    }
 
     TC_DayLogger &dl = g_globe.getLogger(info,nodeName);
 
@@ -443,6 +450,33 @@ void LogImp::loggerbyInfo(const LogInfo & info,const vector<std::string> & buffe
         else
         {
             dl.any() << buffer[i];
+        }
+    }
+}
+
+
+void LogImp::logTrace(const string &app, const string &server, const string &file, const string &format, const vector<string> &buffer, tars::CurrentPtr current)
+{
+    string nodeName = current->getHostName() ;
+    TC_DayLogger &dl = g_globe.getLogger(TRACE_LOG_APP, TRACE_LOG_SERVER, file, format, nodeName);
+
+    //记录日志
+    for (size_t i = 0; i < buffer.size(); i++)
+    {
+        // 这里对内容长度做个保护
+        if (buffer[i].size() > 1000000)
+        {
+            TLOGERROR("[LogImp::logTrace] Too long content!\r\n" << buffer[i] << endl);
+            continue;
+        }
+
+        if (g_globe._bIpPrefix)
+        {
+            dl.any() << nodeName << "|" << app << "|" << server << "|" << buffer[i];
+        }
+        else
+        {
+            dl.any() << app << "|" << server << "|" << buffer[i];
         }
     }
 }
