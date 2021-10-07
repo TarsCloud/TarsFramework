@@ -13,12 +13,15 @@ jobs:
           docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
           env
       - uses: actions/checkout@v1
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: deploy docker
         run: |
           echo $GITHUB_SHA
           env
-          tag=$(git describe --tags $(git rev-list --tags --max-count=1) --abbrev=0 --always)
-          echo $tag
+          # tag=$(git describe --tags $(git rev-list --tags --max-count=1) --abbrev=0 --always)
+          echo ${{ steps.get_version.outputs.VERSION }}
           git clone https://github.com/TarsCloud/TarsDocker
           cd TarsDocker/framework
-          ./build-docker.sh $tag master latestRelease
+          ./build-docker.sh ${{ steps.get_version.outputs.VERSION }} master latestRelease
