@@ -8,19 +8,19 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
-      - name: Setup perl
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: ${{ matrix.perl }}
-      - run: perl -V
-      - uses: actions/checkout@v2
-      - name: git
-        run: git submodule update --init --recursive
-      - name: configure
-        run: cd build; cmake --version; cmake .. -A X64
-      - name: make
-        run: cd build; cmake --build . --config release
+    - uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: '5.32'
+        distribution: strawberry
+    - run: perl -V
+    - uses: actions/checkout@v2
+    - name: git
+      run: git submodule update --init --recursive
+    - name: configure
+      run: cd build; cmake --version; cmake .. -A X64
+    - name: make
+      run: cd build; cmake --build . --config release
 
