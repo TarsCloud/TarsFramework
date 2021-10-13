@@ -92,7 +92,8 @@ protected:
     bool                _terminate; 
     time_t              _runTime;              //node运行时间
     int                 _heartTimeout;         //业务心跳超时时间(s)
-    int                 _monitorInterval;      //监控server状态的间隔时间(s)
+    int                 _monitorInterval;      //监控server状态的间隔时间(s)    
+    int                 _reportAliveInterval;  //上报注册中心的心跳间隔(s)
     int                 _monitorIntervalMs;    //新的监控状态间隔，改成毫秒
     int                 _synInterval;          //同步与regisrty server状态的间隔时间(s)
     string              _synStatBatch;         //批量同步
