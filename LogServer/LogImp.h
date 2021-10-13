@@ -215,7 +215,7 @@ public:
     void loggerbyInfo(const LogInfo & info,const vector<std::string> & buffer,tars::TarsCurrentPtr current);
 
 private:
-
+    void logTrace(const string &app, const string &server, const string &file, const string &format, const vector<string> &buffer, tars::CurrentPtr current);
 };
 
 #endif
