@@ -23,18 +23,19 @@ KeepAliveThread::KeepAliveThread()
 : _terminate(false)
 , _registryPrx(NULL)
 {
-    _runTime           = time(0);
-    _nodeInfo          = _platformInfo.getNodeInfo();
-    _heartTimeout      = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<heartTimeout>", "10"));
-    _monitorInterval   = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorInterval>", "2"));
+    _runTime                = time(0);
+    _nodeInfo               = _platformInfo.getNodeInfo();
+    _heartTimeout           = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<heartTimeout>", "10"));
+    _monitorInterval        = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorInterval>", "2"));    
+    _reportAliveInterval    = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<reportAliveInterval>", "10"));
 
-    _monitorIntervalMs = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorIntervalMs>", "10"));
+    _monitorIntervalMs      = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorIntervalMs>", "10"));
 
-    _synInterval       = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<synStatInterval>", "60"));
-    _synStatBatch      = g_pconf->get("/tars/node/keepalive<synStatBatch>", "Y");
-    _monitorInterval   = _monitorInterval > 10 ? 10 : (_monitorInterval < 1 ? 1 : _monitorInterval);
+    _synInterval            = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<synStatInterval>", "60"));
+    _synStatBatch           = g_pconf->get("/tars/node/keepalive<synStatBatch>", "Y");
+    _monitorInterval        = _monitorInterval > 10 ? 10 : (_monitorInterval < 1 ? 1 : _monitorInterval);
 
-    _latestKeepAliveTime = TNOW;
+    _latestKeepAliveTime    = TNOW;
 
 }
 
@@ -220,7 +221,7 @@ int KeepAliveThread::reportAlive()
     {
         static time_t tReport;
         time_t tNow =  TNOW;
-        if (tNow - tReport > _heartTimeout)
+        if (tNow - tReport > _reportAliveInterval)
         {
             tReport = tNow;
 
