@@ -1,9 +1,5 @@
 set(MODULE "tarstrace")
 
-# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/deploy/${MODULE}/bin/)
-
-
-#include_directories(asio/include)
 include_directories(rapidjson/include)
 
 complice_module(${MODULE})
