@@ -18,10 +18,9 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
 add_subdirectory(tarscpp)
 
-set(major "")
-set(minor "")
-set(patch "")
-get_version(major minor patch)
+set(major "3")
+set(minor "0")
+set(patch "1")
 set(FRAMEWORK_VERSION ${major}.${minor}.${patch})
 add_definitions(-DFRAMEWORK_VERSION="${FRAMEWORK_VERSION}")
 add_definitions(-DTARS_VERSION="${TARS_VERSION}")
