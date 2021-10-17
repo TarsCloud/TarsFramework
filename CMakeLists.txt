@@ -89,7 +89,7 @@ add_subdirectory(patchclient)
 add_subdirectory(StatServer)
 add_subdirectory(QueryStatServer)
 add_subdirectory(QueryPropertyServer)
-add_subdirectory(TraceServer)
+#add_subdirectory(TraceServer)
 ############################################################################################
 # 打包deploy, 用于部署
 
