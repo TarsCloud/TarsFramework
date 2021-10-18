@@ -20,6 +20,12 @@ replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapt
 
 replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`) VALUES ('tars','tarslog','','localip.tars.com',now(),'','/usr/local/app/tars/tarslog/bin/tarslog','tars.tarslog',0,'active','active',0,'2.1.0',now(),'','2.1.0',now(),'admin','tars_cpp');
 
+-- tarstrace
+replace into `t_adapter_conf` (`application`, `server_name`, `node_name`, `adapter_name`,`registry_timestamp`, `thread_num`, `endpoint`, `max_connections`, `allow_ip`, `servant`, `queuecap`, `queuetimeout`,`posttime`,`lastuser`,`protocol`, `handlegroup`) VALUES ('tars','tarstrace','localip.tars.com','tars.tarstrace.TopologyObjAdapter',now(),5,'tcp -h localip.tars.com -t 60000 -p 19799',200000,'','tars.tarstrace.TopologyObj',100000,60000,now(),'admin','tars','');
+
+replace into `t_server_conf` (`application`, `server_name`, `node_group`, `node_name`, `registry_timestamp`, `base_path`, `exe_path`, `template_name`, `bak_flag`, `setting_state`, `present_state`, `process_id`, `patch_version`, `patch_time`, `patch_user`, `tars_version`, `posttime`, `lastuser`, `server_type`, `profile`) VALUES ('tars','tarstrace','','localip.tars.com',now(),'','/usr/local/app/tars/tarstrace/bin/tarstrace','tars.tarstrace',0,'active','active',0,'2.1.0',now(),'','2.1.0',now(),'admin','tars_cpp','');
+
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

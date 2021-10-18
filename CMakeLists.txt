@@ -88,7 +88,7 @@ add_subdirectory(patchclient)
 add_subdirectory(StatServer)
 add_subdirectory(QueryStatServer)
 add_subdirectory(QueryPropertyServer)
-#add_subdirectory(TraceServer)
+add_subdirectory(TraceServer)
 ############################################################################################
 # 打包deploy, 用于部署
 
@@ -122,6 +122,7 @@ list(APPEND DEPENDS_LIST tarsproperty)
 list(APPEND DEPENDS_LIST tarslog)
 list(APPEND DEPENDS_LIST tarsquerystat)
 list(APPEND DEPENDS_LIST tarsqueryproperty)
+list(APPEND DEPENDS_LIST tarstrace)
 
 foreach (MODULE ${DEPENDS_LIST})
 
@@ -195,6 +196,7 @@ copy_server(tarsregistry)
 copy_server(tarslog)
 copy_server(tarspatch)
 copy_server(tarsproperty)
+copy_server(tarstrace)
 
 
 
