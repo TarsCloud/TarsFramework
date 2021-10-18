@@ -61,14 +61,14 @@ public:
     void update(const InternalGraph &g, bool firstUpdate);
 };
 
-constexpr int64_t COUNT_MASK = 40u;
+constexpr uint64_t COUNT_MASK = 40u;
 
 inline int64_t getCountFromRecord(int64_t record) {
     return record >> COUNT_MASK;
 }
 
 inline int64_t getTimeFromRecord(int64_t record) {
-    constexpr int64_t OFFSET = 64ul - COUNT_MASK;
+    constexpr uint64_t OFFSET = 64ul - COUNT_MASK;
     return record << OFFSET >> OFFSET;
 }
 

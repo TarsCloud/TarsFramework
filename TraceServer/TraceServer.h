@@ -1,7 +1,6 @@
 #pragma once
 
 #include <servant/Application.h>
-//#include <sys/inotify.h>
 #include "LogReader.h"
 #include "LogAggregation.h"
 
