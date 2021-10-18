@@ -35,6 +35,21 @@ public:
         _esPrx->tars_set_protocol(ServantProxy::PROTOCOL_HTTP1, 5);
     }
 
+    void setServer(const std::string &esPre) {
+        string es = "es@";
+        TC_URL url;
+        url.parseURL(esPre);  
+        if (url.getType() == TC_URL::HTTPS) {
+            es += "ssl";
+        }
+        else {
+            es += "tcp";
+        }
+        es += " -h " + url.getDomain() + " -p " + url.getPort();
+        _esPrx = Application::getCommunicator()->stringToProxy<ServantPrx>(es);
+        _esPrx->tars_set_protocol(ServantProxy::PROTOCOL_HTTP1, 5);
+    }
+
     int postRequest(ESClientRequestMethod method, const std::string &url, const std::string &body, std::string &response);
 
 private:

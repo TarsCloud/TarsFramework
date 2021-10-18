@@ -34,20 +34,12 @@ void TraceServer::initialize() {
     std::vector<std::string> esNodes = config.getDomainKey("/tars/trace/es_nodes");
 
     if (esNodes.empty()) {
-        TLOGERROR("initialize with empty es nodes " << endl);
+        TLOGERROR("iInitialize with empty es nodes, please configure es addr in server template." << endl);
+        TARS_NOTIFY_ERROR("Initialize with empty es nodes, please configure es addr in server template.");
         exit(0);
     }
-
-    std::vector<std::tuple<std::string, int>> elkTupleNodes;
-    for (auto &item: esNodes) {
-        vector<string> vOneNode = TC_Common::sepstr<string>(item, ":", true);
-        if (vOneNode.size() < 2) {
-            TLOGERROR("initialize with wrong es nodes:" << item << endl);
-            continue;
-        }
-        ESClient::instance().setServer(vOneNode[0], std::stoi(vOneNode[1]));
-        break;
-    }
+    
+    ESClient::instance().setServer(esNodes[0]);
 
     auto todayLogFile = buildLogFileName(false);
     auto absTodayLogFile = buildLogFileName(true);
