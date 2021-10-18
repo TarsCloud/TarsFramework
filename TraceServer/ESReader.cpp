@@ -9,10 +9,8 @@
 #include "rapidjson/document.h"
 #include "rapidjson/pointer.h"
 #include "servant/RemoteLogger.h"
-#include "util/tc_http.h"
 
-
-static std::shared_ptr<rapidjson::Document> parserToJson(const char *data, size_t dataLen) {
+static std::shared_ptr <rapidjson::Document> parserToJson(const char *data, size_t dataLen) {
     auto document = std::make_shared<rapidjson::Document>();
     if (document->Parse(data, dataLen).HasParseError()) {
         return nullptr;
@@ -20,7 +18,7 @@ static std::shared_ptr<rapidjson::Document> parserToJson(const char *data, size_
     return document;
 }
 
-int ESReader::listTrace(const string &date, int64_t beginTime, int64_t endTime, const string &serverName, vector<string> &ts) {
+int ESReader::listTrace(const string &date, int64_t beginTime, int64_t endTime, const string &serverName, vector <string> &ts) {
     constexpr char ListTraceTemplate[] = R"(
 {
     "size":10000,
@@ -50,24 +48,20 @@ int ESReader::listTrace(const string &date, int64_t beginTime, int64_t endTime, 
 }
 )";
     string body = ListTraceTemplate;
-    map<string, string> replaceMap = {
+    map <string, string> replaceMap = {
             {"BEGIN_TIME", to_string(beginTime)},
             {"END_TIME",   to_string(endTime)},
             {"SERVER",     serverName}
     };
     body = TC_Common::replace(body, replaceMap);
     auto url = "/" + buildTraceIndexByDate(date) + "/_search";
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body);
-//    if (!request->waitFinish(std::chrono::seconds(2))) {
-//        TLOGERROR("request to es overtime" << endl);
-//    }
-//    if (request->phase() != Done) {
-//        TLOGERROR("request to es error, " << request->phaseMessage());
-//        return -1;
-//    }
-//    auto &&response = request->responseBody();
-//    auto jsonPtr = parserToJson(response, request->responseSize());
-	auto jsonPtr = parserToJson(response->getContent().c_str(), response->getContent().size());
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
+        return -1;
+    }
+    auto jsonPtr = parserToJson(response.c_str(), response.size());
     if (jsonPtr == nullptr) {
         TLOGERROR("parser es response to json error\n, \tdata: " << response << endl);
         return -1;
@@ -87,7 +81,7 @@ int ESReader::listTrace(const string &date, int64_t beginTime, int64_t endTime, 
     return 0;
 }
 
-int ESReader::listTraceSummary(const string &date, int64_t beginTime, int64_t endTime, const string &serverName, vector<Summary> &ss) {
+int ESReader::listTraceSummary(const string &date, int64_t beginTime, int64_t endTime, const string &serverName, vector <Summary> &ss) {
 //fixme trace may had no tsTime.
     constexpr char ListTraceSummaryTemplate[] = R"(
 {
@@ -105,27 +99,22 @@ int ESReader::listTraceSummary(const string &date, int64_t beginTime, int64_t en
 }
 )";
     string body = ListTraceSummaryTemplate;
-    map<string, string> replaceMap = {
+    map <string, string> replaceMap = {
             {"BEGIN_TIME", to_string(beginTime)},
             {"END_TIME",   to_string(endTime)},
             {"SERVER",     serverName}
     };
     body = TC_Common::replace(body, replaceMap);
     auto url = "/" + buildTraceIndexByDate(date) + "/_search";
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body);
-//    if (!request->waitFinish(std::chrono::seconds(2))) {
-//        TLOGERROR("request to es overtime" << endl);
-//    }
-//    if (request->phase() != Done) {
-//        TLOGERROR("request to es error, " << request->phaseMessage());
-//        return -1;
-//    }
-//    auto &&response = request->responseBody();
-	auto jsonPtr = parserToJson(response->getContent().c_str(), response->getContent().size());
-
-//    auto jsonPtr = parserToJson(response, request->responseSize());
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
+        return -1;
+    }
+    auto jsonPtr = parserToJson(response.c_str(), response.size());
     if (jsonPtr == nullptr) {
-    	TLOGERROR("parser es response to json error\n, \tdata: " << response->getContent() << endl);
+        TLOGERROR("parser es response to json error\n, \tdata: " << response << endl);
         return -1;
     }
     auto hitsPtr = rapidjson::GetValueByPointer(*jsonPtr, "/hits/hits");
@@ -159,7 +148,7 @@ int ESReader::listTraceSummary(const string &date, int64_t beginTime, int64_t en
     return 0;
 }
 
-int ESReader::getServerGraph(const string &date, const string &serverName, vector<InternalGraph> &graphs) {
+int ESReader::getServerGraph(const string &date, const string &serverName, vector <InternalGraph> &graphs) {
     constexpr char GetServerGraphTemplate[] = R"(
 {
     "size":10000,
@@ -174,25 +163,18 @@ int ESReader::getServerGraph(const string &date, const string &serverName, vecto
 }
 )";
     string body = GetServerGraphTemplate;
-    map<string, string> replaceMap = {
+    map <string, string> replaceMap = {
             {"SERVER", serverName}
     };
     body = TC_Common::replace(body, replaceMap);
     auto url = "/" + buildGraphIndexByDate(date) + "/_search";
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body);
-//
-//    if (!request->waitFinish(std::chrono::seconds(2))) {
-//        TLOGERROR("request to es overtime" << endl);
-//    }
-//    if (request->phase() != Done) {
-//        TLOGERROR("request to es error, " << request->phaseMessage());
-//        return -1;
-//    }
-//    auto &&response = request->responseBody();
-
-	auto jsonPtr = parserToJson(response->getContent().c_str(), response->getContent().size());
-
-//    auto jsonPtr = parserToJson(response, request->responseSize());
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
+        return -1;
+    }
+    auto jsonPtr = parserToJson(response.c_str(), response.size());
     if (jsonPtr == nullptr) {
         TLOGERROR("parser es response to json error\n, \tdata: " << response << endl);
         return -1;
@@ -234,7 +216,7 @@ int ESReader::getServerGraph(const string &date, const string &serverName, vecto
     return 0;
 }
 
-int ESReader::getFunctionGraph(const string &date, const string &functionName, vector<InternalGraph> &graphs) {
+int ESReader::getFunctionGraph(const string &date, const string &functionName, vector <InternalGraph> &graphs) {
     constexpr char GetFunctionGraphTemplate[] = R"(
 {
     "size":10000,
@@ -249,24 +231,18 @@ int ESReader::getFunctionGraph(const string &date, const string &functionName, v
 }
 )";
     string body = GetFunctionGraphTemplate;
-    map<string, string> replaceMap = {
+    map <string, string> replaceMap = {
             {"FUNCTION", functionName}
     };
     body = TC_Common::replace(body, replaceMap);
     auto url = "/" + buildGraphIndexByDate(date) + "/_search";
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body);
-//    if (!request->waitFinish(std::chrono::seconds(2))) {
-//        TLOGERROR("request to es overtime" << endl);
-//    }
-//    if (request->phase() != Done) {
-//        TLOGERROR("request to es error, " << request->phaseMessage());
-//        return -1;
-//    }
-//    auto &&response = request->responseBody();
-//
-	auto jsonPtr = parserToJson(response->getContent().c_str(), response->getContent().size());
-
-//    auto jsonPtr = parserToJson(response, request->responseSize());
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
+        return -1;
+    }
+    auto jsonPtr = parserToJson(response.c_str(), response.size());
     if (jsonPtr == nullptr) {
         TLOGERROR("parser es response to json error\n, \tdata: " << response << endl);
         return -1;
@@ -322,23 +298,18 @@ int ESReader::getTraceGraph(const string &date, const string &traceName, Interna
 }
 )";
     string body = GetTraceGraphTemplate;
-    map<string, string> replaceMap = {
+    map <string, string> replaceMap = {
             {"TRACE", traceName}
     };
     body = TC_Common::replace(body, replaceMap);
     auto url = "/" + buildTraceIndexByDate(date) + "/_search";
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body);
-//    if (!request->waitFinish(std::chrono::seconds(2))) {
-//        TLOGERROR("request to es overtime" << endl);
-//    }
-//    if (request->phase() != Done) {
-//        TLOGERROR("request to es error, " << request->phaseMessage());
-//        return -1;
-//    }
-//    auto &&response = request->responseBody();
-	auto jsonPtr = parserToJson(response->getContent().c_str(), response->getContent().size());
-
-//    auto jsonPtr = parserToJson(response, request->responseSize());
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
+        return -1;
+    }
+    auto jsonPtr = parserToJson(response.c_str(), response.size());
     if (jsonPtr == nullptr) {
         TLOGERROR("parser es response to json error\n, \tdata: " << response << endl);
         return -1;
@@ -390,7 +361,7 @@ int ESReader::getTraceGraph(const string &date, const string &traceName, Interna
     return 0;
 }
 
-int ESReader::listFunction(const string &date, const string &serverName, set<string> &fs) {
+int ESReader::listFunction(const string &date, const string &serverName, set <string> &fs) {
     constexpr char ListFunctionTemplate[] = R"(
 {
   "size": 10000,
@@ -424,25 +395,20 @@ int ESReader::listFunction(const string &date, const string &serverName, set<str
   }
 })";
     string body = ListFunctionTemplate;
-    map<string, string> replaceMap = {
+    map <string, string> replaceMap = {
             {"SERVER", serverName}
     };
     body = TC_Common::replace(body, replaceMap);
     auto url = "/" + buildGraphIndexByDate(date) + "/_search";
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body);
-//    if (!request->waitFinish(std::chrono::seconds(2))) {
-//        TLOGERROR("request to es overtime" << endl);
-//    }
-//    if (request->phase() != Done) {
-//        TLOGERROR("request to es error, " << request->phaseMessage());
-//        return -1;
-//    }
-//    auto &&response = request->responseBody();
-	auto jsonPtr = parserToJson(response->getContent().c_str(), response->getContent().size());
-
-//    auto jsonPtr = parserToJson(response, request->responseSize());
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Get, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
+        return -1;
+    }
+    auto jsonPtr = parserToJson(response.c_str(), response.size());
     if (jsonPtr == nullptr) {
-    	TLOGERROR("parser es response to json error\n, \tdata: " << response->getContent() << endl);
+        TLOGERROR("parser es response to json error\n, \tdata: " << response << endl);
         return -1;
     }
     auto hitsPtr = rapidjson::GetValueByPointer(*jsonPtr, "/hits/hits");

@@ -8,31 +8,14 @@
 #include "TimerTaskQueue.h"
 #include "servant/RemoteLogger.h"
 
-[[noreturn]] static void
-watchDir(const std::string &dir, const std::function<void(const inotify_event *)> &callBack) {
-    int inotifyFd_ = inotify_init1(IN_CLOEXEC);
-    if (inotifyFd_ == -1) {
-        throw std::runtime_error("call inotify_init error");
-    }
-    uint32_t INOTIFY_MASK = IN_MODIFY;
-    int res = inotify_add_watch(inotifyFd_, dir.c_str(), INOTIFY_MASK);
-    if (res == -1) {
-        throw std::runtime_error("call inotify_add_watch error");
-    }
-#define EVENT_SIZE  ( sizeof (struct inotify_event) )
-#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
-    char buffer[EVENT_BUF_LEN];
+[[noreturn]] void TraceServer::watchFile() {
     while (true) {
-        ssize_t length = ::read(inotifyFd_, buffer, EVENT_BUF_LEN);
-        if (length < 0) {
-            perror("read");
+        auto todayLogFile = buildLogFileName(false);
+        auto absTodayLogFile = buildLogFileName(true);
+        if (TC_File::isFileExist(absTodayLogFile)) {
+            onModify(todayLogFile);
         }
-        size_t pos = 0;
-        while (pos < length) {
-            auto *event = (struct inotify_event *) &buffer[pos];
-            callBack(event);
-            pos += EVENT_SIZE + event->len;
-        }
+        sleep(1);
     }
 }
 
@@ -45,11 +28,6 @@ void TraceServer::initialize() {
         throw std::runtime_error("bad config: " + message);
     }
 
-//    addAdminCommandNormal("reload", [this](const string &command, const string &params, string &result) -> bool {
-//        parseConfig(ServerConfig::ConfigFile);
-//        auto &&config = getConfig();
-//        return loadTimerValue(config, result);
-//    });
 
     logDir_ = config.get("/tars/trace<log_dir>", "/usr/local/app/tars/remote_app_log/_tars_/_trace_");
 
@@ -68,7 +46,6 @@ void TraceServer::initialize() {
             continue;
         }
         ESClient::instance().setServer(vOneNode[0], std::stoi(vOneNode[1]));
-//        ESClient::instance().start();
         break;
     }
 
@@ -85,29 +62,15 @@ void TraceServer::initialize() {
     });
     timerThread_.detach();
 
-    watchThread_ = std::thread(watchDir, logDir_, [this](const inotify_event *event) {
-        onINotify(event);
+    watchThread_ = std::thread([this]() {
+        watchFile();
     });
     watchThread_.detach();
 
     addServant<TopologyImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".TopologyObj");
 };
 
-void TraceServer::onINotify(const inotify_event *event) {
-    if (event->len) {
-        if (event->mask & IN_ISDIR) {
-            return;
-        }
-
-        if (event->mask & IN_MODIFY) {
-            onModify(event->name);
-            return;
-        }
-    }
-}
-
 void TraceServer::destroyApp() {
-//    ESClient::instance().stop();
     usleep(1000);
 }
 

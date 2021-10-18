@@ -1,7 +1,7 @@
 #pragma once
 
 #include <servant/Application.h>
-#include <sys/inotify.h>
+//#include <sys/inotify.h>
 #include "LogReader.h"
 #include "LogAggregation.h"
 
@@ -52,15 +52,15 @@ public:
         return true;
     }
 
-protected:
+private:
+
+    [[noreturn]] void watchFile();
 
     void initialize() override;
 
     void destroyApp() override;
 
     void onModify(const std::string &file);
-
-    void onINotify(const inotify_event *event);
 
     bool isExpectedFile(const std::string &file) {
         return file == buildLogFileName(false);

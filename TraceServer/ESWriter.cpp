@@ -9,22 +9,29 @@
 #include "TimerTaskQueue.h"
 
 static std::string generaId(const std::string &indexName, const std::string &key) {
-    auto iIndexNameHash = std::hash<std::string>{}(indexName);
-    auto iContentHash = std::hash<std::string>{}(key);
+    auto iIndexNameHash = std::hash < std::string > {}(indexName);
+    auto iContentHash = std::hash < std::string > {}(key);
     auto hashValue = (iIndexNameHash << 54u) + iContentHash;
     return std::to_string(hashValue);
 }
 
 void ESWriter::createIndexTemplate() {
-    auto a = ESClient::instance().postRequest(ESClientRequestMethod::Put, LogIndexUri, LogIndexTemplate);
-    auto b = ESClient::instance().postRequest(ESClientRequestMethod::Put, TraceIndexTemplateUri, TraceIndexTemplate);
-    auto c = ESClient::instance().postRequest(ESClientRequestMethod::Put, GraphIndexTemplateUri, GraphIndexTemplate);
-//    a->waitFinish();
-//    b->waitFinish();
-//    c->waitFinish();
+    std::string response{};
+    if (ESClient::instance().postRequest(ESClientRequestMethod::Put, LogIndexUri, LogIndexTemplate, response) != 200) {
+        TLOGERROR("create index template \"tars_call_log\" error: " << response);
+        return;
+    }
+    if (ESClient::instance().postRequest(ESClientRequestMethod::Put, TraceIndexTemplateUri, TraceIndexTemplate, response) != 200) {
+        TLOGERROR("create index template \"tars_call_trace\" error: " << response);
+        return;
+    }
+    if (ESClient::instance().postRequest(ESClientRequestMethod::Put, GraphIndexTemplateUri, GraphIndexTemplate, response) != 200) {
+        TLOGERROR("create index template \"tars_call_graph\" error: " << response);
+        return;
+    }
 }
 
-void ESWriter::postRawLog(const std::string &file, const std::vector<std::shared_ptr<RawLog>> &rawLogs, size_t triedTimes) {
+void ESWriter::postRawLog(const std::string &file, const std::vector <std::shared_ptr<RawLog>> &rawLogs, size_t triedTimes) {
     auto index = buildLogIndexByLogfile(file);
     std::ostringstream os;
     for (auto &&r: rawLogs) {
@@ -43,32 +50,23 @@ void ESWriter::postRawLog(const std::string &file, const std::vector<std::shared
         os << "}";
         os << "\n";
     }
-    auto uri = "/" + buildLogIndexByLogfile(file) + "/_bulk";
+    auto url = "/" + buildLogIndexByLogfile(file) + "/_bulk";
     auto body = os.str();
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Post, uri, body);
-
-    if (response->getStatus() != 200) {
-    	TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response->getContent());
-		return;
-	}
-//    request->waitFinish();
-//    if (request->phase() != Done) {
-//        if (triedTimes <= 10) {
-//            TLOGERROR("do es request error: " << request->phaseMessage() << ", this is " << triedTimes << "th" << "retry");
-//            TimerTaskQueue::instance().pushTimerTask([file, rawLogs, triedTimes] {
-//                ESWriter::postRawLog(file, rawLogs, triedTimes + 1);
-//            }, (triedTimes - 1) * 5 + 1);
-//            return;
-//        }
-//        TLOGERROR("do es request error: " << request->phaseMessage() << ", this is " << triedTimes << "th" << "retry, request will discard" << endl);
-//    }
-//    if (request->responseCode() != HTTP_STATUS_OK) {
-//        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << request->responseBody());
-//        return;
-//    }
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Post, url, body, response);
+    if (res != 200) {
+        if (triedTimes <= 10) {
+            TLOGERROR("do es request error: " << response << ", this is " << triedTimes << "th" << "retry");
+            TimerTaskQueue::instance().pushTimerTask([file, rawLogs, triedTimes] {
+                ESWriter::postRawLog(file, rawLogs, triedTimes + 1);
+            }, (triedTimes - 1) * 5 + 1);
+            return;
+        }
+        TLOGERROR("do es request error: " << response << ", this is " << triedTimes << "th" << "retry, request will discard" << endl);
+    }
 }
 
-void ESWriter::postTrace(const string &file, const std::string &traceName, const shared_ptr<Trace> &tracePtr,
+void ESWriter::postTrace(const string &file, const std::string &traceName, const shared_ptr <Trace> &tracePtr,
                          uint64_t serverGraphId, uint64_t functionGraphID, size_t triedTimes) {
     auto index = buildTraceIndexByDate(file);
     std::ostringstream os;
@@ -116,29 +114,20 @@ void ESWriter::postTrace(const string &file, const std::string &traceName, const
     os << "\n";
     auto url = "/" + buildTraceIndexByLogfile(file) + "/_bulk";
     auto body = os.str();
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Post, url, body);
-    if (response->getStatus() != 200) {
-    	TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response->getContent());
-    	return;
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Post, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error: " << response << ", this is " << triedTimes << "th" << "retry");
+        if (triedTimes <= 10) {
+            TimerTaskQueue::instance().pushTimerTask([file, traceName, tracePtr, serverGraphId, functionGraphID, triedTimes] {
+                ESWriter::postTrace(file, traceName, tracePtr, serverGraphId, functionGraphID, triedTimes + 1);
+            }, (triedTimes - 1) * 5 + 1);
+        }
+        return;
     }
-
-//    request->waitFinish();
-//    if (request->phase() != Done) {
-//        TLOGERROR("do es request error: " << request->phaseMessage() << ", this is " << triedTimes << "th" << "retry");
-//        if (triedTimes <= 10) {
-//            TimerTaskQueue::instance().pushTimerTask([file, traceName, tracePtr, serverGraphId, functionGraphID, triedTimes] {
-//                ESWriter::postTrace(file, traceName, tracePtr, serverGraphId, functionGraphID, triedTimes + 1);
-//            }, (triedTimes - 1) * 5 + 1);
-//        }
-//        return;
-//    }
-//    if (request->responseCode() != HTTP_STATUS_OK) {
-//        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << request->responseBody());
-//        return;
-//    }
 }
 
-void ESWriter::postLink(const string &file, uint64_t linkId, const shared_ptr<Link> &linkPtr) {
+void ESWriter::postLink(const string &file, uint64_t linkId, const shared_ptr <Link> &linkPtr) {
     std::ostringstream os;
     os << (R"({"index":{"_id":")") << linkId << ("\"}}\n");
     os << "{";
@@ -172,19 +161,10 @@ void ESWriter::postLink(const string &file, uint64_t linkId, const shared_ptr<Li
 
     auto url = "/" + buildGraphIndexByLogfile(file) + "/_bulk";
     auto body = os.str();
-    auto response = ESClient::instance().postRequest(ESClientRequestMethod::Post, url, body);
-    if (response->getStatus() != 200) {
-    	TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response->getContent());
-    	return;
+    std::string response{};
+    int res = ESClient::instance().postRequest(ESClientRequestMethod::Post, url, body, response);
+    if (res != 200) {
+        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response);
+        return;
     }
-
-//    request->waitFinish();
-//    if (request->phase() != Done) {
-//        TLOGERROR("do es request error: " << request->phaseMessage());
-//        return;
-//    }
-//    if (request->responseCode() != HTTP_STATUS_OK) {
-//        TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << request->responseBody());
-//        return;
-//    }
 }

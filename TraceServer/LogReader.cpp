@@ -1,21 +1,53 @@
 
 #include "LogReader.h"
-#include <fcntl.h>
+#include "servant/RemoteLogger.h"
 
-LogReader::LogReader(const std::string &file) : file_(file) {
-    fd_ = ::open(file_.c_str(), O_RDONLY | O_SYNC);
-    if (fd_ < 0) {
-        auto err = std::string("open file ").append(file).append("error");
-        throw std::runtime_error(err);
+LogReader::LogReader(std::string file) : file_(std::move(file)) {
+}
+
+bool LogReader::reopenFD() {
+    if (fd_ >= 0) {
+        return true;
     }
+    if (TC_File::isFileExist(file_)) {
+        fd_ = ::open(file_.c_str(), O_RDONLY | O_SYNC);
+        if (fd_ < 0) {
+            auto err = std::string("open file ").append(file_).append("error");
+            throw std::runtime_error(err);
+        }
+        auto fileSize = ::lseek(fd_, 0, SEEK_END);
+        if (readSeek_ > fileSize) {
+            readSeek_ = 0;  //file had truncated;
+        }
+        if (readSeek_ < fileSize) {
+            lseek(fd_, readSeek_, SEEK_SET);
+        }
+        return true;
+    }
+    fd_ = -1;
+    return false;
 }
 
 const std::vector<std::shared_ptr<RawLog>> &LogReader::read() {
     v_.clear();
-    ssize_t read_size = ::read(fd_, buff_ + input_pos_, MAX_READ_SIZE - input_pos_);
-    if (read_size == 0) {
+    if (!reopenFD()) {
         return v_;
     }
+    ssize_t read_size = ::read(fd_, buff_ + input_pos_, MAX_READ_SIZE - input_pos_);
+    if (read_size == 0) {
+        time_t now = time(nullptr);
+        if (last_read_time + 60 < now) {
+            close(fd_);
+            fd_ = -1;
+        }
+        return v_;
+    }
+    if (read_size < 0) {
+        close(fd_);
+        fd_ = -1;
+        return v_;
+    }
+    readSeek_ += read_size;
     data_begin_ = buff_;
     data_end_ = buff_ + input_pos_ + read_size;
     splitLine();
