@@ -1,6 +1,7 @@
 
 #include "Link.h"
 #include "RawLog.h"
+#include <time.h>
 
 #define ASSIGN_IF_EMPTY(A, B) (A)=A.empty()?(B):(A);
 

@@ -3,6 +3,7 @@
 #include "ESClient.h"
 #include "ESIndex.h"
 #include "util/tc_file.h"
+#include "util/tc_common.h"
 #include "ESWriter.h"
 #include "TopologyImp.h"
 #include "TimerTaskQueue.h"
@@ -15,7 +16,7 @@
         if (TC_File::isFileExist(absTodayLogFile)) {
             onModify(todayLogFile);
         }
-        sleep(1);
+        TC_Common::sleep(1);
     }
 }
 
@@ -63,7 +64,7 @@ void TraceServer::initialize() {
 };
 
 void TraceServer::destroyApp() {
-    usleep(1000);
+    TC_Common::msleep(1);
 }
 
 void TraceServer::onModify(const string &file) {

@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <cstring>
-#include <unistd.h>
+// #include <unistd.h>
 
 struct RawLog {
     std::string line;
