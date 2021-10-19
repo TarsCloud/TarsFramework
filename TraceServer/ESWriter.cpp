@@ -1,4 +1,4 @@
-
+﻿
 #include <mutex>
 #include <sstream>
 #include "ESWriter.h"

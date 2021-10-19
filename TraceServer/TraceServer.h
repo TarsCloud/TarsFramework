@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <servant/Application.h>
 #include "LogReader.h"

@@ -1,4 +1,4 @@
-
+﻿
 #include "LogReader.h"
 #include "servant/RemoteLogger.h"
 #include <string.h>

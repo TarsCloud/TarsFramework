@@ -1,4 +1,4 @@
-#include <thread>
+﻿#include <thread>
 #include "TraceServer.h"
 #include "ESClient.h"
 #include "ESIndex.h"

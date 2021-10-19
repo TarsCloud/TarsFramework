@@ -1,4 +1,4 @@
-
+﻿
 #include "ESClient.h"
 
 int ESClient::postRequest(ESClientRequestMethod method, const std::string &url, const std::string &body, std::string &response) {
