@@ -35,7 +35,15 @@ void LogServer::initialize()
 
     //增加对象
     addServant<LogImp>(ServerConfig::Application + "." + ServerConfig::ServerName +".LogObj");
-    addServant<TopologyImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".TopologyObj");
+    try
+    {
+        addServant<TopologyImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".TopologyObj");
+    }
+    catch(exception& ex)
+    {
+        TLOGERROR("initialize add TopologyObj fail, tars-trace will not work." << ex.what() << endl);
+        TARS_NOTIFY_ERROR("[error]initialize add TopologyObj fail, tars-trace will not work.");
+    }
 
     _trace.initialize(getConfig());  
 
