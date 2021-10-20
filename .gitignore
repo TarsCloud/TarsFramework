@@ -3,6 +3,7 @@
 
 # ignore generated files by cmake
 build/
+cmake-build-debug/
 !build/build.sh
 !build/README.md
 download/
