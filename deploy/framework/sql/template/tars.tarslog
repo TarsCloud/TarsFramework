@@ -11,4 +11,15 @@
                hour=xx
           </format>
      </log>
+
+     <elk>
+          # 连接es的协议，不配置默认http
+          protocol=http
+          <nodes>
+               # es node 地址，如果不配置，那么调用链分析功能将不会工作。
+               # 172.16.8.137:9200
+          </nodes>
+          log_dir=TARS_PATH/remote_app_log/_tars_/_trace_
+     </elk>
+  
 </tars>

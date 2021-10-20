@@ -88,7 +88,6 @@ add_subdirectory(patchclient)
 add_subdirectory(StatServer)
 add_subdirectory(QueryStatServer)
 add_subdirectory(QueryPropertyServer)
-add_subdirectory(TraceServer)
 ############################################################################################
 # 打包deploy, 用于部署
 
@@ -196,7 +195,6 @@ copy_server(tarsregistry)
 copy_server(tarslog)
 copy_server(tarspatch)
 copy_server(tarsproperty)
-copy_server(tarstrace)
 
 
 

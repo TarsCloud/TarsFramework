@@ -1,9 +1,0 @@
-<tars> 
-<trace>
-  <es_nodes>
-     # es address, you should replace to your es address
-     # 172.25.0.123:9200
-  </es_nodes>
-  log_dir=/usr/local/app/tars/remote_app_log/_tars_/_trace_
-</trace>
-</tars>
