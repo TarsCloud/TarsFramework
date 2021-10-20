@@ -1,5 +1,20 @@
 
 
+# v3.0.1 20211020
+### en 
+- update tarscpp to v3.0.1
+- tarslog support trace
+- fix windows compiler bug
+### cn
+- 升级tarscpp to v3.0.1
+- tarslog支持调用链记录和统计
+- 修复windows编译bug
+## v3.0.0 20210911
+### en 
+- update tarscpp to v3.0.0
+### cn
+- 升级tarscpp to v3.0.0
+
 ## v2.4.15 2021.08.19
 ### en
 - update tarscpp to v2.4.21
