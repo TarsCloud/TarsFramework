@@ -18,6 +18,7 @@
 #define __LOG_SERVER_H_
 
 #include "servant/Application.h"
+#include "TraceService.h"
 
 using namespace tars;
 
@@ -37,6 +38,8 @@ protected:
 private:
 
     bool loadLogFormat(const string& command, const string& params, string& result);
+
+    TraceService    _trace;
 };
 
 #endif

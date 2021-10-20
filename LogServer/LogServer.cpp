@@ -17,6 +17,7 @@
 #include "LogServer.h"
 #include "util/tc_logger.h"
 #include "LogImp.h"
+#include "TopologyImp.h"
 
 void LogServer::initialize()
 {
@@ -34,6 +35,9 @@ void LogServer::initialize()
 
     //增加对象
     addServant<LogImp>(ServerConfig::Application + "." + ServerConfig::ServerName +".LogObj");
+    addServant<TopologyImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".TopologyObj");
+
+    _trace.initialize(getConfig());  
 
     TARS_ADD_ADMIN_CMD_NORMAL("reloadLogFormat", LogServer::loadLogFormat);
 }
