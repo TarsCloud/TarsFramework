@@ -1,4 +1,4 @@
-name: framework-nightly-build
+name: framework-nightly-build-tars
 
 on: 
   push:
@@ -18,7 +18,5 @@ jobs:
         docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
     - name: get docker file
       run: rm -rf TarsDocker && git clone https://github.com/TarsCloud/TarsDocker
-    - name: Build framework image
-      run: cd TarsDocker/framework/ && ./build-docker.sh master master nightly true
     - name: Build tars image
       run: cd TarsDocker/tars && ./build-docker.sh master master nightly true

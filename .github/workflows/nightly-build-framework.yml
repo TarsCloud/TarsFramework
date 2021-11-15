@@ -1,0 +1,22 @@
+name: framework-nightly-build-framework
+
+on: 
+  push:
+    branches: 
+      - master
+  schedule:
+    - cron: '0 23 * * *'
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: docker login
+      run: |
+        docker login -u ${{ secrets.name }} -p ${{ secrets.pass }} 
+    - name: get docker file
+      run: rm -rf TarsDocker && git clone https://github.com/TarsCloud/TarsDocker
+    - name: Build framework image
+      run: cd TarsDocker/framework/ && ./build-docker.sh master master nightly true
