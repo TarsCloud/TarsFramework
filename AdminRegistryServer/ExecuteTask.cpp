@@ -1061,7 +1061,7 @@ void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp)
 
 void ExecuteTask::init(TC_Config *conf)
 {
-    _elegantWaitSecond = TC_Common::strto<unsigned int>(conf->get("/taf/application/server/<elegant_wait_second>", "75"));
+    _elegantWaitSecond = TC_Common::strto<unsigned int>(conf->get("/tars/application/server/<elegant_wait_second>", "75"));
     if (_elegantWaitSecond < 2 || _elegantWaitSecond > 180)
     {
         _elegantWaitSecond = 75;
