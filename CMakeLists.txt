@@ -20,7 +20,7 @@ add_subdirectory(tarscpp)
 
 set(major "2")
 set(minor "4")
-set(patch "15")
+set(patch "16")
 #get_version(major minor patch)
 set(FRAMEWORK_VERSION ${major}.${minor}.${patch})
 add_definitions(-DFRAMEWORK_VERSION="${FRAMEWORK_VERSION}")
