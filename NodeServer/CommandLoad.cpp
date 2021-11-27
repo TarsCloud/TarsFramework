@@ -26,19 +26,19 @@ ServerCommand::ExeStatus CommandLoad::canExecute(string& sResult)
 {
     TC_ThreadRecLock::Lock lock(*_serverObjectPtr);
 
-	NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute " << _desc.application << "." << _desc.serverName << "|" << _desc.setId << "| beging loaded------|" << endl;
+    NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute " << _desc.application << "." << _desc.serverName << "|" << _desc.setId << "| beging loaded------|" << endl;
 
     ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
 
     if (_desc.application == "" || _desc.serverName == "")
     {
-	    NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute app or server name is empty"<< endl;
+        NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute app or server name is empty"<< endl;
         return DIS_EXECUTABLE;
     }
 
     if (_serverObjectPtr->toStringState(eState).find("ing") != string::npos && eState != ServerObject::Activating)
     {
-	    NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute cannot loading the config, the server state is "<<_serverObjectPtr->toStringState(eState)<< endl;
+        NODE_LOG("KeepAliveThread")->debug() << "CommandLoad::canExecute cannot loading the config, the server state is "<<_serverObjectPtr->toStringState(eState)<< endl;
         return DIS_EXECUTABLE;
     }
 
@@ -70,10 +70,13 @@ int CommandLoad::execute(string& sResult)
 
     if(_desc.application == "tars") {
         //tars服务特殊处理, 第一次用安装时的配置文件覆盖tarsnode data目录下服务的配置, 保证local端口不变化!
-        string oldConf = TC_File::simplifyDirectory(_nodeInfo.dataDir + FILE_SEP + ".." + FILE_SEP + ".." + _desc.application + FILE_SEP + "conf" + FILE_SEP + _desc.application + "." + _desc.serverName + ".config.conf";
+        string oldConf = TC_File::simplifyDirectory(_nodeInfo.dataDir + FILE_SEP + ".." + FILE_SEP + ".." + FILE_SEP + _desc.serverName + FILE_SEP + "conf" + FILE_SEP + _desc.application + "." + _desc.serverName + ".config.conf");
 
-        if(!TC_File::isFileExists(_confFile) && TC_File::isFileExists(oldConf)) {
-            TC_File::copy(oldConf, _confFile);
+        NODE_LOG("KeepAliveThread")->debug() << "oldConf:" << oldConf << ", confFile:" << _confFile << endl;
+
+        if(!TC_File::isFileExist(_confFile) && TC_File::isFileExist(oldConf)) {
+            TC_File::makeDirRecursive(_confPath);
+            TC_File::copyFile(oldConf, _confFile);
         }
 
     }
