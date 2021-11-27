@@ -831,7 +831,7 @@ void ServerObject::reportMemProperty()
         stream = TC_File::load2str(filename);
         if(!stream.empty())
         {
-            NODE_LOG("ReportMemThread")->debug()<<FILE_FUN<<"filename:"<<filename<<",stream:"<<stream<<endl;
+            // NODE_LOG("ReportMemThread")->debug()<<FILE_FUN<<"filename:"<<filename<<",stream:"<<stream<<endl;
             //>>改成上报物理内存
             vector<string> vtStatm = TC_Common::sepstr<string>(stream, " ");
             if (vtStatm.size() < 2)
@@ -846,7 +846,7 @@ void ServerObject::reportMemProperty()
             if(TC_Common::isdigit(stream))
             {
                 REPORT_MAX(_serverId, _serverId+".memsize", TC_Common::strto<int>(stream) * 4);
-                NODE_LOG("ReportMemThread")->debug()<<FILE_FUN<<"report_max("<<_serverId<<".memsize,"<<TC_Common::strto<int>(stream)*4<<")OK."<<endl;
+                NODE_LOG("ReportMemThread")->debug()<<FILE_FUN<<"report_max("<<_serverId<<".memsize,"<<TC_Common::strto<int>(stream)*4<<") OK."<<endl;
                 return;
             }
             else

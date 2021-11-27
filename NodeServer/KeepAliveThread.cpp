@@ -139,7 +139,7 @@ void KeepAliveThread::run()
             NODE_LOG("KeepAliveThread")->error() << FILE_FUN << "catch unkown exception|" << endl;
         }
 
-        NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "run use:" << TNOWMS - startMs << " ms, wait:" << _monitorInterval << "ms" << endl;
+        // NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "run use:" << TNOWMS - startMs << " ms, wait:" << _monitorInterval << "ms" << endl;
 
         _latestKeepAliveTime = TNOW;
 
@@ -293,7 +293,7 @@ void KeepAliveThread::checkAlive()
 
     map<string, ServerGroup> mmServerList = ServerFactory::getInstance()->getAllServers();
 
-	NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "server list size:" << mmServerList.size() << ", synInterval:" << _synInterval << endl;
+	// NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "server list size:" << mmServerList.size() << ", synInterval:" << _synInterval << endl;
 
 	map<string, ServerGroup>::const_iterator it = mmServerList.begin();
     for (; it != mmServerList.end(); it++)
@@ -364,5 +364,5 @@ void KeepAliveThread::checkAlive()
         synStat();
     }
 
-    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "checkAlive use:" << TNOWMS - startMs << " ms" << endl;
+    // NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "checkAlive use:" << TNOWMS - startMs << " ms" << endl;
 }
