@@ -17,7 +17,3 @@ for /f "Tokens=1,* Delims=," %%a in (%TARS%) do (
 if exist WEB_PATH\web (
     call pm2 stop -s tars-node-web
 )
-
-if exist WEB_PATH\web\demo\package.json (
-    call pm2 stop tars-user-system
-)

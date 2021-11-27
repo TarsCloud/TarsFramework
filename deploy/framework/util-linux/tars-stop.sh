@@ -14,9 +14,3 @@ done
 if [ -d WEB_PATH/web ]; then
   pm2 stop -s tars-node-web
 fi
-
-if [ -f WEB_PATH/web/demo/package.json ]; then
-  pm2 stop -s tars-user-system
-fi
-
-
