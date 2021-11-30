@@ -1,3 +1,19 @@
+# v3.0.3 20211130
+
+### en
+
+- remove tarsnode useless log
+- fix tarsnode use old config for tars framework server
+- fix tarsnode, keep tars server local port not change
+- update dockerfile node upgrade to 16.13.0
+
+### cn
+
+- 去掉 tarsnode 中不用的日志
+- 修复 tarsnode 对 tars 框架服务, 使用旧配置文件
+- 修复 tarsnode 保持 tars 服务的 local port 不要改变
+- dockerfile 中 nodejs 版本升级到 v16.13.0
+
 # v3.0.2 20211118
 
 ### en
