@@ -50,13 +50,21 @@ void TraceService::initialize(TC_Config &config)
         exit(0);
     }
     vector<string> esOneNode = TC_Common::sepstr<string>(esNodes[0], ":", true);
-    if (esOneNode.size() != 2)
+    if (esOneNode.empty())
     {
         TLOGERROR("Initialize with es node fail:" << esNodes[0] << endl);
         TARS_NOTIFY_ERROR("Initialize with es node fail:" + esNodes[0]);
         exit(0);
     }
-
+    
+    if (esOneNode.size() == 1)
+    {
+        if(proto == "http") {
+            esOneNode.push_back("80");
+        }else if(proto == "https") {
+            esOneNode.push_back("443");
+        }
+    }
     ESClient::instance().setServer(proto, esOneNode[0], TC_Common::strto<unsigned short>(esOneNode[1]));
     //ESClient::instance().setServer(esNodes[0]);
 
