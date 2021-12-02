@@ -1,11 +1,13 @@
 ﻿
 #include "ESClient.h"
-
 int ESClient::postRequest(ESClientRequestMethod method, const std::string &url, const std::string &body, std::string &response) {
     auto request = std::make_shared<TC_HttpRequest>();
+    request->setHost(_host);
+
     switch (method) {
         case ESClientRequestMethod::Post: {
             request->setHeader("Content-Type", "application/x-ndjson");
+
             request->setPostRequest(url, body);
         }
             break;
@@ -22,6 +24,7 @@ int ESClient::postRequest(ESClientRequestMethod method, const std::string &url, 
         }
             break;
     }
+
     auto pResponse = std::make_shared<TC_HttpResponse>();
     try {
         _esPrx->http_call("es", request, pResponse);

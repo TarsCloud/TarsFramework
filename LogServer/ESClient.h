@@ -43,7 +43,8 @@ class ESClient
         {
             es = "es@ssl -h " + host + " -p " + TC_Common::tostr(port);
         }
-        TLOG_DEBUG("init es server:" << es << endl);
+        _host = host;
+        TLOG_ERROR("init es server:" << es << endl);
         _esPrx = Application::getCommunicator()->stringToProxy<ServantPrx>(es);
         _esPrx->tars_set_protocol(ServantProxy::PROTOCOL_HTTP1, 5);
     }
@@ -51,6 +52,7 @@ class ESClient
     void setServer(const std::string &host, int port)
     {
         string es = "es@tcp -h " + host + " -p " + TC_Common::tostr(port);
+        _host = host;
         _esPrx = Application::getCommunicator()->stringToProxy<ServantPrx>(es);
         _esPrx->tars_set_protocol(ServantProxy::PROTOCOL_HTTP1, 5);
     }
@@ -69,6 +71,7 @@ class ESClient
             es += "tcp";
         }
         es += " -h " + url.getDomain() + " -p " + url.getPort();
+        _host = url.getDomain();
         _esPrx = Application::getCommunicator()->stringToProxy<ServantPrx>(es);
         _esPrx->tars_set_protocol(ServantProxy::PROTOCOL_HTTP1, 5);
     }
@@ -80,4 +83,5 @@ class ESClient
 
   private:
     ServantPrx _esPrx;
+    string     _host;
 };
