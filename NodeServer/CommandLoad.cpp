@@ -64,9 +64,20 @@ int CommandLoad::execute(string& sResult)
         _serverDir = TC_File::simplifyDirectory(_nodeInfo.dataDir + FILE_SEP +  _desc.application + "." + _desc.serverName);
     }
 
-//获取服务框架配置文件
+    //获取服务框架配置文件
     _confPath      = _serverDir + FILE_SEP + "conf" + FILE_SEP;
     _confFile      = _confPath + _desc.application + "." + _desc.serverName + ".config.conf";
+    if(_desc.application == "tars") {
+        //tars服务特殊处理, 第一次用安装时的配置文件覆盖tarsnode data目录下服务的配置, 保证local端口不变化!
+        string oldConf = TC_File::simplifyDirectory(_nodeInfo.dataDir + FILE_SEP + ".." + FILE_SEP + ".." + FILE_SEP + _desc.serverName + FILE_SEP + "conf" + FILE_SEP + _desc.application + "." + _desc.serverName + ".config.conf");
+
+        NODE_LOG("KeepAliveThread")->debug() << "oldConf:" << oldConf << ", confFile:" << _confFile << endl;
+
+        if(!TC_File::isFileExist(_confFile) && TC_File::isFileExist(oldConf)) {
+            TC_File::makeDirRecursive(_confPath);
+            TC_File::copyFile(oldConf, _confFile);
+        }
+    }
 
     //若exePath不合法采用默认路径
     //注意java服务启动方式特殊 可执行文件为java 须特殊处理
@@ -89,7 +100,7 @@ int CommandLoad::execute(string& sResult)
                 _exeFile = "java";
             }
         }
-        else if (_serverType == "tars_node")
+        else if (_serverType == "tars_nodejs")
         {
             try
             {
