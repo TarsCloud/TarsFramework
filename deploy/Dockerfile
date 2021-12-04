@@ -8,7 +8,9 @@ RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive apt install -y mysql-client git build-essential unzip make golang flex bison net-tools wget cmake psmisc \
     && apt install -y libprotobuf-dev libprotobuf-c-dev \
     && apt install -y zlib1g-dev curl libssl-dev \
-    && apt install -y nodejs npm \
+    && apt install -y npm \
+    && npm install -g npm pm2 n \
+    && n install v16.13.0 \
     && apt-get clean
 
 # Get and install nodejs
