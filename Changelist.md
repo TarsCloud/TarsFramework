@@ -1,3 +1,15 @@
+## v2.4.17 2021.12.04
+
+### en
+
+- update dockerfile node upgrade to 16.13.0
+- fix tarsnode use old config for tars framework server
+
+### cn
+
+- 升级 dockerfile, 框架的 dockerfile 升级到 16.13.0
+- 修复 tarsnode, 对于 tars 框架服务, 使用老的配置, 从而保证 local 端口不变
+
 ## v2.4.16 2021.11.16
 
 ### en
