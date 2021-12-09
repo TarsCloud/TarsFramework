@@ -116,7 +116,7 @@ void PropertyServer::doReserveDb(const string path, TC_Config *pconf)
 
 			TC_Mysql mysql(tcDBConf);
 
-			string sql = "select table_name from information_schema.tables where table_schema='" + tcDBConf._database + "' and table_type='base table' order by table_name";
+			string sql = "select table_name as table_name from information_schema.tables where table_schema='" + tcDBConf._database + "' and lower(table_type)='base table' order by table_name";
 
 			string suffix = TC_Common::tm2str(TNOW - _reserveDay * 24 * 60 * 60, "%Y%m%d") + "00";
 
