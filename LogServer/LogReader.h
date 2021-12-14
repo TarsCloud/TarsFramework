@@ -3,44 +3,54 @@
 
 #include <memory>
 #include <vector>
-#include "RawLog.h"
 #include <string>
+#include "TraceData.h"
 
 using namespace std;
+using namespace internal;
 
-constexpr size_t MAX_READ_SIZE = 1024 * 1024 * 2;
+constexpr size_t MAX_READ_SIZE = 1024 * 1024 * 5;
 constexpr size_t MAX_LINE_SIZE = 1024 * 100;
 
-class LogReader {
+class LogReader
+{
 public:
-    explicit LogReader(const string &file);
+	explicit LogReader(string file);
 
-    ~LogReader() { ::fclose(fd_); }
+	~LogReader()
+	{
+		::fclose(fd_);
+	}
 
-    const vector<shared_ptr<RawLog>> &read();
+	const vector<shared_ptr<IRawLog>>& read();
 
-    string file() const {
-        return file_;
-    }
+	string file() const
+	{
+		return file_;
+	}
+
+	void dump(Snapshot& snapshot);
+
+	void restore(Snapshot& snapshot);
 
 private:
-    void splitLine();
+	void splitLine();
 
-    void parseLine();
+	void parseLine();
 
-    bool reopenFD();
+	bool reopenFD();
 
-    const void * memmem(const void *l, size_t l_len, const void *s, size_t s_len);
+	const void* memmem(const void* l, size_t l_len, const void* s, size_t s_len);
 
 private:
-    const string file_;
-    char buff_[MAX_READ_SIZE]{};
-    char line_[MAX_LINE_SIZE]{};
-    const char *data_begin_{};
-    const char *data_end_{};
-    size_t input_pos_{};
-    vector<shared_ptr<RawLog>> v_{};
-    size_t readSeek_{};
-    FILE* fd_{NULL};
-    time_t last_read_time_{};
+	const string file_;
+	char buff_[MAX_READ_SIZE]{};
+	char line_[MAX_LINE_SIZE]{};
+	const char* dataBegin_{};
+	const char* dataEnd_{};
+	ssize_t inputPos_{};
+	vector<shared_ptr<IRawLog>> v_{};
+	ssize_t readSeek_{};
+	FILE* fd_{ nullptr };
+	time_t lastReadTime_{};
 };

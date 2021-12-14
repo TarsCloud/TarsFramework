@@ -36,10 +36,10 @@ constexpr char LogIndexTemplate[] = R"(
       "time": {
         "type": "long"
       },
-      "ret":{
+      "ret": {
         "type": "keyword"
       },
-      "data":{
+      "data": {
         "type": "keyword"
       }
     }
@@ -139,7 +139,10 @@ constexpr char GraphIndexTemplate[] = R"(
           "vertex": {
             "type": "keyword"
           },
-          "record": {
+          "callCount": {
+            "type": "long"
+          },
+          "callTime": {
             "type": "long"
           }
         }
@@ -153,7 +156,10 @@ constexpr char GraphIndexTemplate[] = R"(
           "toVertex": {
             "type": "keyword"
           },
-          "record": {
+          "callCount": {
+            "type": "long"
+          },
+          "callTime": {
             "type": "long"
           },
           "order": {
@@ -166,29 +172,35 @@ constexpr char GraphIndexTemplate[] = R"(
 })";
 constexpr char GraphIndexTemplateUri[] = "/_template/tars_call_graph";
 
-inline string buildLogIndexByLogfile(const string &file) {
-    assert(file.size() >= 12);
-    return LogIndexPrefix + file.substr(file.size() - 12, 8);
+inline string buildLogIndexByLogfile(const string& file)
+{
+	assert(file.size() >= 12);
+	return LogIndexPrefix + file.substr(file.size() - 12, 8);
 }
 
-inline string buildRawLogIndexByDate(const string &date) {
-    return LogIndexPrefix + date;
+inline string buildRawLogIndexByDate(const string& date)
+{
+	return LogIndexPrefix + date;
 }
 
-inline string buildTraceIndexByLogfile(const string &file) {
-    assert(file.size() >= 12);
-    return TraceIndexPrefix + file.substr(file.size() - 12, 8);
+inline string buildTraceIndexByLogfile(const string& file)
+{
+	assert(file.size() >= 12);
+	return TraceIndexPrefix + file.substr(file.size() - 12, 8);
 }
 
-inline string buildTraceIndexByDate(const string &date) {
-    return TraceIndexPrefix + date;
+inline string buildTraceIndexByDate(const string& date)
+{
+	return TraceIndexPrefix + date;
 }
 
-inline string buildGraphIndexByLogfile(const string &file) {
-    assert(file.size() >= 12);
-    return GraphIndexPrefix + file.substr(file.size() - 12, 8);
+inline string buildGraphIndexByLogfile(const string& file)
+{
+	assert(file.size() >= 12);
+	return GraphIndexPrefix + file.substr(file.size() - 12, 8);
 }
 
-inline string buildGraphIndexByDate(const string &date) {
-    return GraphIndexPrefix + date;
+inline string buildGraphIndexByDate(const string& date)
+{
+	return GraphIndexPrefix + date;
 }

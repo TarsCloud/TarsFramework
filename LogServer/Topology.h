@@ -126,6 +126,23 @@ namespace tars
         l.readFromJsonString(s);
         return is;
     }
+    inline bool operator<(const Vertex&l, const Vertex&r)
+    {
+        if(l.vertex != r.vertex)  return (l.vertex < r.vertex);
+        return false;
+    }
+    inline bool operator<=(const Vertex&l, const Vertex&r)
+    {
+        return !(r < l);
+    }
+    inline bool operator>(const Vertex&l, const Vertex&r)
+    {
+        return r < l;
+    }
+    inline bool operator>=(const Vertex&l, const Vertex&r)
+    {
+        return !(l < r);
+    }
 
     struct Edge : public tars::TarsStructBase
     {
@@ -136,7 +153,7 @@ namespace tars
         }
         static string MD5()
         {
-            return "cbc64edd90939d933ee5519662431cc7";
+            return "4f9252a8ff9766e51471f335d1ba4099";
         }
         Edge()
         {
@@ -158,6 +175,7 @@ namespace tars
             ssData = "";
             crData = "";
             ret = "";
+            order = 0;
         }
         template<typename WriterT>
         void writeTo(tars::TarsOutputStream<WriterT>& _os) const
@@ -176,6 +194,7 @@ namespace tars
             _os.write(ssData, 11);
             _os.write(crData, 12);
             _os.write(ret, 13);
+            _os.write(order, 14);
         }
         template<typename ReaderT>
         void readFrom(tars::TarsInputStream<ReaderT>& _is)
@@ -195,6 +214,7 @@ namespace tars
             _is.read(ssData, 11, true);
             _is.read(crData, 12, true);
             _is.read(ret, 13, true);
+            _is.read(order, 14, true);
         }
         tars::JsonValueObjPtr writeToJson() const
         {
@@ -213,6 +233,7 @@ namespace tars
             p->value["ssData"] = tars::JsonOutput::writeJson(ssData);
             p->value["crData"] = tars::JsonOutput::writeJson(crData);
             p->value["ret"] = tars::JsonOutput::writeJson(ret);
+            p->value["order"] = tars::JsonOutput::writeJson(order);
             return p;
         }
         string writeToJsonString() const
@@ -243,6 +264,7 @@ namespace tars
             tars::JsonInput::readJson(ssData,pObj->value["ssData"], true);
             tars::JsonInput::readJson(crData,pObj->value["crData"], true);
             tars::JsonInput::readJson(ret,pObj->value["ret"], true);
+            tars::JsonInput::readJson(order,pObj->value["order"], true);
         }
         void readFromJsonString(const string & str)
         {
@@ -265,6 +287,7 @@ namespace tars
             _ds.display(ssData,"ssData");
             _ds.display(crData,"crData");
             _ds.display(ret,"ret");
+            _ds.display(order,"order");
             return _os;
         }
         ostream& displaySimple(ostream& _os, int _level=0) const
@@ -283,7 +306,8 @@ namespace tars
             _ds.displaySimple(srData, true);
             _ds.displaySimple(ssData, true);
             _ds.displaySimple(crData, true);
-            _ds.displaySimple(ret, false);
+            _ds.displaySimple(ret, true);
+            _ds.displaySimple(order, false);
             return _os;
         }
     public:
@@ -301,10 +325,11 @@ namespace tars
         std::string ssData;
         std::string crData;
         std::string ret;
+        tars::Int32 order;
     };
     inline bool operator==(const Edge&l, const Edge&r)
     {
-        return l.fromVertex == r.fromVertex && l.toVertex == r.toVertex && l.callCount == r.callCount && l.callTime == r.callTime && l.spanId == r.spanId && l.csTime == r.csTime && l.srTime == r.srTime && l.ssTime == r.ssTime && l.crTime == r.crTime && l.csData == r.csData && l.srData == r.srData && l.ssData == r.ssData && l.crData == r.crData && l.ret == r.ret;
+        return l.fromVertex == r.fromVertex && l.toVertex == r.toVertex && l.callCount == r.callCount && l.callTime == r.callTime && l.spanId == r.spanId && l.csTime == r.csTime && l.srTime == r.srTime && l.ssTime == r.ssTime && l.crTime == r.crTime && l.csData == r.csData && l.srData == r.srData && l.ssData == r.ssData && l.crData == r.crData && l.ret == r.ret && l.order == r.order;
     }
     inline bool operator!=(const Edge&l, const Edge&r)
     {
@@ -321,6 +346,26 @@ namespace tars
         std::string s(std::istreambuf_iterator<char>(is), eos);
         l.readFromJsonString(s);
         return is;
+    }
+    inline bool operator<(const Edge&l, const Edge&r)
+    {
+        if(l.order != r.order)  return (l.order < r.order);
+        if(l.csTime != r.csTime)  return (l.csTime < r.csTime);
+        if(l.fromVertex != r.fromVertex)  return (l.fromVertex < r.fromVertex);
+        if(l.toVertex != r.toVertex)  return (l.toVertex < r.toVertex);
+        return false;
+    }
+    inline bool operator<=(const Edge&l, const Edge&r)
+    {
+        return !(r < l);
+    }
+    inline bool operator>(const Edge&l, const Edge&r)
+    {
+        return r < l;
+    }
+    inline bool operator>=(const Edge&l, const Edge&r)
+    {
+        return !(l < r);
     }
 
     struct Graph : public tars::TarsStructBase
