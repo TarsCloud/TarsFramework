@@ -1,10 +1,12 @@
-module tars {
+module tars 
+{
      struct Vertex
      {
         0 require string vertex;
         1 require long   callCount;
         2 require long   callTime;
      };
+     key[Vertex,vertex];
 
     struct Edge
     {
@@ -22,7 +24,9 @@ module tars {
         11 require string ssData;
         12 require string crData;
         13 require string ret;
+        14 require int order;
     };
+    key[Edge,order,csTime,fromVertex,toVertex];
 
     struct Graph {
         0 require vector<Vertex> vs;

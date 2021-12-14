@@ -7,63 +7,25 @@
 class TraceService
 {
   protected:
-    struct LogReadAggregationPair
-    {
-        explicit LogReadAggregationPair(const std::string &logFile) : logReader(logFile)
-        {
-            aggregation = std::make_shared<LogAggregation>(logFile);
-        };
-        LogReader logReader;
-        std::shared_ptr<LogAggregation> aggregation{};
-    };
+    struct LogReadAggregationPair : public std::enable_shared_from_this<LogReadAggregationPair>
+	{
+		explicit LogReadAggregationPair(const std::string& logFile)
+		{
+			logReader = std::make_shared<LogReader>(logFile);
+			aggregation = std::make_shared<LogAggregation>(logFile);
+		};
+		std::shared_ptr<LogReader> logReader;
+		std::shared_ptr<LogAggregation> aggregation{};
+	};
 
   public:
     TraceService() = default;
 
-    bool loadTimerValue(const TC_Config &config, std::string &message)
-    {
-        firstCheckTimer = TC_Common::strto<int>(config.get("/tars/trace<FirstCheckTimer>", "3"));
-        checkCycleTimer = TC_Common::strto<int>(config.get("/tars/trace<CheckCycleTimer>", "3"));
-        closureOvertime = TC_Common::strto<int>(config.get("/tars/trace<OvertimeWhenClosure>", "3"));
-        maxOvertime = TC_Common::strto<int>(config.get("/tars/trace<Overtime>", "100"));
-
-        if (firstCheckTimer < 1 || firstCheckTimer > 600)
-        {
-            message = "FirstCheckTimer value should in [1,600]";
-            return false;
-        }
-
-        if (checkCycleTimer < 1 || checkCycleTimer > 100)
-        {
-            message = "CheckCycleTimer value should in [1,100]";
-            return false;
-        }
-
-        if (closureOvertime < 1 || closureOvertime > 100)
-        {
-            message = "OvertimeWhenClosure value should in [1,100]";
-            return false;
-        }
-
-        if (maxOvertime < 100 || maxOvertime > 600)
-        {
-            message = "Overtime value should in [100,600]";
-            return false;
-        }
-
-        for (auto &pair : pairs_)
-        {
-            pair.second->aggregation->setTimer(firstCheckTimer, checkCycleTimer, closureOvertime, maxOvertime);
-        }
-
-        message = "done";
-        return true;
-    }
+    bool loadTimerValue(const TC_Config& config, std::string& message);
 
     void initialize(TC_Config &conf);
 
   private:
-    [[noreturn]] void watchFile();
 
     void onModify(const std::string &file);
 
@@ -88,9 +50,10 @@ class TraceService
     std::thread watchThread_;
     std::thread timerThread_;
     std::map<std::string, std::shared_ptr<LogReadAggregationPair>> pairs_;
-
-    size_t firstCheckTimer{3};
-    size_t checkCycleTimer{3};
-    size_t closureOvertime{3};
-    size_t maxOvertime{100};
+    
+	size_t snapshotTimer_{ 300 };
+	size_t firstCheckTimer_{ 3 };
+	size_t checkCycleTimer_{ 3 };
+	size_t closureOvertime_{ 3 };
+	size_t maxOvertime_{ 100 };
 };

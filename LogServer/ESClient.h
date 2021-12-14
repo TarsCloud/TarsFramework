@@ -44,7 +44,7 @@ class ESClient
             es = "es@ssl -h " + host + " -p " + TC_Common::tostr(port);
         }
         _host = host;
-        TLOG_DEBUG("init es server:" << es << endl);
+        TLOG_ERROR("init es server:" << es << endl);
         _esPrx = Application::getCommunicator()->stringToProxy<ServantPrx>(es);
         _esPrx->tars_set_protocol(ServantProxy::PROTOCOL_HTTP1, 5);
     }

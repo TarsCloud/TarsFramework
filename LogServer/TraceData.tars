@@ -1,0 +1,76 @@
+module internal {
+     struct IRawLog{
+        0 require    string trace;
+        1 require    string span;
+        2 require    string parent;
+        3 require    string type;
+        4 require    string master;
+        5 require    string slave;
+        6 require    string function;
+        7 require    long time;
+        8 require    string ret;
+        9 require    string data;
+     };
+
+     struct ISpan {
+       0 require   string span;
+       1 require   string parent;
+       2 require   string master;
+       3 require   string slave;
+       4 require   string function;
+       5 require   long csTime;
+       6 require   long crTime;
+       7 require   long ssTime;
+       8 require   long srTime;
+       9 require   string csData;
+       10 require  string srData;
+       11 require  string ssData;
+       12 require  string crData;
+       13 require  string ret;
+       14 require  vector<string> children;
+     };
+
+     struct ITrace {
+       0 require  string trace;
+       1 require  string tSpan;
+       2 require  string tMaster;
+       3 require  long tsTime;
+       4 require  long teTime;
+       5 require  vector<ISpan> spans;
+       6 require  long sHash;
+       7 require  long fHash;
+     };
+
+     struct IVertex
+     {
+        0 require string vertex;
+        1 require long  callCount;
+        2 require long  callTime;
+     };
+     key [IVertex,vertex];
+
+
+    struct IEdge
+    {
+        0 require string fromVertex;
+        1 require string toVertex;
+        2 require long   callCount;
+        3 require long   callTime;
+        4 require int  order;
+    };
+    key [IEdge,order,fromVertex,toVertex];
+
+     struct IGraph {
+       0 require  string type;
+       1 require  vector<IVertex> vertexes;
+       2 require  vector<IEdge> edges;
+     };
+
+     struct Snapshot
+     {
+        0 require string fileName;
+        1 require long seek;
+        2 require map<string,ITrace> traces;
+        3 require map<long,IGraph> graphs;
+     };
+};
