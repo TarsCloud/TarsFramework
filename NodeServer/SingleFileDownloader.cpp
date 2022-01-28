@@ -41,7 +41,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         }
     }
 
-	NODE_LOG(serverId)->error() << "SingleFileDownloader::download file count:"<< vFiles.size() << endl;
+	NODE_LOG(serverId)->debug() << "SingleFileDownloader::download file count:"<< vFiles.size() << endl;
 
 	//1表示是文件
     if(ret != 1)

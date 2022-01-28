@@ -106,8 +106,6 @@ int CommandPatch::updatePatchResult(string & sResult)
 
             g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
 
-            // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
-
             return -1;
         }
 
@@ -127,7 +125,6 @@ int CommandPatch::updatePatchResult(string & sResult)
         NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Exception:" << e.what() << endl;
         sResult = _patchRequest.appname + "." + _patchRequest.servername + "|Exception:" + e.what();
         g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
-        // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
         return -1;
     }
     catch (...)
@@ -135,7 +132,6 @@ int CommandPatch::updatePatchResult(string & sResult)
         NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<< _patchRequest.appname + "." + _patchRequest.servername << "|Unknown Exception" << endl;
         sResult = _patchRequest.appname + "." + _patchRequest.servername + "|Unknown Exception";
         g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
-        // g_app.reportServer(_patchRequest.appname + "." + _patchRequest.servername, sResult);
         return -1;
     }
 
@@ -162,6 +158,7 @@ int CommandPatch::download(const std::string & sRemoteTgzPath, const std::string
         if(fileMd5 == reqMd5)
         {
             NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< dtask.sLocalTgzFile << " cached succ" << endl;
+            _serverObjectPtr->setPatchPercent(100);
             return iRet;
         }
     }
@@ -284,7 +281,7 @@ int CommandPatch::execute(string &sResult)
             {
                 //新发布
                 sShortFile =  _patchRequest.appname + "." + sServerName + "."+ _patchRequest.version + "." + _patchRequest.ostype + ".tgz";
-                sRemoteTgzPath = "/TARSBatchPatchingV2/" + _patchRequest.appname + "/" + sServerName;
+                sRemoteTgzPath = FILE_SEP + string("TARSBatchPatchingV2") + FILE_SEP + _patchRequest.appname + FILE_SEP + sServerName;
 
                 //使用新路径下载
                 iRet = download(sRemoteTgzPath, sLocalTgzPath, sShortFile, _patchRequest.md5, sResult);
@@ -349,90 +346,124 @@ int CommandPatch::execute(string &sResult)
             //解压
             TC_Config conf;
             conf.parseFile(_serverObjectPtr->getConfigFile());
-            string packageFormat= conf.get("/tars/application/server<packageFormat>","war");
-            string cmd,sLocalTgzFile_bak;
-            if (_serverObjectPtr->getServerType() == "tars_java") //如果是tars_java，使用war 方法
+            string packageFormat= _serverObjectPtr->getPackageFormat(); //conf.get("/tars/application/server<packageFormat>","war");
+
+            if(packageFormat == "image")
             {
-                if(packageFormat=="jar")
-                {
-                    sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".jar"); 
-                    cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + cmdDelimiter;
-                }
-                else
-                {
-                    sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".war");
-                    cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + cmdDelimiter;
-#if TARGET_PLATFORM_WINDOWS
-                    //unzip -oq -d 在Windows 下不像Liunx会自动创建目录
-                    cmd += busybox + " mkdir -p "  + sLocalExtractPach + FILE_SEP +sServerName + cmdDelimiter;
-#endif
-                    cmd += busybox + " unzip -oq  " + sLocalTgzFile_bak+ " -d "+ sLocalExtractPach + FILE_SEP +sServerName;
-                }
+            	string cmd = busybox + " tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
+
+            	//解压
+            	system(cmd.c_str());
+
+            	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd <<endl;
+
+            	//镜像模式
+            	vector<string> files;
+            	tars::TC_File::listDirectory(sLocalExtractPach, files, true);
+            	if(files.empty())
+            	{
+            		sResult = sLocalExtractPach + " directory is empty!";
+            		NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
+            		iRet = -6;
+            		break;
+            	}
+
+            	NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "copy directory:" << files[0] << " -> " << _serverObjectPtr->getExePath() << endl;
+
+            	string cpCmd = busybox + string(" cp -rf ") + files[0] + " " +  _serverObjectPtr->getExePath();
+
+            	system(cpCmd.c_str());
+//            	TC_File::copyFile(files[0], _serverObjectPtr->getExePath(), true);
             }
             else
             {
-                cmd = busybox + " tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
-            }	
+            	string cmd,sLocalTgzFile_bak;
+            	if (_serverObjectPtr->getServerType() == "tars_java") //如果是tars_java，使用war 方法
+            	{
+            		if(packageFormat=="jar")
+            		{
+            			sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".jar");
+            			cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + cmdDelimiter;
+            		}
+            		else
+            		{
+            			sLocalTgzFile_bak=TC_Common::replace(sLocalTgzFile,".tgz",".war");
+            			cmd += busybox + " mv " + sLocalTgzFile + " " + sLocalTgzFile_bak + cmdDelimiter;
+#if TARGET_PLATFORM_WINDOWS
+            			//unzip -oq -d 在Windows 下不像Liunx会自动创建目录
+            			cmd += busybox + " mkdir -p "  + sLocalExtractPach + FILE_SEP +sServerName + cmdDelimiter;
+#endif
+            			cmd += busybox + " unzip -oq  " + sLocalTgzFile_bak+ " -d "+ sLocalExtractPach + FILE_SEP +sServerName;
+            		}
+            		}
+            	else
+            	{
+            		cmd = busybox + " tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
+            	}
 
-            //解压
-            system(cmd.c_str());
-            /**
-             * 有可能system这里解压失败了，
-             * 这里通过遍历解压目录下有没有文件来判断是否解压成功,因为解压之前这个目录是空的
-             */
-            if(packageFormat!="jar")
-            {
-                vector<string> files;
-                tars::TC_File::listDirectory(sLocalExtractPach, files, true);
-                if(files.empty())
-                {
-                    sResult = cmd + ", error!";
-                    NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
-                    iRet = -6;
-                    break;
-                }
-            }
+            	//解压
+            	system(cmd.c_str());
 
-            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd <<endl;
+            	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd <<endl;
 
-            //移动目录重新命名文件
-            if(packageFormat!="jar")
-            {
-                string sSrcFile     = sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName;
-                string sDstFile     = sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + _patchRequest.servername;
+            	/**
+				 * 有可能system这里解压失败了，
+				 * 这里通过遍历解压目录下有没有文件来判断是否解压成功,因为解压之前这个目录是空的
+				 */
+            	if(packageFormat!="jar")
+            	{
+            		vector<string> files;
+            		tars::TC_File::listDirectory(sLocalExtractPach, files, true);
+            		if(files.empty())
+            		{
+            			sResult = cmd + ", error!";
+            			NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
+            			iRet = -6;
+            			break;
+            		}
 
-                rename(sSrcFile.c_str(), sDstFile.c_str());
-                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "rename:" << sSrcFile << " " << sDstFile << endl;
-            }
+            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "directory:" << files[0] << endl;
 
-            //检查是否需要备份bin目录下的文件夹，针对java服务
-            if(backupfiles(sResult) != 0)
-            {
-                NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
-                iRet = -7;
-                break;
-            }
+            		//dcache用到, 同一个发布程序, 发布成不同的服务名
+            		if(sServerName != _patchRequest.servername)
+            		{
+            			string sSrcFile     = sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName;
+            			string sDstFile     = sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + _patchRequest.servername;
 
-            //copy file失败， 会抛异常
-            if (_serverObjectPtr->getServerType() == "tars_nodejs") 
-            { 
-                NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
+            			rename(sSrcFile.c_str(), sDstFile.c_str());
+            			NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "rename:" << sSrcFile << " " << sDstFile << endl;
+            		}
+            	}
 
-                TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true); 
-            }
-            else 
-            { 
-                if(packageFormat!="jar")
-                {
-                    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
-                    TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true); 
-                }
-                else
-                {
-                    string  cpCmd = busybox + " cp -f "+sLocalTgzFile_bak + " " + _serverObjectPtr->getExePath();
-                    NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << endl;
-                    system(cpCmd.c_str());
-                }
+            	//检查是否需要备份bin目录下的文件夹
+            	if(backupfiles(sResult) != 0)
+            	{
+            		NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
+            		iRet = -7;
+            		break;
+            	}
+
+            	//copy file失败， 会抛异常
+            	if (_serverObjectPtr->getServerType() == "tars_nodejs")
+            	{
+            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
+
+            		TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true);
+            	}
+            	else
+            	{
+            		if(packageFormat!="jar")
+            		{
+            			NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
+            			TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true);
+            		}
+            		else
+            		{
+            			string  cpCmd = busybox + " cp -f "+sLocalTgzFile_bak + " " + _serverObjectPtr->getExePath();
+            			NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << endl;
+            			system(cpCmd.c_str());
+            		}
+            	}
             }
 
         } while ( false );
@@ -493,105 +524,14 @@ int CommandPatch::backupfiles(std::string &sResult)
 
         if (_serverObjectPtr->getServerType() == "tars_java") //如果是java服务的话需要清空目录，备份目录
         {
-
-            // int maxbaknum   = 5;
-            // string srcPath  = ServerConfig::TarsPath + "tarsnode" + FILE_SEP + "data" + FILE_SEP + _patchRequest.appname + "." + _patchRequest.servername + FILE_SEP;
-            // string destPath = ServerConfig::TarsPath + "tarsnode" + FILE_SEP + "tmp" + FILE_SEP + _patchRequest.appname + "." + _patchRequest.servername + FILE_SEP;
-
-            // if (!TC_File::isFileExistEx(srcPath, S_IFDIR)) //不存在这个目录，先创建
-            // {
-            //     NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< srcPath << " is not exist,create it... "<<endl;
-            //     TC_File::makeDir(srcPath);
-            // }
-
-            // if (TC_File::makeDir(destPath)) //循环的更新bin_bak目录
-            // {
-            //     for(unsigned int i = maxbaknum - 1; i >= 1; i--)
-            //     {
-			// 		string destPathBak = destPath + "bin_bak" + TC_Common::tostr<int>(i) + FILE_SEP;
-            //         if(!TC_File::isFileExistEx(destPathBak,S_IFDIR)) //不存在这个目录，可以继续循环
-            //         {
-            //             NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< destPathBak << " is not exist,continue... "<<endl;
-            //             continue;
-            //         }
-            //         else //存在这个目录，进行替换:bak1-->bak2
-            //         {
-            //             string newFile = destPath + "bin_bak" + TC_Common::tostr<int>(i+1) + FILE_SEP;
-            //             if(TC_File::isFileExistEx(newFile,S_IFDIR) && TC_File::removeFile(newFile, true) != 0)
-            //             {
-            //                 string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-            //                 NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "removeFile:"<< newFile << " error,"<< err <<endl;
-            //             }
-
-            //             if(TC_File::makeDir(newFile))
-            //             {
-            //                 TC_File::copyFile(destPathBak,newFile);
-            //                 NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "copyFile:"<< destPathBak << " to "<< newFile << " finished!"<<endl;
-            //             }
-            //             else
-            //             {
-            //                 NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "makeDir:"<< newFile << "error..." <<endl;
-            //             }
-            //         }
-            //     }
-            // }
-
             //更新当前目录到/bin_bak1/目录
             string existFile    = srcPath + "bin" + FILE_SEP;
             string destPathBak  = destPath + "bin_bak1" + FILE_SEP;
 
-            // if(TC_File::isFileExistEx(destPathBak,S_IFDIR) && TC_File::removeFile(destPathBak, true) != 0)
-            // {
-            //     string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-            //     NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "removeFile:"<< destPathBak << " error,"<< err <<endl;
-            // }
-
-            // if(TC_File::makeDir(destPathBak))
-            // {
-            //     if(!TC_File::isFileExistEx(existFile,S_IFDIR)) //不存在这个目录，先创建
-            //     {
-            //         NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< existFile << " backup file is not exist,create it... "<<endl;
-            //         TC_File::makeDir(existFile);
-            //     }
-
-            //     TC_File::copyFile(existFile,destPathBak);
-            //     NODE_LOG(_serverObjectPtr->getServerId())->debug()   <<FILE_FUN<< "copyFile:"<< existFile << " to "<< destPathBak << " finished!"<<endl;
-            //     if(TC_File::removeFile(existFile,true) == 0)
-            //     {
-            //         NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "removeFile:"<< existFile << " finished!"<<endl;
-            //         if(TC_File::makeDir(existFile))
-            //         {
-            //             NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<< "makeDir:"<< existFile << " finished!"<<endl;
-            //         }
-            //     }
-            // }
-
             restoreFiles(destPathBak, existFile);
-
-            // //保留指定文件在bin目录中的
-            // vector<string> vFileNames = TC_Common::sepstr<string>(_serverObjectPtr->getBackupFileNames(), ";|");
-            // for(vector<string>::size_type i = 0;i< vFileNames.size();i++)
-            // {
-            //     string sBackupSrc = destPathBak + vFileNames[i];
-            //     string sBackupDest = existFile + vFileNames[i];
-            //     if (TC_File::isFileExistEx(sBackupSrc,S_IFDIR))
-            //     {
-            //         if (!TC_File::isFileExistEx(sBackupDest,S_IFDIR))
-            //         {
-            //             if(!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
-            //             {
-            //                 NODE_LOG(_serverObjectPtr->getServerId())->error()  <<FILE_FUN<< "failed to mkdir dest directory:" << sBackupDest << endl;
-            //             }
-            //         }
-            //         TC_File::copyFile(sBackupSrc,sBackupDest,true);
-            //         NODE_LOG(_serverObjectPtr->getServerId())->debug()  <<FILE_FUN<<"Backup:"<<sBackupSrc<<" to "<<sBackupDest<<" succ"<<endl;
-            //     }
-            // }
         }
 		else if (_serverObjectPtr->getServerType() == "tars_node") //如果是node服务的话需要清空目录，备份相关文件， 比如配置文件
 		{
-            // backupBinfiles();
-
 			// int maxbaknum = 5;
 			string binPath = srcPath + "bin" + FILE_SEP;
 			if (!TC_File::isFileExistEx(binPath, S_IFDIR)) //不存在这个目录，先创建
@@ -601,114 +541,35 @@ int CommandPatch::backupfiles(std::string &sResult)
                 return -1;
 			}
 
-            // backupBinFiles();
-
             string destPathBak = destPath + "bin_bak1" + FILE_SEP;				
 
 			//保留指定文件在bin目录中的
             restoreFiles(destPathBak, binPath);
 
-			// else
-			// {
-				
-				// if (!TC_File::makeDir(destPath)) //循环的更新bin_bak目录
-				// {
-				// 	return -1;
-				// }
-
-				// for (unsigned int i = maxbaknum - 1; i >= 1; i--)
-				// {
-				// 	string destPathBak = destPath + "bin_bak" + TC_Common::tostr<int>(i) +FILE_SEP;
-				// 	if (!TC_File::isFileExistEx(destPathBak, S_IFDIR)) //不存在这个目录，可以继续循环
-				// 	{
-				// 		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << destPathBak << " is not exist,continue... " << endl;
-				// 		continue;
-				// 	}
-				// 	else //存在这个目录，进行替换:bak1-->bak2
-				// 	{
-				// 		string newFile = destPath + "bin_bak" + TC_Common::tostr<int>(i + 1) + FILE_SEP;
-				// 		if (TC_File::isFileExistEx(newFile, S_IFDIR) && TC_File::removeFile(newFile, true) != 0)
-				// 		{
-				// 			string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-				// 			NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "removeFile:" << newFile << " error," << err << endl;
-				// 		}
-
-				// 		if (TC_File::renameFile(destPathBak, newFile) == 0)
-				// 		{
-				// 			NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "renameFile:" << destPathBak << " to " << newFile << " finished!" << endl;
-				// 		}
-				// 		else
-				// 		{
-				// 			NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "renameFile:" << destPathBak << " to " << newFile << " fail!" << endl;
-				// 		}
-				// 	}
-				// }
-
-				// string destPathBak = destPath + "bin_bak1" + FILE_SEP;				
-				// if (TC_File::renameFile(binPath, destPathBak) == 0)
-				// {
-				// 	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "renameFile:" << binPath << " to " << destPathBak << " finished!" << endl;
-				// 	if (TC_File::makeDir(binPath))
-				// 	{
-				// 		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "makedir " << binPath << " finish." << endl;
-				// 	}
-				// 	else
-				// 	{
-				// 		NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "makedir " << binPath << " fail." << endl;
-				// 		return -1;
-				// 	}
-				// }
-				// else
-				// {
-				// 	NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "renameFile:" << binPath << " to " << destPathBak << " fail." << endl;
-				// 	return -1;
-				// }
-
-				//保留指定文件在bin目录中的
-				// vector<string> vFileNames = TC_Common::sepstr<string>(_serverObjectPtr->getBackupFileNames(), ";|");
-				// for (vector<string>::size_type i = 0; i < vFileNames.size(); i++)
-				// {
-				// 	string sBackupSrc = destPathBak + vFileNames[i];
-				// 	string sBackupDest = binPath + vFileNames[i];
-				// 	if (TC_File::isFileExistEx(sBackupSrc, S_IFDIR))
-				// 	{
-				// 		if (!TC_File::isFileExistEx(sBackupDest, S_IFDIR))
-				// 		{
-				// 			if (!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
-				// 			{
-				// 				NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
-				// 			}
-				// 		}
-				// 		TC_File::copyFile(sBackupSrc, sBackupDest, true);
-				// 		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
-				// 	}
-				// }
-
-				// 对于 tarsnode 服务， 还需要保留一些默认文件 bin/*.conf, bin/*.sh, bin/*.bak
-				vector<string> oldBinFils;
-				TC_File::listDirectory(destPathBak, oldBinFils, false);
-				for (vector<string>::size_type i = 0; i < oldBinFils.size(); i++)
+			// 对于 tarsnode 服务， 还需要保留一些默认文件 bin/*.conf, bin/*.sh, bin/*.bak
+			vector<string> oldBinFils;
+			TC_File::listDirectory(destPathBak, oldBinFils, false);
+			for (vector<string>::size_type i = 0; i < oldBinFils.size(); i++)
+			{
+				string fName = TC_File::extractFileName(oldBinFils[i]);
+				string exName = TC_File::extractFileExt(fName);
+				if (exName == "conf" || exName == "sh" || exName == "bak")
 				{
-					string fName = TC_File::extractFileName(oldBinFils[i]);
-					string exName = TC_File::extractFileExt(fName);
-					if (exName == "conf" || exName == "sh" || exName == "bak")
+					string sBackupSrc = destPathBak + fName;
+					string sBackupDest = binPath + fName;
+					NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "prepare backup, sBackupSrc:" << sBackupSrc << ", sBackupDest" << sBackupDest << endl;
+					if (!TC_File::isFileExistEx(sBackupDest, S_IFDIR))
 					{
-						string sBackupSrc = destPathBak + fName;
-						string sBackupDest = binPath + fName;
-						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "prepare backup, sBackupSrc:" << sBackupSrc << ", sBackupDest" << sBackupDest << endl;
-						if (!TC_File::isFileExistEx(sBackupDest, S_IFDIR))
+						if (!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
 						{
-							if (!TC_File::makeDirRecursive(TC_File::simplifyDirectory(sBackupDest)))
-							{
-								NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
-							}
+							NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "failed to mkdir dest directory:" << sBackupDest << endl;
 						}
-						TC_File::copyFile(sBackupSrc, sBackupDest, true);
-						NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
 					}
+					TC_File::copyFile(sBackupSrc, sBackupDest, true);
+					NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "Backup:" << sBackupSrc << " to " << sBackupDest << " succ" << endl;
 				}
-			// }
-			
+			}
+
 		}
     }
 	catch(exception& e)

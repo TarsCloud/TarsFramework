@@ -412,6 +412,7 @@ public:
     const string & getMonitorScript() {return _monitorScript;}
     const string & getEnv() { return _env; }
     const string & getRedirectPath() {return _redirectPath;}
+    const string & getPackageFormat() { return _packageFormat; }
 
     //java服务
     const string & getJvmParams() {return _jvmParams;}
@@ -429,7 +430,7 @@ public:
     void setServerDir(const  string &sServerDir){_serverDir = sServerDir;}
     void setNodeInfo(const NodeInfo &tNodeInfo){_nodeInfo = tNodeInfo;}
     const NodeInfo & getNodeInfo() { return _nodeInfo;}
-
+    void setPackageFormat(const string &packageFormat) { _packageFormat = packageFormat; }
     void setServerType( const string &sType ){ _serverType = TC_Common::lower(TC_Common::trim(sType));_serverType == "not_tars"?_tarsServer = false:_tarsServer=true;}
     void setMacro(const map<string,string>& mMacro);
     void setScript(const string &sStartScript,const string &sStopScript,const string &sMonitorScript);
@@ -514,6 +515,7 @@ private:
     string _exeFile;                   //一般为_exePath+_serverName 可个性指定
     string _logPath;                   //服务日志目录
     string _libPath;                   //动态库目录 一般为_desc.basePath/lib
+    string _packageFormat;			   //上传包格式(tgz/jar/war, image), image表示镜像模式
     map<string,string> _macro;         //服务宏
 
 private:
