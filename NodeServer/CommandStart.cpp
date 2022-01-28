@@ -485,7 +485,10 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 //	return (serverObjectPtr->checkPid() == 0) ? true : false;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> tarsnode add runc support
 //////////////////////////////////////////////////////////////
 //
 int CommandStart::execute(string& sResult)
