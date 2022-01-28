@@ -50,30 +50,6 @@ ServerObject::ServerObject( const ServerDescriptor& tDesc)
 
 int64_t ServerObject::savePid()
 {
-    // vector<string> vtServerName =  TC_Common::sepstr<string>(_serverId, ".");
-    // if (vtServerName.size() != 2)
-    // {
-    //     sResult = sResult + "|failed to get pid for  " + _serverId + ",server id error";
-    //     NODE_LOG(_serverId)->error() << FILE_FUN << sResult  << endl;
-    //     throw runtime_error(sResult);
-    // }
-
-    // time_t tNow = TNOW;
-    // int iStartWaitInterval = START_WAIT_INTERVAL;
-
-    // //服务启动,超时时间自己定义的情况
-    // TC_Config conf;
-    // conf.parseFile(_confFile);
-    // iStartWaitInterval = TC_Common::strto<int>(conf.get("/tars/application/server<activating-timeout>", "3000")) / 1000;
-    // if (iStartWaitInterval < START_WAIT_INTERVAL)
-    // {
-    //     iStartWaitInterval = START_WAIT_INTERVAL;
-    // }
-    // if (iStartWaitInterval > 60)
-    // {
-    //     iStartWaitInterval = 60;
-    // }
-
     string sPidFile = ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + _serverId + FILE_SEP + _serverId + ".pid";
 
 #if TARGET_PLATFORM_WINDOWS
@@ -113,10 +89,6 @@ int64_t ServerObject::savePid()
     {
         TC_File::removeFile(sPidFile, false);
     }
-    
-    // NODE_LOG(_serverId)->debug() << FILE_FUN << < " activating usleep " << int(iStartWaitInterval) << endl;
-    // std::this_thread::sleep_for(std::chrono::milliseconds(START_SLEEP_INTERVAL/1000));
-    // }
 
     return iPid;
 }
@@ -269,9 +241,6 @@ void ServerObject::synState()
         stringstream ss;
         tServerStateInfo.displaySimple(ss);
         NODE_LOG(_serverId)->debug()<<FILE_FUN << "synState" << "|"<< _nodeInfo.nodeName << "|" <<  _serverId << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
-
-        //_noticed = true;
-        //_noticeFailTimes = 0;
     }
     catch (exception &e)
     {
@@ -423,8 +392,6 @@ int ServerObject::checkPid()
 			return -1;
 		}
 
-		// NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
-
 		return 0;
 #endif
 	}
@@ -440,10 +407,6 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
 	    NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid "<<pid<<" error, pid <= 0"<<endl;
         return;
     }
-    // else
-    // {
-	//     NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " <<_serverType<< ", pid:" << pid <<", adapter:" << adapter<< endl;
-    // }
     time_t now  = TNOW;
     setLastKeepAliveTime(now,adapter);
     
@@ -458,10 +421,6 @@ void ServerObject::keepAlive(int64_t pid,const string &adapter)
     {
         setState(ServerObject::Active);
     }
-    // else
-    // {
-	//     NODE_LOG(_serverId)->debug() << "ServerObject::keepAlive " << _serverId << " State no need changed to active!  State:" << toStringState( _state ) << endl;
-    // }
 
     if(!_loaded)
     {
@@ -607,6 +566,8 @@ void ServerObject::setPatchPercent(const int iPercent)
     //下载结束仍需要等待本地copy  进度最多设置99% 本地copy结束后设置为100%
     _patchInfo.iPercent      = iPercent>99?99:iPercent;
     _patchInfo.iModifyTime   = TNOW;
+
+    NODE_LOG(_serverId)->debug()<<FILE_FUN << "percent:" << iPercent << endl;
 }
 
 void ServerObject::setPatchResult(const string &sPatchResult,const bool bSucc)

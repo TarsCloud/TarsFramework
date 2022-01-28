@@ -298,12 +298,10 @@ int CommandLoad::updateConfigFile(string& sResult)
             }
         }
 
-
         {
             std::lock_guard<std::mutex> lock(_mutex);
             _allPorts.insert(tEp.getPort());
         }
-
 
         // uint16_t p = tEp.getPort();
         // if (p == 0)
@@ -449,6 +447,7 @@ int CommandLoad::updateConfigFile(string& sResult)
         _serverObjectPtr->setEnv(tConf.get("/tars/application/server<env>", ""));
         _serverObjectPtr->setHeartTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<hearttimeout>", "")));
         _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "")));
+        _serverObjectPtr->setPackageFormat(tConf.get("/tars/application/server<packageFormat>", "tgz"));
 
         _serverObjectPtr->setRedirectPath(tConf.get("/tars/application/<redirectpath>", ""));
 

@@ -90,29 +90,6 @@ bool CommandStart::startByScript(string& sResult)
     string sServerId    = _serverObjectPtr->getServerId();
     _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
 
-    // vector<string> vtServerName =  TC_Common::sepstr<string>(sServerId, ".");
-    // if (vtServerName.size() != 2)
-    // {
-    //     sResult = sResult + "|failed to get pid for  " + sServerId + ",server id error";
-    //     NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult  << endl;
-    //     throw runtime_error(sResult);
-    // }
-
-    // //默认使用启动脚本路径
-    // string sFullExeFileName = TC_File::extractFilePath(sStartScript) + vtServerName[1];
-    // if (!TC_File::isFileExist(sFullExeFileName))
-    // {
-    //     NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "file name " << sFullExeFileName << " error, use exe file" << endl;
-
-    //     //使用exe路径
-    //     sFullExeFileName = _serverObjectPtr->getExeFile();
-    //     if (!TC_File::isFileExist(sFullExeFileName))
-    //     {
-    //         sResult = sResult + "|failed to get full exe file name|" + sFullExeFileName;
-    //         NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
-    //         throw runtime_error(sResult);
-    //     }
-    // }
     time_t tNow = TNOW;
     int iStartWaitInterval = START_WAIT_INTERVAL;
 
@@ -129,10 +106,6 @@ bool CommandStart::startByScript(string& sResult)
         iStartWaitInterval = 60;
     }
 
-    // string sPidFile = ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + sServerId + FILE_SEP + sServerId + ".pid";
-
-    // string sGetServerPidScript = "ps -ef | grep -v 'grep' |grep -iE '" + sFullExeFileName + "'| awk '{print $2}' > " + sPidFile;
-
     while ((TNOW - iStartWaitInterval) < tNow)
     {
         if(_serverObjectPtr->savePid())
@@ -140,21 +113,7 @@ bool CommandStart::startByScript(string& sResult)
             bSucc = true;
             break;
         }
-        // //注意:由于是守护进程,不要对sytem返回值进行判断,始终wait不到子进程
-        // system(sGetServerPidScript.c_str());
-        // string sPid = TC_Common::trim(TC_File::load2str(sPidFile));
-        // if (TC_Common::isdigit(sPid))
-        // {
-        //     iPid = TC_Common::strto<int>(sPid);
-        //     _serverObjectPtr->setPid(iPid);
-        //     if (_serverObjectPtr->checkPid() == 0)
-        //     {
-        //         bSucc = true;
-        //         break;
-        //     }
-        // }
 
-        // NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " activating usleep " << int(iStartWaitInterval) << endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(START_SLEEP_INTERVAL/1000));
     }
 
@@ -162,17 +121,10 @@ bool CommandStart::startByScript(string& sResult)
     {
         sResult = sResult + "|get pid for server[" + sServerId + "],pid is not digit";
         NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
-        // if (TC_File::isFileExist(sPidFile))
-        // {
-        //     TC_File::removeFile(sPidFile, false);
-        // }
+
         throw runtime_error(sResult);
     }
 
-    // if (TC_File::isFileExist(sPidFile))
-    // {
-    //     TC_File::removeFile(sPidFile, false);
-    // }
     return bSucc;
 }
 
@@ -305,119 +257,6 @@ bool CommandStart::startNormal(string& sResult)
     return bSucc;
 }
 
-// inline bool CommandStart::startByScriptPHP(string& sResult)
-// {
-//     //生成启动shell脚本 
-//     string sConfigFile      = _serverObjectPtr->getConfigFile();
-//     string sLogPath         = _serverObjectPtr->getLogPath();
-//     string sServerDir       = _serverObjectPtr->getServerDir();
-//     string sLibPath         = _serverObjectPtr->getLibPath();
-//     string sExePath         = _serverObjectPtr->getExePath();
-//     string sLogRealPath     = sLogPath + _desc.application + FILE_SEP + _desc.serverName + FILE_SEP ;
-//     string sLogRealPathFile = sLogRealPath +_serverObjectPtr->getServerId() +".log";
-
-//     TC_Config conf;
-//     conf.parseFile(sConfigFile);
-//     string phpexecPath = "";
-//     string entrance = "";
-//     try{
-//         phpexecPath = TC_Common::strto<string>(conf["/tars/application/server<php>"]);
-//         entrance =  TC_Common::strto<string>(conf["/tars/application/server<entrance>"]);
-//     } catch (...){}
-//     entrance = entrance=="" ? sServerDir+"/bin/src/index.php" : entrance;
-
-//     std::ostringstream osStartStcript;
-//     osStartStcript << "#!/bin/sh" << std::endl;
-//     osStartStcript << "if [ ! -d \"" << sLogRealPath << "\" ];then mkdir -p \"" << sLogRealPath << "\"; fi" << std::endl;
-//     osStartStcript << phpexecPath << " " << entrance <<" --config=" << sConfigFile << " start  >> " << sLogRealPathFile << " 2>&1 " << std::endl;
-//     osStartStcript << "echo \"end-tars_start.sh\"" << std::endl;
-
-//     TC_File::save2file(sExePath + FILE_SEP + TARS_SCRIPT, osStartStcript.str());
-//     TC_File::setExecutable(sExePath + FILE_SEP + TARS_SCRIPT, true);
-
-//     int64_t iPid = -1;
-//     bool bSucc = false;
-
-//     string sStartScript     = _serverObjectPtr->getStartScript();
-//     sStartScript = sStartScript=="" ? _serverObjectPtr->getExePath() + FILE_SEP + TARS_SCRIPT : sStartScript;
-//     string sMonitorScript   = _serverObjectPtr->getMonitorScript();
-//     string sServerId    = _serverObjectPtr->getServerId();
-//     iPid = _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
-
-
-//     vector<string> vtServerName =  TC_Common::sepstr<string>(sServerId, ".");
-//     if (vtServerName.size() != 2)
-//     {
-//         sResult = sResult + "|failed to get pid for  " + sServerId + ",server id error";
-//         NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult  << endl;
-//         throw runtime_error(sResult);
-//     }
-
-//     //默认使用启动脚本路径
-//     string sFullExeFileName = TC_File::extractFilePath(sStartScript) + vtServerName[1];
-//     time_t tNow = TNOW;
-//     int iStartWaitInterval = START_WAIT_INTERVAL;
-//     try
-//     {
-//         //服务启动,超时时间自己定义的情况
-//         TC_Config conf;
-//         conf.parseFile(_serverObjectPtr->getConfigFile());
-//         iStartWaitInterval = TC_Common::strto<int>(conf.get("/tars/application/server<activating-timeout>", "3000")) / 1000;
-//         if (iStartWaitInterval < START_WAIT_INTERVAL)
-//         {
-//             iStartWaitInterval = START_WAIT_INTERVAL;
-//         }
-//         if (iStartWaitInterval > 60)
-//         {
-//             iStartWaitInterval = 60;
-//         }
-
-//     }
-//     catch (...)
-//     {
-//     }                
-
-//     string sPidFile = "/usr/local/app/tars/tarsnode/util/" + sServerId + ".pid";
-//     string sGetServerPidScript = "ps -ef | grep -v 'grep' |grep -iE ' " + _desc.application+"."+_desc.serverName + "'|grep master| awk '{print $2}' > " + sPidFile;
-
-//     while ((TNOW - iStartWaitInterval) < tNow)
-//     {
-//         //注意:由于是守护进程,不要对sytem返回值进行判断,始终wait不到子进程
-//         system(sGetServerPidScript.c_str());
-//         string sPid = TC_Common::trim(TC_File::load2str(sPidFile));
-//         if (TC_Common::isdigit(sPid))
-//         {
-//             iPid = TC_Common::strto<int>(sPid);
-//             _serverObjectPtr->setPid(iPid);
-//             if (_serverObjectPtr->checkPid() == 0)
-//             {
-//                 bSucc = true;
-//                 break;
-//             }
-//         }
-
-//         NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " activating usleep " << int(iStartWaitInterval) << endl;
-//         TC_Common::msleep(START_SLEEP_INTERVAL/1000);
-//     }
-
-//     if (_serverObjectPtr->checkPid() != 0)
-//     {
-//         sResult = sResult + "|get pid for server[" + sServerId + "],pid is not digit";
-//         NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
-//         if (TC_File::isFileExist(sPidFile))
-//         {
-//             TC_File::removeFile(sPidFile, false);
-//         }
-//         throw runtime_error(sResult);
-//     }
-
-//     if (TC_File::isFileExist(sPidFile))
-//     {
-//         TC_File::removeFile(sPidFile, false);
-//     }
-//     return bSucc;
-// }
-
 //////////////////////////////////////////////////////////////
 //
 int CommandStart::execute(string& sResult)
@@ -426,14 +265,9 @@ int CommandStart::execute(string& sResult)
     try
     {
         bool bSucc  = false;
+
         //set stdout & stderr
         _serverObjectPtr->getActivator()->setRedirectPath(_serverObjectPtr->getRedirectPath());
-
-        // if( TC_Common::lower(TC_Common::trim(_desc.serverType)) == "tars_php" ){
-
-        //     bSucc = startByScriptPHP(sResult);
-
-        // }else 
 
         if (!_serverObjectPtr->getStartScript().empty() || _serverObjectPtr->isTarsServer() == false){
 
