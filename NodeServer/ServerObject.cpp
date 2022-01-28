@@ -460,14 +460,27 @@ void ServerObject::keepAlive(const ServerInfo &si, const string &adapter)
 
 void ServerObject::keepAlive(int64_t pid, const string &adapter)
 {
-	if (pid <= 0)
-	{
-		NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid:" << pid << " error, pid <= 0"<<endl;
-		return;
-	}
+    if (pid <= 0)
+    {
+	    NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid "<<pid<<" error, pid <= 0"<<endl;
+        return;
+    }
+    Lock lock(*this);
 
-	time_t now  = TNOW;
-	setLastKeepAliveTime(now,adapter);
+    time_t now  = TNOW;
+    setLastKeepAliveTime(now,adapter);
+    
+    //Java KeepAliive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
+    if (0 != checkPid() || _state != ServerObject::Active)
+    {    
+        setPid(pid);
+    }
+
+    //心跳不改变正在转换期状态(Activating除外)
+    if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
+    {
+        setState(ServerObject::Active);
+    }
 
 	//Java KeepAlive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
 	if (0 != checkPid() || _state != ServerObject::Active)
