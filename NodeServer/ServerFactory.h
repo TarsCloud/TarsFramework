@@ -85,8 +85,7 @@ public:
     ServerObjectPtr getServer( const string& application, const string& serverName );
 
     /**
-     * load服务 若application
-     * serverName为空load所有服务，只返回最后一个load对象。
+     * load服务 若application, serverName为空load所有服务，只返回最后一个load对象。
      * @param application    服务所属应用名
      * @param serverName  服务名
      * @return  ServerObjectPtr  服务不存在返回NULL
