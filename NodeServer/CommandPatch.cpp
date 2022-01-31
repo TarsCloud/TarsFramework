@@ -395,7 +395,7 @@ int CommandPatch::execute(string &sResult)
 #endif
             			cmd += busybox + " unzip -oq  " + sLocalTgzFile_bak+ " -d "+ sLocalExtractPach + FILE_SEP +sServerName;
             		}
-            		}
+            	}
             	else
             	{
             		cmd = busybox + " tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
@@ -410,10 +410,10 @@ int CommandPatch::execute(string &sResult)
 				 * 有可能system这里解压失败了，
 				 * 这里通过遍历解压目录下有没有文件来判断是否解压成功,因为解压之前这个目录是空的
 				 */
-            	if(packageFormat!="jar")
+            	if(packageFormat != "jar")
             	{
             		vector<string> files;
-            		tars::TC_File::listDirectory(sLocalExtractPach, files, true);
+            		tars::TC_File::listDirectory(sLocalExtractPach, files, false);
             		if(files.empty())
             		{
             			sResult = cmd + ", error!";
@@ -443,26 +443,55 @@ int CommandPatch::execute(string &sResult)
             		break;
             	}
 
-            	//copy file失败， 会抛异常
-            	if (_serverObjectPtr->getServerType() == "tars_nodejs")
+//            	//copy file失败， 会抛异常
+//            	if (_serverObjectPtr->getServerType() == "tars_nodejs")
+//            	{
+//            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
+//
+//            		TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true);
+//            	}
+//            	else
+//
+            	if (_serverObjectPtr->getServerType() == "tars_java" && packageFormat=="jar")
             	{
-            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
-
-            		TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true);
+            		string  cpCmd = busybox + " cp -f "+sLocalTgzFile_bak + " " + _serverObjectPtr->getExePath();
+            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << endl;
+            		system(cpCmd.c_str());
             	}
             	else
             	{
-            		if(packageFormat!="jar")
-            		{
-            			NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << sLocalExtractPach + FILE_SEP + sServerName << " -> " <<_serverObjectPtr->getExePath() << endl;
-            			TC_File::copyFile(sLocalExtractPach + FILE_SEP + sServerName, _serverObjectPtr->getExePath(), true);
-            		}
-            		else
-            		{
-            			string  cpCmd = busybox + " cp -f "+sLocalTgzFile_bak + " " + _serverObjectPtr->getExePath();
-            			NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << endl;
-            			system(cpCmd.c_str());
-            		}
+            		//(为了兼容所有语言)
+            		//遍历到目录, 如果该目录下只有一个目录, 则继续遍历, 直到该目录下: 有多个文件或者没有子目录了!
+            		//此时, 该目录这就是执行程序所在的目录
+            		//把这个目录下所有文件copy到可执行程序目录
+            		string srcPath = sLocalExtractPach;// + FILE_SEP + sServerName;
+
+					do
+					{
+						vector<string> files;
+						tars::TC_File::listDirectory(srcPath, files, false);
+						if(files.empty())
+						{
+							sResult = cmd + ", error!";
+							NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
+							iRet = -6;
+							break;
+						}
+
+						//只要一个目录, 继续遍历
+						if(files.size() == 1 && TC_File::isFileExist(files[0], S_IFDIR))
+						{
+							srcPath = files[0];
+						}
+						else
+						{
+							break;
+						}
+					}while(true);
+
+            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << srcPath << " -> " <<_serverObjectPtr->getExePath() << endl;
+
+            		TC_File::copyFile(srcPath, _serverObjectPtr->getExePath(), true);
             	}
             }
 

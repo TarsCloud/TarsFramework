@@ -79,7 +79,7 @@ void KeepAliveThread::run()
 
     while (!_terminate)
     {
-        int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
+//        int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
 
         try
         {
@@ -225,7 +225,7 @@ int KeepAliveThread::reportAlive()
         {
             tReport = tNow;
 
-            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node keep alive time:" << TNOW << ", thread id:" << TC_Thread::CURRENT_THREADID() << '\n' << endl;
+            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node keep alive time:" << TNOW << ", thread id:" << TC_Thread::CURRENT_THREADID() << endl;
             
             int iRet = _registryPrx->keepAlive(_nodeInfo.nodeName, _platformInfo.getLoadInfo());
 
@@ -275,7 +275,7 @@ int KeepAliveThread::synStat()
 
 void KeepAliveThread::checkAlive()
 {
-    int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
+//    int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
 
     static time_t tSyn = 0;
     bool bNeedSynServerState = false;

@@ -29,7 +29,6 @@
 //
 ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
 {
-
     TC_ThreadRecLock::Lock lock(*_serverObjectPtr);
 
     NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " beging activate------|byRegistry|" << _byNode << endl;
@@ -65,12 +64,36 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     if (TC_File::isAbsolute(_exeFile) &&
         !TC_File::isFileExistEx(_exeFile) &&
         _serverObjectPtr->getStartScript().empty() &&
-        _serverObjectPtr->getServerType() != "tars_nodejs" && _serverObjectPtr->getServerType() != "tars_php")
+        (_serverObjectPtr->getServerType() == "tars_cpp" || _serverObjectPtr->getServerType() == "tars_go"))
     {
-        _serverObjectPtr->setPatched(false);
-        sResult      = "The server exe patch " + _exeFile + " is not exist.";
-        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
-        return DIS_EXECUTABLE;
+    	//为了兼容服务bin文件改名, 如果exeFile不存在, 则遍历目录下, 第一个可执行程序
+    	vector<string> files;
+    	TC_File::listDirectory(_serverObjectPtr->getExePath(), files, false);
+
+    	bool findExe = false;
+    	for(auto file : files)
+    	{
+    		if(TC_File::canExecutable(file))
+    		{
+    			findExe = true;
+    			_exeFile = file;
+    			break;
+    		}
+    	}
+
+    	if(!findExe)
+    	{
+    		_serverObjectPtr->setPatched(false);
+    		sResult      = "The server exe patch " + _exeFile + " is not exist.";
+    		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
+    		return DIS_EXECUTABLE;
+    	}
+    	else
+    	{
+    		sResult      = "find server exe patch " + _exeFile;
+
+    		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
+    	}
     }
 
     _serverObjectPtr->setPatched(true);
@@ -180,13 +203,13 @@ bool CommandStart::startNormal(string& sResult)
     if (_serverObjectPtr->getServerType() == "tars_java")
     {
         //java服务
-        TC_Config conf;
-        conf.parseFile(_serverObjectPtr->getConfigFile());
-        string packageFormat= conf.get("/tars/application/server<packageFormat>","war");
+//        TC_Config conf;
+//        conf.parseFile(_serverObjectPtr->getConfigFile());
+        string packageFormat= _serverObjectPtr->getPackageFormat();//conf.get("/tars/application/server<packageFormat>","war");
         string sClassPath       = _serverObjectPtr->getClassPath();
         vOptions.push_back("-Dconfig=" + sConfigFile);
         string s ;
-        if("jar" ==packageFormat)
+        if("jar" == packageFormat)
         {
             s = _serverObjectPtr->getJvmParams() +  " " + _serverObjectPtr->getMainClass();
         }else {
@@ -244,7 +267,6 @@ bool CommandStart::startNormal(string& sResult)
 
     const string sPwdPath = sLogPath != "" ? sLogPath : sServerDir; //pwd patch 统一设置至log目录 以便core文件发现 删除
     iPid = _serverObjectPtr->getActivator()->activate(_exeFile, sPwdPath, sRollLogFile, vOptions, vEnvs);
-    // iPid = _serverObjectPtr->getActivator()->activate(sExePath, sPwdPath, sRollLogFile, vOptions, vEnvs);
     if (iPid == 0)  //child process
     {
         return false;
