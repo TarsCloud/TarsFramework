@@ -369,7 +369,6 @@ CREATE TABLE `t_server_patchs` (
   `tgz` text,
   `update_text` varchar(255) DEFAULT NULL,
   `reason_select` varchar(255) DEFAULT NULL,
-  `document_complate` varchar(30) DEFAULT NULL,
   `is_server_group` tinyint(2) NOT NULL DEFAULT '0',
   `publish` tinyint(3) DEFAULT NULL,
   `publish_time` datetime DEFAULT NULL,
