@@ -332,12 +332,12 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
 						 if (std::string::npos != err.find("doesn't exist")) {
 							 creatTb(sTable);
 						 }
-						 else {
-							 string sInfo =
-								 string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application
-								 + "." + ServerConfig::ServerName;
-							 TARS_NOTIFY_ERROR(sInfo);
-						 }
+						//  else {
+						// 	 string sInfo =
+						// 		 string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application
+						// 		 + "." + ServerConfig::ServerName;
+						// 	 TARS_NOTIFY_ERROR(sInfo);
+						//  }
 						 TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
 					 }
 					 catch (exception & ex) {
