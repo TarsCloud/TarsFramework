@@ -66,7 +66,7 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
         _serverObjectPtr->getStartScript().empty() &&
         (_serverObjectPtr->getServerType() == "tars_cpp" || _serverObjectPtr->getServerType() == "tars_go"))
     {
-    	//为了兼容服务bin文件改名, 如果exeFile不存在, 则遍历目录下, 第一个可执行程序
+    	//为了兼容服务exe文件改名, 如果exeFile不存在, 则遍历目录下, 第一个文件名带Server的可执行程序
     	vector<string> files;
     	TC_File::listDirectory(_serverObjectPtr->getExePath(), files, false);
 
@@ -75,9 +75,14 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     	{
     		if(TC_File::canExecutable(file))
     		{
-    			findExe = true;
-    			_exeFile = file;
-    			break;
+				string fileName = TC_File::extractFileName(file);
+
+				if(fileName.find("Server") != string::npos || fileName.find("server") != string::npos)
+				{
+					findExe = true;
+					_exeFile = file;
+					break;
+				}
     		}
     	}
 
