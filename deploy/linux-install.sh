@@ -76,7 +76,7 @@ OS=`uname`
 if [[ "$OS" =~ "Darwin" ]]; then
     OS=3
 else
-    OS=`cat /etc/redhat-release`
+    [[ -f /etc/redhat-release ]] && OS=`cat /etc/redhat-release`
     if [[ "$OS" =~ "CentOS release 6" ]]; then
       OS=1
       NODE_VERSION="v10.20.1"
@@ -86,6 +86,8 @@ else
         OS=1
       elif [[ "$OS" =~ "Ubuntu" ]]; then
         OS=2
+      elif [[ "$OS" =~ "Debian" ]]; then
+        OS=4
       else
         echo "OS not support:"
         echo $OS
@@ -108,6 +110,8 @@ function get_host_ip()
     IP=`ifconfig | sed 's/addr//g' | grep $1 -A3 | grep "inet " | awk -F'[ :]+' '{print $3}'`
   elif [ $OS == 3 ]; then
     IP=`ifconfig | grep $1 -A4 | grep "inet " | awk '{print $2}'`
+  elif [ $OS == 4 ]; then
+    IP=`ifconfig | grep $1 -A3 | grep "inet " | awk -F'[ :]+' '{print $3}'`
   fi
   echo "$IP"
 }
