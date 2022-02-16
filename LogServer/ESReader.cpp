@@ -61,7 +61,7 @@ static int readESResponse(const std::string& response, const std::function<int(c
 {
 	auto jsonPtr = TC_Json::getValue(response);
 	auto&& jsonValuePtr = JsonValueObjPtr::dynamicCast(jsonPtr);
-	const auto& jsonValue = jsonValuePtr->value;
+//	const auto& jsonValue = jsonValuePtr->value;
 	auto&& firstHitsPtr = jsonValuePtr->get("hits");
 	if (firstHitsPtr.get() == nullptr)
 	{
@@ -138,7 +138,7 @@ int ESReader::listTrace(const string& date, int64_t beginTime, int64_t endTime, 
 		TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
 		return -1;
 	}
-	if (readESResponse(response, [&ts, &serverName](const TC_AutoPtr<JsonValueObj>& ptr)mutable -> int
+	if (readESResponse(response, [&ts](const TC_AutoPtr<JsonValueObj>& ptr)mutable -> int
 	{
 		auto v = JsonValueStringPtr::dynamicCast(ptr->get("trace"))->value;
 		ts.emplace_back(v);
@@ -259,7 +259,7 @@ int ESReader::listTraceSummary(const string& date, int64_t beginTime, int64_t en
 		TLOGERROR("do es request error\n, \tRequest: " << body.substr(0, 2048) << "\n, \t" << response << endl);
 		return -1;
 	}
-	if (readESResponse(response, [&ss, &serverName](const TC_AutoPtr<JsonValueObj>& ptr)mutable -> int
+	if (readESResponse(response, [&ss](const TC_AutoPtr<JsonValueObj>& ptr)mutable -> int
 	{
 		auto traceName = JsonValueStringPtr::dynamicCast(ptr->get("trace"))->value;
 		auto tsTimeNum = JsonValueNumPtr::dynamicCast(ptr->get("tsTime"))->value;

@@ -37,7 +37,7 @@ AdminReapThread::~AdminReapThread()
 
 int AdminReapThread::init()
 {
-    TLOGDEBUG("begin AdminReapThread init"<<endl);
+    TLOG_DEBUG("begin AdminReapThread init"<<endl);
 
     //初始化配置db连接
     extern TC_Config * g_pconf;
@@ -58,14 +58,14 @@ int AdminReapThread::init()
     DBPROXY->updateRegistryInfo2Db(_heartBeatOff);
 	DBPROXY->loadIPPhysicalGroupInfo();
 
-    TLOGDEBUG("AdminReapThread init ok."<<endl);
+    TLOG_DEBUG("AdminReapThread init ok."<<endl);
 
     return 0;
 }
 
 void AdminReapThread::terminate()
 {
-    TLOGDEBUG("[ReapThread terminate.]" << endl);
+    TLOG_DEBUG("[ReapThread terminate.]" << endl);
     _terminate = true;
 }
 
@@ -100,11 +100,11 @@ void AdminReapThread::run()
         }
         catch(exception & ex)
         {
-            TLOGERROR("AdminReapThread exception:" << ex.what() << endl);
+            TLOG_ERROR("AdminReapThread exception:" << ex.what() << endl);
         }
         catch(...)
         {
-            TLOGERROR("AdminReapThread unknown exception:" << endl);
+            TLOG_ERROR("AdminReapThread unknown exception:" << endl);
         }
     }
 }

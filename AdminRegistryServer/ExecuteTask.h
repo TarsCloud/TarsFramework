@@ -33,26 +33,49 @@ public:
      */
     TaskList(const TaskReq &taskReq, unsigned int t = 300);
 
+	/**
+	 *
+	 */
     ~TaskList();
 
+	/**
+	 * 任务状态
+	 * @return
+	 */
     TaskRsp getTaskRsp();
 
+	/**
+	 * 取消任务
+	 */
     void cancelTask();
 
-    virtual void execute() = 0;
-    /**
+	/**
+	 * 执行
+	 */
+	void execute();
+
+	/**
      * 创建时间
      */
     time_t getCreateTime() { return _createTime; }
 
+	/**
+	 * 是否执行超时了
+	 * @return
+	 */
     bool isTimeout();
 
-    bool isFinished() const
-    {
-        return _finished;
-    }
+	/**
+	 * 是否完成了
+	 * @return
+	 */
+    bool isFinished() const { return _finished; }
 
 protected:
+	virtual void onExecute() = 0;
+
+	//准备镜像或者文件
+	int prepareFile();
 
     //设置应答信息
     void setRspInfo(size_t index, bool start, EMTaskItemStatus status);
@@ -63,32 +86,30 @@ protected:
 
     EMTaskItemStatus executeSingleTask(size_t index, const TaskItemReq &req);
 
-    EMTaskItemStatus executeSingleTaskWithSharedState(size_t index, const TaskItemReq &req,std::shared_ptr<atomic_int> &taskItemSharedState);
+//    EMTaskItemStatus executeSingleTaskWithSharedState(size_t index, const TaskItemReq &req);
     EMTaskItemStatus start        (const TaskItemReq &req, string &log);
     EMTaskItemStatus restart      (const TaskItemReq &req, string &log);
     EMTaskItemStatus graceRestart (const TaskItemReq &req, string &log);
     EMTaskItemStatus stop         (const TaskItemReq &req, string &log);
     EMTaskItemStatus patch        (size_t index, const TaskItemReq &req, string &log);
-    EMTaskItemStatus patch(const TaskItemReq &req, string &log, size_t index, std::shared_ptr<atomic_int> &TaskItemSharedState);
+    EMTaskItemStatus patch		  (const TaskItemReq &req, string &log, size_t index);
     EMTaskItemStatus undeploy     (const TaskItemReq &req, string &log);
 //    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);
 
-    void finish()
-    {
-        _finished = true;
-    }
+    void finish() { _finished = true; }
 
 protected:
     
     //线程池
     TC_ThreadPool   _pool;
-    //请求任务
+	//准备
+	TC_ThreadPool   _preparePool;
+	//请求任务
     TaskReq         _taskReq;
     //返回任务
     TaskRsp         _taskRsp;
 
-    //AdminRegPrx     _adminPrx;
 	AdminRegistryImp*	_adminPrx;
     time_t          _createTime;
     unsigned int    _timeout;
@@ -100,7 +121,7 @@ class TaskListSerial : public TaskList
 public:
     TaskListSerial(const TaskReq &taskReq, unsigned int t = 300);
 
-    virtual void execute();
+    virtual void onExecute();
 
 protected:
     void doTask();
@@ -111,10 +132,10 @@ class TaskListParallel : public TaskList
 public:
     TaskListParallel(const TaskReq &taskReq, unsigned int t = 300);
 
-    virtual void execute();
+    virtual void onExecute();
 
 protected:
-    void doTask(TaskItemReq req, size_t index, std::shared_ptr<atomic_int> taskItemSharedState);
+    void doTask(TaskItemReq req, size_t index);
 };
 
 class TaskListElegant : public TaskList
@@ -122,12 +143,11 @@ class TaskListElegant : public TaskList
 public:
     TaskListElegant(const TaskReq &taskReq, unsigned int t = 600);
 
-    virtual void execute();
+    virtual void onExecute();
 
 protected:
     void doTask();
-    void doTaskSerial();
-    void doTaskParallel(TaskItemReq req, size_t index, std::shared_ptr<atomic_int> taskItemSharedState);
+    void doTaskParallel(TaskItemReq req, size_t index);
 
 protected:
     TC_ThreadPool   _poolMaster;
@@ -147,6 +167,11 @@ public:
      */
     int addTaskReq(const TaskReq &taskReq);
 
+	/**
+	 * 取消任务
+	 * @param taskNo
+	 * @return
+	 */
     int cancelTask(const string& taskNo);
 
     /**
@@ -186,8 +211,6 @@ protected:
 	AdminRegistryImp*	_adminImp;
 
 	unsigned int _elegantWaitSecond;
-
-
 
     //线程结束标志
     bool _terminate;

@@ -26,6 +26,8 @@
 #include "CommandStop.h"
 #include "CommandDestroy.h"
 #include "CommandAddFile.h"
+#include "DockerStop.h"
+#include "DockerStart.h"
 
 ServerObject::ServerObject( const ServerDescriptor& tDesc)
 : _tarsServer(true)
@@ -99,6 +101,7 @@ void ServerObject::setServerDescriptor( const ServerDescriptor& tDesc )
     _application   = tDesc.application;
     _serverName    = tDesc.serverName;
     _serverId      = _application+"."+_serverName;
+	_eRunType       = (tDesc.runType == "container"?Container:Native);
     _desc.settingState == "active"?_enabled = true:_enabled = false;
 
 	NODE_LOG(_serverId)->debug() << "ServerObject::setServerDescriptor "<< _serverId <<endl;
@@ -223,7 +226,7 @@ void ServerObject::synState()
     try
     {
         ServerStateInfo tServerStateInfo;
-        tServerStateInfo.serverState    = (IsEnSynState()?toServerState(_state):tars::Inactive);
+        tServerStateInfo.serverState    = (isEnSynState() ? toServerState(_state) : tars::Inactive);
         tServerStateInfo.processId      = _pid;
         //根据uNoticeFailTimes判断同步还是异步更新服务状态
         //防止主控超时导致阻塞服务上报心跳
@@ -257,7 +260,7 @@ void ServerObject::asyncSynState()
     try
     {
         ServerStateInfo tServerStateInfo;
-        tServerStateInfo.serverState    = (IsEnSynState()?toServerState(_state):tars::Inactive);
+        tServerStateInfo.serverState    = (isEnSynState() ? toServerState(_state) : tars::Inactive);
         tServerStateInfo.processId      = _pid;
         AdminProxy::getInstance()->getRegistryProxy()->async_updateServer( this, _nodeInfo.nodeName,  _application, _serverName, tServerStateInfo);
 
@@ -739,8 +742,16 @@ void ServerObject::checkServer(int iTimeout)
             sResult = "[alarm] zombie process,no keep alive msg for " + TC_Common::tostr(iRealTimeout) + " seconds";
             NODE_LOG(_serverId)->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
 	        NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
-	        CommandStop command(this, true);
-            command.doProcess();
+            if(_eRunType==Container){
+                DockerStop command(this, true);
+                command.doProcess();
+            }else {
+                CommandStop command(this, true);
+                command.doProcess();
+            }
+
+	        // CommandStop command(this, true);
+            // command.doProcess();
         }
 
         //启动服务
@@ -751,9 +762,15 @@ void ServerObject::checkServer(int iTimeout)
 	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
 
 	        g_app.reportServer(_serverId, "", getNodeInfo().nodeName, sResult);
-
-            CommandStart command(this);
-            int ret = command.doProcess();
+            int ret;
+            if(_eRunType==Container){
+                DockerStart command(this);
+                ret = command.doProcess();
+            }else {
+                CommandStart command(this);
+                ret = command.doProcess();
+            }
+            
             NODE_LOG(_serverId)->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
 	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
 
@@ -823,12 +840,12 @@ void ServerObject::reportMemProperty()
     catch(exception &ex)
     {
         NODE_LOG("ReportMemThread")->error() << FILE_FUN << " ex:" << ex.what() << endl;
-        TLOGERROR(FILE_FUN << " ex:" << ex.what() << endl);
+        TLOG_ERROR(FILE_FUN << " ex:" << ex.what() << endl);
     }
     catch(...)
     {
         NODE_LOG("ReportMemThread")->error() << FILE_FUN << " unknown error" << endl;
-        TLOGERROR(FILE_FUN << "unknown ex." << endl);
+        TLOG_ERROR(FILE_FUN << "unknown ex." << endl);
     }
 }
 
@@ -937,14 +954,14 @@ void ServerObject::onUpdateServerResult(int result)
         _noticed = false;
         _noticeFailTimes ++;
 
-        TLOGERROR("Update server:"<<_application<<"."<<_serverName<<" failed, error times:"<<_noticeFailTimes<<", result:"<<result<< endl);
+        TLOG_ERROR("Update server:"<<_application<<"."<<_serverName<<" failed, error times:"<<_noticeFailTimes<<", result:"<<result<< endl);
     }
     else
     {
         _noticed = true;
         _noticeFailTimes = 0;
 
-        TLOGDEBUG("Update server: "<<_application<<"."<<_serverName<<" ok"<<endl);
+        TLOG_DEBUG("Update server: "<<_application<<"."<<_serverName<<" ok"<<endl);
     }
 }
 

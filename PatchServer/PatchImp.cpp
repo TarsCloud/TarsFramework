@@ -43,7 +43,7 @@ struct LIST
 
             _vf.push_back(fi);
 
-            TLOGDEBUG("LIST path:" << fi.path << "|file:" << file << "|size:" << fi.size << "|exec:" << (fi.canExec?"true":"false") << endl);
+            TLOG_DEBUG("LIST path:" << fi.path << "|file:" << file << "|size:" << fi.size << "|exec:" << (fi.canExec?"true":"false") << endl);
         }
     }
 
@@ -66,17 +66,17 @@ void PatchImp::initialize()
     }
     catch(exception &ex)
     {
-        TLOGDEBUG("PatchImp::initialize directory must not be empty." << endl);
+        TLOG_DEBUG("PatchImp::initialize error:" << ex.what() << endl);
         exit(0);
     }
 
     if(!tars::TC_File::isAbsolute(_directory))
     {
-        TLOGDEBUG("PatchImp::initialize directory must be absolute directory path." << endl);
+        TLOG_DEBUG("PatchImp::initialize directory must be absolute directory path." << endl);
         exit(0);
     }
 
-    TLOGDEBUG("PatchImp::initialize patch dirtectory:" << _directory  << "|uploadDirectory:" << _uploadDirectory << "|size:" << _size << endl);
+    TLOG_DEBUG("PatchImp::initialize patch dirtectory:" << _directory  << "|uploadDirectory:" << _uploadDirectory << "|size:" << _size << endl);
 }
 
 
@@ -86,7 +86,7 @@ void PatchImp::initialize()
  **/
 int PatchImp::listFileInfo(const string &path, vector<FileInfo> & vf, TarsCurrentPtr current)
 {
-    TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getHostName()  << "|path:" << path << endl);
+    TLOG_DEBUG("PatchImp::listFileInfo ip:" << current->getHostName()  << "|path:" << path << endl);
 
     string dir = tars::TC_File::simplifyDirectory(_directory + FILE_SEP + path);
 
@@ -96,14 +96,14 @@ int PatchImp::listFileInfo(const string &path, vector<FileInfo> & vf, TarsCurren
     tars::TarsDisplayer ds(ss);
     ds.displaySimple(vf, false);
 
-    TLOGDEBUG("PatchImp::listFileInfo ip:" << current->getHostName()  << "|path:" << path << "|dir:" << dir << "|str:" << ss.str() << endl);
+    TLOG_DEBUG("PatchImp::listFileInfo ip:" << current->getHostName()  << "|path:" << path << "|dir:" << dir << "|str:" << ss.str() << endl);
 
     return ret;
 }
 
 int PatchImp::download(const string & file, int pos, vector<char> & vb, TarsCurrentPtr current)
 {
-    TLOGDEBUG("PatchImp::download ip:" << current->getHostName()  << "|file:" << file << "|pos:" << pos << endl);
+    TLOG_DEBUG("PatchImp::download ip:" << current->getHostName()  << "|file:" << file << "|pos:" << pos << endl);
 
     string path = tars::TC_File::simplifyDirectory(_directory + FILE_SEP + file);
     
@@ -122,24 +122,26 @@ int PatchImp::download(const string & file, int pos, vector<char> & vb, TarsCurr
     return iRet;
 }
 
-int PatchImp::preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current)
+int PatchImp::preparePatchFile(const string &app, const string &serverName, const string &patchFile, string &result, TarsCurrentPtr current)
 {
     string upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName + FILE_SEP + patchFile;
-    string dstDirectory = _directory + "/TARSBatchPatching/" + app + FILE_SEP + serverName;
+    string dstDirectory = _directory + FILE_SEP + string("TARSBatchPatching") + FILE_SEP + app + FILE_SEP + serverName;
     string dstfile = dstDirectory + FILE_SEP + app +"." + serverName + ".tgz";
 
-    TLOGDEBUG("PatchImp::preparePatchFile upfile:" << upfile << ", dstfile:" << dstfile << endl);
+    TLOG_DEBUG("PatchImp::preparePatchFile upfile:" << upfile << ", dstfile:" << dstfile << endl);
 
     bool succ = TC_File::makeDirRecursive(dstDirectory);
     if (!succ)
     {
-        TLOGERROR("PatchImp::preparePatchFile makeDirRecursive path:" << dstDirectory << "|error!" << endl);
+		result = "mkdir dir: " + dstDirectory + " error!";
+        TLOG_ERROR("PatchImp::preparePatchFile makeDirRecursive path:" << dstDirectory << "|error!" << endl);
         return -2;
     }
 
-    if (!TC_File::isFileExist(upfile)) 
-    {
-        TLOGERROR("PatchImp::preparePatchFile isFileExist file:" << upfile << "|not exist!" << endl);
+    if (!TC_File::isFileExist(upfile))
+	{
+		result = upfile + " not exists!";
+        TLOG_ERROR("PatchImp::preparePatchFile isFileExist file:" << upfile << "|not exist!" << endl);
         return -1;
     }
 
@@ -152,9 +154,105 @@ int PatchImp::deletePatchFile(const string & app, const string & serverName, con
 {
 	string upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName + FILE_SEP + patchFile;
 
-	TLOGDEBUG("PatchImp::deletePatchFile upfile:" << upfile << endl);
+	TLOG_DEBUG("PatchImp::deletePatchFile upfile:" << upfile << endl);
 
 	return TC_File::removeFile(upfile, false);
+}
+
+//
+//static int waitProcessDone(int64_t iPid) {
+//	assert(iPid > 0);
+//
+//	if (iPid <= 0) {
+//		throw std::runtime_error("iPid must bigger than zero");
+//	}
+//
+//	int process_status;
+//
+//	while (true) {
+//
+//		int v = ::waitpid(iPid, &process_status, WNOHANG);
+//		if (v != 0) {
+//			break;
+//		}
+//
+//		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//
+//	}
+//
+//	return process_status;
+//}
+
+int PatchImp::preparePatchImage(const string &app, const string &serverName, const string &serverVersion, const PatchImage & patchImage, string &result, CurrentPtr current)
+{
+	string dstDirectory = _directory + FILE_SEP + "TARSBatchPatching" + FILE_SEP + app + FILE_SEP + serverName;
+	string dstfile = dstDirectory + FILE_SEP + app + "." + serverName + ".tgz";
+
+	if (!TC_File::isFileExist(dstfile))
+	{
+		result = dstfile + "not exist!";
+
+		TLOG_ERROR("isFileExist, file:" << dstfile << ", not exist!" << endl);
+		return -1;
+	}
+
+	if(patchImage.registry.empty())
+	{
+		result = "registryAddress is empty, please checkout tarsAdminRegistry template.";
+		TLOG_ERROR("registryAddress is empty."<< endl);
+		return -1;
+	}
+
+	string build_dir = TC_File::simplifyDirectory(ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + "tmp" + FILE_SEP + "docker" + FILE_SEP + app + FILE_SEP + serverName);
+
+	string image = TC_Common::lower(app) + "/" + TC_Common::lower(serverName) + ":" + TC_Common::lower(serverVersion);
+
+	TLOG_DEBUG("TarsPath: " << ServerConfig::TarsPath << ", image: " << image << endl);
+	TLOG_DEBUG("BasePath: " << ServerConfig::BasePath << ", image: " << image << endl);
+
+	TC_File::removeFile(build_dir, true);
+	TC_File::makeDirRecursive(build_dir);
+
+	string baseImage = "tarscloud/tars.tarsnode";
+
+	string cmd = g_app.getDockerBuild() + " '" + g_app.getDockerFile() + "' '" + image + "' '" + dstfile + "' '" + baseImage + "' '" +  patchImage.registry + "' '" + patchImage.username + "' '" + patchImage.password + "' '" + build_dir + "'";
+
+	TLOG_DEBUG("cmd:" << cmd << endl);
+
+	string out = TC_Port::exec(cmd.c_str());
+
+	TLOG_DEBUG(out << endl);
+
+	result = out;
+
+//	pid_t process = fork();
+//
+//	if (process == 0)
+//	{
+//		execl(build_path.c_str(), build_cmd.c_str(), image.c_str(), dstfile.c_str(), patchImage.baseImage.c_str(), patchImage.registry.c_str(), patchImage.username.c_str(), patchImage.password.c_str(), build_dir.c_str(), NULL);
+//	}
+//	else if (process > 0)
+//	{
+//		int status = waitProcessDone(process);
+//
+//		if (WIFEXITED(status))
+//		{
+//			if (WEXITSTATUS(status) == 0)
+//			{
+//				TLOG_DEBUG("preparePatchImage success , tag:" << patchImage.registry << "/" << app << "." << serverName << ":" << serverVersion);
+//				const std::string buildWorkPath = FILE_SEP + string("tmp") + FILE_SEP + app + "." + serverName + "." + serverVersion;
+//				TC_File::removeFile(buildWorkPath, true);
+//				return 0;
+//			}
+//			//todo log build error;
+//			return -1;
+//		}
+//
+//		//todo log build exception ;
+//		return -1;
+//	}
+
+	return 0;
 }
 
 /**************************************************************************************************
@@ -162,7 +260,7 @@ int PatchImp::deletePatchFile(const string & app, const string & serverName, con
  */
 int PatchImp::__listFileInfo(const string &path, vector<FileInfo> &vf)
 {
-    TLOGDEBUG("PatchImp::__listFileInfo patch:" << path << endl);
+    TLOG_DEBUG("PatchImp::__listFileInfo patch:" << path << endl);
 
     if (path.find("..") != string::npos)
     {
@@ -206,7 +304,7 @@ int PatchImp::upload(const std::string & app,const std::string & serverName,cons
     string uploadDir = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName;
 
     if (!TC_File::makeDirRecursive(uploadDir)) {
-        TLOGERROR("upload, error mkdir: " << uploadDir << endl);
+        TLOG_ERROR("upload, error mkdir: " << uploadDir << endl);
         return -1;
     }
 
@@ -220,7 +318,7 @@ int PatchImp::upload(const std::string & app,const std::string & serverName,cons
         writer.open(uploadFile, ios_base::app | ios_base::binary);
     }
     if (!writer.is_open()) {
-        TLOGERROR("upload, open file error: " << strerror(errno) << endl);
+        TLOG_ERROR("upload, open file error: " << strerror(errno) << endl);
         return -2;
     }
 
@@ -232,7 +330,7 @@ int PatchImp::upload(const std::string & app,const std::string & serverName,cons
         string md5 = TC_MD5::md5file(uploadFile);
 
         if (md5 != content.md5) {
-            TLOGERROR("upload, file md5 error!" << uploadFile << ", " << md5 << "!=" << content.md5 << endl);
+            TLOG_ERROR("upload, file md5 error!" << uploadFile << ", " << md5 << "!=" << content.md5 << endl);
             return -3;
         }
     }
@@ -242,18 +340,18 @@ int PatchImp::upload(const std::string & app,const std::string & serverName,cons
 
 int PatchImp::__downloadFromMem (const string & file, size_t pos, vector<char> & vb)
 {
-    TLOGDEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|size:" << _size << endl);
+    TLOG_DEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|size:" << _size << endl);
 
     pair<char *, size_t> mem;
     if (g_PatchCache.load(file, mem) != 0)
     {
-        TLOGERROR("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|LoadFile error" << endl);
+        TLOG_ERROR("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|LoadFile error" << endl);
         return -1;
     }
 
     if (pos >= mem.second)
     {
-        TLOGDEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|to tail ok" << endl);
+        TLOG_DEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|to tail ok" << endl);
 
         g_PatchCache.release(file);
 
@@ -262,7 +360,7 @@ int PatchImp::__downloadFromMem (const string & file, size_t pos, vector<char> &
 
     const size_t sizeBuf = mem.second - pos >= _size ? _size : mem.second - pos;
 
-    TLOGDEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|sizeBuf:" << sizeBuf << endl);
+    TLOG_DEBUG("PatchImp::__downloadFromMem file:" << file << "|pos:" << pos << "|sizeBuf:" << sizeBuf << endl);
     
     vb.resize(sizeBuf);
 
@@ -276,12 +374,12 @@ int PatchImp::__downloadFromMem (const string & file, size_t pos, vector<char> &
 
 int PatchImp::__downloadFromFile(const string & file, size_t pos, vector<char> & vb)
 {
-    TLOGDEBUG("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|size:" << _size << endl);
+    TLOG_DEBUG("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|size:" << _size << endl);
 
     FILE * fp = fopen(file.c_str(), "rb");
     if (fp == NULL)
     {
-        TLOGERROR("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|open file error:" << strerror(errno) << endl);
+        TLOG_ERROR("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|open file error:" << strerror(errno) << endl);
         return -1;
     }
 
@@ -290,7 +388,7 @@ int PatchImp::__downloadFromFile(const string & file, size_t pos, vector<char> &
     {
         fclose(fp);
 
-        TLOGERROR("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|fseek error:" << strerror(errno) << endl);
+        TLOG_ERROR("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|fseek error:" << strerror(errno) << endl);
         return -2;
     }
 
@@ -304,7 +402,7 @@ int PatchImp::__downloadFromFile(const string & file, size_t pos, vector<char> &
 
         fclose(fp);
 
-        TLOGDEBUG("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|r:" << r << endl);
+        TLOG_DEBUG("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|r:" << r << endl);
 
         return 0;
     }
@@ -315,13 +413,13 @@ int PatchImp::__downloadFromFile(const string & file, size_t pos, vector<char> &
         {
             fclose(fp);
 
-            TLOGDEBUG("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|to tail ok" << endl);
+            TLOG_DEBUG("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|to tail ok" << endl);
 
             return 1;
         }
 
         //读取文件出错了
-        TLOGERROR("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|r:" << r << "|error:" << strerror(errno) << endl);
+        TLOG_ERROR("PatchImp::__downloadFromFile file:" << file << "|pos:" << pos << "|r:" << r << "|error:" << strerror(errno) << endl);
 
         fclose(fp);
 

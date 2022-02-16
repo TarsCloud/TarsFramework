@@ -27,7 +27,7 @@ class CommandLoad : public ServerCommand
 {
 
 public:
-    CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ);
+    CommandLoad(const ServerObjectPtr& pServerObjectPtr, const DockerRegistry& dockerRegistry, const NodeInfo& tNodeInfo, bool succ);
 
     ExeStatus canExecute(string& sResult);
 
@@ -54,7 +54,7 @@ private:
     ServerDescriptor    _desc;
     ServerObjectPtr     _serverObjectPtr;
     bool                _succ = true;
-
+	StatExChangePtr     _statExChange;		//用于自动维护状态, 不要删除!
 private:
     string _serverDir;               //服务数据目录
     string _confPath;                //服务配置文件目录
@@ -64,7 +64,6 @@ private:
     string _logPath;                 //服务日志目录
     string _libPath;                 //动态库目录 一般为_desc.basePath/lib
     string _serverType;              //服务类型
-private:
     string _startScript;               //启动脚本
     string _stopScript;                //停止脚本
     string _monitorScript;             //监控脚本
@@ -72,12 +71,14 @@ private:
 
 //////////////////////////////////////////////////////////////
 //
-inline CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ)
+inline CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const DockerRegistry& dockerRegistry, const NodeInfo& tNodeInfo, bool succ)
 : _nodeInfo(tNodeInfo)
 , _serverObjectPtr(pServerObjectPtr)
 , _succ(succ)
 {
     _desc      = _serverObjectPtr->getServerDescriptor();
+
+	_serverObjectPtr->setDockerRegistry(dockerRegistry);
 }
 
 #endif

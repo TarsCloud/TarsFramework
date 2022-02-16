@@ -45,6 +45,9 @@ TaskList::TaskList(const TaskReq &taskReq, unsigned int t)
         _taskRsp.taskItemRsp.push_back(rsp);
     }
 
+	_preparePool.init(1);
+	_preparePool.start();
+
     _createTime = TC_TimeProvider::getInstance()->getNow();
     _timeout = t;
     _finished = false;
@@ -57,7 +60,8 @@ bool TaskList::isTimeout()
 
 TaskList::~TaskList()
 {
-    TLOGDEBUG("TaskList::TaskList stop thread ========================= " << endl);
+    TLOG_DEBUG("TaskList::TaskList stop thread ========================= " << endl);
+	_preparePool.stop();
     _pool.stop();
 }
 
@@ -123,7 +127,7 @@ void TaskList::setRspInfo(size_t index, bool start, EMTaskItemStatus status)
     catch (exception &ex)
     {
 //        log = ex.what();
-        TLOGERROR("TaskList::setRspInfo error:" << ex.what() << endl);
+        TLOG_ERROR("TaskList::setRspInfo error:" << ex.what() << endl);
     }
 }
 
@@ -154,9 +158,83 @@ void TaskList::setRspLog(size_t index, const string &log)
     }
     catch (exception &ex)
     {
-//        log = ex.what();
-        TLOGERROR("TaskList::setRspLog error:" << ex.what() << endl);
+        TLOG_ERROR("TaskList::setRspLog error:" << ex.what() << endl);
     }
+}
+
+void TaskList::execute()
+{
+	_preparePool.exec([&](){
+
+		//先准备文件
+		int ret = prepareFile();
+
+		if (ret != 0)
+		{
+			for (size_t i = 0; i < _taskReq.taskItemReq.size(); i++)
+			{
+				setRspInfo(i, false, EM_I_FAILED);
+			}
+		}
+		else
+		{
+			onExecute();
+		}
+
+	});
+}
+
+int TaskList::prepareFile()
+{
+	map<string, PrepareInfo> pis;
+
+	for (size_t i=0; i < _taskReq.taskItemReq.size(); i++)
+	{
+		auto& req = _taskReq.taskItemReq[i];
+
+		if(req.command.find("patch") != string::npos)
+		{
+			setRspInfo(i, true, EM_I_PREPARE);
+
+			PrepareInfo pi;
+			pi.application = req.application;
+			pi.serverName = req.serverName;
+			pi.patchId = get("patch_id", req.parameters);
+			pi.runType = get("run_type", req.parameters);
+			pi.baseImage = get("base_image", req.parameters);
+
+			string result;
+
+			int ret = _adminPrx->prepareInfo_inner(pi, result);
+			if (ret != 0)
+			{
+				TLOG_ERROR("preparePatch_inner error:" << result << endl);
+				setRspLog(i, result);
+				return ret;
+			}
+
+			req.parameters["md5"] = pi.md5;
+
+			pis[pi.key()] = pi;
+		}
+	}
+
+	for(auto e : pis)
+	{
+		string result;
+
+		TLOG_DEBUG("preparePatch_inner prepare :" << e.second.application << "." << e.second.serverName << ", " << e.second.patchId << ", " << e.second.patchFile << ", " << e.second.baseImage << endl);
+
+		int ret = this->_adminPrx->preparePatch_inner(e.second, result);
+		if(ret != 0)
+		{
+			TLOG_ERROR("preparePatch_inner error:" << result << endl);
+			_taskRsp.executeLog = result;
+			return ret;
+		}
+	}
+
+	return 0;
 }
 
 EMTaskItemStatus TaskList::start(const TaskItemReq &req, string &log)
@@ -171,10 +249,10 @@ EMTaskItemStatus TaskList::start(const TaskItemReq &req, string &log)
     catch (exception &ex)
     {
         log = ex.what();
-        TLOGERROR("TaskList::executeSingleTask startServer error:" << log << endl);
+        TLOG_ERROR("TaskList::executeSingleTask startServer error:" << log << endl);
     }
 
-    TLOGDEBUG("TaskList::startServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    TLOG_DEBUG("TaskList::startServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
 
     return EM_I_FAILED;
 }
@@ -192,10 +270,10 @@ EMTaskItemStatus TaskList::restart(const TaskItemReq &req, string &log)
     catch (exception &ex)
     {
         log = ex.what();
-        TLOGERROR("TaskList::restartServer error:" << log << endl);
+        TLOG_ERROR("TaskList::restartServer error:" << log << endl);
     }
 
-    TLOGERROR("TaskList::restartServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    TLOG_ERROR("TaskList::restartServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
     return EM_I_FAILED;
 }
 
@@ -209,7 +287,7 @@ EMTaskItemStatus TaskList::graceRestart(const TaskItemReq &req, string &log)
         if (server.size() == 0)
         {
             log = "no servers";
-            TLOGERROR("TaskList::graceRestartServer no servers" << endl);
+            TLOG_ERROR("TaskList::graceRestartServer no servers" << endl);
             return EM_I_FAILED;
         }
         ret = _adminPrx->notifyServer_inner(req.application, req.serverName, req.nodeName, "tars.gracerestart",log);
@@ -220,10 +298,10 @@ EMTaskItemStatus TaskList::graceRestart(const TaskItemReq &req, string &log)
     catch (exception &ex)
     {
         log = ex.what();
-        TLOGERROR("TaskList::restartServer error:" << log << endl);
+        TLOG_ERROR("TaskList::restartServer error:" << log << endl);
     }
 
-    TLOGERROR("TaskList::restartServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    TLOG_ERROR("TaskList::restartServer error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
     return EM_I_FAILED;
 }
 
@@ -239,10 +317,10 @@ EMTaskItemStatus TaskList::undeploy(const TaskItemReq &req, string &log)
     catch (exception &ex)
     {
         log = ex.what();
-        TLOGERROR("TaskList::undeploy error:" << log << endl);
+        TLOG_ERROR("TaskList::undeploy error:" << log << endl);
     }
 
-    TLOGERROR("TaskList::undeploy error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    TLOG_ERROR("TaskList::undeploy error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
     
     return EM_I_FAILED;
 }
@@ -259,10 +337,10 @@ EMTaskItemStatus TaskList::stop(const TaskItemReq &req, string &log)
     catch (exception &ex)
     {
         log = ex.what();
-        TLOGERROR("TaskList::stop error:" << log << endl);
+        TLOG_ERROR("TaskList::stop error:" << log << endl);
     }
 
-    TLOGERROR("TaskList::stop error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+    TLOG_ERROR("TaskList::stop error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
 
     return EM_I_FAILED;
 }
@@ -283,11 +361,12 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
     {
         int ret = EM_TARS_UNKNOWN_ERR;
 
-        TLOGDEBUG("TaskList::patch:" << req.writeToJsonString() << ", " << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
-        
+        TLOG_DEBUG("TaskList::patch:" << req.writeToJsonString() << ", " << TC_Common::tostr(req.parameters.begin(), req.parameters.end()) << endl);
+
         string patchId   = get("patch_id", req.parameters);
         string patchType = get("patch_type", req.parameters);
 	    string groupName = get("group_name", req.parameters);
+		string runType = get("run_type",req.parameters);
 
         tars::PatchRequest patchReq;
         patchReq.appname    = req.application;
@@ -296,38 +375,42 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
         patchReq.version    = patchId;
         patchReq.user       = req.userName;
 	    patchReq.groupname  = groupName;
+		patchReq.md5		= get("md5",req.parameters);
 
+		//外部是串行处理的
         try
         {
-            std::shared_ptr<atomic_int> taskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
-            ret = _adminPrx->preparePatch_inner(patchReq,log, false,taskItemSharedState);
-            if (ret!=0){
-                log = "batchPatch err:" + log;
-                TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
-                return EM_I_FAILED;
-            }
-            ret = _adminPrx->batchPatch_inner(patchReq, log);
+//            std::shared_ptr<atomic_int> taskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
+//            ret = _adminPrx->preparePatch_inner(patchReq,log, false,taskItemSharedState);
+//            if (ret!=0)
+//			{
+//                log = "tarsAdminRegistry batchPatch err:" + log;
+//                TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
+//                return EM_I_FAILED;
+//            }
+            ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
         }
         catch (exception &ex)
         {
             log = ex.what();
-            TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
+            TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
             return EM_I_FAILED;
         }
 
         if (ret != EM_TARS_SUCCESS)
         {
-            log = "batchPatch err:" + log;
+            log = "tarsAdminRegistry batchPatch err:" + log;
 
-            TLOGERROR("TaskList::patch error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+            TLOG_ERROR("TaskList::patch error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
             return EM_I_FAILED;
         }
 
-        // 这里做个超时保护， 否则如果tafnode状态错误， 这里一直循环调用
+        // 这里做个超时保护， 否则如果tarsnode状态错误， 这里一直循环调用
         time_t tNow = TNOW;
         unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/patch/<patch_wait_timeout>", "300"));
 
         EMTaskItemStatus retStatus = EM_I_FAILED;
+
         while (TNOW < tNow + patchTimeout)
         {
             PatchInfo pi;
@@ -339,7 +422,7 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
             catch (exception &ex)
             {
                 log = ex.what();
-                TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << ", error:" << ex.what() << endl);
+                TLOG_ERROR("getPatchPercent error, ret:" << ret << ", error:" << ex.what() << endl);
             }
 
             //发布100%
@@ -349,46 +432,48 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
             {
                 log = pi.sResult;
 				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
-                TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << ", " << pi.sResult << endl);
+                TLOG_ERROR("getPatchPercent error, ret:" << ret << ", " << req.application << "." << req.serverName << "_" << req.nodeName << ", percent:" << pi.iPercent << ", log:" << pi.sResult << endl);
                 return EM_I_FAILED;
             }
 
             if(pi.iPercent == 100 && pi.bSucc)
             {
 				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
-                TLOGDEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl); 
+                TLOG_DEBUG("getPatchPercent ok, percent:" << pi.iPercent << "%" << endl);
                 retStatus = EM_I_SUCCESS;
                 break;
             }
             
-            TLOGDEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl); 
+            TLOG_DEBUG("getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl);
 
 			std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        return retStatus;
+		TLOG_DEBUG("getPatchPercent retStatus:" << retStatus << endl);
+
+		return retStatus;
 
     }
     catch (exception &ex)
     {
-        TLOGERROR("TaskList::patch error:" << ex.what() << endl);
+        TLOG_ERROR("TaskList::patch error:" << ex.what() << endl);
         return EM_I_FAILED;
     }
     return EM_I_SUCCESS; 
 }
 
-EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t index ,shared_ptr<atomic_int>& taskItemSharedState) {
-    //[area_code]=[SZ]|[error]=[stop]|[group_id]=[0]|[module_name]=[tafnotify]|[name]=[patch_tars]|[patch_id]=[74509]|[patch_type]=[new_version]|[process_ip]=[172.16.124.131]|[process_name]=[tarsnotify]|[service]=[tars]|[svn_version]=[]|[type]=[tars]|[update_text]=[]
-
-    try {
-
+EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t index)
+{
+    try
+	{
         int ret = EM_TARS_UNKNOWN_ERR;
 
-        TLOGDEBUG("TaskList::patch:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end())
+        TLOG_DEBUG("TaskList::patch:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end())
                                      << req.application << "." << req.serverName << ", " << req.nodeName << endl);
 
         string patchId = get("patch_id", req.parameters);
         string patchType = get("patch_type", req.parameters);
+		string runType = get("run_type",req.parameters);
 
         tars::PatchRequest patchReq;
         patchReq.appname = req.application;
@@ -396,26 +481,28 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t
         patchReq.nodename = req.nodeName;
         patchReq.version = patchId;
         patchReq.user = req.userName;
+		patchReq.md5 = get("run_type",req.parameters);
 
+		//外部是并行处理的!
         try {
-            ret = _adminPrx->preparePatch_inner(patchReq, log, index != 0, taskItemSharedState);
-            if (ret != 0) {
-                log = "batchPatch err:" + log;
-                TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
-                return EM_I_FAILED;
-            }
-			ret = _adminPrx->batchPatch_inner(patchReq, log);
+//            ret = _adminPrx->preparePatch_inner(patchReq, log, index != 0, taskItemSharedState);
+//            if (ret != 0) {
+//                log = "tarsAdminRegistry batchPatch err:" + log;
+//                TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
+//                return EM_I_FAILED;
+//            }
+			ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
         }
         catch (exception &ex)
         {
             log = ex.what();
-            TLOGERROR("TaskList::patch batchPatch error:" << log << endl);
+            TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
             return EM_I_FAILED;
         }
 
         if (ret != EM_TARS_SUCCESS)
         {
-            log = "batchPatch err:" + log;
+            log = "tarsAdminRegistry batchPatch err:" + log;
             return EM_I_FAILED;
         }
 
@@ -435,25 +522,25 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t
             catch (exception &ex)
             {
                 log = ex.what();
-                TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
+                TLOG_ERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
             }
 
             if (ret != 0)
             {
 				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
-                TLOGERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
+                TLOG_ERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
                 return EM_I_FAILED;
             }
 
             if(pi.iPercent == 100 && pi.bSucc)
             {
 				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
-                TLOGDEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl);
+                TLOG_DEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl);
                 retStatus = EM_I_SUCCESS;
                 break;
             }
             
-            TLOGDEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl); 
+            TLOG_DEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl); 
 
 			std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -461,7 +548,7 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t
     }
     catch (exception &ex)
     {
-        TLOGERROR("TaskList::patch error:" << ex.what() << endl);
+        TLOG_ERROR("TaskList::patch error:" << ex.what() << endl);
         return EM_I_FAILED;
     }
     return EM_I_FAILED; 
@@ -469,7 +556,7 @@ EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t
 
 EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &req)
 {
-    TLOGDEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo 
+    TLOG_DEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo 
             << ",application=" << req.application 
             << ",serverName="  << req.serverName 
             << ",nodeName="    << req.nodeName
@@ -516,62 +603,62 @@ EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &re
     {
         ret = EM_I_FAILED;
         log = "command not support!";
-        TLOGDEBUG("TaskList::executeSingleTask command not support!" << endl);
+        TLOG_DEBUG("TaskList::executeSingleTask command not support!" << endl);
     }
 
     setRspLog(index, log);
 
     return ret; 
 }
-
-
-EMTaskItemStatus TaskList::executeSingleTaskWithSharedState(size_t index, const TaskItemReq &req,shared_ptr<atomic_int> &taskItemSharedState)
-{
-    TLOGDEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo
-                                                     << ",application=" << req.application
-                                                     << ",serverName=" << req.serverName
-                                                     << ",nodeName=" << req.nodeName
-                                                     << ",setName=" << req.setName
-                                                     << ",command=" << req.command << endl);
-
-    EMTaskItemStatus ret = EM_I_FAILED;
-    string log;
-    if (req.command == "stop")
-    {
-        ret = stop(req, log);
-    }
-    else if (req.command == "start")
-    {
-        ret = start(req, log);
-    }
-    else if (req.command == "restart")
-    {
-        ret = restart(req, log);
-    }
-    else if (req.command == "patch_tars")
-    {
-        ret = patch(req, log, index, taskItemSharedState);
-        if (ret == EM_I_SUCCESS && get("bak_flag", req.parameters) != "1")
-        {
-            //不是备机, 需要重启
-            ret = restart(req, log);
-        }
-    }
-    else if (req.command == "undeploy_tars")
-    {
-        ret = undeploy(req, log);
-    }
-    else
-    {
-        ret = EM_I_FAILED;
-        log = "command not support!";
-        TLOGDEBUG("TaskList::executeSingleTask command not support!" << endl);
-    }
-
-    setRspLog(index, log);
-
-    return ret;
-}
+//
+//
+//EMTaskItemStatus TaskList::executeSingleTaskWithSharedState(size_t index, const TaskItemReq &req,shared_ptr<atomic_int> &taskItemSharedState)
+//{
+//    TLOG_DEBUG("TaskList::executeSingleTask: taskNo=" << req.taskNo
+//                                                     << ",application=" << req.application
+//                                                     << ",serverName=" << req.serverName
+//                                                     << ",nodeName=" << req.nodeName
+//                                                     << ",setName=" << req.setName
+//                                                     << ",command=" << req.command << endl);
+//
+//    EMTaskItemStatus ret = EM_I_FAILED;
+//    string log;
+//    if (req.command == "stop")
+//    {
+//        ret = stop(req, log);
+//    }
+//    else if (req.command == "start")
+//    {
+//        ret = start(req, log);
+//    }
+//    else if (req.command == "restart")
+//    {
+//        ret = restart(req, log);
+//    }
+//    else if (req.command == "patch_tars")
+//    {
+//        ret = patch(req, log, index, taskItemSharedState);
+//        if (ret == EM_I_SUCCESS && get("bak_flag", req.parameters) != "1")
+//        {
+//            //不是备机, 需要重启
+//            ret = restart(req, log);
+//        }
+//    }
+//    else if (req.command == "undeploy_tars")
+//    {
+//        ret = undeploy(req, log);
+//    }
+//    else
+//    {
+//        ret = EM_I_FAILED;
+//        log = "command not support!";
+//        TLOG_DEBUG("TaskList::executeSingleTask command not support!" << endl);
+//    }
+//
+//    setRspLog(index, log);
+//
+//    return ret;
+//}
 
 //////////////////////////////////////////////////////////////////////////////
 TaskListSerial::TaskListSerial(const TaskReq &taskReq, unsigned int t)
@@ -581,9 +668,9 @@ TaskListSerial::TaskListSerial(const TaskReq &taskReq, unsigned int t)
     _pool.start();
 }
 
-void TaskListSerial::execute()
+void TaskListSerial::onExecute()
 {
-    TLOGDEBUG("TaskListSerial::execute" << endl);
+    TLOG_DEBUG("TaskListSerial::execute" << endl);
     
     auto cmd = std::bind(&TaskListSerial::doTask, this);
     _pool.exec(cmd);
@@ -591,37 +678,32 @@ void TaskListSerial::execute()
 
 void TaskListSerial::doTask()
 {
-    size_t len = 0;
-    {
-        TC_LockT<TC_ThreadMutex> lock(*this);
-        len = _taskReq.taskItemReq.size();
-    }
+	EMTaskItemStatus status = EM_I_SUCCESS;
 
-    EMTaskItemStatus status = EM_I_SUCCESS;
+	for (size_t i = 0; i < _taskReq.taskItemReq.size(); i++)
+	{
+		TaskItemReq req;
 
-    for (size_t i=0; i < len; i++)
-    {
-        TaskItemReq req;
+		setRspInfo(i, true, EM_I_RUNNING);
+		{
+			TC_LockT<TC_ThreadMutex> lock(*this);
 
-        setRspInfo(i, true, EM_I_RUNNING);
-        {
-            TC_LockT<TC_ThreadMutex> lock(*this);
+			req = _taskReq.taskItemReq[i];
+		}
 
-            req = _taskReq.taskItemReq[i];
-        }
+		if (EM_I_SUCCESS == status)
+		{
+			status = executeSingleTask(i, req);
+		}
+		else
+		{
+			//上一个任务不成功, 后续的任务都cancel掉
+			status = EM_I_CANCEL;
+		}
 
-        if (EM_I_SUCCESS == status)
-        {
-            status = executeSingleTask(i, req); 
-        }
-        else
-        {
-            //上一个任务不成功, 后续的任务都cancel掉
-            status = EM_I_CANCEL;
-        }
+		setRspInfo(i, false, status);
+	}
 
-        setRspInfo(i, false, status);
-    }
 
     finish();
 }
@@ -633,9 +715,9 @@ TaskListElegant::TaskListElegant(const TaskReq &taskReq, unsigned int t)
     _poolMaster.start();
 }
 
-void TaskListElegant::execute()
+void TaskListElegant::onExecute()
 {
-    TLOGDEBUG("TaskListElegant::execute" << endl);
+    TLOG_DEBUG("TaskListElegant::execute" << endl);
     
     auto cmd = std::bind(&TaskListElegant::doTask, this);
     _poolMaster.exec(cmd);
@@ -672,16 +754,16 @@ void TaskListElegant::doTask()
     {
         if (!isSerial)
         {
-            std::shared_ptr<atomic_int> TaskItemSharedState;
-
-            if (0 == i)
-            {
-                TaskItemSharedState =std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
-            }
-            else
-            {
-                TaskItemSharedState =std::make_shared<atomic_int>(0);
-            }
+//            std::shared_ptr<atomic_int> TaskItemSharedState;
+//
+//            if (0 == i)
+//            {
+//                TaskItemSharedState =std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
+//            }
+//            else
+//            {
+//                TaskItemSharedState =std::make_shared<atomic_int>(0);
+//            }
 
             vector<pair<size_t, TaskItemReq> >  tl;
             vector<string>  nodeList;
@@ -706,7 +788,8 @@ void TaskListElegant::doTask()
             // 停掉流量
             int affectNum = DBPROXY->updateServerFlowState(tl[0].second.application, tl[0].second.serverName, nodeList, false);
 
-            if (affectNum > 0) {
+            if (affectNum > 0)
+			{
                 TLOG_DEBUG("sleep " << ExecuteTask::getInstance()->getElegantWaitSecond() << "s wait for close flow..." << endl);
                 //sleep(75);
                 TC_Common::sleep(ExecuteTask::getInstance()->getElegantWaitSecond());
@@ -720,7 +803,7 @@ void TaskListElegant::doTask()
             // 执行task
             for (size_t x = 0; x < tl.size(); ++x)
             {
-                _pool.exec(std::bind(&TaskListElegant::doTaskParallel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), tl[x].second, tl[x].first, TaskItemSharedState);
+                _pool.exec(std::bind(&TaskListElegant::doTaskParallel, this, std::placeholders::_1, std::placeholders::_2), tl[x].second, tl[x].first);
             }
 
             TLOG_DEBUG("worker pool waitForAllDone, item num:" << tl.size() << endl);
@@ -743,44 +826,8 @@ void TaskListElegant::doTask()
     finish();
 }
 
-void TaskListElegant::doTaskSerial()
+void TaskListElegant::doTaskParallel(TaskItemReq req, size_t index)
 {
-    size_t len = 0;
-    {
-        TC_LockT<TC_ThreadMutex> lock(*this);
-        len = _taskReq.taskItemReq.size();
-    }
-
-    EMTaskItemStatus status = EM_I_SUCCESS;
-
-    for (size_t i=0; i < len; i++)
-    {
-        TaskItemReq req;
-
-        setRspInfo(i, true, EM_I_RUNNING);
-        {
-            TC_LockT<TC_ThreadMutex> lock(*this);
-
-            req = _taskReq.taskItemReq[i];
-        }
-
-        if (EM_I_SUCCESS == status)
-        {
-            status = executeSingleTask(i, req); 
-        }
-        else
-        {
-            //上一个任务不成功, 后续的任务都cancel掉
-            status = EM_I_CANCEL;
-        }
-
-        setRspInfo(i, false, status);
-    }
-}
-
-void TaskListElegant::doTaskParallel(TaskItemReq req, size_t index,std::shared_ptr<atomic_int> taskItemSharedState)
-{
-    TLOG_DEBUG("begin..." << endl);
     setRspInfo(index, true, EM_I_RUNNING);
 
     //do work
@@ -790,9 +837,10 @@ void TaskListElegant::doTaskParallel(TaskItemReq req, size_t index,std::shared_p
                 << ",setName=" << req.setName 
                 << ",command=" << req.command << endl);
 
-    EMTaskItemStatus status = executeSingleTaskWithSharedState(index, req, taskItemSharedState);
+//    EMTaskItemStatus status = executeSingleTaskWithSharedState(index, req, taskItemSharedState);
+	EMTaskItemStatus status = executeSingleTask(index, req);
 
-    setRspInfo(index, false, status);
+	setRspInfo(index, false, status);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -802,39 +850,39 @@ TaskListParallel::TaskListParallel(const TaskReq &taskReq, unsigned int t)
     //最大并行线程数
     size_t num = taskReq.taskItemReq.size() > 5 ? 5 : taskReq.taskItemReq.size();
     num = num < 1 ? 1:num;
-    TLOGDEBUG("TaskListParallel::TaskListParallel req thread num:" << taskReq.taskItemReq.size() << ", realnum:" << num << endl);
+    TLOG_DEBUG("TaskListParallel::TaskListParallel req thread num:" << taskReq.taskItemReq.size() << ", realnum:" << num << endl);
     _pool.init(num); 
     _pool.start();
 }
 
-void TaskListParallel::execute()
+void TaskListParallel::onExecute()
 {
-    TLOGDEBUG("TaskListParallel::execute" << endl);
+    TLOG_DEBUG("TaskListParallel::execute" << endl);
     
     TC_LockT<TC_ThreadMutex> lock(*this);
 
-    std::shared_ptr<atomic_int> TaskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
+//    std::shared_ptr<atomic_int> TaskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
     for (size_t i=0; i < _taskReq.taskItemReq.size(); i++)
     {
-
-        _pool.exec(std::bind(&TaskListParallel::doTask, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), _taskReq.taskItemReq[i], i,TaskItemSharedState);
+        _pool.exec(std::bind(&TaskListParallel::doTask, this, std::placeholders::_1, std::placeholders::_2), _taskReq.taskItemReq[i], i);
     }
 }
 
-void TaskListParallel::doTask(TaskItemReq req, size_t index,std::shared_ptr<atomic_int> taskItemSharedState)
+void TaskListParallel::doTask(TaskItemReq req, size_t index)
 {
     setRspInfo(index, true, EM_I_RUNNING);
 
     //do work
-    TLOGDEBUG("TaskListParallel::executeTask: taskNo=" << req.taskNo 
+    TLOG_DEBUG("TaskListParallel::executeTask: taskNo=" << req.taskNo 
                 << ",application=" << req.application 
                 << ",serverName="  << req.serverName 
                 << ",setName="     << req.setName 
                 << ",command="     << req.command << endl);
 
-    EMTaskItemStatus status = executeSingleTaskWithSharedState(index, req, taskItemSharedState);
+//    EMTaskItemStatus status = executeSingleTaskWithSharedState(index, req, taskItemSharedState);
+	EMTaskItemStatus status = executeSingleTask(index, req);
 
-    setRspInfo(index, false, status);
+	setRspInfo(index, false, status);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -868,13 +916,10 @@ void ExecuteTask::run()
             map<string, TaskList* >::iterator it = _task.begin();
             while (it != _task.end())
             {
-                //static time_t diff = 2 * 24 *60 *60;//2天
-                //static time_t diff = 5*60;  //5分钟
                 //大于diff 时间数据任务就干掉
-                //if(TC_TimeProvider::getInstance()->getNow() - it->second->getCreateTime() > diff)
                 if (it->second->isTimeout())
                 {
-                    TLOGDEBUG("==============ExecuteTask::run, delete old task, taskNo=" << it->first << endl);
+                    TLOG_DEBUG("==============ExecuteTask::run, delete old task, taskNo=" << it->first << endl);
                     TaskList *tmp = it->second;
                     _task.erase(it++);
                     delete tmp;
@@ -893,10 +938,9 @@ void ExecuteTask::run()
     }
 }
 
-
 int ExecuteTask::addTaskReq(const TaskReq &taskReq)
 {
-    TLOGDEBUG("ExecuteTask::addTaskReq" <<
+    TLOG_DEBUG("ExecuteTask::addTaskReq" <<
               ", taskNo=" << taskReq.taskNo <<   
               ", size=" << taskReq.taskItemReq.size() <<
               ", serial=" << taskReq.serial <<
@@ -960,14 +1004,14 @@ int ExecuteTask::addTaskReq(const TaskReq &taskReq)
 
     p->execute();
 
-    TLOG_DEBUG("add task finish!" << endl);
+//    TLOG_DEBUG("add task finish!" << endl);
 
     return 0;
 }
 
 int ExecuteTask::cancelTask(const string &taskNo)
 {
-    TLOGDEBUG("ExecuteTask::cancelTask, taskNo=" << taskNo << endl);
+    TLOG_DEBUG("ExecuteTask::cancelTask, taskNo=" << taskNo << endl);
 
     TaskList* pTask = NULL;
 
@@ -997,7 +1041,7 @@ int ExecuteTask::cancelTask(const string &taskNo)
 
 bool ExecuteTask::getTaskRsp(const string &taskNo, TaskRsp &taskRsp)
 {
-    TLOGDEBUG("ExecuteTask::getTaskRsp, taskNo=" << taskNo << endl);
+//    TLOG_DEBUG("ExecuteTask::getTaskRsp, taskNo=" << taskNo << endl);
 
     TC_ThreadLock::Lock lock(*this);
 
@@ -1010,7 +1054,7 @@ bool ExecuteTask::getTaskRsp(const string &taskNo, TaskRsp &taskRsp)
 
     taskRsp = (it->second)->getTaskRsp();
 
-    TLOGDEBUG("ExecuteTask::getTaskRsp, taskNo=" << taskNo << ", rsp:" << taskRsp.writeToJsonString() << endl);
+//    TLOG_DEBUG("ExecuteTask::getTaskRsp, taskNo=" << taskNo << ", rsp:" << taskRsp.writeToJsonString() << endl);
     ExecuteTask::getInstance()->checkTaskRspStatus(taskRsp);
 
     return true;
@@ -1020,7 +1064,8 @@ bool ExecuteTask::getTaskRsp(const string &taskNo, TaskRsp &taskRsp)
 void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp) 
 {
     size_t not_start = 0;
-    size_t running   = 0;
+	size_t prepare = 0;
+	size_t running   = 0;
     size_t success   = 0;
     size_t failed    = 0;
     size_t cancel    = 0;
@@ -1034,6 +1079,9 @@ void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp)
         case EM_I_NOT_START:
             ++not_start;
             break;
+		case EM_I_PREPARE:
+			++prepare;
+			break;
         case EM_I_RUNNING:
         case EM_I_PAUSE_FLOW:
             ++running;
@@ -1051,7 +1099,8 @@ void ExecuteTask::checkTaskRspStatus(TaskRsp &taskRsp)
     }
     
     if      (not_start == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_NOT_START;
-    else if (running   == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_RUNNING;
+	else if (prepare == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_PREPARE;
+	else if (running   == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_RUNNING;
     else if (success   == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_SUCCESS;
     else if (failed    == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_FAILED;
     else if (cancel    == taskRsp.taskItemRsp.size()) taskRsp.status = EM_T_CANCEL;

@@ -26,12 +26,15 @@ extern RegistryServer g_app;
 
 void RegistryImp::initialize()
 {
-    TLOGDEBUG("begin RegistryImp init"<<endl);
+    TLOG_DEBUG("begin RegistryImp init"<<endl);
 
     _db.init(g_pconf);
 
-    TLOGDEBUG("RegistryImp init ok."<<endl);
+	_dockerRegistry.sRegistry = g_pconf->get("/tars/container<registry>", "");
+	_dockerRegistry.sUserName = g_pconf->get("/tars/container<username>", "");
+	_dockerRegistry.sPassword = g_pconf->get("/tars/container<password>", "");
 
+    TLOG_DEBUG("RegistryImp init ok."<<endl);
 }
 
 int RegistryImp::registerNode(const string & name, const NodeInfo & ni, const LoadInfo & li, CurrentPtr current)
@@ -100,7 +103,7 @@ int RegistryImp::getNodeTemplate(const std::string & nodeName,std::string &profi
     string sDesc;
     profileTemplate = _db.getProfileTemplate(sTemplateName, sDesc);
 
-    TLOGDEBUG(nodeName << " get sTemplateName:" << sTemplateName << " result:" << sDesc << endl);
+    TLOG_DEBUG(nodeName << " get sTemplateName:" << sTemplateName << " result:" << sDesc << endl);
 
     return 0;
 }
@@ -108,15 +111,20 @@ int RegistryImp::getNodeTemplate(const std::string & nodeName,std::string &profi
 int RegistryImp::getClientIp(std::string &sClientIp,CurrentPtr current)
 {
     sClientIp = current->getIp();
-    TLOGDEBUG("RegistryImp::getClientIp ip: " << sClientIp <<  endl);
+    TLOG_DEBUG("RegistryImp::getClientIp ip: " << sClientIp <<  endl);
 
     return 0;
 }
 
 int RegistryImp::updatePatchResult(const PatchResult & result, CurrentPtr current)
 {
-    TLOGDEBUG( "RegistryImp::updatePatchResult " << result.sApplication + "." + result.sServerName + "_" + result.sNodeName << "|V:" << result.sVersion << "|U:" <<  result.sUserName << endl);
+    TLOG_DEBUG( "RegistryImp::updatePatchResult " << result.sApplication + "." + result.sServerName + "_" + result.sNodeName << "|V:" << result.sVersion << "|U:" <<  result.sUserName << endl);
 
     return _db.setPatchInfo(result.sApplication, result.sServerName, result.sNodeName, result.sVersion, result.sUserName);
 }
 
+int RegistryImp::getDockerRegistry(DockerRegistry &registry, CurrentPtr current)
+{
+	registry = _dockerRegistry;
+	return 0;
+}

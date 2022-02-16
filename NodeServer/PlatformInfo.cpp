@@ -55,7 +55,7 @@ LoadInfo PlatformInfo::getLoadInfo()
     string data = TC_Port::exec("wmic cpu get loadpercentage", errstr);
     if (data.empty()) {
         if (!errstr.empty()) {
-            TLOGERROR(errstr << endl);
+            TLOG_ERROR(errstr << endl);
             return info;
         }
     }
@@ -104,7 +104,7 @@ string PlatformInfo::getDataDir()
         char cwd[256] = "\0";
         if ( getcwd( cwd, sizeof(cwd) ) == NULL )
         {
-            TLOGERROR("PlatformInfo::getDataDir cannot get the current directory:\n" << endl);
+            TLOG_ERROR("PlatformInfo::getDataDir cannot get the current directory:\n" << endl);
             exit( 0 );
         }
         sDataDir = string(cwd) + FILE_SEP + sDataDir;
@@ -138,17 +138,23 @@ string PlatformInfo::getDownLoadDir()
         sDownLoadDir = TC_File::simplifyDirectory(sDownLoadDir);
         if(!TC_File::makeDirRecursive( sDownLoadDir ))
         {
-            TLOGERROR("getDownLoadDir property `tars/node<downloadpath>' is not set and cannot create dir:"<<sDownLoadDir<<endl);
+            TLOG_ERROR("getDownLoadDir property `tars/node<downloadpath>' is not set and cannot create dir:"<<sDownLoadDir<<endl);
             exit(-1);
         }
     }
     catch(exception &e)
     {
-        TLOGERROR("PlatformInfo::getDownLoadDir "<< e.what() << endl);
+        TLOG_ERROR("PlatformInfo::getDownLoadDir "<< e.what() << endl);
         exit(-1);
     }
 
     return sDownLoadDir;
 }
-
-
+//
+//string PlatformInfo::getRegistry() const
+//{
+//	string sRegistryAddress = g_app.getConfig().get("/tars/node<registryAddress>", "");
+//
+////    不能在此处抛异常是因为, 原生方式运行时，不会配置镜像仓库地址.
+//	return sRegistryAddress;
+//}

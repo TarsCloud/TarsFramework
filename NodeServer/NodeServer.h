@@ -70,16 +70,24 @@ public:
     *   管理指令
     */
     bool cmdViewServerDesc(const string& command, const string& params, string& result);
+
     /**
      *@brief  加载服务配置文件,并使之生效
      *
      */
     bool cmdReLoadConfig(const string& command, const string& params, string& result);
 
-    KeepAliveThread* getKeepAliveThread()
-    {
-        return _keepAliveThread;
-    }
+	/**
+	 * 保活线程
+	 * @return
+	 */
+    KeepAliveThread* getKeepAliveThread() { return _keepAliveThread; }
+
+	/**
+	 *
+	 * @return
+	 */
+	const string &getDockerPull() { return _dockerPull; }
 
 protected:
 
@@ -111,12 +119,17 @@ private:
      *初始化主控obj名字
      */
     void initRegistryObj();
+
 private:
     KeepAliveThread *   _keepAliveThread;
     ReportMemThread *    _reportMemThread;
 
     BatchPatch *        _batchPatchThread;
     RemoveLogManager *    _removeLogThread;
+
+	//pull docker的脚本路径
+	string _dockerPull;
+
 
     static string       g_sNodeIp;
 };

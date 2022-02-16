@@ -18,11 +18,28 @@
 #define __AMIN_REGISTRY_H__
 
 #include "AdminReg.h"
+#include "Registry.h"
 #include "Patch.h"
 #include "EndpointF.h"
 #include "DbProxy.h"
 
 using namespace tars;
+
+struct PrepareInfo
+{
+	string application;
+	string serverName;
+	string patchId;
+	string runType;
+	string baseImage;
+	string patchFile;
+	string md5;
+
+	const string key()
+	{
+		return application + "." + serverName + "." + patchId + "." + runType + "." + baseImage;
+	}
+};
 
 /**
  * 管理控制接口类
@@ -121,9 +138,6 @@ public:
      * @return application列表
      */
     virtual vector<string> getAllApplicationNames(string &result, tars::CurrentPtr current);
-
-
-    /***********node****************/
 
     /**
      * 获取node列表
@@ -267,9 +281,12 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::CurrentPtr current);
-    virtual int preparePatch_inner(tars::PatchRequest & req, string &result, bool waitOtherThreadPreparePatchFile, std::shared_ptr<atomic_int>& preparePatchRet);
-	virtual int batchPatch_inner(const tars::PatchRequest & req, string &result);
+//    virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::CurrentPtr current);
+	virtual int prepareInfo_inner(PrepareInfo &pi, string &result);
+	virtual int preparePatch_inner(const PrepareInfo &pi, string &result);
+
+//    virtual int preparePatch_inner(tars::PatchRequest & req, string &result, bool waitOtherThreadPreparePatchFile, std::shared_ptr<atomic_int>& preparePatchRet);
+	virtual int batchPatch_inner(const tars::PatchRequest & req, bool container, string &result);
 
     /**
      * 发布成功
@@ -339,22 +356,94 @@ public:
      */
     virtual int getClientIp(std::string &sClientIp,tars::CurrentPtr current);
 
-
+	/**
+	 * 获取日志数据
+	 * @param application
+	 * @param serverName
+	 * @param nodeName
+	 * @param logFile
+	 * @param cmd
+	 * @param fileData
+	 * @param current
+	 * @return
+	 */
     virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,tars::CurrentPtr current);
 
+	/**
+	 * 获取日志文件列表
+	 * @param application
+	 * @param serverName
+	 * @param nodeName
+	 * @param logFileList
+	 * @param current
+	 * @return
+	 */
     virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::CurrentPtr current);
 
+	/**
+	 * 获取node的负载
+	 * @param application
+	 * @param serverName
+	 * @param nodeName
+	 * @param pid
+	 * @param fileData
+	 * @param current
+	 * @return
+	 */
 	virtual int getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, tars::CurrentPtr current);
+
+	/**
+	 * 删除发布文件
+	 * @param application
+	 * @param serverName
+	 * @param patchFile
+	 * @param current
+	 * @return
+	 */
 	virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::CurrentPtr current);
 
+	/**
+	 * 获取框架所有的服务
+	 * @param servers
+	 * @param current
+	 * @return
+	 */
 	virtual int getServers(vector<FrameworkServer> &servers, tars::CurrentPtr current);
 
+	/**
+	 * 检查服务是否活着
+	 * @param server
+	 * @param current
+	 * @return
+	 */
 	virtual int checkServer(const FrameworkServer &server, tars::CurrentPtr current);
 
+	/**
+	 * 获取框架版本
+	 * @param version
+	 * @param current
+	 * @return
+	 */
     virtual int getVersion(string &version, tars::CurrentPtr current);
-	
-    int updateServerFlowState(const string& application, const string& serverName, const vector<string>& nodeList, bool bActive, CurrentPtr current);
-	
+
+	/**
+	 * 更新服务的庄国泰
+	 * @param application
+	 * @param serverName
+	 * @param nodeList
+	 * @param bActive
+	 * @param current
+	 * @return
+	 */
+	virtual int updateServerFlowState(const string& application, const string& serverName, const vector<string>& nodeList, bool bActive, CurrentPtr current);
+
+	/**
+	 * 是否配置了容器仓库
+	 * @param current
+	 * @return
+	 */
+	virtual bool hasContainerRegistry(CurrentPtr current);
+
 protected:
     void deleteHistorys(const string &application, const string &serverName);
     string getRemoteLogIp(const string& serverIp);
@@ -364,29 +453,35 @@ protected:
     PatchPrx _patchPrx;
 	string	 _remoteLogIp;
     string   _remoteLogObj;
+
+	RegistryPrx _registryPrx;
+//
+//	string   _containerRegistry;
+//	string   _userName;
+//	string   _password;
 };
-
-class PatchProCallbackImp: public NodePrxCallback
-{
-public:
-    PatchProCallbackImp(const tars::PatchRequest& req, const NodePrx& nodePrx, int defaultTime, tars::CurrentPtr current)
-    : _reqPro(req)
-    , _nodePrx(nodePrx)
-    , _defaultTime(defaultTime)
-    , _current(current)
-    {
-    }
-
-    virtual void callback_patchPro(tars::Int32 ret,  const std::string& result);
-    virtual void callback_patchPro_exception(tars::Int32 ret);
-
-private:
-
-    tars::PatchRequest _reqPro;
-    NodePrx _nodePrx;
-    int _defaultTime;
-    tars::CurrentPtr _current;
-};
+//
+//class PatchProCallbackImp: public NodePrxCallback
+//{
+//public:
+//    PatchProCallbackImp(const tars::PatchRequest& req, const NodePrx& nodePrx, int defaultTime, tars::CurrentPtr current)
+//    : _reqPro(req)
+//    , _nodePrx(nodePrx)
+//    , _defaultTime(defaultTime)
+//    , _current(current)
+//    {
+//    }
+//
+//    virtual void callback_patchPro(tars::Int32 ret,  const std::string& result);
+//    virtual void callback_patchPro_exception(tars::Int32 ret);
+//
+//private:
+//
+//    tars::PatchRequest _reqPro;
+//    NodePrx _nodePrx;
+//    int _defaultTime;
+//    tars::CurrentPtr _current;
+//};
 
 
 class StartServerCallbackImp: public NodePrxCallback

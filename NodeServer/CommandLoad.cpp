@@ -34,16 +34,16 @@ ServerCommand::ExeStatus CommandLoad::canExecute(string& sResult)
         return DIS_EXECUTABLE;
     }
 
-//    ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
+    ServerObject::InternalServerState eState = _serverObjectPtr->getInternalState();
 
-//    if (_serverObjectPtr->toStringState(eState).find("ing") != string::npos && eState != ServerObject::Activating)
-//    {
-//    	NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::canExecute cannot loading the config, the server state is "<<_serverObjectPtr->toStringState(eState)<< endl;
-//        return DIS_EXECUTABLE;
-//    }
+    if (_serverObjectPtr->toStringState(eState).find("ing") != string::npos && eState != ServerObject::Activating)
+    {
+    	NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::canExecute cannot loading the config, the server state is "<<_serverObjectPtr->toStringState(eState)<< endl;
+        return DIS_EXECUTABLE;
+    }
 
-    //设当前状态为正在loading
-//    _statExChange = new StatExChange(_serverObjectPtr, ServerObject::Loading, eState);
+//    设当前状态为正在loading
+    _statExChange = new StatExChange(_serverObjectPtr, ServerObject::Loading, eState);
 
     return EXECUTABLE;
 }
@@ -134,7 +134,7 @@ int CommandLoad::execute(string& sResult)
         }
         else
         {
-            _exeFile = _exePath + _desc.serverName; 
+            _exeFile = TC_File::simplifyDirectory(_exePath + FILE_SEP + _desc.serverName);
         }
     }
     else if (TC_File::isAbsolute(_exePath) ==  false)
@@ -149,7 +149,7 @@ int CommandLoad::execute(string& sResult)
         //此时_desc.exePath为手工指定，手工指定时_desc.exePath为文件 所以路径要扣除可执行文件名
         //而且可执行文件名可以不等于_strServerName 用来用同一可执行文件，不同配置启动多个服务
         _exeFile   = _desc.exePath;
-        _exePath   = _serverType == "tars_java" ? _serverDir + FILE_SEP + "bin" + FILE_SEP : TC_File::extractFilePath(_desc.exePath);
+        _exePath   = TC_File::simplifyDirectory(_serverType == "tars_java" ? _serverDir + FILE_SEP + "bin" + FILE_SEP : TC_File::extractFilePath(_desc.exePath));
     }
 
     _exeFile = TC_File::simplifyDirectory(_exeFile);
@@ -303,36 +303,10 @@ int CommandLoad::updateConfigFile(string& sResult)
             _allPorts.insert(tEp.getPort());
         }
 
-        // uint16_t p = tEp.getPort();
-        // if (p == 0)
-        // {
-        //     try
-        //     {
-        //         //原始配置文件中有admin端口了, 直接使用
-        //         TC_Config conf;
-        //         conf.parseFile(_confFile);
-        //         TC_Endpoint ep;
-        //         ep.parse(conf.get("/tars/application/server<local>"));
-        //         p = ep.getPort();
-        //     }
-        //     catch (exception& ex)
-        //     {
-        //         //随机分配一个端口
-        //         TC_Socket t;
-        //         t.createSocket();
-        //         t.bind("127.0.0.1", 0);
-        //         string d;
-        //         t.getSockName(d, p);
-        //         t.close();
-        //     }
-
-        // }
-
         tLocalEndpoint.setPort(p);
         tLocalEndpoint.setHost("127.0.0.1");
         tLocalEndpoint.setType(TC_Endpoint::TCP);
         tLocalEndpoint.setTimeout(10000);
-	    // NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
 
         //需要宏替换部分配置
         TC_Config tConfMacro;
@@ -449,6 +423,8 @@ int CommandLoad::updateConfigFile(string& sResult)
         _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "")));
         _serverObjectPtr->setPackageFormat(tConf.get("/tars/application/server<packageFormat>", "tgz"));
 
+		_serverObjectPtr->setVolumes(tConf.get("/tars/<volumes>", ""));
+        
         _serverObjectPtr->setRedirectPath(tConf.get("/tars/application/<redirectpath>", ""));
 
         _serverObjectPtr->setBackupFileNames(tConf.get("/tars/application/server<backupfiles>", "classes/autoconf"));

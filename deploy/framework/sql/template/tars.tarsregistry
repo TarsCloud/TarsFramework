@@ -48,4 +48,9 @@
         #node默认模板名称
         defaultTemplate = tars.tarsnode
     </nodeinfo>
+    <container>
+        registry =
+        username =
+        password =
+    </container>
 </tars>

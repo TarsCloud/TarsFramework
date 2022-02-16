@@ -150,12 +150,25 @@ public:
      */
     virtual Int32 updatePatchResult(const PatchResult & result, CurrentPtr current);
 
+	/**
+	 * 配置docker镜像仓库地址
+	 * @param registry
+	 * @param current
+	 * @return
+	 */
+	virtual int getDockerRegistry(DockerRegistry &registry, CurrentPtr current);
+
 protected:
 
     /*
      * 数据库操作
      */
     CDbHandle      _db;
+
+	/**
+	 * docker的镜像仓库
+	 */
+	DockerRegistry _dockerRegistry;
 
 };
 

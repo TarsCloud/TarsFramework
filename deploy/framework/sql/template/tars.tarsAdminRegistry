@@ -1,6 +1,7 @@
 <tars>
 	<objname>
 		AdminRegObjName=tars.tarsAdminRegistry.AdminRegObj
+		RegistryObjName=tars.tarsregistry.RegistryObj
 		patchServerObj=tars.tarspatch.PatchObj
 	</objname>
 	<nodeinfo>

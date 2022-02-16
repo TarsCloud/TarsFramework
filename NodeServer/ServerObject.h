@@ -19,7 +19,6 @@
 
 #include "Node.h"
 #include "Registry.h"
-// #include <unistd.h>
 #include "Activator.h"
 #include "util/tc_file.h"
 #include "util/tc_config.h"
@@ -33,7 +32,6 @@
 using namespace tars;
 using namespace std;
 
-//class ServerObject : public TC_ThreadRecLock, public TC_HandleBase
 class ServerObject : public TC_ThreadRecLock, public RegistryPrxCallback
 {
 public:
@@ -56,6 +54,12 @@ public:
         EM_AUTO_LIMIT,
         EM_MANUAL_LIMIT
     };
+
+	enum RunType
+    {
+	    Native,
+	    Container
+	};
 
     /**
      *@brief 服务进程的limit资源状态，比如core属性资源
@@ -182,8 +186,30 @@ public:
      */
     void setEnSynState(bool bEn) { _enSynState = bEn;}
 
-    bool IsEnSynState(){ return _enSynState;}
+	/**
+	 *
+	 * @return
+	 */
+    bool isEnSynState(){ return _enSynState;}
 
+    /**
+     * @brief Get the Run Type
+     * 
+     * @return RunType 
+     */
+    RunType getRunType() { return _eRunType; }
+
+	/**
+	 * 镜像仓库信息
+	 * @param dockerRegistry
+	 */
+	void setDockerRegistry(const DockerRegistry &dockerRegistry) { _dockerRegistry = dockerRegistry; }
+
+	/**
+	 * 获取镜像仓库信息
+	 * @return
+	 */
+	const DockerRegistry &getDockerRegistry() { return _dockerRegistry; }
 public:
 
     /**
@@ -398,7 +424,6 @@ public:
 public:
     ServerDescriptor getServerDescriptor() { return  _desc; }
     ActivatorPtr getActivator() { return  _activatorPtr; }
-    // string getRunningTmpPath();
     const string & getExePath() {return _exePath;}
     const string & getExeFile() {return _exeFile;}
     const string & getConfigFile(){return _confFile;}
@@ -410,6 +435,7 @@ public:
     const string & getStartScript() {return _startScript;}
     const string & getStopScript() {return _stopScript;}
     const string & getMonitorScript() {return _monitorScript;}
+    const string & getVolumes() {return _sVolumes; }
     const string & getEnv() { return _env; }
     const string & getRedirectPath() {return _redirectPath;}
     const string & getPackageFormat() { return _packageFormat; }
@@ -419,6 +445,9 @@ public:
     const string & getMainClass() {return _mainClass;}
     const string & getClassPath() {return _classPath;}
     const string & getBackupFileNames(){return _backupFiles;}
+
+	//docker镜像
+	string getDockerImage(const string &sVersion) { return _dockerRegistry.sRegistry + "/" + TC_Common::lower(_application) + "/" + TC_Common::lower(_serverName) + ":" + sVersion; }
 
     void setServerDescriptor( const ServerDescriptor& tDesc );
     void setVersion( const string &version );
@@ -435,6 +464,7 @@ public:
     void setMacro(const map<string,string>& mMacro);
     void setScript(const string &sStartScript,const string &sStopScript,const string &sMonitorScript);
 
+    void setVolumes(const string & sVolumes) { _sVolumes = sVolumes; }
     void setEnv(const string & sEnv) { _env = sEnv; }
     void setHeartTimeout(int iTimeout) { _timeout = iTimeout; }
     //设置启动activating超时时间 ms
@@ -458,6 +488,7 @@ public:
 
 	//判断是否启动超时
 	bool isStartTimeOut();
+
 public:
     /**
      * auto check routine
@@ -483,6 +514,10 @@ public:
 private:
     bool    _tarsServer;                //是否tars服务
     string  _serverType;               //服务类型  tars_cpp tars_java not_tars
+    RunType  _eRunType;                 //运行类型,原生启动还是容器化启动
+    string   _sVolumes;                 //当运行类型是 container　时, 需要挂载的路径或文件,多个路径或文件以 | 分隔
+
+	DockerRegistry _dockerRegistry;		//docker仓库
 
 private:
     bool    _enabled;                  //服务是否有效

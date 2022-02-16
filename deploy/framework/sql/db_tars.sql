@@ -307,6 +307,7 @@ CREATE TABLE `t_server_conf` (
   `server_important_type` enum('0','1','2','3','4','5') DEFAULT '0',
   `grid_flag` varchar(16) NOT NULL DEFAULT 'NORMAL',
   `flow_state` enum ('active','inactive') NOT NULL DEFAULT 'active',
+  `run_type` varchar(32) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `application` (`application`,`server_name`,`node_name`),
   KEY `node_name` (`node_name`),

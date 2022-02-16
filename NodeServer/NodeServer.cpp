@@ -33,15 +33,7 @@ void NodeServer::initialize()
     //滚动日志也打印毫秒
     LocalRollLogger::getInstance()->logger()->modFlag(TC_DayLogger::HAS_MTIME);
 
-//    //node使用的循环日志初始化
-//    RollLoggerManager::getInstance()->setLogInfo(ServerConfig::Application,
-//            ServerConfig::ServerName, ServerConfig::LogPath,
-//            ServerConfig::LogSize, ServerConfig::LogNum, _communicator,
-//            ServerConfig::Log);
-
     initRegistryObj();
-
- //   addConfig("tarsnode.conf");
 
     //增加对象
     string sNodeObj     = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj";
@@ -50,15 +42,22 @@ void NodeServer::initialize()
     addServant<NodeImp>(sNodeObj);
     addServant<ServerImp>(sServerObj);
 
-    TLOGDEBUG("NodeServer::initialize ServerAdapter " << (getAdapterEndpoint("ServerAdapter")).toString() << endl);
-    TLOGDEBUG("NodeServer::initialize NodeAdapter "   << (getAdapterEndpoint("NodeAdapter")).toString() << endl);
+    TLOG_DEBUG("NodeServer::initialize ServerAdapter " << (getAdapterEndpoint("ServerAdapter")).toString() << endl);
+    TLOG_DEBUG("NodeServer::initialize NodeAdapter "   << (getAdapterEndpoint("NodeAdapter")).toString() << endl);
 
     g_sNodeIp = getAdapterEndpoint("NodeAdapter").getHost();
 
     if (!ServerFactory::getInstance()->loadConfig())
     {
-        TLOGERROR("NodeServer::initialize ServerFactory loadConfig failure" << endl);
+        TLOG_ERROR("NodeServer::initialize ServerFactory loadConfig failure" << endl);
     }
+
+#if TARGET_PLATFORM_WINDOWS
+	_dockerPull = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "pull-docker.bat");
+#else
+	_dockerPull = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "pull-docker.sh");
+	TC_File::setExecutable(_dockerPull, true);
+#endif
 
     //查看服务desc
     TARS_ADD_ADMIN_CMD_PREFIX("tars.serverdesc", NodeServer::cmdViewServerDesc);
@@ -66,16 +65,19 @@ void NodeServer::initialize()
 
     initHashMap();
 
+	//load config from local
+	ServerFactory::getInstance()->loadDockerRegistry();
+
     //启动KeepAliveThread
     _keepAliveThread   = new KeepAliveThread();
     _keepAliveThread->start();
 
-    TLOGDEBUG("NodeServer::initialize |KeepAliveThread start" << endl);
+    TLOG_DEBUG("NodeServer::initialize |KeepAliveThread start" << endl);
 
     _reportMemThread = new ReportMemThread();
     _reportMemThread->start();
 
-    TLOGDEBUG("NodeServer::initialize |_reportMemThread start" << endl);
+    TLOG_DEBUG("NodeServer::initialize |_reportMemThread start" << endl);
 
     //启动批量发布线程
     PlatformInfo plat;
@@ -87,31 +89,31 @@ void NodeServer::initialize()
 
     g_BatchPatchThread  = _batchPatchThread;
 
-    TLOGDEBUG("NodeServer::initialize |BatchPatchThread start(" << iThreads << ")" << endl);
+    TLOG_DEBUG("NodeServer::initialize |BatchPatchThread start(" << iThreads << ")" << endl);
 
     _removeLogThread = new RemoveLogManager();
     _removeLogThread->start(iThreads);
 
     g_RemoveLogThread = _removeLogThread;
 
-    TLOGDEBUG("NodeServer::initialize |RemoveLogThread start(" << iThreads << ")" << endl);
+    TLOG_DEBUG("NodeServer::initialize |RemoveLogThread start(" << iThreads << ")" << endl);
 }
 
 void NodeServer::initRegistryObj()
 {
     string sLocator =    Application::getCommunicator()->getProperty("locator");
     vector<string> vtLocator = TC_Common::sepstr<string>(sLocator, "@");
-    TLOGDEBUG("locator:" << sLocator << endl);
+    TLOG_DEBUG("locator:" << sLocator << endl);
     if (vtLocator.size() == 0)
     {
-        TLOGERROR("NodeServer::initRegistryObj failed to parse locator" << endl);
+        TLOG_ERROR("NodeServer::initRegistryObj failed to parse locator" << endl);
         exit(1);
     }
 
     vector<string> vObj = TC_Common::sepstr<string>(vtLocator[0], ".");
     if (vObj.size() != 3)
     {
-        TLOGERROR("NodeServer::initRegistryObj failed to parse locator" << endl);
+        TLOG_ERROR("NodeServer::initRegistryObj failed to parse locator" << endl);
         exit(1);
     }
 
@@ -126,13 +128,13 @@ void NodeServer::initRegistryObj()
     AdminProxy::getInstance()->setRegistryObjName("tars.tarsregistry." + sObjPrefix + "RegistryObj",
                                                   "tars.tarsregistry." + sObjPrefix + "QueryObj");
 
-    TLOGDEBUG("NodeServer::initRegistryObj RegistryObj:" << ("tars.tarsregistry." + sObjPrefix + "RegistryObj") << endl);
-    TLOGDEBUG("NodeServer::initRegistryObj QueryObj:" << ("tars.tarsregistry." + sObjPrefix + "QueryObj") << endl);
+    TLOG_DEBUG("NodeServer::initRegistryObj RegistryObj:" << ("tars.tarsregistry." + sObjPrefix + "RegistryObj") << endl);
+    TLOG_DEBUG("NodeServer::initRegistryObj QueryObj:" << ("tars.tarsregistry." + sObjPrefix + "QueryObj") << endl);
 }
 
 void NodeServer::initHashMap()
 {
-    TLOGDEBUG("NodeServer::initHashMap " << endl);
+    TLOG_DEBUG("NodeServer::initHashMap " << endl);
 
     string sFile        = ServerConfig::DataPath + FILE_SEP + g_pconf->get("/tars/node/hashmap<file>", "__tarsnode_servers");
     string sPath        = TC_File::extractFilePath(sFile);
@@ -143,7 +145,7 @@ void NodeServer::initHashMap()
 
     if (!TC_File::makeDirRecursive(sPath))
     {
-        TLOGDEBUG("NodeServer::initHashMap cannot create hashmap file " << sPath << endl);
+        TLOG_DEBUG("NodeServer::initHashMap cannot create hashmap file " << sPath << endl);
         exit(0);
     }
 
@@ -152,7 +154,7 @@ void NodeServer::initHashMap()
         g_serverInfoHashmap.initDataBlockSize(iMinBlock, iMaxBlock, iFactor);
         g_serverInfoHashmap.initStore(sFile.c_str(), iSize);
 
-        TLOGDEBUG("NodeServer::initHashMap init hash map succ" << endl);
+        TLOG_DEBUG("NodeServer::initHashMap init hash map succ" << endl);
     }
     catch (TC_HashMap_Exception& e)
     {
@@ -209,19 +211,8 @@ bool NodeServer::cmdViewServerDesc(const string& command, const string& params, 
 
 bool NodeServer::cmdReLoadConfig(const string& command, const string& params, string& result)
 {
-    TLOGDEBUG("NodeServer::cmdReLoadConfig " << endl);
+    TLOG_DEBUG("NodeServer::cmdReLoadConfig " << endl);
 
-//    bool bRet = false;
-/*
-    if (addConfig("tafnode.conf"))
-    {
-
-        bRet = ServerFactory::getInstance()->loadConfig();
-
-    }
-
-    string s = bRet ? "OK" : "failure";
-*/
     result = "cmdReLoadConfig not support!";
     return false;
 }
@@ -252,7 +243,7 @@ void NodeServer::destroyApp()
         _removeLogThread = NULL;
     }
 
-  //  TLOGDEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
+  //  TLOG_DEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
 }
 
 string tostr(const set<string>& setStr)
@@ -294,7 +285,7 @@ bool NodeServer::isValid(const string& ip)
 
     time_t tNow = TNOW;
 
-    // TLOGDEBUG("NodeServer::isValid ip:" << ip << " -> dst:" << dst << endl);
+    // TLOG_DEBUG("NodeServer::isValid ip:" << ip << " -> dst:" << dst << endl);
 
     static  TC_ThreadLock g_tMutex;
 
@@ -310,7 +301,7 @@ bool NodeServer::isValid(const string& ip)
         }
         ips += string("127.0.0.1:") + host2Ip(ServerConfig::LocalIp);
 
-        TLOGDEBUG("NodeServer::isValid objs:" << objs << "|ips:" << ips << endl);
+        TLOG_DEBUG("NodeServer::isValid objs:" << objs << "|ips:" << ips << endl);
 
         vector<string> vObj = TC_Common::sepstr<string>(objs, ":");
 
@@ -336,7 +327,6 @@ bool NodeServer::isValid(const string& ip)
 
                 vector<EndpointF> vActiveEp, vInactiveEp;
                 queryPrx->findObjectById4All(obj, vActiveEp, vInactiveEp, context);
-                // queryPrx->tars_endpointsAll(vActiveEp, vInactiveEp);
 
                 for (unsigned i = 0; i < vActiveEp.size(); i++)
                 {
@@ -348,15 +338,15 @@ bool NodeServer::isValid(const string& ip)
                     tempSet.insert(host2Ip(vInactiveEp[i].host));
                 }
 
-                TLOGDEBUG("NodeServer::isValid "<< obj << "|tempSet.size():" << tempSet.size() << "|" << tostr(tempSet) << endl);
+                TLOG_DEBUG("NodeServer::isValid "<< obj << "|tempSet.size():" << tempSet.size() << "|" << tostr(tempSet) << endl);
             }
             catch (exception& e)
             {
-                TLOGERROR("NodeServer::isValid catch error: " << e.what() << endl);
+                TLOG_ERROR("NodeServer::isValid catch error: " << e.what() << endl);
             }
             catch (...)
             {
-                TLOGERROR("NodeServer::isValid catch error: " << endl);
+                TLOG_ERROR("NodeServer::isValid catch error: " << endl);
             }
 
             if (tempSet.size() > 0)
@@ -365,7 +355,7 @@ bool NodeServer::isValid(const string& ip)
             }
         }
 
-        TLOGDEBUG("NodeServer::isValid g_ipSet.size():" << g_ipSet.size() << "|" << tostr(g_ipSet) << endl);
+        TLOG_DEBUG("NodeServer::isValid g_ipSet.size():" << g_ipSet.size() << "|" << tostr(g_ipSet) << endl);
         g_tTime = tNow;
     }
 
@@ -413,7 +403,7 @@ void NodeServer::reportServer(const string& sServerId, const string &sSet, const
     }
     catch (exception& ex)
     {
-        TLOGERROR("NodeServer::reportServer error:" << ex.what() << endl);
+        TLOG_ERROR("NodeServer::reportServer error:" << ex.what() << endl);
     }
 }
 
@@ -472,7 +462,8 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 		RegistryPrx pRegistryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
 
 		//if registry is dead, do not block too match time, avoid monitor check tarsnode is dead(first start)
-		if(first) {
+		if(first)
+		{
 			pRegistryPrx->tars_set_timeout(500)->tars_ping();
 		}
 
@@ -489,26 +480,26 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 				int ret = pRegistryPrx->getClientIp(sLocalIp);
 				if(ret != 0)
 				{
-					TLOGERROR("NodeServer::onUpdateConfig cannot get localip from registry"<< endl);
+					TLOG_ERROR("NodeServer::onUpdateConfig cannot get localip from registry"<< endl);
 					return -1;
 				}
 			}
 			catch(exception &ex)
 			{
-				TLOGERROR("NodeServer::onUpdateConfig cannot get localip from registry:" << ex.what() << endl);
+				TLOG_ERROR("NodeServer::onUpdateConfig cannot get localip from registry:" << ex.what() << endl);
 				return -1;
 			}
 
 			NODE_ID = sLocalIp;
 		}
 
-		TLOGDEBUG("NodeServer::onUpdateConfig NODE_ID:" << NODE_ID << endl);
+		TLOG_DEBUG("NodeServer::onUpdateConfig NODE_ID:" << NODE_ID << endl);
 
 		string sTemplate;
 		pRegistryPrx->getNodeTemplate(NODE_ID, sTemplate);
 		if(TC_Common::trim(sTemplate) == "" )
 		{
-			TLOGERROR("NodeServer::onUpdateConfig cannot get node Template from registry, nodeId:" << NODE_ID << endl);
+			TLOG_ERROR("NodeServer::onUpdateConfig cannot get node Template from registry, nodeId:" << NODE_ID << endl);
 			return -1;
 		}
 
@@ -531,7 +522,6 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 		sTemplate = TC_Common::replace(sTemplate, "${local}", config.get("/tars/application/server<local>", ""));
 		sTemplate = TC_Common::replace(sTemplate, "${modulename}", "tars.tarsnode");
 
-
 //		cout << TC_Common::outfill("", '-') << endl;
 
 		TC_Config newConf;
@@ -543,14 +533,14 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 		string sConfigPath    = TC_File::extractFilePath(CONFIG);
 		if(!TC_File::makeDirRecursive( sConfigPath ))
 		{
-			TLOGERROR("NodeServer::onUpdateConfig cannot create dir:" << sConfigPath << endl);
+			TLOG_ERROR("NodeServer::onUpdateConfig cannot create dir:" << sConfigPath << endl);
 			return -1;
 		}
 		string sFileTemp    = sConfigPath + FILE_SEP + "config.conf.tmp";
 		ofstream configfile(sFileTemp.c_str());
 		if(!configfile.good())
 		{
-			TLOGERROR("NodeServer::onUpdateConfig can not create config:" << sFileTemp << endl);
+			TLOG_ERROR("NodeServer::onUpdateConfig can not create config:" << sFileTemp << endl);
 			return -1;
 		}
 
@@ -575,7 +565,7 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
         // 备份失败， 也不更新
         if ((TC_MD5::md5file(sFileBak) != TC_MD5::md5file(CONFIG)))
         {
-            TLOGERROR("NodeServer::onUpdateConfig bak tempalte file error." << endl);
+            TLOG_ERROR("NodeServer::onUpdateConfig bak tempalte file error." << endl);
             return -1;
         }
 
@@ -590,15 +580,15 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
         }
         else if (TC_File::isFileExist(sFileTemp))
         {
-            TLOGERROR("NodeServer::onUpdateConfig update template config fail!" << endl);
+            TLOG_ERROR("NodeServer::onUpdateConfig update template config fail!" << endl);
             TC_File::removeFile(sFileTemp,false);
         }
 
-        TLOGDEBUG("NodeServer::onUpdateConfig update tempalte config succ." << endl);
+        TLOG_DEBUG("NodeServer::onUpdateConfig update tempalte config succ." << endl);
 	}
 	catch(exception &e)
 	{
-		TLOGERROR("NodeServer::onUpdateConfig error:" << e.what() << endl);
+		TLOG_ERROR("NodeServer::onUpdateConfig error:" << e.what() << endl);
 		return -1;
 	}
 

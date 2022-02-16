@@ -121,11 +121,11 @@ unsigned int ServerImp::getLatestKeepAliveTime(tars::CurrentPtr current)
     }
     catch ( exception& e )
     {
-        TLOGERROR("ServerImp::getLatestKeepAliveTime catch exception :" << e.what() << endl);
+        TLOG_ERROR("ServerImp::getLatestKeepAliveTime catch exception :" << e.what() << endl);
     }
     catch ( ... )
     {
-        TLOGERROR("ServerImp::getLatestKeepAliveTime unkown exception catched" << endl);
+        TLOG_ERROR("ServerImp::getLatestKeepAliveTime unkown exception catched" << endl);
     }
     return 0;
 }

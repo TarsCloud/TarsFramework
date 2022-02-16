@@ -279,7 +279,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
         if (serverName != "") sCondition += " and server.server_name='" + _mysqlReg.escapeString(serverName) + "' ";
         if (withDnsServer == false) sCondition += " and server.server_type !='tars_dns' "; //不获取dns服务
 
-        sSql = "select server.application, server.server_name, server.node_name, base_path, "
+        sSql = "select server.application, server.server_name, server.node_name, run_type, base_path, "
                "    exe_path, setting_state, present_state, adapter_name, thread_num, async_thread_num, endpoint,"
                "    profile,template_name, "
                "    allow_ip, max_connections, servant, queuecap, queuetimeout,protocol,handlegroup,"
@@ -326,6 +326,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                 server.stopScript   = res[i]["stop_script_path"];
                 server.monitorScript    = res[i]["monitor_script_path"];
                 server.configCenterPort = TC_Common::strto<int>(res[i]["config_center_port"]);
+				server.runType      = res[i]["run_type"];
 
                 server.setId = "";
                 if (TC_Common::lower(res[i]["enable_set"]) == "y")
