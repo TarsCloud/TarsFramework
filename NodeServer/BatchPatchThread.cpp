@@ -16,8 +16,8 @@
 
 #include "util/tc_md5.h"
 #include "BatchPatchThread.h"
-#include "ServerFactory.h"
 #include "CommandPatch.h"
+#include "DockerPatch.h"
 #include "util.h"
 
 using namespace tars;
@@ -152,40 +152,59 @@ void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, Server
         if (!server)
         {
 	        NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|get server object fault:" << sError << endl;
-//	        NODE_LOG("patchPro")->error() << FILE_FUN << serverId << "|" << request.md5 << "|get server object fault:" << sError << endl;
 	        return ;
         }
 
         //查看本地硬盘是否已经存在该文件
-//        NODE_LOG("patchPro")->debug() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch begin" << endl;
 	    NODE_LOG(serverId)->debug() <<FILE_FUN << serverId << "|" << request.md5 << "|patch begin" << endl;
 
-	    CommandPatch command(server, _downloadPath, request);
-        if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
-        {
-//            NODE_LOG("patchPro")->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
-	        NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
-	        return ;
-        }
+        ServerObject::RunType eRunType = server->getRunType();
 
-        if (command.execute(sError) == 0)
+        if(eRunType == ServerObject::Container)
         {
-//            NODE_LOG("patchPro")->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
-	        NODE_LOG(serverId)->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
+            DockerPatch command(server,request);
+            if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
+            {
+                NODE_LOG(serverId)->error() << FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|canExecute error:" << sError << endl;
+                return ;
+            }
+
+            if (command.execute(sError) == 0)
+            {
+                NODE_LOG(serverId)->debug() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch succ" << endl;
+            }
+            else
+            {
+                NODE_LOG(serverId)->error() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch fault:" << sError << endl;
+            }
         }
-        else
+        else /* if(eRunType == ServerObject::Native ) */
         {
-//            NODE_LOG("patchPro")->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
-	        NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
+            
+            CommandPatch command(server, _downloadPath, request);
+            if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
+            {
+                NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
+                return ;
+            }
+
+            if (command.execute(sError) == 0)
+            {
+                NODE_LOG(serverId)->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
+            }
+            else
+            {
+                NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
+            }
         }
     }
     catch (exception & e)
     {
-        NODE_LOG(serverId)->error() << FILE_FUN<< serverId << "|" << request.md5 << "|Exception:" << e.what() << endl;
+        NODE_LOG(serverId)->error() << FILE_FUN<< serverId << "|" << request.md5 << ", error:" << e.what() << endl;
     }
     catch (...)
     {
-        NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|Unknown Exception" << endl;
+        NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << ", error" << endl;
     }
 }
 

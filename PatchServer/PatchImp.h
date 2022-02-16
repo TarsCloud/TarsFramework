@@ -64,7 +64,17 @@ public:
      * @param patchFile, 需要发布的文件名
      * @return int, 0: 成功, <0: 失败
      */
-    int preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current);
+    int preparePatchFile(const string &app, const string &serverName, const string &patchFile, string &result, TarsCurrentPtr current);
+
+	/**
+	 * 准备好发布的镜像
+	 * @param app
+	 * @param serverName
+	 * @param serverVersion
+	 * @param current
+	 * @return
+	 */
+	int preparePatchImage(const string &app, const string &serverName, const string &serverVersion, const PatchImage & patchImage, string &result, CurrentPtr current);
 
     /**
      * delete patch file

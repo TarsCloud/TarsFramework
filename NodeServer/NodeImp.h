@@ -216,10 +216,10 @@ private:
 
 private:
 
-    string          _downloadPath; //文件下载目录
+//    string          _downloadPath; //文件下载目录
     NodeInfo        _nodeInfo;     //node信息
     PlatformInfo    _platformInfo; //平台信息
-    RegistryPrx     _registryPrx;  //主控代理
+//    RegistryPrx     _registryPrx;  //主控代理
 
 };
 

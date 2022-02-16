@@ -55,6 +55,12 @@ public:
      * 获取文件下载目录
      */
     string getDownLoadDir() ;
+//
+//	/**
+//	 * 镜像仓库地址
+//	 * @return
+//	 */
+//	string getRegistry() const;
 
 protected:
     list<float>   _load5;

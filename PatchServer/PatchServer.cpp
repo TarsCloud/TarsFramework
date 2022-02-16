@@ -22,26 +22,50 @@ PatchCache  g_PatchCache;
 
 void PatchServer::initialize()
 {
+	TLOG_DEBUG("PatchServer::initialize:" << ServerConfig::Application + "." + ServerConfig::ServerName +".PatchObj" << endl);
+
     //增加对象
     addServant<PatchImp>(ServerConfig::Application + "." + ServerConfig::ServerName +".PatchObj");
-    
-    size_t memMax   = TC_Common::toSize(g_conf->get("/tars<MemMax>", "300M"), 1024*1024);
+
+	size_t memMax   = TC_Common::toSize(g_conf->get("/tars<MemMax>", "300M"), 1024*1024);
     size_t memMin   = TC_Common::toSize(g_conf->get("/tars<MemMin>", "10K"), 1024*1024);
     size_t memNum   = TC_Common::strto<size_t>(g_conf->get("/tars<MemNum>", "10"));
 
     g_PatchCache.setMemOption(memMax, memMin, memNum);
 
-    int _expireTime = TC_Common::strto<int>(g_conf->get("/tars<ExpireTime>", "30"));
+    _expireTime = TC_Common::strto<int>(g_conf->get("/tars<ExpireTime>", "30"));
 
-    TLOGDEBUG("PatchServer::initialize memMax:" << memMax << "|memMin:" << memMin << "|memNum:" << memNum << "|expireTime:" << _expireTime << endl);
+#if TARGET_PLATFORM_WINDOWS
+	_dockerBuild = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "build-docker.bat");
+#else
+	_dockerBuild = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "build-docker.sh");
+	TC_File::setExecutable(_dockerBuild, true);
+#endif
+	_dockerFile = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "Dockerfile");
+
+    TLOG_DEBUG("memMax:" << memMax << ", memMin:" << memMin << ", memNum:" << memNum << ", expireTime:" << _expireTime << endl);
+	TLOG_DEBUG("dockerBuild:" << _dockerBuild << endl);
+	TLOG_DEBUG("dockerFile:" << _dockerFile << endl);
+
 }
 
 void PatchServer::destroyApp()
 {
-    TLOGDEBUG("PatchServer::destroyApp ok" << endl);
+//	TLOG_DEBUG("PatchServer::destroyApp ok" << endl);
 }
 
 int PatchServer::getExpireTime() const
 {
     return _expireTime;
 }
+
+const string &PatchServer::getDockerBuild()
+{
+	return _dockerBuild;
+}
+
+const string &PatchServer::getDockerFile()
+{
+	return _dockerFile;
+}
+

@@ -6,3 +6,5 @@ set(MODULE "tarspatch")
 #complice_module(${MODULE} "Patch.tars")
 complice_module(${MODULE})
 
+install(FILES build-docker.sh DESTINATION deploy/framework/${BUILD_SERVER}/${MODULE}/bin/)
+install(FILES Dockerfile DESTINATION deploy/framework/${BUILD_SERVER}/${MODULE}/bin/)

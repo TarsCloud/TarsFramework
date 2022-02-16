@@ -27,6 +27,8 @@
 #include "CommandPatch.h"
 #include "AdminReg.h"
 #include "util/tc_timeprovider.h"
+#include "DockerStart.h"
+#include "DockerServerToolBox.h"
 
 extern BatchPatch * g_BatchPatchThread;
 
@@ -34,14 +36,16 @@ void NodeImp::initialize()
 {
     try
     {
-        TLOGDEBUG("initialize NodeImp" << endl);
+        TLOG_DEBUG("initialize NodeImp" << endl);
 
         _nodeInfo      = _platformInfo.getNodeInfo();
-        _downloadPath  = _platformInfo.getDownLoadDir();
+//        _downloadPath  = _platformInfo.getDownLoadDir();
+
+//		setRegistry(_platformInfo.getRegistry());
     }
     catch ( exception& e )
     {
-        TLOGERROR(FILE_FUN << e.what() << endl);
+        TLOG_ERROR(FILE_FUN << e.what() << endl);
         exit( 0 );
     }
 }
@@ -231,7 +235,7 @@ int NodeImp::addFile(const string &application,const string &serverName,const st
 
 string NodeImp::getName( TarsCurrentPtr current )
 {
-    TLOGDEBUG(FILE_FUN << endl);
+    TLOG_DEBUG(FILE_FUN << endl);
 
     _nodeInfo = _platformInfo.getNodeInfo();
 
@@ -240,7 +244,7 @@ string NodeImp::getName( TarsCurrentPtr current )
 
 LoadInfo NodeImp::getLoad( TarsCurrentPtr current )
 {
-    TLOGDEBUG(FILE_FUN<< endl);
+    TLOG_DEBUG(FILE_FUN<< endl);
 
     return  _platformInfo.getLoadInfo();
 }
@@ -251,11 +255,11 @@ int NodeImp::shutdown( string &result,TarsCurrentPtr current )
     {
         result = FILE_FUN_STR;
 
-        TLOGDEBUG( result << endl);
+        TLOG_DEBUG( result << endl);
         if ( g_app.isValid(current->getIp()) == false )
         {
             result += "erro:ip "+ current->getIp()+" is invalid";
-            TLOGERROR(FILE_FUN << result << endl);
+            TLOG_ERROR(FILE_FUN << result << endl);
             return -1;
         }
         getApplication()->terminate();
@@ -263,11 +267,11 @@ int NodeImp::shutdown( string &result,TarsCurrentPtr current )
     }
     catch ( exception& e )
     {
-        TLOGERROR( "NodeImp::shutdown catch exception :" << e.what() << endl);
+        TLOG_ERROR( "NodeImp::shutdown catch exception :" << e.what() << endl);
     }
     catch ( ... )
     {
-        TLOGERROR( "NodeImp::shutdown catch unkown exception" << endl);
+        TLOG_ERROR( "NodeImp::shutdown catch unkown exception" << endl);
     }
     return -1;
 }
@@ -279,7 +283,7 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
         if ( g_app.isValid(current->getIp()) == false )
         {
             result = FILE_FUN_STR+" erro:ip "+ current->getIp()+" is invalid";
-            TLOGERROR( result << endl);
+            TLOG_ERROR( result << endl);
             return -1;
         }
 
@@ -321,15 +325,15 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
     }
     catch ( exception& e )
     {
-        TLOGERROR( FILE_FUN<<" catch exception :" << e.what() << endl);
+        TLOG_ERROR( FILE_FUN<<" catch exception :" << e.what() << endl);
         result += e.what();
     }
     catch ( ... )
     {
-        TLOGERROR( FILE_FUN<<" catch unkown exception" << endl);
+        TLOG_ERROR( FILE_FUN<<" catch unkown exception" << endl);
         result += "catch unkown exception";
     }
-    TLOGDEBUG("stop succ"<<endl);
+    TLOG_DEBUG("stop succ"<<endl);
     return -1;
 }
 
@@ -385,27 +389,38 @@ int NodeImp::startServer( const string& application, const string& serverName,st
 	int iRet = EM_TARS_UNKNOWN_ERR;
     try
     {
-        result = string(__FUNCTION__)+ " ["+serverId+"] from "+ current->getIp()+" ";
+        result = string(__FUNCTION__) + " [" + serverId + "] from " + current->getIp() + " ";
+
         NODE_LOG(serverId)->debug()<<FILE_FUN << result << endl;
+
         if ( g_app.isValid(current->getIp()) == false )
         {
-            result += " erro:ip "+ current->getIp()+" is invalid";
+            result += " erro:ip "+ current->getIp() +" is invalid";
             NODE_LOG(serverId)->error()<<FILE_FUN << result << endl;
             return EM_TARS_INVALID_IP_ERR;
         }
 
-        NODE_LOG(serverId)->debug()<<FILE_FUN<<result <<"|load begin"<< endl;
+//        NODE_LOG(serverId)->debug()<<FILE_FUN<<result <<"|load begin"<< endl;
 
         string s;
 
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->loadServer( application, serverName,true,s);
-        // NODE_LOG(serverId)->debug()<<FILE_FUN<<result<<"|load"<< endl;
 
         if ( pServerObjectPtr )
         {
             bool bByNode = true;
-            CommandStart command(pServerObjectPtr,bByNode);
-            iRet = command.doProcess(s);
+            ServerObject::RunType eRunType = pServerObjectPtr->getRunType();
+            if(eRunType == ServerObject::Container)
+			{
+                NODE_LOG(serverId)->debug()<<FILE_FUN <<"container" << endl;
+                DockerStart command(pServerObjectPtr,bByNode);
+                iRet = command.doProcess(s);
+            }else {
+                NODE_LOG(serverId)->debug()<<FILE_FUN <<"native" << endl;
+                CommandStart command(pServerObjectPtr,bByNode);
+                iRet = command.doProcess(s);
+            }
+
             if (iRet == 0 )
             {
                 result = result+":server is activating, please check: "+s;
@@ -472,7 +487,8 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
             }
             NODE_LOG(serverId)->debug()<<FILE_FUN <<result << endl;
         }
-        else {
+        else
+		{
 	        NODE_LOG(serverId)->debug() <<FILE_FUN<< " " << serverId << " not exists, load from registry" << endl;
 
 	        pServerObjectPtr = ServerFactory::getInstance()->loadServer(application, serverName, false, result);
@@ -484,7 +500,7 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
             iRet = EM_TARS_LOAD_SERVICE_DESC_ERR;
         }
 
-	    NODE_LOG(serverId)->debug() << FILE_FUN<< " ret:" << result << endl;
+//	    NODE_LOG(serverId)->debug() << FILE_FUN<< " ret:" << result << endl;
 
 	    return iRet;
     }
@@ -675,6 +691,8 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
 {
 	string serverId = application + "." + serverName;
 
+	NODE_LOG(serverId)->debug() << endl;
+
 	string &result =  tPatchInfo.sResult;
     try
     {
@@ -714,7 +732,7 @@ tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &
 #else
     try
     {
-        TLOGDEBUG("NodeImp::delCache "<<sFullCacheName << "|" << sBackupPath << "|" << sKey << endl);
+        TLOG_DEBUG("NodeImp::delCache "<<sFullCacheName << "|" << sBackupPath << "|" << sKey << endl);
         if (sFullCacheName.empty())
         {
             result = "cache server name is empty";
@@ -737,14 +755,14 @@ tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &
         {
             key = TC_Common::strto<key_t>(sKey);
         }
-        TLOGDEBUG("NodeImp::delCache|key=" << key << endl);
+        TLOG_DEBUG("NodeImp::delCache|key=" << key << endl);
 
         int shmid = shmget(key, 0, 0666);
         if (shmid == -1)
         {
             result = "failed to shmget " + sBasePath + "|key=" + TC_Common::tostr(key);
             //如果获取失败则认为共享内存已经删除,直接返回成功
-            TLOGDEBUG("NodeImp::delCache"<< "|"  << sFullCacheName << "|" << result << endl);
+            TLOG_DEBUG("NodeImp::delCache"<< "|"  << sFullCacheName << "|" << result << endl);
             return 0;
         }
 
@@ -776,14 +794,14 @@ tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &
             throw runtime_error(result);
         }
 
-        TLOGDEBUG("NodeImp::delCache success delete cache:" << sFullCacheName <<", no need backup it"<< endl);
+        TLOG_DEBUG("NodeImp::delCache success delete cache:" << sFullCacheName <<", no need backup it"<< endl);
 
         return 0;
     }
     catch ( exception& e )
     {
         result = TC_Common::tostr(__FILE__)+":"+TC_Common::tostr(__FUNCTION__) + ":"+ TC_Common::tostr(__LINE__)  + "|" + e.what();
-        TLOGERROR("NodeImp::delCache " << result << endl);
+        TLOG_ERROR("NodeImp::delCache " << result << endl);
         TARS_NOTIFY_ERROR(result);
     }
 
@@ -803,19 +821,19 @@ tars::Int32 NodeImp::getUnusedShmKeys(tars::Int32 count,vector<tars::Int32> &shm
         key_t key = ftok(ServerConfig::BasePath.c_str(), i);
         if(key == -1) 
         {
-            TLOGDEBUG("NodeImp::getUnusedShmKeys create an key failed, i=" << i << endl);
+            TLOG_DEBUG("NodeImp::getUnusedShmKeys create an key failed, i=" << i << endl);
         }
         else 
         {
             int shmid = shmget(key, 0, 0666);
             if(shmid == -1) 
             {
-                TLOGDEBUG("NodeImp::getUnusedShmKeys find an key:" << key << " 0x" << keyToStr(key) << endl);
+                TLOG_DEBUG("NodeImp::getUnusedShmKeys find an key:" << key << " 0x" << keyToStr(key) << endl);
                 shm_keys.push_back(key);
             }
             else 
             {
-                TLOGDEBUG("NodeImp::getUnusedShmKeys key: " << key << " 0x" << keyToStr(key) << " is busy"<< endl);
+                TLOG_DEBUG("NodeImp::getUnusedShmKeys key: " << key << " 0x" << keyToStr(key) << " is busy"<< endl);
             }
         }
     }

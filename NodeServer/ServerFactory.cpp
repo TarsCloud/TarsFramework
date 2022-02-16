@@ -27,6 +27,35 @@ ServerFactory::ServerFactory()
 {
 }
 
+void ServerFactory::loadDockerRegistry()
+{
+	string buf = TC_File::load2str(ServerConfig::DataPath + "docker_registry.json");
+
+	if(!buf.empty())
+	{
+		Lock lock(*this);
+		try
+		{
+			_dockerRegistry.readFromJsonString(buf);
+		}
+		catch (exception &ex)
+		{
+			TLOG_ERROR("error:" << ex.what() << endl);
+		}
+	}
+}
+
+void ServerFactory::saveDockerRegistry()
+{
+	string buf;
+	{
+		Lock lock(*this);
+		buf = _dockerRegistry.writeToJsonString();
+	}
+
+	TC_File::save2file(ServerConfig::DataPath + "docker_registry.json", buf);
+}
+
 ServerObjectPtr ServerFactory::getServer( const string& application, const string& serverName )
 {
 	string serverId = application + "." + serverName;
@@ -87,7 +116,7 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
     ServerObjectPtr pServerObjectPtr;
     vector<ServerDescriptor> vServerDescriptor;
 
-    vServerDescriptor = getServerFromRegistry(application,serverName,result);
+    vServerDescriptor = getServerFromRegistry(application, serverName, result);
 
     //全量加载失败后从cache里面读取
     if(vServerDescriptor.size() < 1 && enableCache == true)
@@ -106,6 +135,7 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
     }
 
     bool succ = true;
+
     try
     {
         QueryFPrx queryProxy = AdminProxy::getInstance()->getQueryProxy();
@@ -113,19 +143,46 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
         
         ConfigPrx pPtr = Application::getCommunicator()->stringToProxy<ConfigPrx>(ServerConfig::Config);
         pPtr->tars_set_timeout(1000)->tars_ping();
-    }
+	}
     catch(exception &ex)
     {
+		result = string("error:") + ex.what();
     	NODE_LOG(serverId)->error() << "ServerFactory::getServerFromRegistry error:" << ex.what() << endl;
         succ = false;
     }
+
+	DockerRegistry dockerRegistry;
+
+	{
+		try
+		{
+			RegistryPrx registryPrx = AdminProxy::getInstance()->getRegistryProxy();
+
+			registryPrx->getDockerRegistry(dockerRegistry);
+
+			NODE_LOG(serverId)->debug() << "getDockerRegistry:" << dockerRegistry.writeToJsonString() << endl;
+
+			{
+				Lock lock(*this);
+				_dockerRegistry = dockerRegistry;
+			}
+			saveDockerRegistry();
+		}
+		catch (exception& ex)
+		{
+			NODE_LOG(serverId)->error() << "getDockerRegistry error:" << ex.what() << endl;
+
+			//异常, 使用上一次的!
+			Lock lock( *this );
+			dockerRegistry = _dockerRegistry;
+		}
+	}
 
     for(unsigned i = 0; i < vServerDescriptor.size(); i++)
     {
     	NODE_LOG(serverId)->debug() << "createServer:" << vServerDescriptor[i].application << "." << vServerDescriptor[i].serverName << ", " << vServerDescriptor[i].nodeName << endl;
 
-        pServerObjectPtr = createServer(vServerDescriptor[i],result, succ);
-
+        pServerObjectPtr = createServer(vServerDescriptor[i], dockerRegistry, result, succ);
     }
 
     if(!pServerObjectPtr)
@@ -176,7 +233,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
             tServerInfo.application = vServerDescriptor[i].application;
             tServerInfo.serverName  = vServerDescriptor[i].serverName;
 
-            g_serverInfoHashmap.set(tServerInfo,vServerDescriptor[i]);
+            g_serverInfoHashmap.set(tServerInfo, vServerDescriptor[i]);
 
 	        NODE_LOG(tServerInfo.application + "." + tServerInfo.serverName)->debug() << "ServerFactory::getServerFromRegistry hashmap set ok "<<tServerInfo.application<<"."<<tServerInfo.serverName<<endl;
         }
@@ -236,7 +293,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromCache( const string& applic
     return vServerDescriptor;
 }
 
-ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, string& result, bool succ)
+ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, const DockerRegistry& dockerRegistry, string& result, bool succ)
 {
     Lock lock( *this );
     string application  = tDesc.application;
@@ -253,7 +310,7 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, strin
         if ( p2 != p1->second.end() && p2->second )
         {
             p2->second->setServerDescriptor(tDesc);
-            CommandLoad command(p2->second, _tPlatformInfo.getNodeInfo(), succ);
+            CommandLoad command(p2->second, dockerRegistry, _tPlatformInfo.getNodeInfo(), succ);
             int iRet = command.doProcess(result);
             if( iRet == 0)
             {
@@ -271,7 +328,7 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, strin
     NODE_LOG(serverId)->debug() << FILE_FUN << " " <<  application << "." << serverName << " in cache, reload config." << endl;
 
     ServerObjectPtr pServerObjectPtr = new ServerObject(tDesc);
-    CommandLoad command(pServerObjectPtr,_tPlatformInfo.getNodeInfo(), succ);
+    CommandLoad command(pServerObjectPtr, dockerRegistry, _tPlatformInfo.getNodeInfo(), succ);
     int iRet = command.doProcess(result);
     if(iRet == 0)
     {
@@ -324,7 +381,7 @@ bool ServerFactory::loadConfig()
         for(size_t i = 0; i < v.size(); i++)
         {
             string path = "/tars/app_conf/" + v[i];
-            TLOGDEBUG("ServerFactory::loadConfig path:" << path << endl);
+            TLOG_DEBUG("ServerFactory::loadConfig path:" << path << endl);
             map<string, string> m = g_pconf->getDomainMap(path);
             if(v[i] == "default")
             {
@@ -359,7 +416,7 @@ bool ServerFactory::loadConfig()
             tInfo.eCoreType = ServerObject::EM_MANUAL_LIMIT;
 
             serverConfig[*it] = tInfo;
-            TLOGDEBUG("ServerFactory::loadConfig Load ClosecoreLimit:" << *it <<endl);
+            TLOG_DEBUG("ServerFactory::loadConfig Load ClosecoreLimit:" << *it <<endl);
         }
 
         _mServerCoreConfig.swap();
@@ -368,12 +425,12 @@ bool ServerFactory::loadConfig()
     }
     catch (std::exception& e)
     {
-        TLOGERROR("ServerFactory::loadConfig exception:" << e.what() <<endl);
+        TLOG_ERROR("ServerFactory::loadConfig exception:" << e.what() <<endl);
         return false;
     }
     catch(...)
     {
-        TLOGERROR("ServerFactory::loadConfig exception" <<endl);
+        TLOG_ERROR("ServerFactory::loadConfig exception" <<endl);
         return false;
     }
     return true;
@@ -505,7 +562,7 @@ void ServerFactory::setAllServerResourceLimit()
                 }
 
 	            NODE_LOG(pServerObjectPtr->getServerId())->debug() << "ServerFactory::setAllServerResourceLimit setAllServerResourceLimit|" << sServerId <<"|"<<tInfo.eCoreType <<endl;
-//	            TLOGDEBUG("ServerFactory::setAllServerResourceLimit setAllServerResourceLimit|" << sServerId <<"|"<<tInfo.eCoreType <<endl);
+//	            TLOG_DEBUG("ServerFactory::setAllServerResourceLimit setAllServerResourceLimit|" << sServerId <<"|"<<tInfo.eCoreType <<endl);
                 pServerObjectPtr->setServerLimitInfo(tInfo);
 
             }

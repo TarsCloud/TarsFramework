@@ -29,7 +29,7 @@ const string SERVER_VERSION = "B003";
 
 void AdminRegistryServer::initialize()
 {
-    TLOGDEBUG("AdminRegistryServer::initialize..." << endl);
+    TLOG_DEBUG("AdminRegistryServer::initialize..." << endl);
 
     try
     {
@@ -57,12 +57,12 @@ void AdminRegistryServer::initialize()
     }
     catch(TC_Exception & ex)
     {
-        TLOGERROR("RegistryServer initialize exception:" << ex.what() << endl);
+        TLOG_ERROR("RegistryServer initialize exception:" << ex.what() << endl);
         cerr << "RegistryServer initialize exception:" << ex.what() << endl;
         exit(-1);
     }
 
-    TLOGDEBUG("RegistryServer::initialize OK!" << endl);
+    TLOG_DEBUG("RegistryServer::initialize OK!" << endl);
 }
 
 int AdminRegistryServer::loadServantEndpoint()
@@ -77,7 +77,7 @@ int AdminRegistryServer::loadServantEndpoint()
 
         _mapServantEndpoint[iter->second] = ep.toString();
 
-        TLOGDEBUG("registry obj: " << iter->second << " = " << ep.toString() <<endl);
+        TLOG_DEBUG("registry obj: " << iter->second << " = " << ep.toString() <<endl);
     }
 
     return 0;
@@ -87,7 +87,7 @@ void AdminRegistryServer::destroyApp()
 {
     _reapThread.terminate();
 
-    TLOGDEBUG("AdminRegistryServer::destroyApp ok" << endl);
+    TLOG_DEBUG("AdminRegistryServer::destroyApp ok" << endl);
 }
 
 void doMonitor(const string &configFile)

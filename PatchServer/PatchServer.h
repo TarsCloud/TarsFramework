@@ -38,9 +38,18 @@ protected:
 public:
     int getExpireTime() const;
 
+	const string &getDockerBuild();
+	const string &getDockerFile();
+
 private:
     //文件的内存缓存的过期时间
     int _expireTime;
+
+	//build docker的脚本路径
+	string _dockerBuild;
+
+	//dockerfile
+	string _dockerFile;
 };
 
 extern TC_Config *g_conf;
