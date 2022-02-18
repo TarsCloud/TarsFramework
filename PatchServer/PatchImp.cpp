@@ -127,7 +127,28 @@ int PatchImp::preparePatchFile(const string &app, const string &serverName, cons
     string upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName + FILE_SEP + patchFile;
     string dstDirectory = _directory + "/TARSBatchPatching/" + app + FILE_SEP + serverName;
     string dstfile = dstDirectory + FILE_SEP + app +"." + serverName + ".tgz";
-
+    if (!TC_File::isFileExist(upfile)) {
+        string  _serverName = serverName;
+        if(patchFile.find("RouterServer") != string::npos){
+            _serverName = "RouterServer";
+        }else if(patchFile.find("ProxyServer") != string::npos){
+            _serverName = "ProxyServer";            
+        }else if(patchFile.find("PropertyServer") != string::npos){
+            _serverName = "PropertyServer";            
+        }else if(patchFile.find("DCacheServerGroup") != string::npos){
+            _serverName = "DCacheServerGroup";            
+        }else if(patchFile.find("DCacheOptServer") != string::npos){
+            _serverName = "DCacheOptServer";            
+        }else if(patchFile.find("ConfigServer") != string::npos){
+            _serverName = "ConfigServer";            
+        }else if(patchFile.find("CombinDbAccessServer") != string::npos){
+            _serverName = "CombinDbAccessServer";            
+        }else{
+            TLOGERROR("PatchImp::preparePatchFile _serverName:" << serverName << "patchFile:" << patchFile << "|error!" << endl);
+            return -3;
+        }
+        upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + _serverName + FILE_SEP + patchFile;
+    }
     TLOGDEBUG("PatchImp::preparePatchFile upfile:" << upfile << ", dstfile:" << dstfile << endl);
 
     bool succ = TC_File::makeDirRecursive(dstDirectory);
