@@ -47,7 +47,8 @@ int CommandDestroy::execute(string &sResult)
         //删除服务日志目录
         string sLogPath = _serverObjectPtr->getLogPath();
         if (sLogPath.empty())
-        {//使用默认路径
+        {
+			//使用默认路径
             sLogPath = "/usr/local/app/tars/app_log/";
         }
 

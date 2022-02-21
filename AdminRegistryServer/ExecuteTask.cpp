@@ -126,8 +126,7 @@ void TaskList::setRspInfo(size_t index, bool start, EMTaskItemStatus status)
     }
     catch (exception &ex)
     {
-//        log = ex.what();
-        TLOG_ERROR("TaskList::setRspInfo error:" << ex.what() << endl);
+        TLOG_ERROR("error:" << ex.what() << endl);
     }
 }
 
@@ -173,6 +172,10 @@ void TaskList::execute()
 		{
 			for (size_t i = 0; i < _taskReq.taskItemReq.size(); i++)
 			{
+				if(_taskRsp.taskItemRsp[i].executeLog.empty())
+				{
+					setRspLog(i, _taskRsp.executeLog);
+				}
 				setRspInfo(i, false, EM_I_FAILED);
 			}
 		}
@@ -200,8 +203,6 @@ int TaskList::prepareFile()
 			pi.application = req.application;
 			pi.serverName = req.serverName;
 			pi.patchId = get("patch_id", req.parameters);
-			pi.runType = get("run_type", req.parameters);
-			pi.baseImage = get("base_image", req.parameters);
 
 			string result;
 
@@ -223,7 +224,7 @@ int TaskList::prepareFile()
 	{
 		string result;
 
-		TLOG_DEBUG("preparePatch_inner prepare :" << e.second.application << "." << e.second.serverName << ", " << e.second.patchId << ", " << e.second.patchFile << ", " << e.second.baseImage << endl);
+		TLOG_DEBUG("preparePatch_inner prepare :" << e.second.application << "." << e.second.serverName << ", patchId:" << e.second.patchId << ", file:" << e.second.patchFile << ", image:" << e.second.baseImage << endl);
 
 		int ret = this->_adminPrx->preparePatch_inner(e.second, result);
 		if(ret != 0)
@@ -263,7 +264,8 @@ EMTaskItemStatus TaskList::restart(const TaskItemReq &req, string &log)
     try
     {
 		ret = _adminPrx->restartServer_inner(req.application, req.serverName, req.nodeName, log);
-        if (ret == 0) {
+        if (ret == 0)
+		{
 	        return EM_I_SUCCESS;
         }
     }
@@ -388,8 +390,9 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
 //                TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
 //                return EM_I_FAILED;
 //            }
-            ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
-        }
+//            ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
+			ret = _adminPrx->batchPatch_inner(patchReq, log);
+		}
         catch (exception &ex)
         {
             log = ex.what();
@@ -449,7 +452,7 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
 			std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-		TLOG_DEBUG("getPatchPercent retStatus:" << retStatus << endl);
+		TLOG_DEBUG("getPatchPercent retStatus:" << etos(retStatus) << endl);
 
 		return retStatus;
 
@@ -461,98 +464,98 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
     }
     return EM_I_SUCCESS; 
 }
-
-EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t index)
-{
-    try
-	{
-        int ret = EM_TARS_UNKNOWN_ERR;
-
-        TLOG_DEBUG("TaskList::patch:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end())
-                                     << req.application << "." << req.serverName << ", " << req.nodeName << endl);
-
-        string patchId = get("patch_id", req.parameters);
-        string patchType = get("patch_type", req.parameters);
-		string runType = get("run_type",req.parameters);
-
-        tars::PatchRequest patchReq;
-        patchReq.appname = req.application;
-        patchReq.servername = req.serverName;
-        patchReq.nodename = req.nodeName;
-        patchReq.version = patchId;
-        patchReq.user = req.userName;
-		patchReq.md5 = get("run_type",req.parameters);
-
-		//外部是并行处理的!
-        try {
-//            ret = _adminPrx->preparePatch_inner(patchReq, log, index != 0, taskItemSharedState);
-//            if (ret != 0) {
-//                log = "tarsAdminRegistry batchPatch err:" + log;
-//                TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
+//
+//EMTaskItemStatus TaskList::patch(const TaskItemReq &req, string &log,std::size_t index)
+//{
+//    try
+//	{
+//        int ret = EM_TARS_UNKNOWN_ERR;
+//
+//        TLOG_DEBUG("TaskList::patch:" << TC_Common::tostr(req.parameters.begin(), req.parameters.end())
+//                                     << req.application << "." << req.serverName << ", " << req.nodeName << endl);
+//
+//        string patchId = get("patch_id", req.parameters);
+//        string patchType = get("patch_type", req.parameters);
+//		string runType = get("run_type",req.parameters);
+//
+//        tars::PatchRequest patchReq;
+//        patchReq.appname = req.application;
+//        patchReq.servername = req.serverName;
+//        patchReq.nodename = req.nodeName;
+//        patchReq.version = patchId;
+//        patchReq.user = req.userName;
+//		patchReq.md5 = get("run_type",req.parameters);
+//
+//		//外部是并行处理的!
+//        try {
+////            ret = _adminPrx->preparePatch_inner(patchReq, log, index != 0, taskItemSharedState);
+////            if (ret != 0) {
+////                log = "tarsAdminRegistry batchPatch err:" + log;
+////                TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
+////                return EM_I_FAILED;
+////            }
+//			ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
+//        }
+//        catch (exception &ex)
+//        {
+//            log = ex.what();
+//            TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
+//            return EM_I_FAILED;
+//        }
+//
+//        if (ret != EM_TARS_SUCCESS)
+//        {
+//            log = "tarsAdminRegistry batchPatch err:" + log;
+//            return EM_I_FAILED;
+//        }
+//
+//		// 这里做个超时保护， 否则如果tarsnode状态错误， 这里一直循环调用
+//		time_t tNow = TNOW;
+//        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/patch/<patch_wait_timeout>", "300"));
+//
+//        EMTaskItemStatus retStatus = EM_I_FAILED;
+//        while (TNOW < tNow + patchTimeout)
+//        {
+//            PatchInfo pi;
+//
+//            try
+//            {
+//				ret = _adminPrx->getPatchPercent_inner(req.application, req.serverName, req.nodeName, pi);
+//            }
+//            catch (exception &ex)
+//            {
+//                log = ex.what();
+//                TLOG_ERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
+//            }
+//
+//            if (ret != 0)
+//            {
+//				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
+//                TLOG_ERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
 //                return EM_I_FAILED;
 //            }
-			ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
-        }
-        catch (exception &ex)
-        {
-            log = ex.what();
-            TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
-            return EM_I_FAILED;
-        }
-
-        if (ret != EM_TARS_SUCCESS)
-        {
-            log = "tarsAdminRegistry batchPatch err:" + log;
-            return EM_I_FAILED;
-        }
-
-		// 这里做个超时保护， 否则如果tarsnode状态错误， 这里一直循环调用
-		time_t tNow = TNOW;
-        unsigned int patchTimeout = TC_Common::strto<unsigned int>(g_pconf->get("/tars/patch/<patch_wait_timeout>", "300"));
-
-        EMTaskItemStatus retStatus = EM_I_FAILED;
-        while (TNOW < tNow + patchTimeout)
-        {
-            PatchInfo pi;
-
-            try
-            {
-				ret = _adminPrx->getPatchPercent_inner(req.application, req.serverName, req.nodeName, pi);
-            }
-            catch (exception &ex)
-            {
-                log = ex.what();
-                TLOG_ERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
-            }
-
-            if (ret != 0)
-            {
-				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, false);
-                TLOG_ERROR("TaskList::patch getPatchPercent error, ret:" << ret << endl);
-                return EM_I_FAILED;
-            }
-
-            if(pi.iPercent == 100 && pi.bSucc)
-            {
-				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
-                TLOG_DEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl);
-                retStatus = EM_I_SUCCESS;
-                break;
-            }
-            
-            TLOG_DEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl); 
-
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
-        return retStatus;
-    }
-    catch (exception &ex)
-    {
-        TLOG_ERROR("TaskList::patch error:" << ex.what() << endl);
-        return EM_I_FAILED;
-    }
-    return EM_I_FAILED; 
-}
+//
+//            if(pi.iPercent == 100 && pi.bSucc)
+//            {
+//				_adminPrx->updatePatchLog_inner(req.application, req.serverName, req.nodeName, patchId, req.userName, patchType, true);
+//                TLOG_DEBUG("TaskList::patch getPatchPercent ok, percent:" << pi.iPercent << "%" << endl);
+//                retStatus = EM_I_SUCCESS;
+//                break;
+//            }
+//
+//            TLOG_DEBUG("TaskList::patch getPatchPercent percent:" << pi.iPercent << "%, succ:" << pi.bSucc << endl);
+//
+//			std::this_thread::sleep_for(std::chrono::seconds(1));
+//        }
+//        return retStatus;
+//    }
+//    catch (exception &ex)
+//    {
+//        TLOG_ERROR("TaskList::patch error:" << ex.what() << endl);
+//        return EM_I_FAILED;
+//    }
+//    return EM_I_FAILED;
+//}
 
 EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &req)
 {
@@ -605,6 +608,8 @@ EMTaskItemStatus TaskList::executeSingleTask(size_t index, const TaskItemReq &re
         log = "command not support!";
         TLOG_DEBUG("TaskList::executeSingleTask command not support!" << endl);
     }
+
+	TLOG_DEBUG("index: " << index << ", result: " << log << endl);
 
     setRspLog(index, log);
 

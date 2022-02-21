@@ -92,7 +92,7 @@ protected:
     EMTaskItemStatus graceRestart (const TaskItemReq &req, string &log);
     EMTaskItemStatus stop         (const TaskItemReq &req, string &log);
     EMTaskItemStatus patch        (size_t index, const TaskItemReq &req, string &log);
-    EMTaskItemStatus patch		  (const TaskItemReq &req, string &log, size_t index);
+//    EMTaskItemStatus patch		  (const TaskItemReq &req, string &log, size_t index);
     EMTaskItemStatus undeploy     (const TaskItemReq &req, string &log);
 //    EMTaskItemStatus gridPatchServer(const TaskItemReq &req, string &log);
     string get(const string &name, const map<string, string> &parameters);

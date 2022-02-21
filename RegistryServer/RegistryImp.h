@@ -156,7 +156,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int getDockerRegistry(DockerRegistry &registry, CurrentPtr current);
+	virtual int getDockerRegistry(vector<DockerRegistry> &doctorRegistries, CurrentPtr current);
 
 protected:
 
@@ -164,11 +164,6 @@ protected:
      * 数据库操作
      */
     CDbHandle      _db;
-
-	/**
-	 * docker的镜像仓库
-	 */
-	DockerRegistry _dockerRegistry;
 
 };
 

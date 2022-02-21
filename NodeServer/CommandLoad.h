@@ -27,7 +27,7 @@ class CommandLoad : public ServerCommand
 {
 
 public:
-    CommandLoad(const ServerObjectPtr& pServerObjectPtr, const DockerRegistry& dockerRegistry, const NodeInfo& tNodeInfo, bool succ);
+    CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ);
 
     ExeStatus canExecute(string& sResult);
 
@@ -45,6 +45,25 @@ private:
     * @return int
     */
     void getRemoteConf();
+
+	/**
+	 *
+	 * @return
+	 */
+	string hostIp();
+
+	/**
+	 * 容器模式下获取主机的ip(如果ip是: 127.0.0.1)
+	 * @return
+	 */
+	string replaceHostLocalIp(const TC_Endpoint &ep);
+
+	/**
+	 * 容器模式下获取主机的ip(如果ip是: 127.0.0.1)
+	 * @param ip
+	 * @return
+	 */
+	string replaceHostLocalIp(const string &ip);
 
 private:
     static std::mutex _mutex;
@@ -71,14 +90,14 @@ private:
 
 //////////////////////////////////////////////////////////////
 //
-inline CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const DockerRegistry& dockerRegistry, const NodeInfo& tNodeInfo, bool succ)
+inline CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ)
 : _nodeInfo(tNodeInfo)
 , _serverObjectPtr(pServerObjectPtr)
 , _succ(succ)
 {
     _desc      = _serverObjectPtr->getServerDescriptor();
 
-	_serverObjectPtr->setDockerRegistry(dockerRegistry);
+//	_serverObjectPtr->setDockerRegistry(dockerRegistry);
 }
 
 #endif

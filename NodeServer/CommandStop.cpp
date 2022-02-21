@@ -80,7 +80,7 @@ int CommandStop::execute(string& sResult)
         int64_t pid = _serverObjectPtr->getPid();
         NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "pid:" << pid << endl;
 #if TARGET_PLATFORM_LINUX 
-        if (pid != 0)
+        if (pid > 0)
         {
             string f = "/proc/" + TC_Common::tostr(pid) + "/status";
             NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "print the server status :" << f << "|" << TC_File::load2str(f) << endl;
@@ -133,7 +133,18 @@ int CommandStop::execute(string& sResult)
             if (_useAdmin)
             {
                 AdminFPrx pAdminPrx;    //服务管理代理
-                string  sAdminPrx = "AdminObj@" + _serverObjectPtr->getLocalEndpoint().toString();
+                string  sAdminPrx;
+
+				if(_serverObjectPtr->isContainer())
+				{
+					TC_Endpoint ep = _serverObjectPtr->getLocalEndpoint();
+					ep.setHost("127.0.0.1");
+					sAdminPrx = "AdminObj@" + ep.toString();
+				}
+				else
+				{
+					sAdminPrx = "AdminObj@" + _serverObjectPtr->getLocalEndpoint().toString();
+				}
                 NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " call " << sAdminPrx << endl;
                 pAdminPrx = Application::getCommunicator()->stringToProxy<AdminFPrx>(sAdminPrx);
                 pAdminPrx->async_shutdown(NULL);
@@ -189,13 +200,12 @@ int CommandStop::execute(string& sResult)
                 _serverObjectPtr->setPid(0);
                 _serverObjectPtr->setState(ServerObject::Inactive);
 				_serverObjectPtr->setStarted(false);
-				NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "server already stop, stop_cost:" << TNOW - tNow << endl;
+				NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << " server already stop, stop_cost:" << TNOW - tNow << endl;
                 return 0;
             }
-            //NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _tDesc.application << "." << _tDesc.serverName << " deactivating usleep " << int(STOP_SLEEP_INTERVAL) << endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(STOP_SLEEP_INTERVAL / 1000));
         }
-        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << " shut down timeout ( used " << iStopWaitInterval << "'s), use kill -9" << endl;
+        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << " shut down timeout ( used " << iStopWaitInterval << "'s), use kill -9" << endl;
     }
 
     //仍然失败。用kill -9，再等待STOP_WAIT_INTERVAL秒。
@@ -226,7 +236,7 @@ int CommandStop::execute(string& sResult)
     }
     sResult = "server pid " + TC_Common::tostr(pid) + " is still exist";
 
-    NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << ", " << sResult << endl;
+    NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << " result: " << sResult << endl;
 
     return  -1;
 }

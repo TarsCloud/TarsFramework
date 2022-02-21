@@ -26,18 +26,17 @@ int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentP
     {   
         string sApp     = serverInfo.application;
         string sName    = serverInfo.serverName;
+//		NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << ", pid:" << serverInfo.pid << endl;
 
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( sApp, sName );
         if(pServerObjectPtr)
         {
-            // NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << " keep alive, pid:" << serverInfo.pid << endl;
-
-            pServerObjectPtr->keepAlive(serverInfo.pid,serverInfo.adapter);
+            pServerObjectPtr->keepAlive(serverInfo);
 
             return 0;
         }
+		NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << " is not exist, pid:" << serverInfo.pid << endl;
 
-	    NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << " is not exist, pid:" << serverInfo.pid << endl;
     }
     catch ( exception& e )
     {
@@ -64,7 +63,7 @@ int ServerImp::keepActiving( const tars::ServerInfo& serverInfo, tars::TarsCurre
         if ( pServerObjectPtr )
         {
 	        NODE_LOG(serverId)->debug()<< "server " << serverId << " keep activing"<< endl;
-            pServerObjectPtr->keepActiving(serverInfo.pid);
+            pServerObjectPtr->keepActiving(serverInfo);
             return 0;
         }
 	    NODE_LOG(serverId)->error() << FILE_FUN<< "server " << serverId << " is not exist"<< endl;

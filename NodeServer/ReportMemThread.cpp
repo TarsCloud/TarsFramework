@@ -23,7 +23,7 @@ ReportMemThread::ReportMemThread( )
 {
     _shutDown          = false;
     //用旧配置
-    _monitorInterval   = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorInterval>","2"));
+    _monitorInterval   = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorInterval>","10"));
     _monitorInterval   = _monitorInterval>10?10:(_monitorInterval<1?1:_monitorInterval);
 }
 

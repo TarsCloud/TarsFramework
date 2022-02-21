@@ -61,6 +61,11 @@ public:
      */
     TC_Endpoint getAdapterEndpoint() const;
 
+	/**
+	 * 返回reap thread
+	 * @return
+	 */
+	ReapThread *getReapThread() { return &_reapThread; }
 protected:
 
     /*

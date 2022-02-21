@@ -17,7 +17,6 @@
 #include "util/tc_md5.h"
 #include "BatchPatchThread.h"
 #include "CommandPatch.h"
-#include "DockerPatch.h"
 #include "util.h"
 
 using namespace tars;
@@ -158,45 +157,21 @@ void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, Server
         //查看本地硬盘是否已经存在该文件
 	    NODE_LOG(serverId)->debug() <<FILE_FUN << serverId << "|" << request.md5 << "|patch begin" << endl;
 
-        ServerObject::RunType eRunType = server->getRunType();
+		CommandPatch command(server, _downloadPath, request);
+		if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
+		{
+			NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
+			return ;
+		}
 
-        if(eRunType == ServerObject::Container)
-        {
-            DockerPatch command(server,request);
-            if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
-            {
-                NODE_LOG(serverId)->error() << FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|canExecute error:" << sError << endl;
-                return ;
-            }
-
-            if (command.execute(sError) == 0)
-            {
-                NODE_LOG(serverId)->debug() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch succ" << endl;
-            }
-            else
-            {
-                NODE_LOG(serverId)->error() <<FILE_FUN<< request.appname + "." + request.servername << "|" << request.md5 << "|patch fault:" << sError << endl;
-            }
-        }
-        else /* if(eRunType == ServerObject::Native ) */
-        {
-            
-            CommandPatch command(server, _downloadPath, request);
-            if (command.canExecute(sError) != ServerCommand::EXECUTABLE)
-            {
-                NODE_LOG(serverId)->error() << FILE_FUN << serverId << "|" << request.md5 << "|canExecute error:" << sError << endl;
-                return ;
-            }
-
-            if (command.execute(sError) == 0)
-            {
-                NODE_LOG(serverId)->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
-            }
-            else
-            {
-                NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
-            }
-        }
+		if (command.execute(sError) == 0)
+		{
+			NODE_LOG(serverId)->debug() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch succ" << endl;
+		}
+		else
+		{
+			NODE_LOG(serverId)->error() <<FILE_FUN<< serverId << "|" << request.md5 << "|patch fault:" << sError << endl;
+		}
     }
     catch (exception & e)
     {

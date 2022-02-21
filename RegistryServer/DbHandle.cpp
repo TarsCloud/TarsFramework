@@ -58,7 +58,7 @@ int CDbHandle::init(TC_Config *pconf)
         {
             tcDBConf._flag = CLIENT_MULTI_STATEMENTS;
             _enMultiSql = true;
-            TLOGDEBUG("CDbHandle::init tcDBConf._flag: " << option << endl);
+            TLOG_DEBUG("CDbHandle::init tcDBConf._flag: " << option << endl);
         }
         _mysqlReg.init(tcDBConf);
 
@@ -72,11 +72,11 @@ int CDbHandle::init(TC_Config *pconf)
     }
     catch (TC_Config_Exception& ex)
     {
-        TLOGERROR("CDbHandle::init exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::init exception: " << ex.what() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::init exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::init exception: " << ex.what() << endl);
         exit(0);
     }
 
@@ -94,6 +94,47 @@ void CDbHandle::updateMysql()
     }
 }
 
+int CDbHandle::loadDockerInfo(vector<DockerRegistry> &info, unordered_map<string, pair<string, string>> &baseImages)
+{
+	try
+	{
+		{
+			string sSelectSql = "select * from t_docker_registry";
+
+			TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSelectSql);
+
+			for (size_t i = 0; i < res.size(); i++)
+			{
+				DockerRegistry registry;
+
+				registry.sId = res[i]["id"];
+				registry.sRegistry = res[i]["registry"];
+				registry.sUserName = res[i]["username"];
+				registry.sPassword = res[i]["password"];
+
+				info.push_back(registry);
+			}
+		}
+
+		{
+			string sSelectSql = "select * from t_base_image";
+
+			TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSelectSql);
+
+			for (size_t i = 0; i < res.size(); i++)
+			{
+				baseImages[res[i]["id"]].first = res[i]["image"];
+			}
+		}
+		return 0;
+	}
+	catch(exception &ex)
+	{
+		TLOG_ERROR("error:" << ex.what() << endl);
+		return -1;
+	}
+}
+
 int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadInfo& li)
 {
     try
@@ -103,7 +144,7 @@ int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadIn
                             "where node_name='" + _mysqlReg.escapeString(name) + "'";
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSelectSql);
-        TLOGDEBUG("CDbHandle::init select node affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::init select node affected:" << res.size() << endl);
 
         string sTemplateName;
         if (res.size() != 0)
@@ -111,7 +152,7 @@ int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadIn
             //合法性判断，是否存在名字相同已经存活但node obj不同的注册节点
             if (res[0]["present_state"] == "active" && res[0]["node_obj"] != ni.nodeObj)
             {
-                TLOGERROR("registery node :" << name << " error, other node has registered." << endl);
+                TLOG_ERROR("registery node :" << name << " error, other node has registered." << endl);
                 return 1;
             }
             //传递已配置的模板名
@@ -131,7 +172,7 @@ int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadIn
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("registry node :" << name << " affected:" << _mysqlReg.getAffectedRows() << endl);
+        TLOG_DEBUG("registry node :" << name << " affected:" << _mysqlReg.getAffectedRows() << endl);
 
         NodePrx nodePrx;
         g_app.getCommunicator()->stringToProxy(ni.nodeObj, nodePrx);
@@ -142,12 +183,12 @@ int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadIn
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::init " << name << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::init " << name << " exception: " << ex.what() << endl);
         return 2;
     }
     catch (TarsException& ex)
     {
-        TLOGERROR("CDbHandle::init " << name << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::init " << name << " exception: " << ex.what() << endl);
         return 3;
     }
 
@@ -165,14 +206,14 @@ int CDbHandle::destroyNode(const string& name)
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("CDbHandle::destroyNode " << name << " affected:" << _mysqlReg.getAffectedRows() << endl);
+        TLOG_DEBUG("CDbHandle::destroyNode " << name << " affected:" << _mysqlReg.getAffectedRows() << endl);
 
         TC_ThreadLock::Lock lock(_NodePrxLock);
         _mapNodePrxCache.erase(name);
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::destroyNode " << name << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::destroyNode " << name << " exception: " << ex.what() << endl);
     }
 
     return 0;
@@ -193,7 +234,7 @@ int CDbHandle::keepAlive(const string& name, const LoadInfo& li)
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("CDbHandle::keepAlive " << name << " affected:" << _mysqlReg.getAffectedRows() << "|cost:" << (TNOWMS - iStart) << endl);
+        TLOG_DEBUG("CDbHandle::keepAlive " << name << " affected:" << _mysqlReg.getAffectedRows() << "|cost:" << (TNOWMS - iStart) << endl);
 
         if (_mysqlReg.getAffectedRows() == 0)
         {
@@ -202,7 +243,7 @@ int CDbHandle::keepAlive(const string& name, const LoadInfo& li)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::keepAlive " << name << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::keepAlive " << name << " exception: " << ex.what() << endl);
         return 2;
     }
 
@@ -219,7 +260,7 @@ map<string, string> CDbHandle::getActiveNodeList(string& result)
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
 
-        TLOGDEBUG("CDbHandle::getActiveNodeList (present_state='active') affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::getActiveNodeList (present_state='active') affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -229,7 +270,7 @@ map<string, string> CDbHandle::getActiveNodeList(string& result)
     catch (TC_Mysql_Exception& ex)
     {
         result = string(__FUNCTION__) + " exception: " + ex.what();
-        TLOGERROR(result << endl);
+        TLOG_ERROR(result << endl);
         return mapNodeList;
     }
 
@@ -245,7 +286,7 @@ int CDbHandle::getNodeVersion(const string& nodeName, string& version, string& r
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
 
-        TLOGDEBUG("CDbHandle::getNodeVersion (node_name='" << nodeName << "') affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::getNodeVersion (node_name='" << nodeName << "') affected:" << res.size() << endl);
 
         if (res.size() > 0)
         {
@@ -258,7 +299,7 @@ int CDbHandle::getNodeVersion(const string& nodeName, string& version, string& r
     catch (TC_Mysql_Exception& ex)
     {
 
-        TLOGERROR("CDbHandle::getNodeVersion exception:"<<ex.what());
+        TLOG_ERROR("CDbHandle::getNodeVersion exception:"<<ex.what());
     }
     return  -1;
 }
@@ -279,7 +320,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
         if (serverName != "") sCondition += " and server.server_name='" + _mysqlReg.escapeString(serverName) + "' ";
         if (withDnsServer == false) sCondition += " and server.server_type !='tars_dns' "; //不获取dns服务
 
-        sSql = "select server.application, server.server_name, server.node_name, run_type, base_path, "
+        sSql = "select server.application, server.server_name, server.node_name, run_type, base_image_id, base_path, "
                "    exe_path, setting_state, present_state, adapter_name, thread_num, async_thread_num, endpoint,"
                "    profile,template_name, "
                "    allow_ip, max_connections, servant, queuecap, queuetimeout,protocol,handlegroup,"
@@ -290,7 +331,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                "    left join t_adapter_conf as adapter using(application, server_name, node_name) "
                "where " + sCondition;
 
-        TLOGDEBUG("CDbHandle::getServers sSql:" << sSql << endl);
+        TLOG_DEBUG("CDbHandle::getServers sSql:" << sSql << endl);
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
         num = res.size();
@@ -327,6 +368,14 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                 server.monitorScript    = res[i]["monitor_script_path"];
                 server.configCenterPort = TC_Common::strto<int>(res[i]["config_center_port"]);
 				server.runType      = res[i]["run_type"];
+				string baseImageId 	= res[i]["base_image_id"];
+
+				if(!baseImageId.empty())
+				{
+					auto image = g_app.getReapThread()->getBaseImageById(baseImageId);
+					server.baseImage = image.first;
+					server.sha = image.second;
+				}
 
                 server.setId = "";
                 if (TC_Common::lower(res[i]["enable_set"]) == "y")
@@ -387,18 +436,18 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::getServers " << app << "." << serverName << "_" << nodeName
+        TLOG_ERROR("CDbHandle::getServers " << app << "." << serverName << "_" << nodeName
                   << " exception: " << ex.what() << "|" << sSql << endl);
         return vServers;
     }
     catch (TC_Config_Exception& ex)
     {
-        TLOGERROR("CDbHandle::getServers " << app << "." << serverName << "_" << nodeName
+        TLOG_ERROR("CDbHandle::getServers " << app << "." << serverName << "_" << nodeName
                   << " TC_Config_Exception exception: " << ex.what() << endl);
         throw TarsException(string("TC_Config_Exception exception: ") + ex.what());
     }
 
-    TLOGDEBUG(app << "." << serverName << "_" << nodeName << " getServers affected:" << num
+    TLOG_DEBUG(app << "." << serverName << "_" << nodeName << " getServers affected:" << num
               << "|cost:" << (TNOWMS - iStart) << endl);
 
     return  vServers;
@@ -429,7 +478,7 @@ void CDbHandle::getAllDynamicWeightServant(std::vector<string> &vtServant)
     }
 
     log << "|vtServant size: " << vtServant.size();
-    TLOGDEBUG(log.str() << "|" << endl);
+    TLOG_DEBUG(log.str() << "|" << endl);
 }
 
 string CDbHandle::getProfileTemplate(const string& sTemplateName, map<string, int>& mapRecursion, string& sResultDesc)
@@ -459,19 +508,19 @@ string CDbHandle::getProfileTemplate(const string& sTemplateName, map<string, in
         }
         sResultDesc += "(" + sTemplateName + ":OK)";
 
-        TLOGDEBUG("CDbHandle::getProfileTemplate " << sTemplateName << " " << sResultDesc << endl);
+        TLOG_DEBUG("CDbHandle::getProfileTemplate " << sTemplateName << " " << sResultDesc << endl);
 
         return confMyself.tostr();
     }
     catch (TC_Mysql_Exception& ex)
     {
         sResultDesc += "(" + sTemplateName + ":" + ex.what() + ")";
-        TLOGERROR("CDbHandle::getProfileTemplate exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getProfileTemplate exception: " << ex.what() << endl);
     }
     catch (TC_Config_Exception& ex)
     {
         sResultDesc += "(" + sTemplateName + ":" + ex.what() + ")";
-        TLOGERROR("CDbHandle::getProfileTemplate TC_Config_Exception exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getProfileTemplate TC_Config_Exception exception: " << ex.what() << endl);
     }
 
     return  "";
@@ -485,7 +534,7 @@ vector<string> CDbHandle::getAllApplicationNames(string& result)
         string sSql = "select distinct application from t_server_conf";
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-        TLOGDEBUG("CDbHandle::getAllApplicationNames affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::getAllApplicationNames affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -494,7 +543,7 @@ vector<string> CDbHandle::getAllApplicationNames(string& result)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::getAllApplicationNames exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getAllApplicationNames exception: " << ex.what() << endl);
         return vApps;
     }
 
@@ -509,7 +558,7 @@ vector<vector<string> > CDbHandle::getAllServerIds(string& result)
         string sSql = "select application, server_name, node_name, setting_state, present_state,server_type from t_server_conf";
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-        TLOGDEBUG("CDbHandle::getAllServerIds affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::getAllServerIds affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -523,7 +572,7 @@ vector<vector<string> > CDbHandle::getAllServerIds(string& result)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::getAllServerIds exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getAllServerIds exception: " << ex.what() << endl);
         return vServers;
     }
 
@@ -537,7 +586,7 @@ int CDbHandle::updateServerState(const string& app, const string& serverName, co
         int64_t iStart = TNOWMS;
         if (stateFields != "setting_state" && stateFields != "present_state")
         {
-            TLOGDEBUG(app << "." << serverName << "_" << nodeName
+            TLOG_DEBUG(app << "." << serverName << "_" << nodeName
                       << " not supported fields:" << stateFields << endl);
             return -1;
         }
@@ -552,7 +601,7 @@ int CDbHandle::updateServerState(const string& app, const string& serverName, co
                       "    and node_name='" + _mysqlReg.escapeString(nodeName) + "' ";
 
         _mysqlReg.execute(sSql);
-        TLOGDEBUG("CDbHandle::updateServerState " << app << "." << serverName << "_" << nodeName
+        TLOG_DEBUG("CDbHandle::updateServerState " << app << "." << serverName << "_" << nodeName
                   << " affected:" << _mysqlReg.getAffectedRows()
                   << "|cost:" << (TNOWMS - iStart) << endl);
 
@@ -566,7 +615,7 @@ int CDbHandle::updateServerState(const string& app, const string& serverName, co
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::updateServerState " << app << "." << serverName << "_" << nodeName
+        TLOG_ERROR("CDbHandle::updateServerState " << app << "." << serverName << "_" << nodeName
                   << " exception: " << ex.what() << endl);
         return -1;
     }
@@ -604,7 +653,7 @@ int CDbHandle::doUpdateServerStateBatch(const std::vector<ServerStateInfo>& vecS
 
     if (map_sort.empty())
     {
-        TLOGDEBUG("CDbHandle::doUpdateServerStateBatch vector size(" << vecStateInfo.size() << ") do nothing within the same state in cache" << endl);
+        TLOG_DEBUG("CDbHandle::doUpdateServerStateBatch vector size(" << vecStateInfo.size() << ") do nothing within the same state in cache" << endl);
         return 0;
     }
 
@@ -685,7 +734,7 @@ int CDbHandle::doUpdateServerStateBatch(const std::vector<ServerStateInfo>& vecS
 
             if (iRows > 0)
             {
-                TLOGDEBUG("CDbHandle::doUpdateServerStateBatch sql: " << sCommand << " vector:" << vecStateInfo.size() << " affected:" << iRows
+                TLOG_DEBUG("CDbHandle::doUpdateServerStateBatch sql: " << sCommand << " vector:" << vecStateInfo.size() << " affected:" << iRows
                           << "|cost:" << (TNOWMS - iStart) << endl);
 
                 TC_ThreadLock::Lock lock(_mapServantStatusLock);
@@ -701,12 +750,12 @@ int CDbHandle::doUpdateServerStateBatch(const std::vector<ServerStateInfo>& vecS
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::doUpdateServerStateBatch exception: " << ex.what() << " sql:" << sCommand << endl);
+        TLOG_ERROR("CDbHandle::doUpdateServerStateBatch exception: " << ex.what() << " sql:" << sCommand << endl);
         return -1;
     }
     catch (exception& ex)
     {
-        TLOGERROR("CDbHandle::doUpdateServerStateBatch " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::doUpdateServerStateBatch " << ex.what() << endl);
         return -1;
     }
     return -1;
@@ -726,13 +775,13 @@ int CDbHandle::setPatchInfo(const string& app, const string& serverName, const s
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("CDbHandle::setPatchInfo " << app << "." << serverName << "_" << nodeName << " affected:" << _mysqlReg.getAffectedRows() << endl);
+        TLOG_DEBUG("CDbHandle::setPatchInfo " << app << "." << serverName << "_" << nodeName << " affected:" << _mysqlReg.getAffectedRows() << endl);
 
         return 0;
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::setPatchInfo " << app << "." << serverName << "_" << nodeName << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::setPatchInfo " << app << "." << serverName << "_" << nodeName << " exception: " << ex.what() << endl);
         return -1;
     }
 }
@@ -751,7 +800,7 @@ int CDbHandle::setServerTarsVersion(const string& app, const string& serverName,
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("CDbHandle::setServerTarsVersion " << app << "." << serverName << "_" << nodeName
+        TLOG_DEBUG("CDbHandle::setServerTarsVersion " << app << "." << serverName << "_" << nodeName
                   << " affected:" << _mysqlReg.getAffectedRows()
                   << "|cost:" << (TNOWMS - iStart) << endl);
 
@@ -759,7 +808,7 @@ int CDbHandle::setServerTarsVersion(const string& app, const string& serverName,
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::setServerTarsVersion " << app << "." << serverName << "_" << nodeName << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::setServerTarsVersion " << app << "." << serverName << "_" << nodeName << " exception: " << ex.what() << endl);
         return -1;
     }
 }
@@ -780,7 +829,7 @@ NodePrx CDbHandle::getNodePrx(const string& nodeName)
                       "where node_name='" + _mysqlReg.escapeString(nodeName) + "' and present_state='active'";
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-        TLOGDEBUG("CDbHandle::getNodePrx '" << nodeName << "' affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::getNodePrx '" << nodeName << "' affected:" << res.size() << endl);
 
         if (res.size() == 0)
         {
@@ -797,12 +846,12 @@ NodePrx CDbHandle::getNodePrx(const string& nodeName)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
         throw Tars(string("get node record from db error:") + ex.what());
     }
     catch (TarsException& ex)
     {
-        TLOGERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
         throw ex;
     }
 
@@ -818,7 +867,7 @@ int CDbHandle::checkNodeTimeout(unsigned uTimeout)
             TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sTmpSql);
             if (res.size() > 0)
             {
-                TLOGDEBUG( "CDbHandle::checkNodeTimeout affected:" << TC_Common::tostr(res.data()) << endl);
+                TLOG_DEBUG( "CDbHandle::checkNodeTimeout affected:" << TC_Common::tostr(res.data()) << endl);
             }
         }
 
@@ -831,14 +880,14 @@ int CDbHandle::checkNodeTimeout(unsigned uTimeout)
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("CDbHandle::checkNodeTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << "|cost:" << (TNOWMS - iStart) << endl);
+        TLOG_DEBUG("CDbHandle::checkNodeTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << "|cost:" << (TNOWMS - iStart) << endl);
 
         return _mysqlReg.getAffectedRows();
 
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::checkNodeTimeout exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::checkNodeTimeout exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -854,14 +903,14 @@ int CDbHandle::checkRegistryTimeout(unsigned uTimeout)
 
         _mysqlReg.execute(sSql);
 
-        TLOGDEBUG("CDbHandle::checkRegistryTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << endl);
+        TLOG_DEBUG("CDbHandle::checkRegistryTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << endl);
 
         return _mysqlReg.getAffectedRows();
 
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::checkRegistryTimeout exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::checkRegistryTimeout exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -871,7 +920,7 @@ int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
 {
     try
     {
-        TLOGDEBUG("CDbHandle::checkSettingState ____________________________________" << endl);
+        TLOG_DEBUG("CDbHandle::checkSettingState ____________________________________" << endl);
 
         string sSql = "select application, server_name, node_name, setting_state "
                       "from t_server_conf "
@@ -883,13 +932,13 @@ int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
 
-        TLOGDEBUG("CDbHandle::checkSettingState setting_state='active' affected:" << res.size() << "|cost:" << (TNOWMS - iStart) << endl);
+        TLOG_DEBUG("CDbHandle::checkSettingState setting_state='active' affected:" << res.size() << "|cost:" << (TNOWMS - iStart) << endl);
 
         NodePrx nodePrx;
         for (unsigned i = 0; i < res.size(); i++)
         {
             string sResult;
-            TLOGDEBUG("checking [" << i << "]: " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << endl);
+            TLOG_DEBUG("checking [" << i << "]: " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << endl);
             try
             {
                 nodePrx = getNodePrx(res[i]["node_name"]);
@@ -906,37 +955,37 @@ int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
 
                         if (_mysqlReg.queryRecord(sTempSql).size() == 0)
                         {
-                            TLOGDEBUG(res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
+                            TLOG_DEBUG(res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
                                       << " not setting active,and not need restart" << endl);
                             continue;
                         }
 
-                        TLOGDEBUG(res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << " not setting active, start it" << endl);
+                        TLOG_DEBUG(res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << " not setting active, start it" << endl);
 
                         int iRet = nodePrx->startServer(res[i]["application"], res[i]["server_name"], sResult);
 
-                        TLOGDEBUG("startServer ret=" << iRet << ",result=" << sResult << endl);
+                        TLOG_DEBUG("startServer ret=" << iRet << ",result=" << sResult << endl);
                     }
                 }
             }
 
             catch (TarsException& ex)
             {
-                TLOGERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
+                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
                           << "' exception: " << ex.what() << endl);
             }
             catch (exception& ex)
             {
-                TLOGERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << "' exception: " << ex.what() << endl);
+                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << "' exception: " << ex.what() << endl);
             }
         }
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::checkSettingState  exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::checkSettingState  exception: " << ex.what() << endl);
         return -1;
     }
-    TLOGDEBUG("CDbHandle::checkSettingState ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl);
+    TLOG_DEBUG("CDbHandle::checkSettingState ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl);
 
     return 0;
 }
@@ -982,11 +1031,11 @@ int CDbHandle::getGroupIdByName(const string& sGroupName)
     }
     catch (exception& ex)
     {
-        TLOGERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
     }
     catch (...)
     {
-        TLOGERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
+        TLOG_ERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
     }
 
     TLOGINFO("CDbHandle::getGroupIdByName " << sGroupName << "|" << endl);
@@ -1003,14 +1052,14 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 
         res = _mysqlReg.queryRecord(sSql);
 
-        TLOGDEBUG("CDbHandle::loadIPPhysicalGroupInfo get server group from db, records affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::loadIPPhysicalGroupInfo get server group from db, records affected:" << res.size() << endl);
 
         load2GroupMap(res.data());
     }
     catch (TC_Mysql_Exception& ex)
     {
         sendSqlErrorAlarmSMS(string("CDbHandle::loadIPPhysicalGroupInfo:") + ex.what());
-        TLOGERROR("CDbHandle::loadIPPhysicalGroupInfo exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::loadIPPhysicalGroupInfo exception: " << ex.what() << endl);
         if (fromInit)
         {
             //初始化是出现异常，退出, 八成是数据库权限问题
@@ -1020,7 +1069,7 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
     catch (exception& ex)
     {
 	    sendSqlErrorAlarmSMS(string("CDbHandle::loadIPPhysicalGroupInfo:") + ex.what());
-        TLOGDEBUG("CDbHandle::loadIPPhysicalGroupInfo " << ex.what() << endl);
+        TLOG_DEBUG("CDbHandle::loadIPPhysicalGroupInfo " << ex.what() << endl);
         if (fromInit)
         {
             assert(0);
@@ -1062,7 +1111,7 @@ int CDbHandle::loadGroupPriority(bool fromInit)
         std::string s_command("SELECT id,group_list,station FROM t_group_priority ORDER BY list_order ASC");
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(s_command);
-        TLOGDEBUG("CDbHandle::loadGroupPriority load group priority from db, records affected:" << res.size() << endl);
+        TLOG_DEBUG("CDbHandle::loadGroupPriority load group priority from db, records affected:" << res.size() << endl);
 
         for (unsigned int i = 0; i < res.size(); i++)
         {
@@ -1071,17 +1120,17 @@ int CDbHandle::loadGroupPriority(bool fromInit)
 
             std::vector<int> vecGroupID = TC_Common::sepstr<int>(res[i]["group_list"], "|,;", false);
             std::copy(vecGroupID.begin(), vecGroupID.end(), std::inserter(mapPriority[i].setGroupID, mapPriority[i].setGroupID.begin()));
-            TLOGDEBUG("loaded groups priority to cache [" << mapPriority[i].sStation << "] group size:" << mapPriority[i].setGroupID.size() << endl);
+            TLOG_DEBUG("loaded groups priority to cache [" << mapPriority[i].sStation << "] group size:" << mapPriority[i].setGroupID.size() << endl);
         }
 
         _mapGroupPriority.swap();
 
-        TLOGDEBUG("loaded groups priority to cache virtual group size:" << mapPriority.size() << endl);
+        TLOG_DEBUG("loaded groups priority to cache virtual group size:" << mapPriority.size() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
         sendSqlErrorAlarmSMS(string("CDbHandle::loadGroupPriority:") + ex.what());
-        TLOGERROR("CDbHandle::loadGroupPriority exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::loadGroupPriority exception: " << ex.what() << endl);
         if (fromInit)
         {
             assert(0);
@@ -1091,7 +1140,7 @@ int CDbHandle::loadGroupPriority(bool fromInit)
     catch (exception& ex)
     {
 	    sendSqlErrorAlarmSMS(string("CDbHandle::loadGroupPriority:") + ex.what());
-        TLOGDEBUG("CDbHandle::loadGroupPriority " << ex.what() << endl);
+        TLOG_DEBUG("CDbHandle::loadGroupPriority " << ex.what() << endl);
         if (fromInit)
         {
             assert(0);
@@ -1106,7 +1155,7 @@ int CDbHandle::loadStatData(const vector<string> &vtServer, tars::TC_Mysql::Mysq
 {
     if (vtServer.empty())
     {
-        TLOGERROR("CDbHandle::loadStatData empty vtServer!!!" << endl);
+        TLOG_ERROR("CDbHandle::loadStatData empty vtServer!!!" << endl);
 
         return LOAD_BALANCE_DB_EMPTY_LIST;
     }
@@ -1154,13 +1203,13 @@ int CDbHandle::loadStatData(const vector<string> &vtServer, tars::TC_Mysql::Mysq
         }
         catch (TC_Mysql_Exception& ex)
         {
-            TLOGERROR("CDbHandle::loadStatData exception: " << ex.what() << endl);
+            TLOG_ERROR("CDbHandle::loadStatData exception: " << ex.what() << endl);
 
             return LOAD_BALANCE_DB_FAILED;
         }
         catch (exception& ex)
         {
-            TLOGERROR("CDbHandle::loadStatData " << ex.what() << endl);
+            TLOG_ERROR("CDbHandle::loadStatData " << ex.what() << endl);
 
             return LOAD_BALANCE_DB_FAILED;
         }
@@ -1184,7 +1233,7 @@ int CDbHandle::loadStatData(const vector<string> &vtServer, tars::TC_Mysql::Mysq
         << "sql: " << sql.str() << "|"
         << "statData size: " << statData.size() << "|";
 
-    TLOGDEBUG(log.str() << endl);
+    TLOG_DEBUG(log.str() << endl);
 
     return ret;
 }
@@ -1201,7 +1250,7 @@ int CDbHandle::computeInactiveRate()
         TLOGINFO(__FUNCTION__ << "|cost:" << (TNOWMS - iStart) << endl);
         if (res.size() != 1)
         {
-            TLOGDEBUG("loaded inactive rate failed, size(" << res.size() << ") ne 1" << endl);
+            TLOG_DEBUG("loaded inactive rate failed, size(" << res.size() << ") ne 1" << endl);
             return -1;
         }
 
@@ -1210,7 +1259,7 @@ int CDbHandle::computeInactiveRate()
 
         if (iActive < 0 || iInactive < 0)
         {
-            TLOGDEBUG("loaded inactive rate failed, active(" << iActive << ") inactive(" << iInactive << ")" << endl);
+            TLOG_DEBUG("loaded inactive rate failed, active(" << iActive << ") inactive(" << iInactive << ")" << endl);
             return -2;
         }
 
@@ -1219,13 +1268,13 @@ int CDbHandle::computeInactiveRate()
     catch (TC_Mysql_Exception& ex)
     {
         sendSqlErrorAlarmSMS(string("CDbHandle::computeInactiveRate:") + ex.what());
-        TLOGERROR("CDbHandle::computeInactiveRate exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::computeInactiveRate exception: " << ex.what() << endl);
         return -3;
     }
     catch (exception& ex)
     {
 	    sendSqlErrorAlarmSMS(string("CDbHandle::computeInactiveRate:") + ex.what());
-        TLOGERROR("CDbHandle::computeInactiveRate " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::computeInactiveRate " << ex.what() << endl);
         return -4;
     }
 }
@@ -1289,7 +1338,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
             TC_Mysql::MysqlData res1  = _mysqlReg.queryRecord(sSql1);
 
             TC_Mysql::MysqlData res2  = _mysqlReg.queryRecord(sSql2);
-            TLOGDEBUG("CDbHandle::loadObjectIdCache load " << (bLoadAll ? "all " : "") << "Active objects from db, records affected:" << (res1.size() + res2.size())
+            TLOG_DEBUG("CDbHandle::loadObjectIdCache load " << (bLoadAll ? "all " : "") << "Active objects from db, records affected:" << (res1.size() + res2.size())
                       << "|cost:" << (TNOWMS - iStart) << endl);
             iStart = TNOWMS;
             res = UnionRecord(res1, res2);
@@ -1300,7 +1349,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
             {
                 if (res[i]["servant"].empty() && res[i]["endpoint"].empty())
                 {
-                    TLOGDEBUG(res[i]["application"] << "-" << res[i]["server_name"] << "-" << res[i]["node_name"] << " NULL" << endl);
+                    TLOG_DEBUG(res[i]["application"] << "-" << res[i]["server_name"] << "-" << res[i]["node_name"] << " NULL" << endl);
                     ServantStatusKey statusKey = { res[i]["application"], res[i]["server_name"], res[i]["node_name"] };
                     mapStatus[statusKey] = (res[i]["setting_state"] == "active" && res[i]["present_state"] == "active") ? Active : Inactive;
                     continue;
@@ -1313,7 +1362,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 }
                 catch (exception& ex)
                 {
-                    TLOGERROR("CDbHandle::loadObjectIdCache " << ex.what() << endl);
+                    TLOG_ERROR("CDbHandle::loadObjectIdCache " << ex.what() << endl);
                     continue;
                 }
 
@@ -1354,7 +1403,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 if (epf.bakFlag == 1)
                 {
                     // 设置为备机时（bakFlag = 1）时， 节点不返回给客户端 
-                    TLOGDEBUG(res[i]["application"] << "." << res[i]["server_name"] << "-" << res[i]["node_name"] << " bakFlag==1" << endl);
+                    TLOG_DEBUG(res[i]["application"] << "." << res[i]["server_name"] << "-" << res[i]["node_name"] << " bakFlag==1" << endl);
                     continue;
                 }
 
@@ -1368,7 +1417,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 epf.weight = ep.getWeight();
                 epf.weightType = ep.getWeightType();
 
-                TLOGDEBUG("CDbHandle::loadObjectIdCache :" << res[i]["servant"] << "." << epf.host << "|"
+                TLOG_DEBUG("CDbHandle::loadObjectIdCache :" << res[i]["servant"] << "." << epf.host << "|"
                                                            << epf.grouprealid << "|" << epf.groupworkid << "|"
                                                            << "weightType: " << epf.weightType << "|" << epf.weight << "|"
                                                            << res[i]["setting_state"] << "|" << res[i]["present_state"]
@@ -1407,7 +1456,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 {
                     if (res[i]["set_name"].empty() || res[i]["set_area"].empty() || res[i]["set_group"].empty() || res[i]["set_name"] == "*" || res[i]["set_area"] == "*")
                     {
-                        TLOGERROR("CDbHandle::loadObjectIdCache: " << res[i]["servant"] << "." << epf.host << "|set division invalid[" << res[i]["set_name"] << "." << res[i]["set_area"] << "." << res[i]["set_group"] << "]" << endl);
+                        TLOG_ERROR("CDbHandle::loadObjectIdCache: " << res[i]["servant"] << "." << epf.host << "|set division invalid[" << res[i]["set_name"] << "." << res[i]["set_area"] << "." << res[i]["set_group"] << "]" << endl);
                         bSet = false;
                     }
                 }
@@ -1439,7 +1488,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
             }
             catch (TC_EndpointParse_Exception& ex)
             {
-                TLOGERROR("CDbHandle::loadObjectIdCache " << ex.what() << endl);
+                TLOG_ERROR("CDbHandle::loadObjectIdCache " << ex.what() << endl);
             }
         }
 
@@ -1447,7 +1496,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
         int iRate = bRecoverProtect == true ? computeInactiveRate() : 0;
         if (bRecoverProtect == true && iRate > iRecoverProtectRate && objectsCache.size() > 0)
         {
-            TLOGDEBUG("CDbHandle::loadObjectIdCache  now database recover protect valid, rate:" << iRate << ",iRecoverProtectRate:" << iRecoverProtectRate
+            TLOG_DEBUG("CDbHandle::loadObjectIdCache  now database recover protect valid, rate:" << iRate << ",iRecoverProtectRate:" << iRecoverProtectRate
                     << std::boolalpha << ",bRecoverProtect:" << bRecoverProtect << endl);
             return -1;
         }
@@ -1457,18 +1506,18 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
         updateFlowStatusCache(mapFlowStatus, bLoadAll);
         updateDivisionCache(setDivisionCache, bLoadAll);
 
-        TLOGDEBUG("loaded objects to cache  size:" << objectsCache.size() << endl);
-        TLOGDEBUG("loaded server status to cache size:" << mapStatus.size() << endl);
-        TLOGDEBUG("loaded server flow status to cache size:" << mapFlowStatus.size() << endl);
-        TLOGDEBUG("loaded set server to cache size:" << setDivisionCache.size() << endl);
+        TLOG_DEBUG("loaded objects to cache  size:" << objectsCache.size() << endl);
+        TLOG_DEBUG("loaded server status to cache size:" << mapStatus.size() << endl);
+        TLOG_DEBUG("loaded server flow status to cache size:" << mapFlowStatus.size() << endl);
+        TLOG_DEBUG("loaded set server to cache size:" << setDivisionCache.size() << endl);
         // FDLOG() << "loaded objects to cache size:" << objectsCache.size() << endl;
         // FDLOG() << "loaded set server to cache size:" << setDivisionCache.size() << endl;
 
-        TLOGDEBUG("CDbHandle::loadObjectIdCache parse " << (bLoadAll ? "all " : "") << "|cost:" << (TNOWMS - iStart) << endl);
+        TLOG_DEBUG("CDbHandle::loadObjectIdCache parse " << (bLoadAll ? "all " : "") << "|cost:" << (TNOWMS - iStart) << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::loadObjectIdCache exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::loadObjectIdCache exception: " << ex.what() << endl);
 
         sendSqlErrorAlarmSMS(string("CDbHandle::loadObjectIdCache:") + ex.what());
         if (fromInit)
@@ -1481,7 +1530,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     catch (exception& ex)
     {
 	    sendSqlErrorAlarmSMS(string("CDbHandle::loadObjectIdCache:") + ex.what());
-        TLOGDEBUG("CDbHandle::loadObjectIdCache " << ex.what() << endl);
+        TLOG_DEBUG("CDbHandle::loadObjectIdCache " << ex.what() << endl);
         if (fromInit)
         {
             //初始化是出现异常，退出
@@ -1497,7 +1546,7 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
 {
     if (bRegHeartbeatOff)
     {
-        TLOGDEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
+        TLOG_DEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
         return 0;
     }
 
@@ -1505,7 +1554,7 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
     map<string, string> mapServantEndpoint = g_app.getServantEndpoint();
     if (mapServantEndpoint.size() == 0)
     {
-        TLOGERROR("fatal error, get registry servant failed!" << endl);
+        TLOG_ERROR("fatal error, get registry servant failed!" << endl);
         return -1;
     }
 
@@ -1525,18 +1574,18 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
                     "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')";
         }
         _mysqlReg.execute(sSql);
-        TLOGDEBUG("CDbHandle::updateRegistryInfo2Db affected:" << _mysqlReg.getAffectedRows() << endl);
+        TLOG_DEBUG("CDbHandle::updateRegistryInfo2Db affected:" << _mysqlReg.getAffectedRows() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
 	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
-        TLOGERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
         return -1;
     }
     catch (exception& ex)
     {
 	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
-        TLOGERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -1567,7 +1616,7 @@ vector<EndpointF> CDbHandle::findObjectById(const string& id)
 int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp)
 {
 
-    TLOGDEBUG(__FUNCTION__ << " id: " << id << endl);
+    TLOG_DEBUG(__FUNCTION__ << " id: " << id << endl);
 
     ObjectsCache::iterator it;
     ObjectsCache& usingCache = _objectsCache.getReaderData();
@@ -1863,14 +1912,14 @@ int CDbHandle::getNodeTemplateName(const string nodeName, string& sTemplateName)
             sTemplateName = res[0]["template_name"];
         }
 
-        TLOGDEBUG("CDbHandle::getNodeTemplateName '" << nodeName << "' affected:" << res.size()
+        TLOG_DEBUG("CDbHandle::getNodeTemplateName '" << nodeName << "' affected:" << res.size()
                   << " get template_name:'" << sTemplateName << "'" << endl);
 
         return 0;
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOGERROR("CDbHandle::getNodeTemplateName exception: " << ex.what() << endl);
+        TLOG_ERROR("CDbHandle::getNodeTemplateName exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -1971,7 +2020,7 @@ void CDbHandle::sendSqlErrorAlarmSMS(const string &err)
     string errInfo = " ERROR:" + g_app.getAdapterEndpoint().getHost() +  ": registry error: " + err + ", please check!";
     TARS_NOTIFY_ERROR(errInfo);
 
-    TLOGERROR("TARS_NOTIFY_ERROR " << errInfo << endl);
+    TLOG_ERROR("TARS_NOTIFY_ERROR " << errInfo << endl);
 }
 
 uint32_t CDbHandle::stringIpToInt(const std::string& sip)
@@ -2011,7 +2060,7 @@ string CDbHandle::Ip2StarStr(uint32_t ip)
 
 int CDbHandle::updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive)
 {
-    TLOGDEBUG("CDbHandle::updateServerFlowState:" << app << "." << serverName << ", " << TC_Common::tostr(nodeList) << ", status:" << (bActive ? "active" : "inactive") << endl);
+    TLOG_DEBUG("CDbHandle::updateServerFlowState:" << app << "." << serverName << ", " << TC_Common::tostr(nodeList) << ", status:" << (bActive ? "active" : "inactive") << endl);
     TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
     for (size_t i = 0; i < nodeList.size(); i++)
     {

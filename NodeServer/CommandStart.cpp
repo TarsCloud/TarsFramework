@@ -25,6 +25,9 @@
 #define TARS_SCRIPT "tars_start.sh"
 #endif
 
+uid_t node_uid{0};
+gid_t node_gid{0};
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
@@ -108,14 +111,129 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     return EXECUTABLE;
 }
 
+//string CommandStart::getDockerComposeYaml(const ServerObjectPtr &serverObjectPtr)
+//{
+//	return  TC_File::simplifyDirectory(serverObjectPtr->getExePath() + FILE_SEP + "docker-compose.yaml");
+//}
+
+string CommandStart::getStartScript(const ServerObjectPtr &serverObjectPtr)
+{
+	return TC_File::simplifyDirectory(serverObjectPtr->getExePath() + FILE_SEP + TARS_SCRIPT);
+}
+//
+//bool CommandStart::prepareContainer()
+//{
+//	std::ostringstream stream;
+//
+//	constexpr char ONE_SPACE[] = " ";
+//	constexpr char TWO_SPACE[] = "  ";
+//	constexpr char YAML_ARRAY_FLAG[] = "-";
+//
+//	constexpr char COMPOSE_VERSION[] = R"(version:)";
+//	constexpr char COMPOSE_FIXED_VERSION_VALUE[] = R"("3")";
+//	stream << COMPOSE_VERSION << ONE_SPACE << COMPOSE_FIXED_VERSION_VALUE << std::endl;
+//
+//	constexpr char COMPOSE_SERVICES_FIELD[] = R"(services:)";
+//	stream << COMPOSE_SERVICES_FIELD << std::endl;
+//	stream << ONE_SPACE << _desc.application << "." << _desc.serverName << ":" << std::endl;
+//
+//	constexpr char COMPOSE_IMAGE_FIELD[] = R"(image:)";
+//	stream << TWO_SPACE << COMPOSE_IMAGE_FIELD << ONE_SPACE << _desc.baseImage << endl;
+//
+//	constexpr char COMPOSE_CONTAINER_NAME_FIELD[] = R"(container_name:)";
+//	stream << TWO_SPACE << COMPOSE_CONTAINER_NAME_FIELD << ONE_SPACE << _serverObjectPtr->getServerId() << endl;
+//
+//	constexpr char COMPOSE_ENTRYPOINT_FIELD[] = R"(entrypoint:)";
+//	stream << TWO_SPACE << COMPOSE_ENTRYPOINT_FIELD << ONE_SPACE << getStartScript(_serverObjectPtr) << endl;
+//
+//	constexpr char COMPOSE_PID_FIELD[] = R"(pid:)";
+//	constexpr char COMPOSE_FIXED_PID_VALUE[] = R"(host)";
+//	stream << TWO_SPACE << COMPOSE_PID_FIELD << ONE_SPACE << COMPOSE_FIXED_PID_VALUE << std::endl;
+//
+//#if PLATFORM_TARGET_LINUX
+//	constexpr char COMPOSE_POSTS_FIELD[] = R"(ports:)";
+//	stream << TWO_SPACE << COMPOSE_POSTS_FIELD << endl;
+//	for(auto port : _serverObjectPtr->getPorts())
+//	{
+//		stream <<TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << port << ":" << port << endl;
+//	}
+//
+//	constexpr char COMPOSE_NETWORK_FIELD[] = R"(network_mode:)";
+//	constexpr char COMPOSE_FIXED_NETWORK_VALUE[] = R"(host)";
+//	stream << TWO_SPACE << COMPOSE_NETWORK_FIELD << ONE_SPACE << COMPOSE_FIXED_NETWORK_VALUE << std::endl;
+//#endif
+//
+//	constexpr char COMPOSE_USER_FIELD[] = R"(user:)";
+//	node_uid = (node_uid == 0 ? getuid() : node_uid);
+//	node_gid = (node_gid == 0 ? getgid() : node_gid);
+//	stream << TWO_SPACE << COMPOSE_USER_FIELD << ONE_SPACE << "\"" << ::node_uid << ":" << ::node_gid << "\""<< std::endl;
+//
+//	constexpr char COMPOSE_VOLUMES_FIELD[] = R"(volumes:)";
+//
+//	stream << TWO_SPACE << COMPOSE_VOLUMES_FIELD << std::endl;
+//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getExePath() << ":" << _serverObjectPtr->getExePath() << std::endl;
+//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getDataDir() << ":" << _serverObjectPtr->getDataDir() << std::endl;
+//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getConfigPath() << ":" << _serverObjectPtr->getConfigPath() << std::endl;
+//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getLogPath() << ":" << _serverObjectPtr->getLogPath() << std::endl;
+//
+//	constexpr char FIXED_TIME_ZONE_FILE[] = "/etc/localtime";
+//	//映射 FIXED_TIME_ZONE_FILE 是为了保证容器程序的时区与主机时区一致
+//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << FIXED_TIME_ZONE_FILE << ":" << FIXED_TIME_ZONE_FILE << std::endl;
+//
+//	for (const auto &p:_serverObjectPtr->getVolumes()) {
+//		stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << p << std::endl;
+//	}
+//
+////	constexpr char COMPOSE_ENVIRONMENT_FIELD[] = R"(environment:)";
+////	stream << TWO_SPACE << COMPOSE_ENVIRONMENT_FIELD << std::endl;
+////
+////	for (const auto &env: vecEnvs) {
+////		stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << env << std::endl;
+////	}
+//
+//	TC_File::save2file(getDockerComposeYaml(_serverObjectPtr), stream.str());
+//
+//	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "docker-compose yaml:" << getDockerComposeYaml(_serverObjectPtr) << endl;
+//	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "docker-compose start script:" << getStartScript(_serverObjectPtr) << endl;
+//
+//	return true;
+//}
+
+#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
+
+int CommandStart::waitProcessDone(int64_t iPid)
+{
+	assert(iPid > 0);
+
+	if (iPid <= 0)
+	{
+		throw std::runtime_error("iPid must bigger than zero");
+	}
+
+	int process_status;
+
+	while (true)
+	{
+		int v = ::waitpid(iPid, &process_status, WNOHANG);
+		if (v != 0)
+		{
+			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	return process_status;
+}
+
+#endif
+
 bool CommandStart::startByScript(string& sResult)
 {
-    // int64_t iPid = -1;
     bool bSucc = false;
     string sStartScript     = _serverObjectPtr->getStartScript();
     string sMonitorScript   = _serverObjectPtr->getMonitorScript();
-
     string sServerId    = _serverObjectPtr->getServerId();
+
     _serverObjectPtr->getActivator()->activate(sStartScript, sMonitorScript, sResult);
 
     time_t tNow = TNOW;
@@ -147,7 +265,7 @@ bool CommandStart::startByScript(string& sResult)
 
     if (_serverObjectPtr->checkPid() != 0)
     {
-        sResult = sResult + "|get pid for server[" + sServerId + "],pid is not digit";
+        sResult = sResult + ", get pid for server[" + sServerId + "], pid is not digit";
         NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << sResult << endl;
 
         throw runtime_error(sResult);
@@ -156,31 +274,27 @@ bool CommandStart::startByScript(string& sResult)
     return bSucc;
 }
 
-
-bool CommandStart::startNormal(string& sResult)
+void CommandStart::prepareScript()
 {
-	int64_t iPid = -1;
-    bool bSucc  = false;
-    string sRollLogFile;
-    vector<string> vEnvs;
-    vector<string> vOptions;
-    string sConfigFile      = _serverObjectPtr->getConfigFile();
-    string sLogPath         = _serverObjectPtr->getLogPath();
-    string sServerDir       = _serverObjectPtr->getServerDir();
-    string sLibPath         = _serverObjectPtr->getLibPath();
-    string sExePath         = _serverObjectPtr->getExePath();
+	vector<string> vEnvs;
+	vector<string> vOptions;
+	string sConfigFile      = _serverObjectPtr->getConfigFile();
+	string sLogPath         = _serverObjectPtr->getLogPath();
+	string sServerDir       = _serverObjectPtr->getServerDir();
+	string sLibPath         = _serverObjectPtr->getLibPath();
+	string sExePath         = _serverObjectPtr->getExePath();
 
-    //环境变量设置
-    vector<string> vecEnvs = TC_Common::sepstr<string>(_serverObjectPtr->getEnv(), ";|");
-    for (vector<string>::size_type i = 0; i < vecEnvs.size(); i++)
-    {
-        vEnvs.push_back(vecEnvs[i]);
-    }
+	//环境变量设置
+	vector<string> vecEnvs = TC_Common::sepstr<string>(_serverObjectPtr->getEnv(), ";|");
+	for (vector<string>::size_type i = 0; i < vecEnvs.size(); i++)
+	{
+		vEnvs.push_back(vecEnvs[i]);
+	}
 
-    //生成启动脚本
-    std::ostringstream osStartStcript;
+	//生成启动脚本
+	std::ostringstream osStartStcript;
 #if TARGET_PLATFORM_WINDOWS
-    vEnvs.push_back("PATH=%PATH%;" + sExePath + ";" + sLibPath);
+	vEnvs.push_back("PATH=%PATH%;" + sExePath + ";" + sLibPath);
 
 	// osStartStcript << "set PATH = %PATH%; /etc/profile" << std::endl;
     for (vector<string>::size_type i = 0; i < vEnvs.size(); i++)
@@ -194,128 +308,227 @@ bool CommandStart::startNormal(string& sResult)
     osStartStcript << endl;
 
 #else
-    vEnvs.push_back("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:" + sExePath + ":" + sLibPath);
+	vEnvs.push_back("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:" + sExePath + ":" + sLibPath);
 
-    osStartStcript << "#!/bin/sh" << std::endl;
-	osStartStcript << "source /etc/profile" << std::endl;
-    for (vector<string>::size_type i = 0; i < vEnvs.size(); i++)
-    {
-        osStartStcript << "export " << vEnvs[i] << std::endl;
-    }
+	osStartStcript << "#!/bin/sh" << std::endl;
+
+	if(_serverObjectPtr->getRunType() != ServerObject::Container)
+	{
+		osStartStcript << "source /etc/profile" << std::endl;
+	}
+
+	for (vector<string>::size_type i = 0; i < vEnvs.size(); i++)
+	{
+		osStartStcript << "export " << vEnvs[i] << std::endl;
+	}
 #endif
 
-    osStartStcript << std::endl;
-    if (_serverObjectPtr->getServerType() == "tars_java")
-    {
-        //java服务
-//        TC_Config conf;
-//        conf.parseFile(_serverObjectPtr->getConfigFile());
-        string packageFormat= _serverObjectPtr->getPackageFormat();//conf.get("/tars/application/server<packageFormat>","war");
-        string sClassPath       = _serverObjectPtr->getClassPath();
-        vOptions.push_back("-Dconfig=" + sConfigFile);
-        string s ;
-        if("jar" == packageFormat)
-        {
-            s = _serverObjectPtr->getJvmParams() +  " " + _serverObjectPtr->getMainClass();
-        }else {
-            s = _serverObjectPtr->getJvmParams() + " -cp " + sClassPath +"/*" + " " + _serverObjectPtr->getMainClass();
-        }
-        vector<string> v = TC_Common::sepstr<string>(s, " \t");
-        vOptions.insert(vOptions.end(), v.begin(), v.end());
+	osStartStcript << std::endl;
+	if (_serverObjectPtr->getServerType() == "tars_java")
+	{
+		//java服务
+		string packageFormat= _serverObjectPtr->getPackageFormat();
+		string sClassPath       = _serverObjectPtr->getClassPath();
+		vOptions.push_back("-Dconfig=" + sConfigFile);
+		string s ;
+		if("jar" == packageFormat)
+		{
+			s = _serverObjectPtr->getJvmParams() +  " " + _serverObjectPtr->getMainClass();
+		}else {
+			s = _serverObjectPtr->getJvmParams() + " -cp " + sClassPath +"/*" + " " + _serverObjectPtr->getMainClass();
+		}
+		vector<string> v = TC_Common::sepstr<string>(s, " \t");
+		vOptions.insert(vOptions.end(), v.begin(), v.end());
 
 		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions);
-    }
-    else if (_serverObjectPtr->getServerType() == "tars_nodejs")
-    {
-        vOptions.push_back(sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node-agent") + FILE_SEP + string("bin") + FILE_SEP + string("node-agent"));
-        string s = sExePath + FILE_SEP + "src" + FILE_SEP +" -c " + sConfigFile;
-        vector<string> v = TC_Common::sepstr<string>(s," \t");
-        vOptions.insert(vOptions.end(), v.begin(), v.end());
+	}
+	else if (_serverObjectPtr->getServerType() == "tars_nodejs")
+	{
+		vOptions.push_back(sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node-agent") + FILE_SEP + string("bin") + FILE_SEP + string("node-agent"));
+		string s = sExePath + FILE_SEP + "src" + FILE_SEP +" -c " + sConfigFile;
+		vector<string> v = TC_Common::sepstr<string>(s," \t");
+		vOptions.insert(vOptions.end(), v.begin(), v.end());
 
-        //对于tars_nodejs类型需要修改下_exeFile
-        _exeFile = sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node");
+		//对于tars_nodejs类型需要修改下_exeFile
+		_exeFile = sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node");
 
-        osStartStcript << TARS_START << _exeFile <<" "<<TC_Common::tostr(vOptions);
-    }
-    else if (_serverObjectPtr->getServerType() == "tars_php")
-    {
-        TC_Config conf;
-        conf.parseFile(sConfigFile);
-        string entrance    = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php";
-        entrance = conf.get("/tars/application/server<entrance>", entrance);
+		osStartStcript << TARS_START << _exeFile <<" "<<TC_Common::tostr(vOptions);
+	}
+	else if (_serverObjectPtr->getServerType() == "tars_php")
+	{
+		TC_Config conf;
+		conf.parseFile(sConfigFile);
+		string entrance    = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php";
+		entrance = conf.get("/tars/application/server<entrance>", entrance);
 
-        vOptions.push_back(entrance);
-        vOptions.push_back("--config=" + sConfigFile);
-        osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
-    }
-    else
-    {
-        //c++ or go
-        vOptions.push_back("--config=" + sConfigFile);
-        osStartStcript  << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
-    }
+		vOptions.push_back(entrance);
+		vOptions.push_back("--config=" + sConfigFile);
+		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
+	}
+	else
+	{
+		//c++ or go
+		vOptions.push_back("--config=" + sConfigFile);
+		osStartStcript  << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
+	}
 
+	if(_serverObjectPtr->getRunType() != ServerObject::Container)
+	{
 #if !TARGET_PLATFORM_WINDOWS
-    osStartStcript << " &" << endl;
+		osStartStcript << " &" << endl;
+#endif
+	}
+
+	//保存启动方式到bin目录供手工启动
+	TC_File::save2file(getStartScript(_serverObjectPtr), osStartStcript.str());
+	TC_File::setExecutable(getStartScript(_serverObjectPtr), true);
+}
+
+
+bool CommandStart::startNormal(string& sResult)
+{
+	int64_t iPid = -1;
+	bool bSucc  = false;
+	string sRollLogFile;
+
+	string sLogPath = _serverObjectPtr->getLogPath();
+
+	if (sLogPath != "")
+	{
+		sRollLogFile = sLogPath + FILE_SEP + _desc.application + FILE_SEP + _desc.serverName + FILE_SEP + _desc.application + "." + _desc.serverName + ".log";
+	}
+
+	const string sPwdPath = sLogPath != "" ? sLogPath : _serverObjectPtr->getServerDir(); //pwd patch 统一设置至log目录 以便core文件发现 删除
+
+	iPid = _serverObjectPtr->getActivator()->activate(getStartScript(_serverObjectPtr), sPwdPath, sRollLogFile, vector<string>());
+	if (iPid == 0)  //child process
+	{
+		return false;
+	}
+
+#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
+	waitProcessDone(iPid);
 #endif
 
-    string scriptFile = sExePath + FILE_SEP + TARS_SCRIPT;
+	_serverObjectPtr->setPid(iPid);
 
-    //保存启动方式到bin目录供手工启动
-    TC_File::save2file(scriptFile, osStartStcript.str());
-    TC_File::setExecutable(scriptFile, true);
+	bSucc = (_serverObjectPtr->checkPid() == 0) ? true : false;
 
-    if (sLogPath != "")
-    {
-        sRollLogFile = sLogPath + FILE_SEP + _desc.application + FILE_SEP + _desc.serverName + FILE_SEP + _desc.application + "." + _desc.serverName + ".log";
-    }
-
-    const string sPwdPath = sLogPath != "" ? sLogPath : sServerDir; //pwd patch 统一设置至log目录 以便core文件发现 删除
-    iPid = _serverObjectPtr->getActivator()->activate(_exeFile, sPwdPath, sRollLogFile, vOptions, vEnvs);
-    if (iPid == 0)  //child process
-    {
-        return false;
-    }
-
-    _serverObjectPtr->setPid(iPid);
-
-    bSucc = (_serverObjectPtr->checkPid() == 0) ? true : false;
-
-    return bSucc;
+	return bSucc;
 }
+
+bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
+{
+//	const std::string sDockerComposeProjectName = serverObjectPtr->getServerId();
+//
+//	const vector<string> vOptions = {"-f", getDockerComposeYaml(serverObjectPtr), "-p", sDockerComposeProjectName, "up"};//, "-d"};
+//
+	//准备执行环境以及启动
+	std::string sRollLogFile;
+	string sLogPath = serverObjectPtr->getLogPath();
+
+	if (!sLogPath.empty()) {
+		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
+	}
+
+	ostringstream os;
+	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
+ 	os << serverObjectPtr->getDataDir() << ":" << serverObjectPtr->getDataDir() << " ";
+	os << serverObjectPtr->getConfigPath() << ":" << serverObjectPtr->getConfigPath() << " ";
+	os << serverObjectPtr->getLogPath() << ":" << serverObjectPtr->getLogPath() << " ";
+	os << "/etc/localtime" << ":" << "/etc/locatime" << " ";
+
+	vector<string> vOptions = {"run", "--rm", "--name", serverObjectPtr->getServerId()};
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getExePath() + ":" + serverObjectPtr->getExePath());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getDataDir() + ":" + serverObjectPtr->getDataDir());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back("/etc/localtime:/etc/localtime");
+
+#if !PLATFORM_TARGET_LINUX
+	for(auto port : serverObjectPtr->getPorts())
+	{
+		vOptions.emplace_back("-p");
+		vOptions.emplace_back(TC_Common::tostr(port)+":"+TC_Common::tostr(port));
+	}
+#else
+	vOptions.emplace_back("--net=host");
+#endif
+
+	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
+	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
+
+//	int64_t iPid = serverObjectPtr->getActivator()->activate("docker-compose", "", sRollLogFile, vOptions);//, vEnvs);
+	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
+
+	if (iPid <= 0)  //child process or error;
+	{
+		return false;
+	}
+
+	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "activate succ, pid:" << iPid << endl;
+
+	serverObjectPtr->setPid(iPid);
+
+	return true;
+//	return (serverObjectPtr->checkPid() == 0) ? true : false;
+}
+
 
 //////////////////////////////////////////////////////////////
 //
 int CommandStart::execute(string& sResult)
 {
+	bool bSucc  = false;
+
     int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
     try
     {
-        bool bSucc  = false;
-
         //set stdout & stderr
         _serverObjectPtr->getActivator()->setRedirectPath(_serverObjectPtr->getRedirectPath());
 
-        if (!_serverObjectPtr->getStartScript().empty() || _serverObjectPtr->isTarsServer() == false){
+		if (!_serverObjectPtr->getStartScript().empty() || _serverObjectPtr->isTarsServer() == false)
+		{
+			bSucc = startByScript(sResult);
+		}
+		else
+		{
+			prepareScript();
 
-            bSucc = startByScript(sResult);
-        }
-        else
-        {
-            bSucc = startNormal(sResult);
-        }
+			if(_serverObjectPtr->getRunType() == ServerObject::Container)
+			{
+//				prepareContainer();
 
-        if (bSucc == true)
-        {
-            _serverObjectPtr->synState();
-            _serverObjectPtr->setLastKeepAliveTime(TNOW);
-            _serverObjectPtr->setLimitInfoUpdate(true);
-            _serverObjectPtr->setStarted(true);
-			_serverObjectPtr->setStartTime(TNOWMS);
-            NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << _desc.application << "." << _desc.serverName << "_" << _desc.nodeName << " start succ " << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
+				g_app.getDockerPullThread()->pull(_serverObjectPtr, [startMs](ServerObjectPtr server, bool succ, string &result){
 
-            return 0;
-        }
+					NODE_LOG(server->getServerId())->debug() << "pull container finish " << (succ?"succ":"failed") << endl;
+
+					if(!succ)
+					{
+						startFinish(server, false, startMs, result);
+					}
+					else
+					{
+						succ = startContainer(server, result);
+
+						startFinish(server, succ, startMs, result);
+					}
+
+				});
+
+				return 0;
+
+			}
+			else
+			{
+				bSucc = startNormal(sResult);
+			}
+		}
     }
     catch (exception& e)
     {
@@ -327,15 +540,34 @@ int CommandStart::execute(string& sResult)
     }
     catch (...)
     {
-        sResult = "catch unkwon exception";
+        sResult = "catch unknown exception";
     }
 
-    NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << _desc.application << "." << _desc.serverName << " start  failed :" << sResult << ", use:" << (TC_TimeProvider::getInstance()->getNowMs() - startMs) << " ms" << endl;
-
-    _serverObjectPtr->setPid(0);
-    _serverObjectPtr->setState(ServerObject::Inactive);
-	_serverObjectPtr->setStarted(false);
+	startFinish(_serverObjectPtr, bSucc, startMs, sResult);
 
     return -1;
 }
 
+void CommandStart::startFinish(const ServerObjectPtr &serverObjectPtr, bool bSucc, int64_t startMs, const string &sResult)
+{
+	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "start finish: " << (bSucc?"succ":"failed") << ", use:"
+													   << (TNOWMS - startMs)
+													   << " ms" << endl;
+	if(bSucc)
+	{
+		serverObjectPtr->synState();
+		serverObjectPtr->setLastKeepAliveTime(TNOW);
+		serverObjectPtr->setLimitInfoUpdate(true);
+		serverObjectPtr->setStarted(true);
+		serverObjectPtr->setStartTime(TNOWMS);
+	}
+	else
+	{
+		NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "start failed, result:" << sResult << endl;
+
+		serverObjectPtr->setPid(0);
+		serverObjectPtr->setState(ServerObject::Inactive);
+		serverObjectPtr->setStarted(false);
+	}
+
+}

@@ -23,7 +23,7 @@ extern TC_Config *g_pconf;
 
 void RegistryServer::initialize()
 {
-    TLOGDEBUG("RegistryServer::initialize..." << endl);
+    TLOG_DEBUG("RegistryServer::initialize..." << endl);
 
     try
     {
@@ -78,12 +78,12 @@ void RegistryServer::initialize()
     }
     catch (TC_Exception& ex)
     {
-        TLOGERROR("RegistryServer initialize exception:" << ex.what() << endl);
+        TLOG_ERROR("RegistryServer initialize exception:" << ex.what() << endl);
         cerr << "RegistryServer initialize exception:" << ex.what() << endl;
         exit(-1);
     }
 
-    TLOGDEBUG("RegistryServer::initialize OK!" << endl);
+    TLOG_DEBUG("RegistryServer::initialize OK!" << endl);
 }
 
 
@@ -94,7 +94,7 @@ void RegistryServer::destroyApp()
         _registryProcThread->terminate();
     }
 
-    TLOGDEBUG("RegistryServer::destroyApp ok" << endl);
+    TLOG_DEBUG("RegistryServer::destroyApp ok" << endl);
 }
 
 RegistryProcThread* RegistryServer::getRegProcThread()
@@ -113,7 +113,7 @@ int RegistryServer::loadServantEndpoint()
 
         _mapServantEndpoint[iter->second] = ep.toString();
 
-        TLOGDEBUG("registry obj: " << iter->second << " = " << ep.toString() << endl);
+        TLOG_DEBUG("registry obj: " << iter->second << " = " << ep.toString() << endl);
     }
 
     return 0;
@@ -129,7 +129,7 @@ TC_Endpoint RegistryServer::getAdapterEndpoint() const
     }
     catch (exception& ex)
     {
-        TLOGERROR("RegistryServer::getAdapterEndpoint exception: " << ex.what() << endl);
+        TLOG_ERROR("RegistryServer::getAdapterEndpoint exception: " << ex.what() << endl);
     }
 
     return locator;

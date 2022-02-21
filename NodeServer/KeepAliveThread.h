@@ -16,8 +16,8 @@
 
 #ifndef __KEEP_ALIVE_THREAD_H_
 #define __KEEP_ALIVE_THREAD_H_
+
 #include "Node.h"
-// #include <unistd.h>
 #include "ServerFactory.h"
 #include "util/tc_monitor.h"
 #include "util/tc_thread.h"
@@ -44,10 +44,16 @@ public:
      */
     void terminate();
 
-    time_t getLatestKeepAliveTime() const
-    {
-        return _latestKeepAliveTime;
-    }
+	/**
+	 *
+	 * @return
+	 */
+    time_t getLatestKeepAliveTime() const { return _latestKeepAliveTime; }
+
+	/**
+	 * 检查docker仓库是改变以及登录
+	 */
+	vector<string> checkDockerRegistries(bool force = false);
 
 protected:
 
@@ -84,6 +90,10 @@ protected:
      */
     bool timedWait(int millsecond);
 
+	void loadDockerRegistry();
+
+	void saveDockerRegistry();
+
 protected:
 
     NodeInfo            _nodeInfo;
@@ -95,7 +105,7 @@ protected:
     int                 _monitorInterval;      //监控server状态的间隔时间(s)    
     int                 _reportAliveInterval;  //上报注册中心的心跳间隔(s)
     int                 _monitorIntervalMs;    //新的监控状态间隔，改成毫秒
-    int                 _synInterval;          //同步与regisrty server状态的间隔时间(s)
+    int                 _synInterval;          //同步与registry server状态的间隔时间(s)
     string              _synStatBatch;         //批量同步
 
     RegistryPrx         _registryPrx;
@@ -106,6 +116,10 @@ private:
 
     vector<ServerStateInfo>     _stat;         //服务状态列表
     TC_ThreadLock               _lock;
+
+	std::mutex						_dockerMutex;
+	map<string, DockerRegistry>		_dockerRegistries;	//仓库信息
+	size_t							_dockerLastUpdateTime;
 };
 
 

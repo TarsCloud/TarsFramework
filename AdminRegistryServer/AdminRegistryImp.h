@@ -286,7 +286,7 @@ public:
 	virtual int preparePatch_inner(const PrepareInfo &pi, string &result);
 
 //    virtual int preparePatch_inner(tars::PatchRequest & req, string &result, bool waitOtherThreadPreparePatchFile, std::shared_ptr<atomic_int>& preparePatchRet);
-	virtual int batchPatch_inner(const tars::PatchRequest & req, bool container, string &result);
+	virtual int batchPatch_inner(const tars::PatchRequest & req, string &result);
 
     /**
      * 发布成功
@@ -438,14 +438,21 @@ public:
 	virtual int updateServerFlowState(const string& application, const string& serverName, const vector<string>& nodeList, bool bActive, CurrentPtr current);
 
 	/**
-	 * 是否配置了容器仓库
+	 * 强制docker login
+	 * @param nodeName
 	 * @param current
 	 * @return
 	 */
-	virtual bool hasContainerRegistry(CurrentPtr current);
+	virtual int forceDockerLogin(const string &nodeName, vector<string> &result, CurrentPtr current);
 
 protected:
+	/**
+	 * 删除太早的历史记录
+	 * @param application
+	 * @param serverName
+	 */
     void deleteHistorys(const string &application, const string &serverName);
+
     string getRemoteLogIp(const string& serverIp);
 protected:
 
@@ -455,10 +462,6 @@ protected:
     string   _remoteLogObj;
 
 	RegistryPrx _registryPrx;
-//
-//	string   _containerRegistry;
-//	string   _userName;
-//	string   _password;
 };
 //
 //class PatchProCallbackImp: public NodePrxCallback

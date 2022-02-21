@@ -25,7 +25,7 @@ extern TC_Config * g_pconf;
 RegistryProcThread::RegistryProcThread()
 : _terminate(false)
 {
-    TLOGDEBUG("RegistryProcThread init ok"<<endl);
+    TLOG_DEBUG("RegistryProcThread init ok"<<endl);
 }
 
 RegistryProcThread::~RegistryProcThread()
@@ -106,7 +106,7 @@ void RegistryProcThreadRunner::run()
             RegistryProcInfo info;
             if(_proc->pop(info) && !_terminate)
             {
-                TLOGDEBUG("RegistryProcThreadRunner:run cmd:"<<info.cmd<<endl);
+                TLOG_DEBUG("RegistryProcThreadRunner:run cmd:"<<info.cmd<<endl);
 
                 if(info.cmd == EM_NODE_KEEPALIVE)
                 {
@@ -122,17 +122,17 @@ void RegistryProcThreadRunner::run()
                 }
                 else
                 {
-                    TLOGERROR("RegistryProcThreadRunner:run cmd:" << info.cmd << "|no support." << endl);
+                    TLOG_ERROR("RegistryProcThreadRunner:run cmd:" << info.cmd << "|no support." << endl);
                 }
             }
         }
         catch (exception& e)
         {
-            TLOGERROR("RegistryProcThreadRunner::run catch exception:"<<e.what()<<endl);
+            TLOG_ERROR("RegistryProcThreadRunner::run catch exception:"<<e.what()<<endl);
         }
         catch (...)
         {
-            TLOGERROR("RegistryProcThreadRunner::run catch unkown exception."<<endl);
+            TLOG_ERROR("RegistryProcThreadRunner::run catch unkown exception."<<endl);
         }
     }
 }

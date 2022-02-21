@@ -173,30 +173,19 @@ macro(copy_server server)
             COMMENT "cp ${server} & restart: copy ${BUILD_SERVER}/${server}/bin/ ${TARS_INSTALL_PATH}/tars/${server}/bin/")
 endmacro()
 
-add_custom_target(cp-tarsnode
-        WORKING_DIRECTORY ${WORKING_DIRECTORY}
-        DEPENDS tarsnode
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILD_SERVER}/tarsnode/bin/ ${TARS_INSTALL_PATH}/tars/tarsnode/bin/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/NodeServer/pull-docker.* ${TARS_INSTALL_PATH}/tars/tarsnode/bin/
-        COMMENT "cp tarsnode & restart: copy ${BUILD_SERVER}/tarsnode/bin/ ${TARS_INSTALL_PATH}/tars/tarsnode/bin/")
-
-add_custom_target(cp-tarspatch
-        WORKING_DIRECTORY ${WORKING_DIRECTORY}
-        DEPENDS tarspatch
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILD_SERVER}/tarspatch/bin/ ${TARS_INSTALL_PATH}/tars/tarspatch/bin/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/PatchServer/build-docker.* ${TARS_INSTALL_PATH}/tars/tarspatch/bin/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/PatchServer/Dockerfile ${TARS_INSTALL_PATH}/tars/tarspatch/bin/
-        COMMENT "cp tarspatch & restart: copy ${BUILD_SERVER}/tarspatch/bin/ ${TARS_INSTALL_PATH}/tars/tarspatch/bin/")
-
 copy_server(tarsAdminRegistry)
 copy_server(tarsnotify)
 copy_server(tarsstat)
+copy_server(tarsnode)
+copy_server(tarspatch)
 copy_server(tarsquerystat)
 copy_server(tarsqueryproperty)
 copy_server(tarsregistry)
 copy_server(tarslog)
 copy_server(tarsproperty)
 
+add_custom_target(cp
+        DEPENDS cp-tarsAdminRegistry cp-tarsnotify cp-tarsstat cp-tarsnode cp-tarspatch cp-tarsquerystat cp-tarsqueryproperty cp-tarsregistry cp-tarslog cp-tarsproperty)
 
 
 
