@@ -308,6 +308,7 @@ CREATE TABLE `t_server_conf` (
   `grid_flag` varchar(16) NOT NULL DEFAULT 'NORMAL',
   `flow_state` enum ('active','inactive') NOT NULL DEFAULT 'active',
   `run_type` varchar(32) NOT NULL DEFAULT '',
+  `base_image_id` int(11) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `application` (`application`,`server_name`,`node_name`),
   KEY `node_name` (`node_name`),
@@ -315,6 +316,43 @@ CREATE TABLE `t_server_conf` (
   KEY `index_regtime` (`registry_timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+
+--
+-- Table structure for table `t_base_image`
+--
+
+DROP TABLE IF EXISTS `t_base_image`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `t_base_image` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `image` varchar(255) NOT NULL DEFAULT '',
+      `registryId`  int(11) NOT NULL DEFAULT '',
+      `remark` varchar(255) NOT NULL DEFAULT '',
+      `create_time` datetime DEFAULT NULL,
+      `update_time` datetime DEFAULT NULL,
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+--
+-- Table structure for table `t_docker_registry`
+--
+
+DROP TABLE IF EXISTS `t_docker_registry`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `t_docker_registry` (
+                                `id` int(11) NOT NULL AUTO_INCREMENT,
+                                `registry` varchar(255) NOT NULL DEFAULT '',
+                                `username`  varchar(64) NOT NULL DEFAULT '',
+                                `password`  varchar(128) NOT NULL DEFAULT '',
+                                `remark` varchar(255) NOT NULL DEFAULT '',
+                                `create_time` datetime DEFAULT NULL,
+                                `update_time` datetime DEFAULT NULL,
+                                PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `t_server_group_relation`
