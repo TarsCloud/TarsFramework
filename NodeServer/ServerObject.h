@@ -28,6 +28,7 @@
 #include "PlatformInfo.h"
 #include "PropertyReporter.h"
 #include "ServerLimitResource.h"
+#include <mutex>
 
 using namespace tars;
 using namespace std;
@@ -68,7 +69,7 @@ public:
      */
     struct ServerLimitInfo
     {
-        bool    bEnableCoreLimit;             //资源属性开关
+        bool    bEnableCoreLimit;          //资源属性开关
         bool    bCloseCore;                //core属性的状态，屏蔽:true,打开:false
         EM_CoreType eCoreType;             //服务core的当前屏蔽方式
         int     iMaxExcStopCount;          //最大服务异常停止个数
@@ -192,24 +193,6 @@ public:
 	 */
     bool isEnSynState(){ return _enSynState;}
 
-    /**
-     * @brief Get the Run Type
-     * 
-     * @return RunType 
-     */
-    RunType getRunType() { return _eRunType; }
-
-	/**
-	 * 镜像仓库信息
-	 * @param dockerRegistry
-	 */
-	void setDockerRegistry(const DockerRegistry &dockerRegistry) { _dockerRegistry = dockerRegistry; }
-
-	/**
-	 * 获取镜像仓库信息
-	 * @return
-	 */
-	const DockerRegistry &getDockerRegistry() { return _dockerRegistry; }
 public:
 
     /**
@@ -247,13 +230,20 @@ public:
     * @para pid_t pid上报pid
     * @return void
     */
-    void keepAlive(int64_t pid, const string &adapter="");
+    void keepAlive(const ServerInfo &si, const string &adapter="");
 
-    /**
-     * 启动中状态
-     * @param pid
-     */
-    void keepActiving(int64_t pid);
+	/**
+	 * 
+	 * @param pid
+	 * @param adapter
+	 */
+	void keepAlive(int64_t pid, const string &adapter="");
+
+	/**
+	 * 启动中状态
+	 * @param pid
+	 */
+    void keepActiving(const ServerInfo &si);
 
     /**
     * 取的server最近keepAlive时间
@@ -422,20 +412,24 @@ public:
     int getPatchPercent(PatchInfo &tPatchInfo);
 
 public:
-    ServerDescriptor getServerDescriptor() { return  _desc; }
+    const ServerDescriptor &getServerDescriptor() { return  _desc; }
+	bool isContainer() { return _eRunType == ServerObject::Container; }
+	RunType getRunType() { return _eRunType; }
     ActivatorPtr getActivator() { return  _activatorPtr; }
     const string & getExePath() {return _exePath;}
     const string & getExeFile() {return _exeFile;}
     const string & getConfigFile(){return _confFile;}
-    const string & getLogPath(){return _logPath;}
+	string getConfigPath(){return TC_File::extractFilePath(_confFile);}
+	const string & getLogPath(){return _logPath;}
     const string & getLibPath(){return _libPath;}
     const string & getServerDir(){return _serverDir;}
-    const string & getServerId(){return _serverId;}
+	string getDataDir(){return TC_File::simplifyDirectory(_serverDir) + FILE_SEP + "data" + FILE_SEP;}
+	const string & getServerId(){return _serverId;}
     const string & getServerType(){return _serverType;}
     const string & getStartScript() {return _startScript;}
     const string & getStopScript() {return _stopScript;}
     const string & getMonitorScript() {return _monitorScript;}
-    const string & getVolumes() {return _sVolumes; }
+    const vector<string> & getVolumes() {return _sVolumes; }
     const string & getEnv() { return _env; }
     const string & getRedirectPath() {return _redirectPath;}
     const string & getPackageFormat() { return _packageFormat; }
@@ -445,9 +439,6 @@ public:
     const string & getMainClass() {return _mainClass;}
     const string & getClassPath() {return _classPath;}
     const string & getBackupFileNames(){return _backupFiles;}
-
-	//docker镜像
-	string getDockerImage(const string &sVersion) { return _dockerRegistry.sRegistry + "/" + TC_Common::lower(_application) + "/" + TC_Common::lower(_serverName) + ":" + sVersion; }
 
     void setServerDescriptor( const ServerDescriptor& tDesc );
     void setVersion( const string &version );
@@ -464,7 +455,7 @@ public:
     void setMacro(const map<string,string>& mMacro);
     void setScript(const string &sStartScript,const string &sStopScript,const string &sMonitorScript);
 
-    void setVolumes(const string & sVolumes) { _sVolumes = sVolumes; }
+    void setVolumes(const vector<string> & sVolumes) { _sVolumes = sVolumes; }
     void setEnv(const string & sEnv) { _env = sEnv; }
     void setHeartTimeout(int iTimeout) { _timeout = iTimeout; }
     //设置启动activating超时时间 ms
@@ -489,6 +480,22 @@ public:
 	//判断是否启动超时
 	bool isStartTimeOut();
 
+	//清除端口
+	void clearPorts() { _ports.clear(); }
+	//添加服务需要映射端口(docker需要, 尤其mac下)
+	void addPort(const int &port)
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		_ports.insert(port);
+	}
+
+	//返回映射的端口
+	set<int> getPorts()
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		return _ports;
+	}
+
 public:
     /**
      * auto check routine
@@ -500,8 +507,17 @@ public:
      */
     void setLimitInfoUpdate(bool bUpdate);
 
+	/**
+	 * set server limit info
+	 * @param tInfo
+	 */
     void setServerLimitInfo(const ServerLimitInfo& tInfo);
 
+	/**
+	 * set core limit
+	 * @param bCloseCore
+	 * @return
+	 */
     bool setServerCoreLimit(bool bCloseCore);
 
 public:
@@ -513,11 +529,9 @@ public:
 
 private:
     bool    _tarsServer;                //是否tars服务
-    string  _serverType;               //服务类型  tars_cpp tars_java not_tars
-    RunType  _eRunType;                 //运行类型,原生启动还是容器化启动
-    string   _sVolumes;                 //当运行类型是 container　时, 需要挂载的路径或文件,多个路径或文件以 | 分隔
-
-	DockerRegistry _dockerRegistry;		//docker仓库
+    string  _serverType;               	//服务类型  tars_cpp tars_java not_tars
+    RunType _eRunType;                 	//运行类型,原生启动还是容器化启动
+    vector<string> _sVolumes;           //当运行类型是 container　时, 需要挂载的路径或文件, 多行, 每行格式为: xxxpath:yyypath
 
 private:
     bool    _enabled;                  //服务是否有效
@@ -552,7 +566,8 @@ private:
     string _libPath;                   //动态库目录 一般为_desc.basePath/lib
     string _packageFormat;			   //上传包格式(tgz/jar/war, image), image表示镜像模式
     map<string,string> _macro;         //服务宏
-
+	std::mutex _mutex;
+	set<int>   _ports;					//容器模式下, 需要映射到宿主机的网络端口(mac下, 即使--net=host, 仍然需要配置映射)
 private:
     PatchInfo           _patchInfo;            //下载信息
 

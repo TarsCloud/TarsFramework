@@ -225,16 +225,50 @@ int CommandLoad::execute(string& sResult)
     return 0;
 }
 
+string CommandLoad::hostIp()
+{
+#if PLATFORM_TARGET_LINUX
+	return "127.0.0.1";
+#else
+	return "host.docker.internal";
+#endif
+}
+
+string CommandLoad::replaceHostLocalIp(const TC_Endpoint &ep)
+{
+	if(ep.getHost() == "127.0.0.1" || ep.getHost() == "localhost")
+	{
+		TC_Endpoint newEp = ep;
+		newEp.setHost(hostIp());
+		return newEp.toString();
+	}
+	else
+	{
+		return ep.toString();
+	}
+}
+
+string CommandLoad::replaceHostLocalIp(const string &ip)
+{
+	if(ip == "127.0.0.1" || ip == "localhost")
+	{
+		return hostIp();
+	}
+	else
+	{
+		return ip;
+	}
+}
+
 int CommandLoad::updateConfigFile(string& sResult)
 {
     try
     {
         //node根据server desc生成配置。
         TC_Config           tConf;
-        TC_Endpoint         tEp;
         map<string, string> m;
 
-        m["node"] = ServerConfig::Application + "." + ServerConfig::ServerName + ".ServerObj@" + g_app.getAdapterEndpoint("ServerAdapter").toString();
+        m["node"] = ServerConfig::Application + "." + ServerConfig::ServerName + ".ServerObj@" + replaceHostLocalIp(g_app.getAdapterEndpoint("ServerAdapter"));
         tConf.insertDomainParam("/tars/application/server", m, true);
         m.clear();
 
@@ -248,7 +282,15 @@ int CommandLoad::updateConfigFile(string& sResult)
                 continue;
             }
 
-            tEp.parse(itAdapters->second.endpoint);
+			TC_Endpoint         tEp;
+
+			tEp.parse(itAdapters->second.endpoint);
+
+			if(_serverObjectPtr->getRunType() == ServerObject::Container)
+			{
+				tEp.setHost("0.0.0.0");
+				_serverObjectPtr->addPort(tEp.getPort());
+			}
 
             {
                 std::lock_guard<std::mutex> lock(_mutex);
@@ -263,14 +305,17 @@ int CommandLoad::updateConfigFile(string& sResult)
             m["threads"]      = TC_Common::tostr(itAdapters->second.threadNum);
             m["servant"]      = TC_Common::tostr(itAdapters->second.servant);
             m["protocol"]     = itAdapters->second.protocol == "" ? "tars" : itAdapters->second.protocol;
-            // m["handlegroup"]  = itAdapters->second.handlegroup == "" ? itAdapters->first : itAdapters->second.handlegroup;
 
             tConf.insertDomainParam("/tars/application/server/" + itAdapters->first, m, true);
+
+			{
+				std::lock_guard<std::mutex> lock(_mutex);
+				_allPorts.insert(tEp.getPort());
+			}
         }
 
         //获取本地socket
-        uint16_t p = tEp.getPort();
-        TC_Endpoint tLocalEndpoint;
+        uint16_t p;
         try
         {
             //原始配置文件中有admin端口了, 直接使用
@@ -278,7 +323,7 @@ int CommandLoad::updateConfigFile(string& sResult)
             conf.parseFile(_confFile);
             TC_Endpoint ep;
             ep.parse(conf.get("/tars/application/server<local>"));
-            p = ep.getPort();            
+            p = ep.getPort();
         }
         catch(const std::exception& e)
         {
@@ -288,7 +333,16 @@ int CommandLoad::updateConfigFile(string& sResult)
                 p = 30000 + rand() % 15000;
                 TC_Socket s;
                 s.createSocket(SOCK_STREAM, AF_INET);
-                int ret = s.connectNoThrow("127.0.0.1", p);
+
+				int ret;
+				if(_serverObjectPtr->getRunType() == ServerObject::Container)
+				{
+					ret = s.connectNoThrow(hostIp(), p);
+				}
+				else
+				{
+					ret = s.connectNoThrow("127.0.0.1", p);
+				}
 
                 if(ret != 0 && _allPorts.find(p) == _allPorts.end())
                 {
@@ -298,21 +352,61 @@ int CommandLoad::updateConfigFile(string& sResult)
             }
         }
 
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            _allPorts.insert(tEp.getPort());
-        }
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
+			_allPorts.insert(p);
+		}
 
-        tLocalEndpoint.setPort(p);
-        tLocalEndpoint.setHost("127.0.0.1");
-        tLocalEndpoint.setType(TC_Endpoint::TCP);
+		TC_Endpoint tLocalEndpoint;
+		tLocalEndpoint.setPort(p);
+
+		if(_serverObjectPtr->getRunType() == ServerObject::Container)
+		{
+			tLocalEndpoint.setHost("0.0.0.0");
+			_serverObjectPtr->addPort(tLocalEndpoint.getPort());
+
+		}
+		else
+		{
+			tLocalEndpoint.setHost("127.0.0.1");
+		}
+
+		tLocalEndpoint.setType(TC_Endpoint::TCP);
         tLocalEndpoint.setTimeout(10000);
 
         //需要宏替换部分配置
         TC_Config tConfMacro;
         map<string, string> mMacro;
         mMacro.clear();
-        mMacro["locator"] = Application::getCommunicator()->getProperty("locator");
+
+		string locator = Application::getCommunicator()->getProperty("locator");
+		if(!locator.empty())
+		{
+			string::size_type pos = locator.find("@");
+			string obj;
+
+			if(pos != string::npos)
+			{
+				obj = locator.substr(0, pos);
+				locator = locator.substr(pos + 1);
+
+				vector<string> vEndpoints = TC_Endpoint::sepEndpoint(locator);
+
+				locator = "";
+				for(size_t i = 0; i < vEndpoints.size(); i++)
+				{
+					TC_Endpoint ep;
+					ep.parse(vEndpoints[i]);
+
+					locator += replaceHostLocalIp(ep) + ":";
+                    
+                    if(i != vEndpoints.size() - 1)
+                        locator += ":";
+				}
+
+				mMacro["locator"] = obj + "@" + locator;
+			}
+		}
 
         //>>修改成从主控获取locator地址
         vector<tars::EndpointF> activeEp;
@@ -345,9 +439,10 @@ int CommandLoad::updateConfigFile(string& sResult)
             string sLocator = AdminProxy::getInstance()->getQueryProxyName() + "@";
             for (size_t i = 0; i < activeEp.size(); ++i)
             {
-                string sSingleAddr = "tcp -h " + activeEp[i].host + " -p " + TC_Common::tostr(activeEp[i].port);
+                string sSingleAddr = "tcp -h " + replaceHostLocalIp(activeEp[i].host) + " -p " + TC_Common::tostr(activeEp[i].port);
                 sLocator += sSingleAddr + ":";
             }
+
             sLocator = sLocator.substr(0, sLocator.length() - 1);
             mMacro["locator"] = sLocator;
 	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile:" << _serverObjectPtr->getServerId() << "|locator|" << sLocator << endl;
@@ -379,7 +474,9 @@ int CommandLoad::updateConfigFile(string& sResult)
             mMacro["setdivision"] = "NULL";
         }
 
-        mMacro["asyncthread"] = TC_Common::tostr(_desc.asyncThreadNum);
+        mMacro["asyncthread"] 	= TC_Common::tostr(_desc.asyncThreadNum);
+		mMacro["baseimage"] 	= _desc.baseImage;
+		mMacro["sha"] 			= _desc.sha;
 
         //创建目录
         TC_File::makeDirRecursive(mMacro["basepath"]);
@@ -423,7 +520,7 @@ int CommandLoad::updateConfigFile(string& sResult)
         _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "")));
         _serverObjectPtr->setPackageFormat(tConf.get("/tars/application/server<packageFormat>", "tgz"));
 
-		_serverObjectPtr->setVolumes(tConf.get("/tars/<volumes>", ""));
+		_serverObjectPtr->setVolumes(tConf.getDomainLine("/tars/appplication<volumes>"));
         
         _serverObjectPtr->setRedirectPath(tConf.get("/tars/application/<redirectpath>", ""));
 
@@ -496,7 +593,6 @@ void CommandLoad::getRemoteConf()
         {
 	        NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::getRemoteConf [fail] get remote file list"<< endl;
             g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName, sResult); 
-            // g_app.reportServer( sResult);
         }
 
         for (unsigned i = 0; i < vf.size(); i++)

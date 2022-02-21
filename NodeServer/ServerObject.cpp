@@ -24,10 +24,9 @@
 #include "CommandStart.h"
 #include "CommandNotify.h"
 #include "CommandStop.h"
-#include "CommandDestroy.h"
+//#include "CommandDestroy.h
 #include "CommandAddFile.h"
-#include "DockerStop.h"
-#include "DockerStart.h"
+//#include "DockerStop.h.bak"
 
 ServerObject::ServerObject( const ServerDescriptor& tDesc)
 : _tarsServer(true)
@@ -104,7 +103,7 @@ void ServerObject::setServerDescriptor( const ServerDescriptor& tDesc )
 	_eRunType       = (tDesc.runType == "container"?Container:Native);
     _desc.settingState == "active"?_enabled = true:_enabled = false;
 
-	NODE_LOG(_serverId)->debug() << "ServerObject::setServerDescriptor "<< _serverId <<endl;
+	NODE_LOG(_serverId)->debug() << "ServerObject::setServerDescriptor "<< _desc.runType <<endl;
 
 	time_t now = TNOW;
     _adapterKeepAliveTime.clear();
@@ -122,7 +121,6 @@ bool ServerObject::isAutoStart()
 {
     Lock lock(*this);
 
-    // NODE_LOG(_serverId)->debug()<<FILE_FUN<< _serverId <<"|"<<_enabled<<"|"<<_loaded<<"|"<<_patched<<"|"<<toStringState(_state)<<endl;
     if(toStringState(_state).find( "ing" ) != string::npos)  //正处于中间态时不允许重启动
     {
 	    NODE_LOG(_serverId)->debug() << "ServerObject::isAutoStart " << _serverId <<" not allow to restart in (ing) state"<<endl;
@@ -243,7 +241,7 @@ void ServerObject::synState()
         //日志
         stringstream ss;
         tServerStateInfo.displaySimple(ss);
-        NODE_LOG(_serverId)->debug()<<FILE_FUN << "synState" << "|"<< _nodeInfo.nodeName << "|" <<  _serverId << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
+        NODE_LOG(_serverId)->debug()<<FILE_FUN << "synState state:" << std::boolalpha << _enSynState <<", " << ss.str() << endl;
     }
     catch (exception &e)
     {
@@ -267,8 +265,7 @@ void ServerObject::asyncSynState()
         //日志
         stringstream ss;
         tServerStateInfo.displaySimple(ss);
-        NODE_LOG(_serverId)->debug()<<FILE_FUN<< _nodeInfo.nodeName << "|" << _serverId
-                << "|" << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
+        NODE_LOG(_serverId)->debug()<<FILE_FUN << "enSynState: " << std::boolalpha << _enSynState <<"|" << ss.str() << endl;
 
     }
     catch (exception &e)
@@ -367,90 +364,149 @@ string ServerObject::toStringState(InternalServerState eState) const
 
 int ServerObject::checkPid()
 {
-    // Lock lock(*this);
-	int iRet = 0;
-
-	if(_pid != 0)
-    {
-#if TARGET_PLATFORM_WINDOWS
-        HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, _pid);
-        if (hProcess == NULL)
-        {
-            iRet = -1;
-        }
-		CloseHandle(hProcess);
-        if (iRet == 0)
-        {
-            // NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId << "|" << _pid << " exists, ret:" << iRet << ", " <<  TC_Exception::getSystemCode() << endl;
-            return 0;
-        }
-
-        NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
-
-#else        
-        iRet = ::kill(static_cast<pid_t>(_pid), 0);
-		if (iRet != 0)// && (errno == ESRCH || errno == ENOENT ))
+	if (isContainer())
+	{
+		string command = "docker inspect -f '{{.State.Status}}' " + getServerId() + "  2>&1";
+		string out = TC_Common::trim(TC_Port::exec(command.c_str()));
+		if(out == "running")
 		{
-			NODE_LOG(_serverId)->error() << "kill " << signal << " to pid, pid not exsits, pid:" << _pid << ", catch exception|" << errno << endl;
-			return -1;
+			return 0;
 		}
 
-		return 0;
+		if(g_app.getDockerPullThread()->isPulling(this))
+		{
+			NODE_LOG(_serverId)->debug() << "is docker pulling" << endl;
+			return 0;
+		}
+
+		NODE_LOG(_serverId)->debug() << "check container, out:" << out << endl;
+
+		return -1;
+	}
+	else
+	{
+		if (_pid > 0)
+		{
+			int iRet = 0;
+
+#if TARGET_PLATFORM_WINDOWS
+			HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, _pid);
+			if (hProcess == NULL)
+			{
+				iRet = -1;
+			}
+			CloseHandle(hProcess);
+			if (iRet == 0)
+			{
+				return 0;
+			}
+
+			NODE_LOG(_serverId)->debug() <<FILE_FUN<< _serverId << "|" << _pid << "| pid exists, ret:" << iRet << ", " << TC_Exception::getSystemCode() << endl;
+
+#else
+			iRet = ::kill(static_cast<pid_t>(_pid), 0);
+			if (iRet != 0)// && (errno == ESRCH || errno == ENOENT ))
+			{
+				NODE_LOG(_serverId)->error() << "kill " << signal << " to pid, pid not exsits, pid:" << _pid
+											 << ", catch exception: " << errno << endl;
+				return -1;
+			}
+
+			return 0;
 #endif
+		}
+		else
+		{
+			return -1;
+		}
 	}
 
-    return iRet;
+}
+//
+//int64_t ServerObject::toPid()
+//{
+//	assert(isContainer());
+//	string command = "docker ps --filter \"name=" + _application + "." + _serverName + "\" -q";
+//
+//	NODE_LOG(_serverId)->debug() << command <<endl;
+//
+//	string containerId = TC_Common::trim(TC_Port::exec(command.c_str()));
+//	if(containerId.empty())
+//	{
+//		NODE_LOG(_serverId)->error() << "ServerObject::toPid container not exists." <<endl;
+//		return -1;
+//	}
+//
+//	command = "docker inspect -f '{{.State.Pid}}' " + containerId;
+//
+//	string out = TC_Common::trim(TC_Port::exec(command.c_str()));
+//
+//	int64_t pid = TC_Common::strto<int64_t>(out);
+//
+//	NODE_LOG(_serverId)->debug() << command << ", out:" << out <<endl;
+//
+//	if(pid <= 0)
+//	{
+//		NODE_LOG(_serverId)->error() << "ServerObject::toPid containerId:" <<containerId << ", pid:" << pid <<endl;
+//		return -1;
+//	}
+//	return pid;
+//}
+
+void ServerObject::keepAlive(const ServerInfo &si, const string &adapter)
+{
+	keepAlive(si.pid, adapter);
 }
 
-void ServerObject::keepAlive(int64_t pid,const string &adapter)
+void ServerObject::keepAlive(int64_t pid, const string &adapter)
 {
-    Lock lock(*this);
-    if (pid <= 0)
-    {
-	    NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid "<<pid<<" error, pid <= 0"<<endl;
-        return;
-    }
-    time_t now  = TNOW;
-    setLastKeepAliveTime(now,adapter);
-    
-    //Java KeepAliive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
-    if (0 != checkPid() || _state != ServerObject::Active)
-    {    
-        setPid(pid);
-    }
+	if (pid <= 0)
+	{
+		NODE_LOG(_serverId)->error() << "ServerObject::keepAlive "<< _serverId << " pid:" << pid << " error, pid <= 0"<<endl;
+		return;
+	}
 
-    //心跳不改变正在转换期状态(Activating除外)
-    if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
-    {
-        setState(ServerObject::Active);
-    }
+	time_t now  = TNOW;
+	setLastKeepAliveTime(now,adapter);
 
-    if(!_loaded)
-    {
-        _loaded = true;
-    }
+	//Java KeepAlive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
+	if (0 != checkPid() || _state != ServerObject::Active)
+	{
+		setPid(pid);
+	}
 
-    if(!_patched)
-    {
-        _patched = true;
-    }
+	//心跳不改变正在转换期状态(Activating除外)
+	if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
+	{
+		setState(ServerObject::Active);
+	}
+
+	if(!_loaded)
+	{
+		_loaded = true;
+	}
+
+	if(!_patched)
+	{
+		_patched = true;
+	}
 }
 
-void ServerObject::keepActiving(int64_t pid)
+void ServerObject::keepActiving(const ServerInfo &si)
 {
     Lock lock(*this);
-    if (pid <= 0)
+    if (si.pid <= 0)
     {
-	    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _application << "." << _serverName << " pid "<<pid<<" error, pid <= 0"<<endl;
+	    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _application << "." << _serverName << " pid "<<si.pid<<" error, pid <= 0"<<endl;
         return;
     }
     else
     {
-	    NODE_LOG(_serverId)->debug() << FILE_FUN<<_serverType<< "|pid|" << pid <<"|server|"<<_application << "." << _serverName << endl;
+	    NODE_LOG(_serverId)->debug() << FILE_FUN<<_serverType<< "|pid: " << si.pid <<", server: "<<_application << "." << _serverName << endl;
     }
     time_t now  = TNOW;
     setLastKeepAliveTime(now);
-    setPid(pid);
+    setPid(si.pid);
 
     setState(ServerObject::Activating);
 }
@@ -554,13 +610,14 @@ void ServerObject::setVersion( const string & version )
 
 void ServerObject::setPid(int64_t pid)
 {
-    Lock lock(*this);
-    if (pid == _pid)
-    {
-        return;
-    }
-    NODE_LOG(_serverId)->debug()<<FILE_FUN<< _application << "." << _serverName << " pid changed! old pid:" << _pid << " new pid:" << pid << endl;
-    _pid = pid;
+	if (pid == _pid)
+	{
+		return;
+	}
+
+	NODE_LOG(_serverId)->debug() << FILE_FUN << " pid changed! " << _pid << " --->>> " << pid << endl;
+
+	_pid = pid;
 }
 
 void ServerObject::setPatchPercent(const int iPercent)
@@ -687,7 +744,7 @@ void ServerObject::doMonScript()
         else if(!_startScript.empty() || isTarsServer() == false)
         {
             int64_t pid = savePid();
-            if(pid >= 0)
+            if(pid > 0)
             {
                 keepAlive(pid); 
             }
@@ -702,6 +759,11 @@ void ServerObject::doMonScript()
 //checkServer时对服务所占用的内存上报到主控
 void ServerObject::checkServer(int iTimeout)
 {
+	if(_state == ServerObject::Inactive && _desc.settingState == "inactive")
+	{
+		return;
+	}
+
     try
     {
         string sResult;
@@ -742,16 +804,8 @@ void ServerObject::checkServer(int iTimeout)
             sResult = "[alarm] zombie process,no keep alive msg for " + TC_Common::tostr(iRealTimeout) + " seconds";
             NODE_LOG(_serverId)->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
 	        NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
-            if(_eRunType==Container){
-                DockerStop command(this, true);
-                command.doProcess();
-            }else {
-                CommandStop command(this, true);
-                command.doProcess();
-            }
-
-	        // CommandStop command(this, true);
-            // command.doProcess();
+            CommandStop command(this, true);
+            command.doProcess();
         }
 
         //启动服务
@@ -762,17 +816,9 @@ void ServerObject::checkServer(int iTimeout)
 	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
 
 	        g_app.reportServer(_serverId, "", getNodeInfo().nodeName, sResult);
-            int ret;
-            if(_eRunType==Container){
-                DockerStart command(this);
-                ret = command.doProcess();
-            }else {
-                CommandStart command(this);
-                ret = command.doProcess();
-            }
-            
-            NODE_LOG(_serverId)->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
-	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<"|start ret:" << ret << endl;
+
+            CommandStart command(this);
+            command.doProcess();
 
 	        //配置了coredump检测才进行操作
             if(_limitStateInfo.bEnableCoreLimit)
@@ -851,9 +897,14 @@ void ServerObject::reportMemProperty()
 
 void ServerObject::checkCoredumpLimit()
 {
+	if(_desc.settingState == "inactive")
+	{
+		return;
+	}
+
     if(_state != ServerObject::Active)
     {
-        NODE_LOG(_serverId)->debug() << FILE_FUN << getServerId() <<", server is inactive"<<endl;
+        NODE_LOG(_serverId)->debug() << FILE_FUN << getServerId() <<", server is inactive, set state:" << _desc.settingState <<endl;
         return;
     }
 
@@ -937,13 +988,11 @@ void ServerObject::resetCoreInfo()
 
 void ServerObject::setStarted(bool bStarted)
 {
-	Lock lock(*this);
-	_started=bStarted;
+	_started = bStarted;
 }
 
 void ServerObject::setStartTime(int64_t iStartTime)
 {
-	Lock lock(*this);
 	_startTime = iStartTime;
 }
 
@@ -974,3 +1023,4 @@ void ServerObject::callback_updateServer_exception(tars::Int32 ret)
 {
     onUpdateServerResult(ret == 0 ? -1 : ret);
 }
+

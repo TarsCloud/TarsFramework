@@ -27,8 +27,6 @@
 #include "CommandPatch.h"
 #include "AdminReg.h"
 #include "util/tc_timeprovider.h"
-#include "DockerStart.h"
-#include "DockerServerToolBox.h"
 
 extern BatchPatch * g_BatchPatchThread;
 
@@ -409,17 +407,9 @@ int NodeImp::startServer( const string& application, const string& serverName,st
         if ( pServerObjectPtr )
         {
             bool bByNode = true;
-            ServerObject::RunType eRunType = pServerObjectPtr->getRunType();
-            if(eRunType == ServerObject::Container)
-			{
-                NODE_LOG(serverId)->debug()<<FILE_FUN <<"container" << endl;
-                DockerStart command(pServerObjectPtr,bByNode);
-                iRet = command.doProcess(s);
-            }else {
-                NODE_LOG(serverId)->debug()<<FILE_FUN <<"native" << endl;
-                CommandStart command(pServerObjectPtr,bByNode);
-                iRet = command.doProcess(s);
-            }
+
+            CommandStart command(pServerObjectPtr,bByNode);
+            iRet = command.doProcess(s);
 
             if (iRet == 0 )
             {
@@ -471,7 +461,7 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
 
         if (pServerObjectPtr)
         {
-            NODE_LOG(serverId)->debug() << "server exists" << endl;
+            NODE_LOG(serverId)->debug() << serverId << " server exists to stop server" << endl;
 
             string s;
             bool bByNode = true;
@@ -487,20 +477,14 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
             }
             NODE_LOG(serverId)->debug()<<FILE_FUN <<result << endl;
         }
-        else
-		{
-	        NODE_LOG(serverId)->debug() <<FILE_FUN<< " " << serverId << " not exists, load from registry" << endl;
-
-	        pServerObjectPtr = ServerFactory::getInstance()->loadServer(application, serverName, false, result);
-        }
+		//可能改变了服务设置状态, 重新加载一次!
+	    pServerObjectPtr = ServerFactory::getInstance()->loadServer(application, serverName, false, result);
 
         if(!pServerObjectPtr)
         {
             result += "server is  not exist";
             iRet = EM_TARS_LOAD_SERVICE_DESC_ERR;
         }
-
-//	    NODE_LOG(serverId)->debug() << FILE_FUN<< " ret:" << result << endl;
 
 	    return iRet;
     }
@@ -1025,6 +1009,31 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 
 	NODE_LOG(serverId)->debug() << fileData << endl;
 #endif
+
+	return 0;
+}
+
+int NodeImp::forceDockerLogin(vector<string> &result, tars::TarsCurrentPtr current)
+{
+	TLOG_DEBUG("" << endl);
+
+	string out = TC_Port::exec("docker --version");
+	if(out.find("version") == string::npos)
+	{
+		result.push_back("docker not exists.");
+	}
+//	out = TC_Port::exec("docker-compose --version");
+//	if(out.find("version") == string::npos)
+//	{
+//		result.push_back("docker-compose not exists.");
+//	}
+
+	if(!result.empty())
+	{
+		return 0;
+	}
+
+	result = g_app.getKeepAliveThread()->checkDockerRegistries(true);
 
 	return 0;
 }

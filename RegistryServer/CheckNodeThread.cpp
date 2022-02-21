@@ -38,7 +38,7 @@ CheckNodeThread::~CheckNodeThread()
 
 int CheckNodeThread::init()
 {
-    TLOGDEBUG("CheckNodeThread init"<<endl);
+    TLOG_DEBUG("CheckNodeThread init"<<endl);
 
     //初始化配置db连接
     _db.init(g_pconf);
@@ -50,14 +50,14 @@ int CheckNodeThread::init()
     _nodeTimeoutInterval = TC_Common::strto<int>((*g_pconf).get("/tars/reap<nodeTimeoutInterval>", "60"));
     _nodeTimeoutInterval = _nodeTimeoutInterval < 15 ? 15 : _nodeTimeoutInterval;
 
-    TLOGDEBUG("CheckNodeThread init ok."<<endl);
+    TLOG_DEBUG("CheckNodeThread init ok."<<endl);
 
     return 0;
 }
 
 void CheckNodeThread::terminate()
 {
-    TLOGDEBUG("CheckNodeThread terminate" << endl);
+    TLOG_DEBUG("CheckNodeThread terminate" << endl);
     _terminate = true;
 }
 
@@ -85,11 +85,11 @@ void CheckNodeThread::run()
         }
         catch(exception & ex)
         {
-            TLOGERROR("CheckNodeThread exception:" << ex.what() << endl);
+            TLOG_ERROR("CheckNodeThread exception:" << ex.what() << endl);
         }
         catch(...)
         {
-            TLOGERROR("CheckNodeThread unknown exception" << endl);
+            TLOG_ERROR("CheckNodeThread unknown exception" << endl);
         }
     }
 }

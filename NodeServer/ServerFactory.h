@@ -55,7 +55,7 @@ public:
      * @param result    结果
      * @return  ServerObjectPtr
      */
-    ServerObjectPtr createServer( const ServerDescriptor& tDesc, const DockerRegistry& dockerRegistry, string& result, bool succ);
+    ServerObjectPtr createServer( const ServerDescriptor& tDesc, string& result, bool succ);
 
     /**
      * 删除指定服务
@@ -143,16 +143,16 @@ public:
      *    是否上报节点负载信息
      */
     bool getReportLoadInfo() {return _bReportLoadInfo;}
-
-	/**
-	 * 从本地文件中加载(启动时调用)
-	 */
-	void loadDockerRegistry();
-
-	/**
-	 * 存储配置
-	 */
-	void saveDockerRegistry();
+//
+//	/**
+//	 * 从本地文件中加载(启动时调用)
+//	 */
+//	void loadDockerRegistry();
+//
+//	/**
+//	 * 存储配置
+//	 */
+//	void saveDockerRegistry();
 
 private:
 
@@ -173,9 +173,6 @@ private:
     PlatformInfo             _tPlatformInfo;
 
 private:
-
-	//镜像仓库信息
-	DockerRegistry 			_dockerRegistry;
 
     //<app.server,ServerLimitStateInfo>
     TC_ReadersWriterData<map<string, ServerObject::ServerLimitInfo> > _mServerCoreConfig;

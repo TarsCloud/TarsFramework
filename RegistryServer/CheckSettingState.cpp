@@ -38,7 +38,7 @@ CheckSettingState::~CheckSettingState()
 
 int CheckSettingState::init()
 {
-    TLOGDEBUG("CheckSettingStateThread init"<<endl);
+    TLOG_DEBUG("CheckSettingStateThread init"<<endl);
 
     //初始化配置db连接
     _db.init(g_pconf);
@@ -50,14 +50,14 @@ int CheckSettingState::init()
     _leastChangedTime = TC_Common::strto<int>((*g_pconf).get("/tars/reap<querylesttime>", "600"));
     _leastChangedTime = _leastChangedTime < 60 ? 60 : _leastChangedTime;
 
-    TLOGDEBUG("CheckSettingStateThread init ok."<<endl);
+    TLOG_DEBUG("CheckSettingStateThread init ok."<<endl);
 
     return 0;
 }
 
 void CheckSettingState::terminate()
 {
-    TLOGDEBUG("[CheckSettingStateThread terminate.]" << endl);
+    TLOG_DEBUG("[CheckSettingStateThread terminate.]" << endl);
     _terminate = true;
 }
 
@@ -86,11 +86,11 @@ void CheckSettingState::run()
         }
         catch(exception & ex)
         {
-            TLOGERROR("CheckSettingState exception:" << ex.what() << endl);
+            TLOG_ERROR("CheckSettingState exception:" << ex.what() << endl);
         }
         catch(...)
         {
-            TLOGERROR("CheckSettingState unknown exception." << endl);
+            TLOG_ERROR("CheckSettingState unknown exception." << endl);
         }
     }
 }

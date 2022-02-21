@@ -21,7 +21,7 @@ extern TC_Config * g_pconf;
 
 void QueryImp::initialize()
 {
-    TLOGDEBUG("begin QueryImp init"<<endl);
+    TLOG_DEBUG("begin QueryImp init"<<endl);
 
     //初始化配置db连接
     _db.init(g_pconf);
@@ -89,7 +89,7 @@ Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string
 
     if (vtSetInfo.size()!=3 ||(vtSetInfo.size()==3&&(vtSetInfo[0]=="*"||vtSetInfo[1]=="*")))
     {
-        TLOGERROR("QueryImp::findObjectByIdInSameSet:|set full name error[" << id << "_" << setId <<"]|" << current->getHostName()  << endl);
+        TLOG_ERROR("QueryImp::findObjectByIdInSameSet:|set full name error[" << id << "_" << setId <<"]|" << current->getHostName()  << endl);
         return -1;
     }
 
@@ -103,13 +103,13 @@ Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string
     else if (-2 == iRet)
     {
         //启动了set，但未找到任何服务节点
-        TLOGERROR("QueryImp::findObjectByIdInSameSet |no one server found for [" << id << "_" << setId <<"]|" << current->getHostName()  << endl);
+        TLOG_ERROR("QueryImp::findObjectByIdInSameSet |no one server found for [" << id << "_" << setId <<"]|" << current->getHostName()  << endl);
         return -1;
     }
     else if (-3 == iRet)
     {
         //启动了set，但未找到任何地区set,严格上不应该出现此类情形,配置错误或主调设置错误会引起此类错误
-        TLOGERROR("QueryImp::findObjectByIdInSameSet |no set area found [" << id << "_" << setId <<"]|" << current->getHostName()   << endl);
+        TLOG_ERROR("QueryImp::findObjectByIdInSameSet |no set area found [" << id << "_" << setId <<"]|" << current->getHostName()   << endl);
         return -1;
     }
 

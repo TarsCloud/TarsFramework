@@ -27,34 +27,6 @@ ServerFactory::ServerFactory()
 {
 }
 
-void ServerFactory::loadDockerRegistry()
-{
-	string buf = TC_File::load2str(ServerConfig::DataPath + "docker_registry.json");
-
-	if(!buf.empty())
-	{
-		Lock lock(*this);
-		try
-		{
-			_dockerRegistry.readFromJsonString(buf);
-		}
-		catch (exception &ex)
-		{
-			TLOG_ERROR("error:" << ex.what() << endl);
-		}
-	}
-}
-
-void ServerFactory::saveDockerRegistry()
-{
-	string buf;
-	{
-		Lock lock(*this);
-		buf = _dockerRegistry.writeToJsonString();
-	}
-
-	TC_File::save2file(ServerConfig::DataPath + "docker_registry.json", buf);
-}
 
 ServerObjectPtr ServerFactory::getServer( const string& application, const string& serverName )
 {
@@ -151,38 +123,11 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
         succ = false;
     }
 
-	DockerRegistry dockerRegistry;
-
-	{
-		try
-		{
-			RegistryPrx registryPrx = AdminProxy::getInstance()->getRegistryProxy();
-
-			registryPrx->getDockerRegistry(dockerRegistry);
-
-			NODE_LOG(serverId)->debug() << "getDockerRegistry:" << dockerRegistry.writeToJsonString() << endl;
-
-			{
-				Lock lock(*this);
-				_dockerRegistry = dockerRegistry;
-			}
-			saveDockerRegistry();
-		}
-		catch (exception& ex)
-		{
-			NODE_LOG(serverId)->error() << "getDockerRegistry error:" << ex.what() << endl;
-
-			//异常, 使用上一次的!
-			Lock lock( *this );
-			dockerRegistry = _dockerRegistry;
-		}
-	}
-
     for(unsigned i = 0; i < vServerDescriptor.size(); i++)
     {
     	NODE_LOG(serverId)->debug() << "createServer:" << vServerDescriptor[i].application << "." << vServerDescriptor[i].serverName << ", " << vServerDescriptor[i].nodeName << endl;
 
-        pServerObjectPtr = createServer(vServerDescriptor[i], dockerRegistry, result, succ);
+        pServerObjectPtr = createServer(vServerDescriptor[i], result, succ);
     }
 
     if(!pServerObjectPtr)
@@ -293,7 +238,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromCache( const string& applic
     return vServerDescriptor;
 }
 
-ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, const DockerRegistry& dockerRegistry, string& result, bool succ)
+ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, string& result, bool succ)
 {
     Lock lock( *this );
     string application  = tDesc.application;
@@ -310,7 +255,7 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, const
         if ( p2 != p1->second.end() && p2->second )
         {
             p2->second->setServerDescriptor(tDesc);
-            CommandLoad command(p2->second, dockerRegistry, _tPlatformInfo.getNodeInfo(), succ);
+            CommandLoad command(p2->second, _tPlatformInfo.getNodeInfo(), succ);
             int iRet = command.doProcess(result);
             if( iRet == 0)
             {
@@ -328,7 +273,7 @@ ServerObjectPtr ServerFactory::createServer(const ServerDescriptor& tDesc, const
     NODE_LOG(serverId)->debug() << FILE_FUN << " " <<  application << "." << serverName << " in cache, reload config." << endl;
 
     ServerObjectPtr pServerObjectPtr = new ServerObject(tDesc);
-    CommandLoad command(pServerObjectPtr, dockerRegistry, _tPlatformInfo.getNodeInfo(), succ);
+    CommandLoad command(pServerObjectPtr, _tPlatformInfo.getNodeInfo(), succ);
     int iRet = command.doProcess(result);
     if(iRet == 0)
     {

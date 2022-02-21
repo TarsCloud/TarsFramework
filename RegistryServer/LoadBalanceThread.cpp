@@ -28,12 +28,12 @@ void LoadBalanceThread::init()
                 << "finalProportion: " << finalProportion << "; ";
         }
 
-        TLOGDEBUG(log.str() << "|" << endl);
+        TLOG_DEBUG(log.str() << "|" << endl);
     }
 
     _dynamicSwitch = TC_Common::strto<int>(g_pconf->get("/tars/loadbalance<loadswitch>", "0"));
 
-    TLOGDEBUG("init _dynamicSwitch: " << _dynamicSwitch << "|"
+    TLOG_DEBUG("init _dynamicSwitch: " << _dynamicSwitch << "|"
                                       << "_loadInterval: " << _loadInterval << endl);
 }
 
@@ -44,7 +44,7 @@ void LoadBalanceThread::terminate()
 
 void LoadBalanceThread::run()
 {
-    TLOGDEBUG("LoadBalanceThread run _dynamicSwitch: " << _dynamicSwitch << "|"
+    TLOG_DEBUG("LoadBalanceThread run _dynamicSwitch: " << _dynamicSwitch << "|"
                                                         << "_loadInterval: " << _loadInterval << endl);
     while (!_terminate && _dynamicSwitch)
     {
@@ -54,11 +54,11 @@ void LoadBalanceThread::run()
         }
         catch (exception &e)
         {
-            TLOGERROR("LoadBalanceThread::run catch exception:" << e.what() << endl);
+            TLOG_ERROR("LoadBalanceThread::run catch exception:" << e.what() << endl);
         }
         catch (...)
         {
-            TLOGERROR("LoadBalanceThread::run catch unkown exception." << endl);
+            TLOG_ERROR("LoadBalanceThread::run catch unkown exception." << endl);
         }
 
         TC_Common::sleep(_loadInterval);
@@ -95,7 +95,7 @@ void LoadBalanceThread::updateDynamicWeight()
     log << "vtDynamicServer size: " << vtDynamicServer.size() << "|"
         << "loadCache from db size: " << loadCache.size() << "|";
 
-    TLOGDEBUG(log.str() << endl);
+    TLOG_DEBUG(log.str() << endl);
 
     // 打印一下从db里读到的原始数据
     printLoadCache(loadCache);
@@ -202,11 +202,11 @@ void LoadBalanceThread::getDynamicWeight(const string &servant, std::vector<tars
             }
         }
 
-        TLOGDEBUG(log.str() << "|" << endl);
+        TLOG_DEBUG(log.str() << "|" << endl);
         return;
     }
 
-    TLOGDEBUG(log.str() << endl);
+    TLOG_DEBUG(log.str() << endl);
 }
 
 void LoadBalanceThread::getDynamicWeight(const vector<LoadBalanceItem> &vtLoadBalanceInfo, tars::EndpointF &endpointF)
@@ -283,7 +283,7 @@ void LoadBalanceThread::mergeLoadInfo(LoadCache &loadCache)
 
         mapIp2LoadInfo.clear();
 
-        //TLOGDEBUG(log.str() << endl);
+        //TLOG_DEBUG(log.str() << endl);
     }
 }
 
@@ -299,7 +299,7 @@ void LoadBalanceThread::calculateWeight(LoadCache &loadCache)
         for (auto &loadInfo : loadPair.second.vtBalanceItem)
         {
             // 按每台机器在总耗时的占比反比例分配权重：权重 = 初始权重 *（耗时总和 - 单台机器平均耗时）/ 耗时总和
-            TLOGDEBUG("loadPair.second.aveTimeSum: " << loadPair.second.aveTimeSum << endl);
+            TLOG_DEBUG("loadPair.second.aveTimeSum: " << loadPair.second.aveTimeSum << endl);
             int aveTimeWeight(loadPair.second.aveTimeSum ? (DEFAULT_WEIGHT * ITEM_SIZE * (loadPair.second.aveTimeSum - loadInfo.aveTime) / loadPair.second.aveTimeSum) : 0);
             aveTimeWeight = aveTimeWeight <= 0 ? MIN_WEIGHT : aveTimeWeight;
             // 超时率权重：超时率权重 = 初始权重 - 超时率 * 初始权重 * 90%，折算90%是因为100%超时时也可能是因为流量过大导致的，保留小流量试探请求
@@ -314,7 +314,7 @@ void LoadBalanceThread::calculateWeight(LoadCache &loadCache)
                 << "loadInfo.weight: " << loadInfo.weight << "; ";
         }
 
-        TLOGDEBUG(log.str() << "|" << endl);
+        TLOG_DEBUG(log.str() << "|" << endl);
     }
 }
 
@@ -325,12 +325,12 @@ void LoadBalanceThread::updateWeightCache(LoadCache &loadCache)
     cache = std::move(loadCache);
     _loadCache.swap();
 
-    TLOGDEBUG("updateWeightCache swap|" << endl);
+    TLOG_DEBUG("updateWeightCache swap|" << endl);
 }
 
 void LoadBalanceThread::printLoadCache(LoadCache &loadCache)
 {
-    TLOGDEBUG("loadCache size: " << loadCache.size() << "|" << endl);
+    TLOG_DEBUG("loadCache size: " << loadCache.size() << "|" << endl);
     for (auto &loadPair : loadCache)
     {
         // 分开多行打印，数量多的情况下打在一起不方便看日志
@@ -352,6 +352,6 @@ void LoadBalanceThread::printLoadCache(LoadCache &loadCache)
                 << loadInfo.weightType << "; ";
         }
 
-        TLOGDEBUG(log.str() << "|" << endl);
+        TLOG_DEBUG(log.str() << "|" << endl);
     }
 }

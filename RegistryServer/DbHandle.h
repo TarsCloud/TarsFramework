@@ -189,6 +189,10 @@ public:
      */
     string getProfileTemplate(const string & sTemplateName, string & sResultDesc);
 
+	/**
+	 *
+	 * @param vtServant
+	 */
     void getAllDynamicWeightServant(std::vector<string> &vtServant);
     /**
      * 暂停服务， 关闭服务流量
@@ -198,6 +202,11 @@ public:
      * @return 0-成功 others-失败
      */
     int updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive);
+
+	/**
+	 * 加载docker仓库以及基础镜像消息
+	 */
+	int loadDockerInfo(vector<DockerRegistry> &info, unordered_map<string, pair<string, string>> &baseImages);
 
 protected:
     /**

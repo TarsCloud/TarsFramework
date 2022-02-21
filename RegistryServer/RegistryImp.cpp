@@ -30,10 +30,6 @@ void RegistryImp::initialize()
 
     _db.init(g_pconf);
 
-	_dockerRegistry.sRegistry = g_pconf->get("/tars/container<registry>", "");
-	_dockerRegistry.sUserName = g_pconf->get("/tars/container<username>", "");
-	_dockerRegistry.sPassword = g_pconf->get("/tars/container<password>", "");
-
     TLOG_DEBUG("RegistryImp init ok."<<endl);
 }
 
@@ -123,8 +119,8 @@ int RegistryImp::updatePatchResult(const PatchResult & result, CurrentPtr curren
     return _db.setPatchInfo(result.sApplication, result.sServerName, result.sNodeName, result.sVersion, result.sUserName);
 }
 
-int RegistryImp::getDockerRegistry(DockerRegistry &registry, CurrentPtr current)
+int RegistryImp::getDockerRegistry(vector<DockerRegistry> &doctorRegistries, CurrentPtr current)
 {
-	registry = _dockerRegistry;
+	doctorRegistries = g_app.getReapThread()->getDockerRegistry();
 	return 0;
 }

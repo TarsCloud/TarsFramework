@@ -128,7 +128,7 @@ public:
      * @return pid_t 生成子进程id 
      *
      */
-    int64_t activate(const string& strExePath, const string& strPwdPath, const string &strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs);
+    int64_t activate(const string& strExePath, const string& strPwdPath, const string &strRollLogPath, const vector<string>& vOptions);//, vector<string>& vEnvs);
 
     /**
      * 脚本启动服务
@@ -210,7 +210,6 @@ private:
     int     _punishInterval;           //惩罚受限时间间隔,单位分钟,配置
     
 private:
-    // bool    _termSignal;               //非tars服务脚本运行超时停止信号
     string  _redirectPath;               //标准输出和错误输出重定向目录
     ServerObject *_server = NULL;       //
 

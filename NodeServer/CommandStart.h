@@ -36,11 +36,63 @@ public:
     int execute(string& sResult);
 
 private:
+	/**
+	 * tars服务启动时准备启动脚本
+	 * @return
+	 */
+	void prepareScript();
+
+	/**
+	 * 启动普通的Tars服务
+	 * @param scriptFile
+	 * @param sResult
+	 * @return
+	 */
     bool startNormal(string& sResult);
 
+	/**
+	 * 启动以脚本形式启动的服务
+	 * @param sResult
+	 * @return
+	 */
     bool startByScript(string& sResult);
 
-    // bool startByScriptPHP(string& sResult);
+//	/**
+//	 * 准备容器
+//	 * @return
+//	 */
+//	bool prepareContainer();
+
+	/**
+	 * 在容器中启动!
+	 * @return
+	 */
+	static bool startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult);
+
+//	/**
+//	 * 获取docker compose 的yaml
+//	 * @return
+//	 */
+//	static string getDockerComposeYaml(const ServerObjectPtr &serverObjectPtr);
+
+	/**
+	 * 普通tars服务的启动脚本
+	 * @return
+	 */
+	static string getStartScript(const ServerObjectPtr &serverObjectPtr);
+
+#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
+	/**
+	 *
+	 * @param iPid
+	 * @return
+	 */
+	int waitProcessDone(int64_t iPid);
+#endif
+	/**
+	 * start成功
+	 */
+	static void startFinish(const ServerObjectPtr &serverObjectPtr, bool bSucc, int64_t startMs, const string &sResult);
 
 private:
     bool                _byNode;

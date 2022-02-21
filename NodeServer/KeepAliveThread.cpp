@@ -37,6 +37,8 @@ KeepAliveThread::KeepAliveThread()
 
     _latestKeepAliveTime    = TNOW;
 
+	loadDockerRegistry();
+
 }
 
 KeepAliveThread::~KeepAliveThread()
@@ -58,6 +60,33 @@ void KeepAliveThread::terminate()
     getThreadControl().join();
 }
 
+void KeepAliveThread::loadDockerRegistry()
+{
+	string buf = TC_File::load2str(ServerConfig::DataPath + "docker_registry.dat");
+
+	if(!buf.empty())
+	{
+		try
+		{
+			TarsInputStream<> is;
+			is.setBuffer(buf.c_str(), buf.length());
+			is.read(_dockerRegistries, 0, false);
+		}
+		catch (exception &ex)
+		{
+			TLOGEX_ERROR("KeepAliveThread", "error:" << ex.what() << endl);
+		}
+	}
+}
+
+void KeepAliveThread::saveDockerRegistry()
+{
+	TarsOutputStream<BufferWriterString> os;
+	os.write(_dockerRegistries, 0);
+
+	TC_File::save2file(ServerConfig::DataPath + "docker_registry.dat", os.getByteBuffer());
+}
+
 bool KeepAliveThread::timedWait(int millsecond)
 {
     TC_ThreadLock::Lock lock(_lock);
@@ -70,6 +99,97 @@ bool KeepAliveThread::timedWait(int millsecond)
     return _lock.timedWait(millsecond);
 }
 
+vector<string> KeepAliveThread::checkDockerRegistries(bool force)
+{
+	vector<string> result;
+
+	try
+	{
+		vector<DockerRegistry> dockerRegistries;
+
+		_registryPrx->getDockerRegistry(dockerRegistries);
+
+		std::lock_guard<std::mutex> lock(_dockerMutex);
+
+		if(force)
+		{
+			for(auto &e : dockerRegistries)
+			{
+				_dockerRegistries[e.sId] = e;
+			}
+		}
+		else
+		{
+			for (auto dr: dockerRegistries)
+			{
+				auto it = _dockerRegistries.find((dr.sId));
+
+				if (it != _dockerRegistries.end())
+				{
+					if (it->second.sRegistry != dr.sRegistry || it->second.sUserName != dr.sUserName ||
+						it->second.sPassword != dr.sPassword)
+					{
+						dr.bSucc = false;
+						_dockerRegistries[dr.sId] = dr;
+					}
+				}
+				else
+				{
+					dr.bSucc = false;
+					_dockerRegistries[dr.sId] = dr;
+				}
+			}
+		}
+
+		bool flag = false;
+
+		for (auto& e: _dockerRegistries)
+		{
+			if (!e.second.bSucc)
+			{
+				if(!e.second.sUserName.empty())
+				{
+					string command = "docker login '" + e.second.sRegistry + "' -u '" + e.second.sUserName + "' -p '" +
+									 e.second.sPassword + "' 2>&1";
+
+					string out = TC_Port::exec(command.c_str());
+
+					result.emplace_back(TC_Common::trim("(registry:" + e.second.sRegistry + ", username:" + e.second.sUserName + ") " + out));
+
+					NODE_LOG("KeepAliveThread")->debug() << "registry:" << e.second.sRegistry << ", user:"
+														 << e.second.sUserName << ", out:" << out << endl;
+
+					if (out.find("Succeeded") != string::npos)
+					{
+						flag = true;
+
+						_dockerRegistries[e.first].bSucc = true;
+					}
+				}
+				else
+				{
+					result.push_back("(" + e.second.sRegistry + ") no username, no need login");
+				}
+
+			}
+
+			NODE_LOG("KeepAliveThread")->debug() << _dockerRegistries[e.first].writeToJsonString() << endl;
+		}
+
+		if (flag)
+		{
+			saveDockerRegistry();
+		}
+	}
+	catch(exception &ex)
+	{
+		TLOGEX_ERROR("KeepAliveThread", ex.what() << endl);
+		result.emplace_back(string(ex.what()));
+	}
+
+	return result;
+}
+
 void KeepAliveThread::run()
 {
     bool bLoaded        = false;
@@ -77,27 +197,39 @@ void KeepAliveThread::run()
 
     int64_t updateConfigTime = TNOW;
 
+	do
+	{
+		//wait for access registry success!
+		_registryPrx = AdminProxy::getInstance()->getRegistryProxy();
+		try
+		{
+			_registryPrx->tars_set_timeout(1000)->tars_ping();
+			break;
+		}
+		catch (exception &ex)
+		{
+            cout << "keep alive:" << ex.what() << endl;
+		}
+	}while(true);
+
+	checkDockerRegistries();
+
     while (!_terminate)
     {
-//        int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
-
         try
         {
+			if(TNOW - _dockerLastUpdateTime > 10)
+			{
+				_dockerLastUpdateTime = TNOW;
+
+				checkDockerRegistries();
+			}
+
         	if(TNOW - updateConfigTime > 60 )
 	        {
 		        updateConfigTime = TNOW;
         		NodeServer::onUpdateConfig(NodeServer::NODE_ID, NodeServer::CONFIG);
 	        }
-
-            //获取主控代理
-            if (!_registryPrx)
-            {
-                _registryPrx = AdminProxy::getInstance()->getRegistryProxy();
-                if (!_registryPrx)
-                {
-                    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "RegistryProxy init  fail !  retry it after " + TC_Common::tostr(_monitorInterval) + " second" << endl;
-                }
-            }
 
             //注册node信息
             if (_registryPrx && bRegistered == false && !_nodeInfo.nodeName.empty())
@@ -138,8 +270,6 @@ void KeepAliveThread::run()
         {
             NODE_LOG("KeepAliveThread")->error() << FILE_FUN << "catch unkown exception|" << endl;
         }
-
-        // NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "run use:" << TNOWMS - startMs << " ms, wait:" << _monitorInterval << "ms" << endl;
 
         _latestKeepAliveTime = TNOW;
 
@@ -363,6 +493,4 @@ void KeepAliveThread::checkAlive()
     {
         synStat();
     }
-
-    // NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "checkAlive use:" << TNOWMS - startMs << " ms" << endl;
 }

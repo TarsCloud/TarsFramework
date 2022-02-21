@@ -20,6 +20,7 @@
 #include "servant/Application.h"
 #include "KeepAliveThread.h"
 #include "ReportMemThread.h"
+#include "DockerPullThread.h"
 #include "QueryF.h"
 #include "BatchPatchThread.h"
 #include "RemoveLogThread.h"
@@ -49,7 +50,7 @@ public:
      */
     TC_Endpoint getAdapterEndpoint(const string& name ) const;
 
-      /**
+    /**
      * 添加Config
      * @param filename
      */
@@ -84,11 +85,10 @@ public:
     KeepAliveThread* getKeepAliveThread() { return _keepAliveThread; }
 
 	/**
-	 *
+	 * 获取docker拉取线程
 	 * @return
 	 */
-	const string &getDockerPull() { return _dockerPull; }
-
+	DockerPullThread *getDockerPullThread() { return _dockerPullThread; }
 protected:
 
     //host 换成ip
@@ -125,11 +125,9 @@ private:
     ReportMemThread *    _reportMemThread;
 
     BatchPatch *        _batchPatchThread;
-    RemoveLogManager *    _removeLogThread;
+    RemoveLogManager *  _removeLogThread;
 
-	//pull docker的脚本路径
-	string _dockerPull;
-
+	DockerPullThread *	_dockerPullThread;
 
     static string       g_sNodeIp;
 };

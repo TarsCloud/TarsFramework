@@ -66,15 +66,15 @@ public:
      */
     int preparePatchFile(const string &app, const string &serverName, const string &patchFile, string &result, TarsCurrentPtr current);
 
-	/**
-	 * 准备好发布的镜像
-	 * @param app
-	 * @param serverName
-	 * @param serverVersion
-	 * @param current
-	 * @return
-	 */
-	int preparePatchImage(const string &app, const string &serverName, const string &serverVersion, const PatchImage & patchImage, string &result, CurrentPtr current);
+//	/**
+//	 * 准备好发布的镜像
+//	 * @param app
+//	 * @param serverName
+//	 * @param serverVersion
+//	 * @param current
+//	 * @return
+//	 */
+//	int preparePatchImage(const string &app, const string &serverName, const string &serverVersion, const PatchImage & patchImage, string &result, CurrentPtr current);
 
     /**
      * delete patch file

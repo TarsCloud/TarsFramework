@@ -211,6 +211,12 @@ public:
      */
 	int getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current);
 
+	/**
+	 * 强制docker做一次login
+	 * @return
+	 */
+	int forceDockerLogin(vector<string> &result, tars::TarsCurrentPtr current);
+
 private:
     string keyToStr(key_t key_value);
 

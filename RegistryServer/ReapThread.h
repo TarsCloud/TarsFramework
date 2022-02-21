@@ -55,6 +55,25 @@ public:
      */
     virtual void run();
 
+	/**
+	 * 获取docker仓库镜像地址
+	 * @return
+	 */
+	vector<DockerRegistry> getDockerRegistry();
+
+	/**
+	 * 根据基础镜像ID获取基础镜像
+	 * @param baseImageId
+	 * @return
+	 */
+	pair<string, string> getBaseImageById(const string &baseImageId);
+
+protected:
+	/**
+	 * 检查
+	 */
+	void checkDockerRegistries(const vector<DockerRegistry> &dockerRegistries);
+
 protected:
     /*
      * 线程结束标志
@@ -98,6 +117,22 @@ protected:
      * 主控心跳时间更新开关
      */
     bool       _heartBeatOff;
+
+	/*
+	 * 加载docker仓库镜像定时(秒)
+	 */
+	int        _checkDockerRegistry = 10;
+
+	/**
+	 * docker的镜像仓库
+	 */
+	vector<DockerRegistry> _dockerRegistries;
+
+	/**
+	 * 基础镜像信息
+	 * <id, <image, sha>>
+	 */
+	unordered_map<string, pair<string, string>> _baseImages;
 };
 
 #endif

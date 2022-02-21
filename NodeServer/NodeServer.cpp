@@ -18,7 +18,6 @@
 #include "NodeImp.h"
 #include "ServerImp.h"
 #include "RegistryProxy.h"
-//#include "NodeRollLogger.h.bak"
 #include "util/tc_md5.h"
 
 string NodeServer::g_sNodeIp;
@@ -52,21 +51,11 @@ void NodeServer::initialize()
         TLOG_ERROR("NodeServer::initialize ServerFactory loadConfig failure" << endl);
     }
 
-#if TARGET_PLATFORM_WINDOWS
-	_dockerPull = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "pull-docker.bat");
-#else
-	_dockerPull = TC_File::simplifyDirectory(ServerConfig::BasePath + FILE_SEP + "pull-docker.sh");
-	TC_File::setExecutable(_dockerPull, true);
-#endif
-
     //查看服务desc
-    TARS_ADD_ADMIN_CMD_PREFIX("tars.serverdesc", NodeServer::cmdViewServerDesc);
+    TARS_ADD_ADMIN_CMD_PREFIX("serverdesc", NodeServer::cmdViewServerDesc);
     TARS_ADD_ADMIN_CMD_PREFIX("reloadconfig", NodeServer::cmdReLoadConfig);
 
     initHashMap();
-
-	//load config from local
-	ServerFactory::getInstance()->loadDockerRegistry();
 
     //启动KeepAliveThread
     _keepAliveThread   = new KeepAliveThread();
@@ -74,14 +63,20 @@ void NodeServer::initialize()
 
     TLOG_DEBUG("NodeServer::initialize |KeepAliveThread start" << endl);
 
+#if PLATFORM_TARGET_LINUX
     _reportMemThread = new ReportMemThread();
     _reportMemThread->start();
 
     TLOG_DEBUG("NodeServer::initialize |_reportMemThread start" << endl);
 
+#endif
+
+	_dockerPullThread = new DockerPullThread();
+	_dockerPullThread->start(3);
+
     //启动批量发布线程
     PlatformInfo plat;
-    int iThreads        = TC_Common::strto<int>(g_pconf->get("/tars/node<bpthreads>", "10"));
+    int iThreads        = TC_Common::strto<int>(g_pconf->get("/tars/node<bpthreads>", "5"));
 
     _batchPatchThread  = new BatchPatch();
     _batchPatchThread->setPath(plat.getDownLoadDir());
@@ -92,7 +87,7 @@ void NodeServer::initialize()
     TLOG_DEBUG("NodeServer::initialize |BatchPatchThread start(" << iThreads << ")" << endl);
 
     _removeLogThread = new RemoveLogManager();
-    _removeLogThread->start(iThreads);
+    _removeLogThread->start(2);
 
     g_RemoveLogThread = _removeLogThread;
 
@@ -165,7 +160,7 @@ void NodeServer::initHashMap()
 
 TC_Endpoint NodeServer::getAdapterEndpoint(const string& name) const
 {
-    TLOGINFO("NodeServer::getAdapterEndpoint:" << name << endl);
+//    TLOGINFO("NodeServer::getAdapterEndpoint:" << name << endl);
 
     TC_EpollServerPtr pEpollServerPtr = getEpollServer();
     assert(pEpollServerPtr);
@@ -175,7 +170,7 @@ TC_Endpoint NodeServer::getAdapterEndpoint(const string& name) const
 
 	TC_Endpoint ep = pBindAdapterPtr->getEndpoint();
 
-	TLOGINFO("NodeServer::getAdapterEndpoint:" << ep.toString() << endl);
+//	TLOGINFO("NodeServer::getAdapterEndpoint:" << ep.toString() << endl);
 
 	return ep;
 //    return pBindAdapterPtr->getEndpoint();
@@ -242,6 +237,13 @@ void NodeServer::destroyApp()
         delete _removeLogThread;
         _removeLogThread = NULL;
     }
+
+	if(_dockerPullThread)
+	{
+		_dockerPullThread->terminate();
+		delete _dockerPullThread;
+		_dockerPullThread = NULL;
+	}
 
   //  TLOG_DEBUG("NodeServer::destroyApp "<< pthread_self() << endl);
 }

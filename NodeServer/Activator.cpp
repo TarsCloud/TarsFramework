@@ -26,7 +26,7 @@ static pid_t *childpid = NULL; /* ptr to array allocated at run-time */
 #define SHELL   "/bin/sh"
 #endif
 
-int64_t Activator::activate(const string& strExePath, const string& strPwdPath, const string& strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs)
+int64_t Activator::activate(const string& strExePath, const string& strPwdPath, const string& strRollLogPath, const vector<string>& vOptions)//, vector<string>& vEnvs)
 {
     TC_ThreadLock::Lock lock(*this);
     addActivatingRecord();
@@ -103,7 +103,7 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 	vArgs.push_back(strExePath);
 	vArgs.insert(vArgs.end(), vOptions.begin(), vOptions.end());
 
-	NODE_LOG(_server->getServerId())->debug() << "Activator::activate activating server [exepath: " << strExePath << ", args: " << TC_Common::tostr(vArgs) << "]" << endl;
+	NODE_LOG(_server->getServerId())->debug() << "Activator::activate server [exepath: " << strExePath << ", args: " << TC_Common::tostr(vArgs) << "]" << endl;
 
     int argc = static_cast<int>(vArgs.size());
     char **argv = static_cast<char **>(malloc((argc + 1) * sizeof(char *)));
@@ -131,35 +131,19 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
             close(fd);
         }
 
-        //server stdcout 日志在滚动日志显示
-        if (_redirectPath != "")
-        {
-            TC_File::makeDirRecursive(TC_File::extractFilePath(_redirectPath));
-#if TARGET_PLATFORM_IOS
-            if ((freopen(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen(_redirectPath.c_str(), "ab", stderr)) != NULL)
-#else
-            if ((freopen64(_redirectPath.c_str(), "ab", stdout)) != NULL && (freopen64(_redirectPath.c_str(), "ab", stderr)) != NULL)
-#endif
-            {
-                cout << argv[0] << " redirect stdout and stderr  to " << _redirectPath << endl;
-            }
-            else
-            {
-                //重定向失败 直接退出
-                exit(0);
-            }
+		string stdOutLog = !_redirectPath.empty()?  _redirectPath : strRollLogPath;
 
-        }
-        else if (!strRollLogPath.empty())
+        //server stdcout 日志在滚动日志显示
+        if (!stdOutLog.empty())
         {
-            TC_File::makeDirRecursive(TC_File::extractFilePath(strRollLogPath));
+            TC_File::makeDirRecursive(TC_File::extractFilePath(stdOutLog));
 #if TARGET_PLATFORM_IOS
-            if ((freopen(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen(strRollLogPath.c_str(), "ab", stderr)) != NULL)
+            if ((freopen(stdOutLog.c_str(), "ab", stdout)) != NULL && (freopen(stdOutLog.c_str(), "ab", stderr)) != NULL)
 #else
-            if ((freopen64(strRollLogPath.c_str(), "ab", stdout)) != NULL && (freopen64(strRollLogPath.c_str(), "ab", stderr)) != NULL)
+            if ((freopen64(stdOutLog.c_str(), "ab", stdout)) != NULL && (freopen64(stdOutLog.c_str(), "ab", stderr)) != NULL)
 #endif
             {
-                cout << argv[0] << " redirect stdout and stderr  to " << strRollLogPath << endl;
+                cout << argv[0] << " redirect stdout and stderr  to " << stdOutLog << endl;
             }
             else
             {
@@ -169,22 +153,22 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
         }
         else
         {
-            cout << argv[0] << " cannot redirect stdout and stderr  to log file strRollLogPath is empty" << endl;
+            cout << argv[0] << " cannot redirect stdout and stderr to log file sRollLogPath is empty" << endl;
         }
 
-        for_each(vEnvs.begin(), vEnvs.end(), EnvVal());
+//        for_each(vEnvs.begin(), vEnvs.end(), EnvVal());
 
         if (strlen(pwdCStr) != 0)
         {
             if (chdir(pwdCStr) == -1)
             {
-                cerr << argv[0] << " cannot change working directory to " << pwdCStr << "|errno=" << errno << endl;
+                cerr << argv[0] << " cannot change working directory to " << pwdCStr << ", errno: " << errno << endl;
             }
         }
 
         if (execvp(argv[0], argv) == -1)
         {
-            cerr << "cannot execute " << argv[0] << "|errno=" << strerror(errno) << endl;
+            cerr << "cannot execute " << argv[0] << ", errno:" << strerror(errno) << endl;
         }
         exit(0);
     }
@@ -239,7 +223,7 @@ int64_t Activator::activate(const string& strStartScript, const string& strMonit
 
 int Activator::deactivate(int64_t pid)
 {
-    if (pid != 0)
+    if (pid > 0)
     {
         return kill(pid);
     }
@@ -250,11 +234,9 @@ int Activator::deactivate(int64_t pid)
 int Activator::deactivateAndGenerateCore(int64_t pid)
 {
 	NODE_LOG(_server->getServerId())->error() << FILE_FUN << " pid: " << pid << endl;
-
-#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
-
-    if (pid != 0)
+    if (pid > 0)
     {
+#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
 		int ret = ::kill(static_cast<pid_t>(pid), SIGABRT);
 		if (ret != 0 && errno != ESRCH)
 		{
@@ -262,55 +244,71 @@ int Activator::deactivateAndGenerateCore(int64_t pid)
 			return -1;
 		}
 		return 0;
-    }
-
-	return -1;
 #else
-	return kill(pid);
+		return kill(pid);
 #endif
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 int Activator::kill(int64_t pid) const
 {
-    assert(pid);
-
-	NODE_LOG(_server->getServerId())->error() << FILE_FUN << " pid: " << pid << endl;
+	if (_server->isContainer())
+	{
+		string command = "docker stop " + _server->getServerId() + " 2>&1";
+		string out = TC_Common::trim(TC_Port::exec(command.c_str()));
+		NODE_LOG( _server->getServerId())->debug() << "Activator::kill stop container: " << out <<endl;
+		return 0;
+	}
+	else
+	{
+		NODE_LOG(_server->getServerId())->error() << FILE_FUN << " pid: " << pid << endl;
+		if (pid < 0)
+		{
+			return -1;
+		}
 
 #if TARGET_PLATFORM_WINDOWS
-	HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-	if (hProcess == NULL)
-	{
-		return -1;
-	}
+		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+		if (hProcess == NULL)
+		{
+			return -1;
+		}
 
-	BOOL ok = ::TerminateProcess(hProcess, 0);
+		BOOL ok = ::TerminateProcess(hProcess, 0);
 
-	CloseHandle(hProcess);
+		CloseHandle(hProcess);
 
-	if (!ok)
-	{
-		string err = TC_Exception::parseError(TC_Exception::getSystemCode());
-		NODE_LOG(_server->getServerId())->error() << "send signal " << signal << " to pid " << pid << " catch exception|" << err << endl;
+		if (!ok)
+		{
+			string err = TC_Exception::parseError(TC_Exception::getSystemCode());
+			NODE_LOG(_server->getServerId())->error() << "send signal " << signal << " to pid " << pid << " catch exception|" << err << endl;
 
-		return -1;
-	}
-	return 0;
-	
+			return -1;
+		}
+		return 0;
+
 #else
-	int ret = ::kill(static_cast<pid_t>(pid), SIGKILL);
-    if (ret != 0 && errno != ESRCH && errno != ENOENT)
-    {
-	    NODE_LOG(_server->getServerId())->error() << "Activator::activate send signal " << signal << " to pid, pid not exsits, pid:" << pid << ", catch exception|" << errno << endl;
-	    return -1;
-    }
-	
-    if(ret == 0)
-    {
-        waitpid(pid,NULL,0);
-    }	
-	return ret;
+		int ret = ::kill(static_cast<pid_t>(pid), SIGKILL);
+		if (ret != 0 && errno != ESRCH && errno != ENOENT)
+		{
+			NODE_LOG(_server->getServerId())->error() << "Activator::activate send signal " << signal
+													  << " to pid, pid not exsits, pid:" << pid << ", catch exception|"
+													  << errno << endl;
+			return -1;
+		}
+
+		if (ret == 0)
+		{
+			waitpid(pid, NULL, 0);
+		}
+		return ret;
 
 #endif
+	}
 }
 
 bool Activator::isActivatingLimited()
