@@ -83,6 +83,31 @@ mkdir -p /data/tars/demo_log
 mkdir -p /data/tars/patchs
 mkdir -p /data/tars/remote_app_log
 mkdir -p /data/tars/tarsnode-data
+#解决 windows 系统 重启 docker服务或宿主机导致共享内存清空无法启动的问题
+formathex(){
+    local tmp=$(printf %x $1)
+    local numlen=$(echo $tmp |awk '{print length($0)}')
+    f="x"
+    while [ $numlen -le 8 ]
+    do
+      f="${f}0"
+      numlen=$((${numlen} + 1))
+    done
+    printf "${f}%x"  $1
+}
+
+for file in $(find /data/tars/tarsnode-data -name "SemKey.dat")
+do
+    if test -f $file
+    then
+      ipcid=$(cat $file)
+      noipc=$(ipcs -m | grep -c $(formathex $ipcid))
+      if [ "${noipc}" == "0" ];then        
+        echo  "共享内存不存在,删除 $file"
+        rm -f $file
+      fi
+    fi
+done
 
 trap 'exit' SIGTERM SIGINT
 
