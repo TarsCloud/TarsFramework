@@ -120,3 +120,6 @@ int RegistryImp::updatePatchResult(const PatchResult & result, CurrentPtr curren
     return _db.setPatchInfo(result.sApplication, result.sServerName, result.sNodeName, result.sVersion, result.sUserName);
 }
 
+int RegistryImp::getDockerRegistry(vector<DockerRegistry>& doctorRegistries, CurrentPtr current){
+    return 0;
+}

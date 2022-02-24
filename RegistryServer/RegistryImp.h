@@ -149,7 +149,14 @@ public:
      * @return 0-成功 othres-失败 
      */
     virtual Int32 updatePatchResult(const PatchResult & result, CurrentPtr current);
-
+    /**
+     * @brief 获取docker的镜像仓库
+     * 
+     * @param doctorRegistries 
+     * @param current 
+     * @return int 
+     */
+    virtual Int32 getDockerRegistry(vector<DockerRegistry>& doctorRegistries, CurrentPtr current);
 protected:
 
     /*

@@ -64,7 +64,7 @@ public:
      * @param patchFile, 需要发布的文件名
      * @return int, 0: 成功, <0: 失败
      */
-    int preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current);
+    int preparePatchFile(const string &app, const string &serverName, const string &patchFile,string& result, TarsCurrentPtr current);
 
     /**
      * delete patch file

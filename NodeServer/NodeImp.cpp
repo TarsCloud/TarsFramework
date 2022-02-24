@@ -1013,6 +1013,6 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 
 /*********************************************************************/
 
-int NodeImp::forceDockerLogin(out vector<string> result, tars::TarsCurrentPtr current){
+int NodeImp::forceDockerLogin(vector<string>& result, tars::TarsCurrentPtr current){
     return 0;
 }

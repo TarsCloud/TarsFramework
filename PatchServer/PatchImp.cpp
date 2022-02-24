@@ -122,7 +122,7 @@ int PatchImp::download(const string & file, int pos, vector<char> & vb, TarsCurr
     return iRet;
 }
 
-int PatchImp::preparePatchFile(const string &app, const string &serverName, const string &patchFile, TarsCurrentPtr current)
+int PatchImp::preparePatchFile(const string &app, const string &serverName, const string &patchFile,string& result, TarsCurrentPtr current)
 {
     string upfile = _uploadDirectory + FILE_SEP + app + FILE_SEP + serverName + FILE_SEP + patchFile;
     string dstDirectory = _directory + "/TARSBatchPatching/" + app + FILE_SEP + serverName;
@@ -165,7 +165,7 @@ int PatchImp::preparePatchFile(const string &app, const string &serverName, cons
     }
 
     TC_File::copyFile(upfile, dstfile, true);
-
+    result="preparePatchFile ok";
     return 0;
 }
 

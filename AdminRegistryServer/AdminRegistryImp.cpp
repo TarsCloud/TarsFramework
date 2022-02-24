@@ -832,7 +832,7 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
 	    TLOGDEBUG("AdminRegistryImp::batchPatch " << sServerName << "|" << patchFile << endl); 
 
 	    //让tarspatch准备发布包
-	    iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile);
+	    iRet = _patchPrx->preparePatchFile(reqPro.appname, sServerName, patchFile, result);
 	    if (iRet != 0)
 	    {
 	        result = "preparePatchFile error, check tarspatch server!";
@@ -934,7 +934,7 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
 		int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
 
 	    //让tafpatch准备发布包
-	    iRet = _patchPrx->tars_set_timeout(timeout)->preparePatchFile(reqPro.appname, sServerName, patchFile);
+	    iRet = _patchPrx->tars_set_timeout(timeout)->preparePatchFile(reqPro.appname, sServerName, patchFile,result);
 	    if (iRet != 0)
 	    {
 	        result = "preparePatchFile error, check tarspatch server!";
@@ -1347,7 +1347,7 @@ int AdminRegistryImp::preparePatch_inner(PatchRequest &req, string &result, bool
         try{
             TLOGDEBUG("call preparePatchFile" << endl);
 			int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
-            iRet = _patchPrx->tars_set_timeout(timeout)->preparePatchFile(req.appname, req.servername, patchFile);
+            iRet = _patchPrx->tars_set_timeout(timeout)->preparePatchFile(req.appname, req.servername, patchFile,result);
 
 	        deleteHistorys(req.appname, req.servername);
         }
@@ -1618,4 +1618,7 @@ int AdminRegistryImp::updateServerFlowState(const string& application, const str
 	}
 
 	return 0; 
+}
+int AdminRegistryImp::forceDockerLogin(const string& nodeName, vector<string>& result, CurrentPtr current){
+    return 0; 
 }

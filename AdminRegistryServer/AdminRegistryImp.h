@@ -339,22 +339,96 @@ public:
      */
     virtual int getClientIp(std::string &sClientIp,tars::CurrentPtr current);
 
-
+    /**
+     * @brief 获取日志文件内容
+     * @param application: 应用
+     * @param serverName : server名
+     * @param nodeName   : node id
+     * @param logFile   : 日志文件
+     * @param cmd   : 命令信息
+     * @param out fileData : 结果描述
+     * @param current 
+     * @return int : 返回值详见tarsErrCode枚举值
+     */
     virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,tars::CurrentPtr current);
 
+    /**
+     * @brief 获取日志文件列表
+     * 
+     * @param application: 应用
+     * @param serverName : server名
+     * @param nodeName   : node id
+     * @param logFileList 
+     * @param current 
+     * @return int 返回值详见tarsErrCode枚举值
+     */
     virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::CurrentPtr current);
 
+    /**
+     * @brief 获取某台服务器的基本负载情况
+     * 
+     * @param application 
+     * @param serverName 
+     * @param nodeName 
+     * @param pid 
+     * @param fileData 
+     * @param current 
+     * @return int 
+     */
 	virtual int getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, tars::CurrentPtr current);
-	virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::CurrentPtr current);
+	
+    /**
+	 * @brief 删除发布包
+	 * 
+	 * @param application : 服务所属应用名
+	 * @param serverName  : 服务名
+	 * @param patchFile   : 文件位置
+	 * @param current 
+	 * @return int        : 0-成功 others-失败
+	 */
+    virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::CurrentPtr current);
 
 	virtual int getServers(vector<FrameworkServer> &servers, tars::CurrentPtr current);
 
+    /**
+     * @brief 检查框架的联通性
+     * 
+     * @param server 
+     * @param current 
+     * @return int :0-成功 others-失败
+     */
 	virtual int checkServer(const FrameworkServer &server, tars::CurrentPtr current);
 
+    /**
+     * @brief 获取framework的version
+     * 
+     * @param version 
+     * @param current 
+     * @return int 0-成功 others-失败
+     */
     virtual int getVersion(string &version, tars::CurrentPtr current);
-	
+
+	/**
+	 * @brief 暂停服务，关闭服务流量，无损发布用等
+	 * 
+	 * @param application 
+	 * @param serverName 
+	 * @param nodeList 
+	 * @param bActive 
+	 * @param current 
+	 * @return int :0-成功 others-失败
+	 */
     int updateServerFlowState(const string& application, const string& serverName, const vector<string>& nodeList, bool bActive, CurrentPtr current);
-	
+    /**
+     * @brief 强制node执行docker登录逻辑
+     * 
+     * @param nodeName 
+     * @param result 
+     * @param current 
+     * @return int :0-成功 others-失败
+     */
+	int forceDockerLogin(const string& nodeName, vector<string>& result, CurrentPtr current);
+    
 protected:
     void deleteHistorys(const string &application, const string &serverName);
     string getRemoteLogIp(const string& serverIp);
