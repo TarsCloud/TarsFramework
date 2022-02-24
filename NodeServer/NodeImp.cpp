@@ -1016,6 +1016,3 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 int NodeImp::forceDockerLogin(out vector<string> result){
     return 0;
 }
-
-
-
