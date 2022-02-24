@@ -156,7 +156,7 @@ public:
      * @param current 
      * @return int 
      */
-    virtual Int32 getDockerRegistry(vector<DockerRegistry>& doctorRegistries, CurrentPtr current);
+    virtual tars::Int32 getDockerRegistry(std::vector<tars::DockerRegistry> &doctorRegistries, tars::TarsCurrentPtr current);
 protected:
 
     /*
