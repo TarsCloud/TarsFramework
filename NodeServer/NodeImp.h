@@ -213,7 +213,7 @@ public:
     /**
      * 强制docker登录
      */
-    int forceDockerLogin(out vector<string> result);
+    int forceDockerLogin(out vector<string> result, tars::TarsCurrentPtr current);
     
 private:
     string keyToStr(key_t key_value);
