@@ -31,8 +31,8 @@
 #define TARS_SCRIPT "tars_start.sh"
 #endif
 
-uid_t node_uid{0};
-gid_t node_gid{0};
+// uid_t node_uid{0};
+// gid_t node_gid{0};
 
 //////////////////////////////////////////////////////////////
 //
