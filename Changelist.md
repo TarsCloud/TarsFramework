@@ -6,6 +6,7 @@
 - Add table t* docker* registry & t* base* Image to support containerized operation
 - Support container operation, that is, release tgz package. The service can run in the specified container, which needs to cooperate with tarsweb v2 Version above 4.25 runs
 - Tarsnode for the cpp/go version, if there is only one (xxxxServer) executable program within the directory, start the program (this ensures that the service exe that does not need to be published is the same as the configured service name)
+- Fix the dead loop problem of tarsnotify when DB down is hung
 
 ### cn
 
@@ -13,6 +14,7 @@
 - 添加表 t_docker_registry & t_base_image, 以支持容器化运行
 - 支持容器化运行, 即发布 tgz 包, 服务能运行在指定的容器中, 需要配合 tarsweb v2.4.25 以上版本运行
 - tarsnode 对于 cpp/go 版本, 如果目录下只有一个带 Server 结尾的可执行程序, 则启动该程序(这样保证不需要发布的服务 exe 和配置的服务名相同)
+- 修复 tarsnotify 在 db down 的挂的情况下, 死循环的问题
 
 # v3.0.3 20211130
 
