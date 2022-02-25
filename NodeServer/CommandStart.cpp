@@ -16,6 +16,12 @@
 
 #include "CommandStart.h"
 
+#if TARGET_PLATFORM_LINUX
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
+
+
 #if TARGET_PLATFORM_WINDOWS
 #define TARS_START "start /b "
 #define TARS_SCRIPT "tars_start.bat"
