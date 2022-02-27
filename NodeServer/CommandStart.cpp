@@ -393,62 +393,6 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	return true;
 }
 
-bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
-{
-	//准备执行环境以及启动
-	std::string sRollLogFile;
-	string sLogPath = serverObjectPtr->getLogPath();
-
-	if (!sLogPath.empty()) {
-		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
-	}
-
-	ostringstream os;
-	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
- 	os << serverObjectPtr->getDataDir() << ":" << serverObjectPtr->getDataDir() << " ";
-	os << serverObjectPtr->getConfigPath() << ":" << serverObjectPtr->getConfigPath() << " ";
-	os << serverObjectPtr->getLogPath() << ":" << serverObjectPtr->getLogPath() << " ";
-	os << "/etc/localtime" << ":" << "/etc/locatime" << " ";
-
-	vector<string> vOptions = {"run", "--rm", "--name", serverObjectPtr->getServerId()};
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getExePath() + ":" + serverObjectPtr->getExePath());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getDataDir() + ":" + serverObjectPtr->getDataDir());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back("/etc/localtime:/etc/localtime");
-
-#if !PLATFORM_TARGET_LINUX
-	for(auto port : serverObjectPtr->getPorts())
-	{
-		vOptions.emplace_back("-p");
-		vOptions.emplace_back(TC_Common::tostr(port)+":"+TC_Common::tostr(port));
-	}
-#else
-	vOptions.emplace_back("--net=host");
-#endif
-
-	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
-	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
-
-	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
-
-	if (iPid <= 0)  //child process or error;
-	{
-		return false;
-	}
-
-	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "activate succ, pid:" << iPid << endl;
-
-	serverObjectPtr->setPid(iPid);
-
-	return true;
-}
-
 //////////////////////////////////////////////////////////////
 //
 int CommandStart::execute(string& sResult)
