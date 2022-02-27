@@ -422,36 +422,6 @@ int ServerObject::checkPid()
 	}
 
 }
-//
-//int64_t ServerObject::toPid()
-//{
-//	assert(isContainer());
-//	string command = "docker ps --filter \"name=" + _application + "." + _serverName + "\" -q";
-//
-//	NODE_LOG(_serverId)->debug() << command <<endl;
-//
-//	string containerId = TC_Common::trim(TC_Port::exec(command.c_str()));
-//	if(containerId.empty())
-//	{
-//		NODE_LOG(_serverId)->error() << "ServerObject::toPid container not exists." <<endl;
-//		return -1;
-//	}
-//
-//	command = "docker inspect -f '{{.State.Pid}}' " + containerId;
-//
-//	string out = TC_Common::trim(TC_Port::exec(command.c_str()));
-//
-//	int64_t pid = TC_Common::strto<int64_t>(out);
-//
-//	NODE_LOG(_serverId)->debug() << command << ", out:" << out <<endl;
-//
-//	if(pid <= 0)
-//	{
-//		NODE_LOG(_serverId)->error() << "ServerObject::toPid containerId:" <<containerId << ", pid:" << pid <<endl;
-//		return -1;
-//	}
-//	return pid;
-//}
 
 void ServerObject::keepAlive(const ServerInfo &si, const string &adapter)
 {

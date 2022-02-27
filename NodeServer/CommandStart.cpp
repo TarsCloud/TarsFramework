@@ -31,9 +31,6 @@
 #define TARS_SCRIPT "tars_start.sh"
 #endif
 
-// uid_t node_uid{0};
-// gid_t node_gid{0};
-
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
@@ -117,93 +114,10 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     return EXECUTABLE;
 }
 
-//string CommandStart::getDockerComposeYaml(const ServerObjectPtr &serverObjectPtr)
-//{
-//	return  TC_File::simplifyDirectory(serverObjectPtr->getExePath() + FILE_SEP + "docker-compose.yaml");
-//}
-
 string CommandStart::getStartScript(const ServerObjectPtr &serverObjectPtr)
 {
 	return TC_File::simplifyDirectory(serverObjectPtr->getExePath() + FILE_SEP + TARS_SCRIPT);
 }
-//
-//bool CommandStart::prepareContainer()
-//{
-//	std::ostringstream stream;
-//
-//	constexpr char ONE_SPACE[] = " ";
-//	constexpr char TWO_SPACE[] = "  ";
-//	constexpr char YAML_ARRAY_FLAG[] = "-";
-//
-//	constexpr char COMPOSE_VERSION[] = R"(version:)";
-//	constexpr char COMPOSE_FIXED_VERSION_VALUE[] = R"("3")";
-//	stream << COMPOSE_VERSION << ONE_SPACE << COMPOSE_FIXED_VERSION_VALUE << std::endl;
-//
-//	constexpr char COMPOSE_SERVICES_FIELD[] = R"(services:)";
-//	stream << COMPOSE_SERVICES_FIELD << std::endl;
-//	stream << ONE_SPACE << _desc.application << "." << _desc.serverName << ":" << std::endl;
-//
-//	constexpr char COMPOSE_IMAGE_FIELD[] = R"(image:)";
-//	stream << TWO_SPACE << COMPOSE_IMAGE_FIELD << ONE_SPACE << _desc.baseImage << endl;
-//
-//	constexpr char COMPOSE_CONTAINER_NAME_FIELD[] = R"(container_name:)";
-//	stream << TWO_SPACE << COMPOSE_CONTAINER_NAME_FIELD << ONE_SPACE << _serverObjectPtr->getServerId() << endl;
-//
-//	constexpr char COMPOSE_ENTRYPOINT_FIELD[] = R"(entrypoint:)";
-//	stream << TWO_SPACE << COMPOSE_ENTRYPOINT_FIELD << ONE_SPACE << getStartScript(_serverObjectPtr) << endl;
-//
-//	constexpr char COMPOSE_PID_FIELD[] = R"(pid:)";
-//	constexpr char COMPOSE_FIXED_PID_VALUE[] = R"(host)";
-//	stream << TWO_SPACE << COMPOSE_PID_FIELD << ONE_SPACE << COMPOSE_FIXED_PID_VALUE << std::endl;
-//
-//#if PLATFORM_TARGET_LINUX
-//	constexpr char COMPOSE_POSTS_FIELD[] = R"(ports:)";
-//	stream << TWO_SPACE << COMPOSE_POSTS_FIELD << endl;
-//	for(auto port : _serverObjectPtr->getPorts())
-//	{
-//		stream <<TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << port << ":" << port << endl;
-//	}
-//
-//	constexpr char COMPOSE_NETWORK_FIELD[] = R"(network_mode:)";
-//	constexpr char COMPOSE_FIXED_NETWORK_VALUE[] = R"(host)";
-//	stream << TWO_SPACE << COMPOSE_NETWORK_FIELD << ONE_SPACE << COMPOSE_FIXED_NETWORK_VALUE << std::endl;
-//#endif
-//
-//	constexpr char COMPOSE_USER_FIELD[] = R"(user:)";
-//	node_uid = (node_uid == 0 ? getuid() : node_uid);
-//	node_gid = (node_gid == 0 ? getgid() : node_gid);
-//	stream << TWO_SPACE << COMPOSE_USER_FIELD << ONE_SPACE << "\"" << ::node_uid << ":" << ::node_gid << "\""<< std::endl;
-//
-//	constexpr char COMPOSE_VOLUMES_FIELD[] = R"(volumes:)";
-//
-//	stream << TWO_SPACE << COMPOSE_VOLUMES_FIELD << std::endl;
-//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getExePath() << ":" << _serverObjectPtr->getExePath() << std::endl;
-//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getDataDir() << ":" << _serverObjectPtr->getDataDir() << std::endl;
-//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getConfigPath() << ":" << _serverObjectPtr->getConfigPath() << std::endl;
-//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << _serverObjectPtr->getLogPath() << ":" << _serverObjectPtr->getLogPath() << std::endl;
-//
-//	constexpr char FIXED_TIME_ZONE_FILE[] = "/etc/localtime";
-//	//映射 FIXED_TIME_ZONE_FILE 是为了保证容器程序的时区与主机时区一致
-//	stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << FIXED_TIME_ZONE_FILE << ":" << FIXED_TIME_ZONE_FILE << std::endl;
-//
-//	for (const auto &p:_serverObjectPtr->getVolumes()) {
-//		stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << p << std::endl;
-//	}
-//
-////	constexpr char COMPOSE_ENVIRONMENT_FIELD[] = R"(environment:)";
-////	stream << TWO_SPACE << COMPOSE_ENVIRONMENT_FIELD << std::endl;
-////
-////	for (const auto &env: vecEnvs) {
-////		stream << TWO_SPACE << YAML_ARRAY_FLAG << ONE_SPACE << env << std::endl;
-////	}
-//
-//	TC_File::save2file(getDockerComposeYaml(_serverObjectPtr), stream.str());
-//
-//	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "docker-compose yaml:" << getDockerComposeYaml(_serverObjectPtr) << endl;
-//	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "docker-compose start script:" << getStartScript(_serverObjectPtr) << endl;
-//
-//	return true;
-//}
 
 #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
 
@@ -425,10 +339,6 @@ bool CommandStart::startNormal(string& sResult)
 
 bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
 {
-//	const std::string sDockerComposeProjectName = serverObjectPtr->getServerId();
-//
-//	const vector<string> vOptions = {"-f", getDockerComposeYaml(serverObjectPtr), "-p", sDockerComposeProjectName, "up"};//, "-d"};
-//
 	//准备执行环境以及启动
 	std::string sRollLogFile;
 	string sLogPath = serverObjectPtr->getLogPath();
@@ -469,7 +379,6 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
 	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
 
-//	int64_t iPid = serverObjectPtr->getActivator()->activate("docker-compose", "", sRollLogFile, vOptions);//, vEnvs);
 	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
 
 	if (iPid <= 0)  //child process or error;
@@ -482,7 +391,62 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	serverObjectPtr->setPid(iPid);
 
 	return true;
-//	return (serverObjectPtr->checkPid() == 0) ? true : false;
+}
+
+bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
+{
+	//准备执行环境以及启动
+	std::string sRollLogFile;
+	string sLogPath = serverObjectPtr->getLogPath();
+
+	if (!sLogPath.empty()) {
+		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
+	}
+
+	ostringstream os;
+	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
+ 	os << serverObjectPtr->getDataDir() << ":" << serverObjectPtr->getDataDir() << " ";
+	os << serverObjectPtr->getConfigPath() << ":" << serverObjectPtr->getConfigPath() << " ";
+	os << serverObjectPtr->getLogPath() << ":" << serverObjectPtr->getLogPath() << " ";
+	os << "/etc/localtime" << ":" << "/etc/locatime" << " ";
+
+	vector<string> vOptions = {"run", "--rm", "--name", serverObjectPtr->getServerId()};
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getExePath() + ":" + serverObjectPtr->getExePath());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getDataDir() + ":" + serverObjectPtr->getDataDir());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
+	vOptions.emplace_back("-v");
+	vOptions.emplace_back("/etc/localtime:/etc/localtime");
+
+#if !PLATFORM_TARGET_LINUX
+	for(auto port : serverObjectPtr->getPorts())
+	{
+		vOptions.emplace_back("-p");
+		vOptions.emplace_back(TC_Common::tostr(port)+":"+TC_Common::tostr(port));
+	}
+#else
+	vOptions.emplace_back("--net=host");
+#endif
+
+	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
+	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
+
+	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
+
+	if (iPid <= 0)  //child process or error;
+	{
+		return false;
+	}
+
+	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "activate succ, pid:" << iPid << endl;
+
+	serverObjectPtr->setPid(iPid);
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////
@@ -507,8 +471,6 @@ int CommandStart::execute(string& sResult)
 
 			if(_serverObjectPtr->getRunType() == ServerObject::Container)
 			{
-//				prepareContainer();
-
 				g_app.getDockerPullThread()->pull(_serverObjectPtr, [startMs](ServerObjectPtr server, bool succ, string &result){
 
 					NODE_LOG(server->getServerId())->debug() << "pull container finish " << (succ?"succ":"failed") << endl;
