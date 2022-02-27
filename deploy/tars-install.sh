@@ -232,7 +232,12 @@ function exec_mysql_script()
     ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --sql="$1"
 
     ret=$?
+
     LOG_DEBUG "exec_mysql_script $1, ret code: $ret"  
+
+    if [ $ret -eq 255 ]; then
+        LOG_ERROR "exec_mysql_script $1 $2, ret code: $ret error exists."  
+    fi
 
     return $ret
 }
@@ -245,6 +250,10 @@ function exec_mysql_sql()
     ret=$?
 
     LOG_DEBUG "exec_mysql_sql $1 $2, ret code: $ret"  
+
+    if [ $ret -eq 255 ]; then
+        LOG_ERROR "exec_mysql_sql $1 $2, ret code: $ret error exit."  
+    fi
 
     return $ret
 }
@@ -312,9 +321,9 @@ if [ "${FRAMEWORK_VERSION}" != "" ]; then
     replacePath "2.1.0" ${FRAMEWORK_VERSION} ${WORKDIR}/framework/sql/
 fi
 
-if [ -d ${WORKDIR}/web/demo/sql ]; then
-  cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
-fi
+# if [ -d ${WORKDIR}/web/demo/sql ]; then
+#   cp -rf ${WORKDIR}/web/demo/sql/*.sql ${WORKDIR}/framework/sql/
+# fi
 
 cp -rf ${WORKDIR}/framework/sql/* ${SQL_TMP}
 
