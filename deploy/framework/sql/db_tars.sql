@@ -328,7 +328,7 @@ DROP TABLE IF EXISTS `t_base_image`;
 CREATE TABLE `t_base_image` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
       `image` varchar(255) NOT NULL DEFAULT '',
-      `registryId`  int(11) NOT NULL DEFAULT '',
+      `registryId`  int(11) NOT NULL DEFAULT '0',
       `remark` varchar(255) NOT NULL DEFAULT '',
       `create_time` datetime DEFAULT NULL,
       `update_time` datetime DEFAULT NULL,
