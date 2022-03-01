@@ -250,11 +250,10 @@ function exec_mysql_sql()
 
     ret=$?
 
-    LOG_DEBUG "exec_mysql_sql $1 $2, ret code: $ret"  
-
-    if [ $ret -eq 255 ]; then
-        LOG_ERROR "exec_mysql_sql $1 $2, ret code: $ret error exit."  
-        exit 1
+    if [ $ret -eq 0 ]; then
+        LOG_DEBUG "exec_mysql_sql $1 $2, ret code: $ret"  
+    else
+        LOG_ERROR "exec_mysql_sql $1 $2, ret code: $ret"  
     fi
 
     return $ret
