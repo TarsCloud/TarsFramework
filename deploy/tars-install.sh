@@ -235,11 +235,6 @@ function exec_mysql_script()
 
     LOG_DEBUG "exec_mysql_script $1, ret code: $ret"  
 
-    if [ $ret -eq 255 ]; then
-        LOG_ERROR "exec_mysql_script $1 $2, ret code: $ret error exists."  
-        exit 1
-    fi
-
     return $ret
 }
 
