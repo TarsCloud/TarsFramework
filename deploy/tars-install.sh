@@ -433,6 +433,11 @@ function update_template()
     read_dir
 }
 
+
+#upgrade sql
+LOG_INFO "upgrade sql";
+exec_mysql_sql db_tars tars_upgrade.sql
+
 if [ "${SLAVE}" != "true" ]; then
     exec_mysql_has "db_tars"
     if [ $? != 0 ]; then
