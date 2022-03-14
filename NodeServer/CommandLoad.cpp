@@ -230,7 +230,15 @@ string CommandLoad::hostIp()
 #if PLATFORM_TARGET_LINUX
 	return "127.0.0.1";
 #else
-	return "host.docker.internal";
+    if(TC_File::isFileExist("/.dockerenv")) 
+    {
+        //mac/windows平台, 且在docker内部
+    	return "host.docker.internal";
+    }
+    else 
+    {
+	    return "127.0.0.1";
+    }
 #endif
 }
 
