@@ -308,7 +308,7 @@ CREATE TABLE `t_server_conf` (
   `grid_flag` varchar(16) NOT NULL DEFAULT 'NORMAL',
   `flow_state` enum ('active','inactive') NOT NULL DEFAULT 'active',
   `run_type` varchar(32) NOT NULL DEFAULT '',
-  `base_image_id` int(11) NOT NULL DEFAULT '0',
+  `base_image_id` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `application` (`application`,`server_name`,`node_name`),
   KEY `node_name` (`node_name`),
