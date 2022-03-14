@@ -645,12 +645,12 @@ int ServerObject::getPatchPercent(PatchInfo &tPatchInfo)
     if (tPatchInfo.bSucc == true || _state == ServerObject::Patching || _state == ServerObject::BatchPatching)
     {
 	    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent, "<< _desc.application
-            << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl;
+            << "|" << _desc.serverName << ", succ:" << (tPatchInfo.bSucc?"true":"false") << ", state:" << toStringState(_state) << ", percent:" << _patchInfo.iPercent << "%, result:" << _patchInfo.sResult << endl;
         return 0;
     }
 
-	NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent "<< _desc.application
-           << "|" << _desc.serverName << "|succ:" << (tPatchInfo.bSucc?"true":"false") << "|" << toStringState(_state) << "|" << _patchInfo.iPercent << "%|" << _patchInfo.sResult << endl;
+	NODE_LOG(_serverId)->error() << "ServerObject::getPatchPercent "<< _desc.application
+           << "|" << _desc.serverName << ", succ:" << (tPatchInfo.bSucc?"true":"false") << ", state:" << toStringState(_state) << ", percent:" << _patchInfo.iPercent << "%, result:" << _patchInfo.sResult << endl;
     return -1;
 }
 

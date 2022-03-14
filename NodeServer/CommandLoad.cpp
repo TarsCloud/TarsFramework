@@ -107,7 +107,7 @@ int CommandLoad::execute(string& sResult)
             try
             {
                 TC_Config conf;
-                conf.parseFile(_desc.profile);
+                conf.parseString(_desc.profile);
                 _exeFile = conf.get("/tars/application/server<nodejs>", "node");
             }
             catch(exception &ex)
@@ -122,7 +122,7 @@ int CommandLoad::execute(string& sResult)
             try
             {  
                 TC_Config conf;
-                conf.parseFile(_desc.profile);
+                conf.parseString(_desc.profile);
                 _exeFile = conf.get("/tars/application/server<php>", "php");
             }
             catch(exception &ex)
