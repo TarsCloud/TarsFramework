@@ -389,7 +389,7 @@ public:
     * @para sPatchResult
     * @return bool
     */
-    void setPatchResult(const string &sPatchResult,const bool bSucc = false);
+    void setPatchResult(const string &sPatchResult,const bool bSucc);
 
     /**
     *s设置下载版本

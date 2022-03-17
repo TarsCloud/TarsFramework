@@ -16,6 +16,7 @@
 #include "util/tc_platform.h"
 #include "Activator.h"
 #include "NodeServer.h"
+#include "util/tc_docker.h"
 
 #if TARGET_PLATFORM_LINUX
 #include <sys/wait.h>
@@ -258,9 +259,12 @@ int Activator::kill(int64_t pid) const
 {
 	if (_server->isContainer())
 	{
-		string command = "docker stop " + _server->getServerId() + " 2>&1";
-		string out = TC_Common::trim(TC_Port::exec(command.c_str()));
-		NODE_LOG( _server->getServerId())->debug() << "Activator::kill stop container: " << out <<endl;
+		TC_Docker docker;
+		docker.setDockerUnixLocal(g_app.getDocketSocket());
+
+		bool succ = docker.stop(_server->getServerId(), 3);
+
+		NODE_LOG( _server->getServerId())->debug() << "Activator::kill stop container: " << (succ ? docker.getResponseMessage() : docker.getErrMessage()) << endl;
 		return 0;
 	}
 	else

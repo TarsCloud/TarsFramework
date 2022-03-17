@@ -16,6 +16,7 @@
 
 #include "ReapThread.h"
 #include "servant/Application.h"
+#include "util/tc_docker.h"
 
 extern TC_Config * g_pconf;
 
@@ -78,7 +79,7 @@ int ReapThread::init()
 
     _recoverProtectRate    = _recoverProtectRate   < 1 ? 30: _recoverProtectRate;
 
-    //_recoverProtect        = false;
+	_dockerSocket		=	(*g_pconf).get("/tars/container<socket>", "/var/run/docker.sock");
 
     //加载对象列表
     _db.loadObjectIdCache(_recoverProtect, _recoverProtectRate,0,true, true);
@@ -94,7 +95,7 @@ void ReapThread::terminate()
     _terminate = true;
 }
 
-vector<DockerRegistry> ReapThread::getDockerRegistry()
+map<string, DockerRegistry> ReapThread::getDockerRegistry()
 {
 	TC_ThreadLock::Lock lock(*this);
 	return _dockerRegistries;
@@ -111,37 +112,45 @@ pair<string, string> ReapThread::getBaseImageById(const string &baseImageId)
 	return make_pair("", "");
 }
 
-void ReapThread::checkDockerRegistries(const vector<DockerRegistry> &dockerRegistries)
+void ReapThread::checkDockerRegistries(const map<string, DockerRegistry> &dockerRegistries)
 {
 	try
 	{
 		map<string, DockerRegistry> mDockerRegistry;
-		for(auto &dr : _dockerRegistries)
+
 		{
-			mDockerRegistry[dr.sId] = dr;
+			//先历史的保存起来
+			TC_ThreadLock::Lock lock(*this);
+
+			mDockerRegistry = _dockerRegistries;
+
 		}
 
-		//检查是否有修改过
+		TLOGEX_DEBUG("ReapThread", "old docker registry size:" << mDockerRegistry.size() << ", new docker registry:" << dockerRegistries.size() << endl);
+
+		//检查新的仓库是否有修改过
 		for (auto dr: dockerRegistries)
 		{
-			auto it = mDockerRegistry.find((dr.sId));
+			auto it = mDockerRegistry.find((dr.second.sId));
 
 			if (it != mDockerRegistry.end())
 			{
-				if (it->second.sRegistry != dr.sRegistry || it->second.sUserName != dr.sUserName ||
-					it->second.sPassword != dr.sPassword)
+				if (it->second.sRegistry != dr.second.sRegistry || it->second.sUserName != dr.second.sUserName ||
+					it->second.sPassword != dr.second.sPassword)
 				{
-					dr.bSucc = false;
+					dr.second.bSucc = false;
 
-					mDockerRegistry[dr.sId] = dr;
+					mDockerRegistry[dr.second.sId] = dr.second;
 				}
 			}
 			else
 			{
-				dr.bSucc = false;
-				mDockerRegistry[dr.sId] = dr;
+				dr.second.bSucc = false;
+				mDockerRegistry[dr.second.sId] = dr.second;
 			}
 		}
+
+		TC_Docker docker;
 
 		//修改过的需要重新登录
 		for (auto& e: mDockerRegistry)
@@ -150,48 +159,89 @@ void ReapThread::checkDockerRegistries(const vector<DockerRegistry> &dockerRegis
 			{
 				if (!e.second.sUserName.empty())
 				{
-					string command = "docker login '" + e.second.sRegistry + "' -u '" + e.second.sUserName + "' -p '" +
-									 e.second.sPassword + "' 2>&1";
+					bool succ = docker.login(e.second.sUserName, e.second.sPassword, e.second.sRegistry);
 
-					string out = TC_Common::trim(TC_Port::exec(command.c_str()));
+					if(succ)
+					{
+						TLOGEX_DEBUG("ReapThread",
+								"login registry:" << e.second.sRegistry << ", user:" << e.second.sUserName << ", result:" << docker.getResponseMessage() << endl);
+					}else
+					{
+						TLOGEX_ERROR("ReapThread",
+								"login registry:" << e.second.sRegistry << ", user:" << e.second.sUserName << ", error:"
+												  << docker.getErrMessage() << endl);
+					}
 
-					TLOGEX_DEBUG("ReapThread", "registry:" << e.second.sRegistry << ", user:" << e.second.sUserName << ", out:\r\n" << out << endl);
-
-					if (out.find("Succeeded") != string::npos)
+					if(succ)
 					{
 						mDockerRegistry[e.first].bSucc = true;
 					}
 					else
 					{
-						TARS_NOTIFY_ERROR(out);
+						TARS_NOTIFY_ERROR(docker.getErrMessage());
 					}
 				}
 			}
 
-			//拉取基础镜像, 获取基础镜像的sha
-			for(auto it = _baseImages.begin(); it != _baseImages.end(); ++it)
 			{
-				string command = "docker pull " + it->second.first;
+				TC_ThreadLock::Lock lock(*this);
 
-				string out = TC_Common::trim(TC_Port::exec(command.c_str()));
+				_dockerRegistries = mDockerRegistry;
+			}
 
-				TLOGEX_DEBUG("ReapThread",  command << ", out:\r\n" << out << endl);
-
-				vector<string> v = TC_Common::sepstr<string>(out, "\r\n");
-				for(auto &s : v)
+			//拉取基础镜像, 获取基础镜像的sha
+			for(auto e : mDockerRegistry)
+			{
+				if(!e.second.bSucc)
 				{
-					auto pos = s.find("Digest: ");
-					if(pos == 0)
+					TLOGEX_DEBUG("ReapThread", "docker registry:" << e.second.sRegistry << ", " << e.second.sUserName << " not login." << endl);
+
+					continue;
+				}
+
+				TC_Docker docker;
+				docker.setDockerUnixLocal(_dockerSocket);
+
+				for(auto &b : e.second.baseImages)
+				{
+
+					if(!e.second.sUserName.empty())
 					{
-						vector<string> sha = TC_Common::sepstr<string>(s, " ");
-						if(sha.size() >= 2)
+						docker.setAuthentication(e.second.sUserName, e.second.sPassword, e.second.sRegistry);
+					}
+					if(docker.pull(b.image))
+					{
+						TLOGEX_DEBUG("ReapThread", "pull image:" << b.image << ", succ:" << docker.getResponseMessage() << endl);
+
+						if(docker.inspectImage(b.image))
 						{
-							it->second.second = TC_Common::trim(sha[1]);
-							break;
+							JsonValueObjPtr  oPtr = JsonValueObjPtr::dynamicCast(TC_Json::getValue(
+									docker.getResponseMessage()));
+
+							JsonValueStringPtr sPtr = JsonValueStringPtr::dynamicCast(oPtr->value["Id"]);
+
+							TLOGEX_DEBUG("ReapThread", "inspect image:" << b.image << ", sha:" << sPtr->value << endl);
+
+							{
+								TC_ThreadLock::Lock lock(*this);
+								_baseImages[b.id] = make_pair(b.image, sPtr->value);
+							}
+						}
+						else
+						{
+							TLOGEX_ERROR("ReapThread", "inspect error:" << docker.getErrMessage() << endl);
+
+							TARS_NOTIFY_ERROR(docker.getErrMessage());
 						}
 					}
+					else
+					{
+						TLOGEX_ERROR("ReapThread", "pull registry :" << e.second.sRegistry << ", " << e.second.sUserName << ", error:" << docker.getErrMessage() << endl);
+
+						TARS_NOTIFY_ERROR(docker.getErrMessage());
+					}
+
 				}
-				TLOGEX_DEBUG("ReapThread", "image:" << it->second.first << ", sha:" << it->second.second << endl);
 			}
 		}
 	}
@@ -250,17 +300,12 @@ void ReapThread::run()
 			{
 				tLoadRegistryImageTimeout = tNow;
 
-				vector<DockerRegistry> rii;
-				unordered_map<string, pair<string, string>> baseImages;
+				map<string, DockerRegistry> rii;
 
-				int ret = _db.loadDockerInfo(rii, baseImages);
+				int ret = _db.loadDockerInfo(rii);
 
 				if (ret == 0)
 				{
-					TC_ThreadLock::Lock lock(*this);
-
-					_baseImages = baseImages;
-
 					checkDockerRegistries(rii);
 				}
 			}
@@ -270,11 +315,11 @@ void ReapThread::run()
         }
         catch(exception & ex)
         {
-            TLOG_ERROR("ReapThread exception:" << ex.what() << endl);
+			TLOGEX_ERROR("ReapThread", "exception:" << ex.what() << endl);
         }
         catch(...)
         {
-            TLOG_ERROR("ReapThread unknown exception:" << endl);
+			TLOGEX_ERROR("ReapThread", "unknown exception:" << endl);
         }
     }
 }

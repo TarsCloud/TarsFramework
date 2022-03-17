@@ -59,12 +59,12 @@ public:
 	 * 获取docker仓库镜像地址
 	 * @return
 	 */
-	vector<DockerRegistry> getDockerRegistry();
+	map<string, DockerRegistry> getDockerRegistry();
 
 	/**
 	 * 根据基础镜像ID获取基础镜像
 	 * @param baseImageId
-	 * @return
+	 * @return <image, sha>
 	 */
 	pair<string, string> getBaseImageById(const string &baseImageId);
 
@@ -72,7 +72,7 @@ protected:
 	/**
 	 * 检查
 	 */
-	void checkDockerRegistries(const vector<DockerRegistry> &dockerRegistries);
+	void checkDockerRegistries(const map<string, DockerRegistry> &dockerRegistries);
 
 protected:
     /*
@@ -124,13 +124,17 @@ protected:
 	int        _checkDockerRegistry = 10;
 
 	/**
-	 * docker的镜像仓库
+	 * docker socket
 	 */
-	vector<DockerRegistry> _dockerRegistries;
+	string 		_dockerSocket;
 
 	/**
-	 * 基础镜像信息
-	 * <id, <image, sha>>
+	 * docker的镜像仓库
+	 */
+	map<string, DockerRegistry> _dockerRegistries;
+
+	/**
+	 * imageId-><image, sha>
 	 */
 	unordered_map<string, pair<string, string>> _baseImages;
 };

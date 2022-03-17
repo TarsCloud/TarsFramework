@@ -85,7 +85,7 @@ ServerCommand::ExeStatus CommandPatch::canExecute(string & sResult)
 
     _serverObjectPtr->setPatchVersion(_patchRequest.version);
     _serverObjectPtr->setPatchPercent(0);
-    _serverObjectPtr->setPatchResult("");
+    _serverObjectPtr->setPatchResult("", true);
 
     return EXECUTABLE;
 }

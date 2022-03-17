@@ -16,8 +16,10 @@
 
 #include "DockerPullThread.h"
 #include "util/tc_port.h"
+#include "util/tc_docker.h"
 #include "util.h"
 #include "NodeServer.h"
+#include "RegistryProxy.h"
 
 using namespace tars;
 
@@ -60,49 +62,145 @@ void DockerPullThread::pull(ServerObjectPtr server, std::function<void(ServerObj
 	_tpool.exec(server->getServerId(), std::bind(&DockerPullThread::doPull, this, server, callback));
 }
 
+DockerRegistry DockerPullThread::getDockerRegistry(const string &baseImageId)
+{
+	std::lock_guard<std::mutex> lock(_mutex);
+
+	auto it = _baseImages.find(baseImageId);
+	if(it != _baseImages.end())
+	{
+		auto rit = _dockerRegistries.find(it->second);
+		if(rit != _dockerRegistries.end())
+		{
+			return rit->second;
+		}
+	}
+
+	return DockerRegistry();
+}
+
+vector<string> DockerPullThread::checkDockerRegistries()
+{
+	vector<string> result;
+
+	try
+	{
+		vector<DockerRegistry> dockerRegistries;
+
+		RegistryPrx registryPrx = AdminProxy::getInstance()->getRegistryProxy();
+
+		registryPrx->getDockerRegistry(dockerRegistries);
+
+		map<string, DockerRegistry> mDockerRegistries;
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
+
+			for (auto& e: dockerRegistries)
+			{
+				_dockerRegistries[e.sId] = e;
+			}
+
+			for(auto dr : _dockerRegistries)
+			{
+				for(auto bi : dr.second.baseImages)
+				{
+					_baseImages[bi.id] = dr.second.sId;
+				}
+			}
+
+			mDockerRegistries = _dockerRegistries;
+		}
+
+		TLOG_DEBUG("docker registries size:" << mDockerRegistries.size() << endl);
+
+		TC_Docker docker;
+		docker.setDockerUnixLocal(g_app.getDocketSocket());
+
+		for (auto& e: mDockerRegistries)
+		{
+			if(!e.second.sUserName.empty())
+			{
+
+				bool succ = docker.login(e.second.sUserName, e.second.sPassword, e.second.sRegistry);
+
+				TLOG_DEBUG("registry:" << e.second.sRegistry << ", user:"
+									   << e.second.sUserName << ", out:" << (succ ? docker.getResponseMessage() : docker.getErrMessage()) << endl);
+
+				result.emplace_back(e.second.sRegistry + "(" + e.second.sUserName + ") " + (succ ? docker.getResponseMessage() : docker.getErrMessage()));
+
+			}
+			else
+			{
+				result.push_back("(" + e.second.sRegistry + ") no username, no need login");
+			}
+		}
+	}
+	catch(exception &ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		result.emplace_back(string(ex.what()));
+	}
+
+	return result;
+}
+
 void DockerPullThread::doPull(ServerObjectPtr server, std::function<void(ServerObjectPtr server, bool, string&)> callback)
 {
-	bool succ = false;
+	bool notChange = false;
 	string out;
 	if(!server->getServerDescriptor().sha.empty())
 	{
-		//检查sha是否更新
-		string command;
+		TC_Docker docker;
+		docker.setDockerUnixLocal(g_app.getDocketSocket());
 
-		command = "docker images --format '{{.Digest}}' | grep " + server->getServerDescriptor().sha;
-
-		out = TC_Common::trim(TC_Port::exec(command.c_str()));
-
-		succ = out == server->getServerDescriptor().sha;
+		bool succ = docker.inspectImage(server->getServerDescriptor().baseImage);
 
 		if(succ)
 		{
-			NODE_LOG(server->getServerId())->debug() << FILE_FUN << "check " + server->getServerDescriptor().baseImage + " " + out + " not change" << endl;
-			g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, server->getServerDescriptor().baseImage  + " sha:" + out + " not change.");
+			JsonValueObjPtr oPtr = JsonValueObjPtr::dynamicCast(TC_Json::getValue(docker.getResponseMessage()));
+
+			string sha = JsonValueStringPtr::dynamicCast(oPtr->value["Id"])->value;
+
+			notChange = (out == server->getServerDescriptor().sha);
+
+			if(notChange)
+			{
+				NODE_LOG(server->getServerId())->debug() << FILE_FUN << "check " + server->getServerDescriptor().baseImage + " " + out + " not change" << endl;
+				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, server->getServerDescriptor().baseImage  + " sha:" + out + " not change.");
+			}
+			else
+			{
+				NODE_LOG(server->getServerId())->debug() << FILE_FUN << "check " + server->getServerDescriptor().baseImage + " " + out + " != " + server->getServerDescriptor().sha << endl;
+			}
 		}
 		else
 		{
-			NODE_LOG(server->getServerId())->debug() << FILE_FUN << "check " + server->getServerDescriptor().baseImage + " " + out + " != " + server->getServerDescriptor().sha << endl;
+			NODE_LOG(server->getServerId())->debug() << "inspect image: " << server->getServerDescriptor().baseImage << ", error:" << docker.getErrMessage() << endl;
+			TARS_NOTIFY_ERROR(docker.getErrMessage());
 		}
 	}
 
-	if(!succ)
+	if(!notChange)
 	{
-		//镜像没有拉取下来
-		string command = "docker pull " + server->getServerDescriptor().baseImage + " 2>&1";
+		TC_Docker docker;
+		docker.setDockerUnixLocal(g_app.getDocketSocket());
 
-		NODE_LOG(server->getServerId())->debug() << command << endl;
+		DockerRegistry dr = getDockerRegistry(server->getServerDescriptor().baseImageId);
 
-		out = TC_Common::trim(TC_Port::exec(command.c_str()));
+		if(!dr.sUserName.empty())
+		{
+			docker.setAuthentication(dr.sUserName, dr.sPassword, dr.sRegistry);
+		}
 
-		NODE_LOG(server->getServerId())->debug() << FILE_FUN << "out:" << out << endl;
+		bool succ = docker.pull(server->getServerDescriptor().baseImage);
 
-		g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, out);
+		NODE_LOG(server->getServerId())->debug() << "registry:" << dr.sRegistry
+									<< ", user:" << dr.sUserName << ", baseImage:" << server->getServerDescriptor().baseImage << ", out:" << (succ ? docker.getResponseMessage() : docker.getErrMessage()) << endl;
 
-		succ = out.find("Status: ") != string::npos;
+		g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, (succ ? docker.getResponseMessage() : docker.getErrMessage()));
 	}
 
-	if(succ)
+	if(notChange)
 	{
 		callback(server, true, out);
 	}

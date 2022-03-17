@@ -206,7 +206,7 @@ public:
 	/**
 	 * 加载docker仓库以及基础镜像消息
 	 */
-	int loadDockerInfo(vector<DockerRegistry> &info, unordered_map<string, pair<string, string>> &baseImages);
+	int loadDockerInfo(map<string, DockerRegistry> &info);
 
 protected:
     /**

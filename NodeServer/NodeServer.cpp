@@ -74,7 +74,9 @@ void NodeServer::initialize()
 	_dockerPullThread = new DockerPullThread();
 	_dockerPullThread->start(3);
 
-    //启动批量发布线程
+	_dockerSocket = g_pconf->get("/tars/node/container<socket>", "/var/run/docker.sock");
+
+	//启动批量发布线程
     PlatformInfo plat;
     int iThreads        = TC_Common::strto<int>(g_pconf->get("/tars/node<bpthreads>", "5"));
 

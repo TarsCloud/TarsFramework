@@ -27,6 +27,8 @@ else
     PID=`ps -eopid,cmd | grep "$bin"| grep "${SERVER_NAME}" |  grep -v "grep" |awk '{print $1}'`
 fi
 
+echo "PID:$PID"
+
 if [ "${COMMAND}" = "stop" ]; then
 
     if [ "$PID" != "" ]; then

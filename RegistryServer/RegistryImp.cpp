@@ -121,6 +121,14 @@ int RegistryImp::updatePatchResult(const PatchResult & result, CurrentPtr curren
 
 int RegistryImp::getDockerRegistry(vector<DockerRegistry> &doctorRegistries, CurrentPtr current)
 {
-	doctorRegistries = g_app.getReapThread()->getDockerRegistry();
+	auto v = g_app.getReapThread()->getDockerRegistry();
+
+	for(auto e : v)
+	{
+		doctorRegistries.push_back(e.second);
+	}
+
+	TLOG_DEBUG("RegistryImp::getDockerRegistry registry size: " << doctorRegistries.size() <<  endl);
+
 	return 0;
 }

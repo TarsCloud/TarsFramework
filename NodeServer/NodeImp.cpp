@@ -675,8 +675,6 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
 {
 	string serverId = application + "." + serverName;
 
-	NODE_LOG(serverId)->debug() << endl;
-
 	string &result =  tPatchInfo.sResult;
     try
     {
@@ -686,7 +684,7 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
         if ( pServerObjectPtr )
         {
             result += "succ";
-	        NODE_LOG(serverId)->debug()<<FILE_FUN << result << "|get ServerObj" << endl;
+	        NODE_LOG(serverId)->debug()<<FILE_FUN << result << ", get ServerObj" << endl;
             return pServerObjectPtr->getPatchPercent(tPatchInfo);
         }
 
@@ -1017,23 +1015,7 @@ int NodeImp::forceDockerLogin(vector<string> &result, tars::TarsCurrentPtr curre
 {
 	TLOG_DEBUG("" << endl);
 
-	string out = TC_Port::exec("docker --version");
-	if(out.find("version") == string::npos)
-	{
-		result.push_back("docker not exists.");
-	}
-//	out = TC_Port::exec("docker-compose --version");
-//	if(out.find("version") == string::npos)
-//	{
-//		result.push_back("docker-compose not exists.");
-//	}
-
-	if(!result.empty())
-	{
-		return 0;
-	}
-
-	result = g_app.getKeepAliveThread()->checkDockerRegistries(true);
+	result = g_app.getDockerPullThread()->checkDockerRegistries();
 
 	return 0;
 }

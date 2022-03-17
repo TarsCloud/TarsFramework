@@ -89,6 +89,13 @@ public:
 	 * @return
 	 */
 	DockerPullThread *getDockerPullThread() { return _dockerPullThread; }
+
+	/**
+	 *
+	 * @return
+	 */
+	const string &getDocketSocket() { return _dockerSocket; }
+
 protected:
 
     //host 换成ip
@@ -128,6 +135,8 @@ private:
     RemoveLogManager *  _removeLogThread;
 
 	DockerPullThread *	_dockerPullThread;
+
+	string 				_dockerSocket;
 
     static string       g_sNodeIp;
 };

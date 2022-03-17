@@ -445,6 +445,17 @@ public:
 	 */
 	virtual int forceDockerLogin(const string &nodeName, vector<string> &result, CurrentPtr current);
 
+	/**
+	 * 检查主控是否可以登录docker仓库
+	 * @param registry
+	 * @param userName
+	 * @param password
+	 * @param rsp
+	 * @param current
+	 * @return
+	 */
+	virtual int checkDockerRegistry(const string & registry, const string & userName, const string & password, string &result, CurrentPtr current);
+
 protected:
 	/**
 	 * 删除太早的历史记录
@@ -460,8 +471,8 @@ protected:
     PatchPrx _patchPrx;
 	string	 _remoteLogIp;
     string   _remoteLogObj;
-
-	RegistryPrx _registryPrx;
+	string   _dockerSocket;
+//	RegistryPrx _registryPrx;
 };
 //
 //class PatchProCallbackImp: public NodePrxCallback

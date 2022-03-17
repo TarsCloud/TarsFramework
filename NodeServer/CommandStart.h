@@ -57,23 +57,11 @@ private:
 	 */
     bool startByScript(string& sResult);
 
-//	/**
-//	 * 准备容器
-//	 * @return
-//	 */
-//	bool prepareContainer();
-
 	/**
 	 * 在容器中启动!
 	 * @return
 	 */
 	static bool startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult);
-
-//	/**
-//	 * 获取docker compose 的yaml
-//	 * @return
-//	 */
-//	static string getDockerComposeYaml(const ServerObjectPtr &serverObjectPtr);
 
 	/**
 	 * 普通tars服务的启动脚本
@@ -93,6 +81,21 @@ private:
 	 * start成功
 	 */
 	static void startFinish(const ServerObjectPtr &serverObjectPtr, bool bSucc, int64_t startMs, const string &sResult);
+
+	/**
+	 * 搜索package.json文件
+	 * @param package
+	 * @return
+	 */
+	bool searchPackage(const string &searchDir, string &package);
+
+	/**
+	 * 搜索可执行程序
+	 * @param searchDir
+	 * @param server
+	 * @return
+	 */
+	bool searchServer(const string &searchDir, string &server);
 
 private:
     bool                _byNode;

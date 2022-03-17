@@ -94,7 +94,7 @@ void CDbHandle::updateMysql()
     }
 }
 
-int CDbHandle::loadDockerInfo(vector<DockerRegistry> &info, unordered_map<string, pair<string, string>> &baseImages)
+int CDbHandle::loadDockerInfo(map<string, DockerRegistry> &info)
 {
 	try
 	{
@@ -111,8 +111,9 @@ int CDbHandle::loadDockerInfo(vector<DockerRegistry> &info, unordered_map<string
 				registry.sRegistry = res[i]["registry"];
 				registry.sUserName = res[i]["username"];
 				registry.sPassword = res[i]["password"];
+				registry.bSucc = false;
 
-				info.push_back(registry);
+				info[registry.sId] = registry;
 			}
 		}
 
@@ -123,7 +124,16 @@ int CDbHandle::loadDockerInfo(vector<DockerRegistry> &info, unordered_map<string
 
 			for (size_t i = 0; i < res.size(); i++)
 			{
-				baseImages[res[i]["id"]].first = res[i]["image"];
+				BaseImageInfo baseImage;
+				baseImage.id = res[i]["id"];
+				baseImage.image = res[i]["image"];
+				baseImage.registryId = res[i]["registryId"];
+
+				auto it = info.find(baseImage.registryId);
+				if(it != info.end())
+				{
+					it->second.baseImages.push_back(baseImage);
+				}
 			}
 		}
 		return 0;
@@ -331,10 +341,12 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                "    left join t_adapter_conf as adapter using(application, server_name, node_name) "
                "where " + sCondition;
 
-        TLOG_DEBUG("CDbHandle::getServers sSql:" << sSql << endl);
 
         TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
         num = res.size();
+
+        TLOG_DEBUG("CDbHandle::getServers sSql:" << sSql << ", num:" << num << ", cost:" << TNOWMS - iStart << endl);
+
         //对应server在vector的下标
         map<string, int> mapAppServerTemp;
 
@@ -368,11 +380,11 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                 server.monitorScript    = res[i]["monitor_script_path"];
                 server.configCenterPort = TC_Common::strto<int>(res[i]["config_center_port"]);
 				server.runType      = res[i]["run_type"];
-				string baseImageId 	= res[i]["base_image_id"];
+				server.baseImageId 	= res[i]["base_image_id"];
 
-				if(!baseImageId.empty())
+				if(!server.baseImageId.empty())
 				{
-					auto image = g_app.getReapThread()->getBaseImageById(baseImageId);
+					auto image = g_app.getReapThread()->getBaseImageById(server.baseImageId);
 					server.baseImage = image.first;
 					server.sha = image.second;
 				}
@@ -383,12 +395,15 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                     server.setId = res[i]["set_name"] + "." +  res[i]["set_area"] + "." + res[i]["set_group"];
                 }
 
-                //获取父模版profile内容
+				TLOG_DEBUG("CDbHandle::getServers begin getProfileTemplate" << endl);
+
+				//获取父模版profile内容
                 if (mapProfile.find(res[i]["template_name"]) == mapProfile.end())
                 {
                     string sResult;
                     mapProfile[res[i]["template_name"]] = getProfileTemplate(res[i]["template_name"], sResult);
                 }
+				TLOG_DEBUG("CDbHandle::getServers begin getProfileTemplate cost:" << TNOWMS - iStart << endl);
 
                 TC_Config tParent, tProfile;
                 tParent.parseString(mapProfile[res[i]["template_name"]]);

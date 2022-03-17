@@ -19,6 +19,7 @@
 #include "servant/Application.h"
 #include "servant/RemoteNotify.h"
 #include "AdminRegistryServer.h"
+#include "util/tc_docker.h"
 
 extern TC_Config * g_pconf;
 
@@ -28,7 +29,7 @@ void AdminRegistryImp::initialize()
 
     _patchPrx = Application::getCommunicator()->stringToProxy<PatchPrx>(g_pconf->get("/tars/objname<patchServerObj>", "tars.tarspatch.PatchObj"));
 
-	_registryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>("/tars/objname<RegistryObjName>", "tars.tarsregistry.RegistryObj");
+//	_registryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>("/tars/objname<RegistryObjName>", "tars.tarsregistry.RegistryObj");
 
 	int timeout = TC_Common::strto<int>(g_pconf->get("/tars/patch<patch_timeout>", "30000"));
 
@@ -38,6 +39,7 @@ void AdminRegistryImp::initialize()
 
     _remoteLogObj = g_pconf->get("/tars/log<remotelogobj>", "tars.tarslog.LogObj");
 
+	_dockerSocket = g_pconf->get("/tars/container<socket>", "/var/run/docker.sock");
     TLOG_DEBUG("AdminRegistryImp init ok. _remoteLogIp:" << _remoteLogIp << ", _remoteLogObj:" << _remoteLogObj << endl);
 }
 
@@ -1585,6 +1587,34 @@ int AdminRegistryImp::forceDockerLogin(const string &nodeName, vector<string> &r
 
 	return -1;
 }
+
+int AdminRegistryImp::checkDockerRegistry(const string & registry, const string & userName, const string & password, string &result, CurrentPtr current)
+{
+	TLOG_DEBUG(registry << ", " << userName << endl);
+	try
+	{
+		TC_Docker docker;
+		docker.setDockerUnixLocal(_dockerSocket);
+		docker.setRequestTimeout(80000);
+
+		bool succ = docker.login(userName, password, registry);
+
+		result = succ?docker.getResponseMessage():docker.getErrMessage();
+
+		TLOG_DEBUG(registry << ", " << userName << ", " << result << endl);
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		result = ex.what();
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
 //        const std::string& result)

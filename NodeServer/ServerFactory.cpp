@@ -185,7 +185,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
     }
     catch(exception &e)
     {
-    	NODE_LOG(serverId)->error() << ",ServerFactory::getServerFromRegistry exception:" << e.what() << endl;
+    	NODE_LOG(serverId)->error() << "ServerFactory::getServerFromRegistry exception:" << e.what() << endl;
     }
     return  vServerDescriptor;
 }

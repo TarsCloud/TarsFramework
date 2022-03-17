@@ -50,11 +50,6 @@ public:
 	 */
     time_t getLatestKeepAliveTime() const { return _latestKeepAliveTime; }
 
-	/**
-	 * 检查docker仓库是改变以及登录
-	 */
-	vector<string> checkDockerRegistries(bool force = false);
-
 protected:
 
     virtual void run();
@@ -90,10 +85,6 @@ protected:
      */
     bool timedWait(int millsecond);
 
-	void loadDockerRegistry();
-
-	void saveDockerRegistry();
-
 protected:
 
     NodeInfo            _nodeInfo;
@@ -117,9 +108,6 @@ private:
     vector<ServerStateInfo>     _stat;         //服务状态列表
     TC_ThreadLock               _lock;
 
-	std::mutex						_dockerMutex;
-	map<string, DockerRegistry>		_dockerRegistries;	//仓库信息
-	size_t							_dockerLastUpdateTime;
 };
 
 

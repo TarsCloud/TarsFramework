@@ -19,14 +19,13 @@
 #include "RegistryProxy.h"
 #include "util/tc_port.h"
 #include "util/tc_clientsocket.h"
+#include "util/tc_docker.h"
 #include "servant/Communicator.h"
 #include "NodeServer.h"
 #include "CommandStart.h"
 #include "CommandNotify.h"
 #include "CommandStop.h"
-//#include "CommandDestroy.h
 #include "CommandAddFile.h"
-//#include "DockerStop.h.bak"
 
 ServerObject::ServerObject( const ServerDescriptor& tDesc)
 : _tarsServer(true)
@@ -366,20 +365,40 @@ int ServerObject::checkPid()
 {
 	if (isContainer())
 	{
-		string command = "docker inspect -f '{{.State.Status}}' " + getServerId() + "  2>&1";
-		string out = TC_Common::trim(TC_Port::exec(command.c_str()));
-		if(out == "running")
+		TC_Docker docker;
+		docker.setDockerUnixLocal(g_app.getDocketSocket());
+		bool succ = docker.inspectContainer(getServerId());
+
+		if(succ)
 		{
-			return 0;
+			JsonValueObjPtr oPtr = JsonValueObjPtr::dynamicCast(TC_Json::getValue(docker.getResponseMessage()));
+
+			JsonValueObjPtr sPtr = JsonValueObjPtr::dynamicCast(oPtr->value["State"]);
+
+			string value = JsonValueStringPtr::dynamicCast(sPtr->value["Status"])->value;
+
+			if(value == "running")
+			{
+				return 0;
+			}
 		}
+		else
+		{
+			NODE_LOG(_serverId)->debug() << "check container, error:" << docker.getErrMessage() << endl;
+		}
+
+//		string command = "docker inspect -f '{{.State.Status}}' " + getServerId() + "  2>&1";
+//		string out = TC_Common::trim(TC_Port::exec(command.c_str()));
+//		if(out == "running")
+//		{
+//			return 0;
+//		}
 
 		if(g_app.getDockerPullThread()->isPulling(this))
 		{
-			NODE_LOG(_serverId)->debug() << "is docker pulling" << endl;
+			NODE_LOG(_serverId)->debug() << "checkPid, is docker pulling, please wait" << endl;
 			return 0;
 		}
-
-		NODE_LOG(_serverId)->debug() << "check container, out:" << out << endl;
 
 		return -1;
 	}
@@ -610,7 +629,7 @@ void ServerObject::setPatchPercent(const int iPercent)
     _patchInfo.iPercent      = iPercent>99?99:iPercent;
     _patchInfo.iModifyTime   = TNOW;
 
-    NODE_LOG(_serverId)->debug()<<FILE_FUN << "percent:" << iPercent << endl;
+    NODE_LOG(_serverId)->debug()<<FILE_FUN << "percent: " << iPercent << endl;
 }
 
 void ServerObject::setPatchResult(const string &sPatchResult,const bool bSucc)
@@ -618,6 +637,9 @@ void ServerObject::setPatchResult(const string &sPatchResult,const bool bSucc)
     Lock lock(*this);
     _patchInfo.sResult = sPatchResult;
     _patchInfo.bSucc   = bSucc;
+
+    NODE_LOG(_serverId)->debug()<<FILE_FUN << "percent: " << _patchInfo.iPercent << ", bSucc: " << bSucc << ", result: " << _patchInfo.sResult << endl;
+
 }
 
 void ServerObject::setPatchVersion(const string &sVersion)

@@ -50,6 +50,18 @@ public:
 	 */
 	bool isPulling(const ServerObjectPtr &server);
 
+	/**
+	 * 检查docker仓库是改变以及登录
+	 */
+	vector<string> checkDockerRegistries();
+
+	/**
+	 * 获取仓库信息
+	 * @param baseImageId
+	 * @return
+	 */
+	DockerRegistry getDockerRegistry(const string &baseImageId);
+
 protected:
 
 	void doPull(ServerObjectPtr server, std::function<void(ServerObjectPtr server, bool, string&)> callback);
@@ -59,6 +71,16 @@ protected:
 	TC_ThreadPoolHash	_tpool;
 
 	std::mutex		_mutex;
+
+	/**
+	 * 仓库地址
+	 */
+	map<string, DockerRegistry> _dockerRegistries;
+
+	/**
+	 * 基础镜像(id, registryId)
+	 */
+	map<string, string>			_baseImages;
 
 	/**
 	 * 正在拉取的镜像

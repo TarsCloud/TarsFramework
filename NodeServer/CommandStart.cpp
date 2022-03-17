@@ -67,30 +67,59 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
         return DIS_EXECUTABLE;
     }
 
-    if (TC_File::isAbsolute(_exeFile) &&
-        !TC_File::isFileExistEx(_exeFile) &&
-        _serverObjectPtr->getStartScript().empty() &&
-        (_serverObjectPtr->getServerType() == "tars_cpp" || _serverObjectPtr->getServerType() == "tars_go"))
-    {
-    	//为了兼容服务exe文件改名, 如果exeFile不存在, 则遍历目录下, 第一个文件名带Server的可执行程序
-    	vector<string> files;
-    	TC_File::listDirectory(_serverObjectPtr->getExePath(), files, false);
+    if ( _serverObjectPtr->getStartScript().empty())
+	{
+		bool findExe = true;
 
-    	bool findExe = false;
-    	for(auto file : files)
-    	{
-    		if(TC_File::canExecutable(file))
-    		{
-				string fileName = TC_File::extractFileName(file);
+        if(_serverObjectPtr->getServerType() == "tars_cpp" || _serverObjectPtr->getServerType() == "tars_go")
+		{
+			string server;
 
-				if(fileName.find("Server") != string::npos || fileName.find("server") != string::npos)
-				{
-					findExe = true;
-					_exeFile = file;
-					break;
-				}
-    		}
-    	}
+			findExe = searchServer(_serverObjectPtr->getExePath(), server);
+//    	//为了兼容服务exe文件改名, 如果exeFile不存在, 则遍历目录下, 第一个文件名带Server的可执行程序
+//    	vector<string> files;
+//    	TC_File::listDirectory(_serverObjectPtr->getExePath(), files, false);
+//
+//    	bool findExe = false;
+//    	for(auto file : files)
+//    	{
+//    		if(TC_File::canExecutable(file))
+//    		{
+//				string fileName = TC_File::extractFileName(file);
+//
+//				if(fileName.find("Server") != string::npos || fileName.find("server") != string::npos)
+//				{
+//					findExe = true;
+//					_exeFile = file;
+//					break;
+//				}
+//    		}
+//    	}
+		}
+		else if(_serverObjectPtr->getServerType() == "tars_nodejs")
+		{
+			//对于tars_nodejs类型需要修改下_exeFile
+			_exeFile = _serverObjectPtr->getExePath() + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node");
+
+			if(!TC_File::isFileExist(_exeFile))
+			{
+				_exeFile = "node";
+			}
+		}
+		else if(_serverObjectPtr->getServerType() == "tars_java")
+		{
+			if(TC_File::isAbsolute(_exeFile) && !TC_File::isFileExist(_exeFile))
+			{
+				_exeFile = "java";
+			}
+		}
+		else if(_serverObjectPtr->getServerType() == "tars_php")
+		{
+			if(TC_File::isAbsolute(_exeFile) && !TC_File::isFileExist(_exeFile))
+			{
+				_exeFile = "php";
+			}
+		}
 
     	if(!findExe)
     	{
@@ -101,8 +130,7 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     	}
     	else
     	{
-    		sResult      = "find server exe patch " + _exeFile;
-
+    		sResult      = "find server exe: " + _exeFile;
     		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
     	}
     }
@@ -112,6 +140,51 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     _serverObjectPtr->setState(ServerObject::Activating, false); //此时不通知regisrty。checkpid成功后再通知
 
     return EXECUTABLE;
+}
+
+bool CommandStart::searchServer(const string &searchDir, string &server)
+{
+	vector<string> files;
+
+	TC_File::listDirectory(searchDir, files, false);
+
+	vector<string> dirs;
+
+	for(auto &f : files)
+	{
+		if(TC_File::isFileExist(f, S_IFDIR))
+		{
+			dirs.push_back(f);
+			continue;
+		}
+
+		if(!TC_File::canExecutable(f))
+		{
+			continue;
+		}
+
+		//找到了可执行程序
+		if(f == _exeFile)
+		{
+			server = f;
+			return true;
+		}
+
+		string fileName = TC_File::extractFileName(f);
+		if(fileName.find("Server") != string::npos || fileName.find("server") != string::npos)
+		{
+			server = f;
+			return true;
+		}
+	}
+
+	for(auto &dir : dirs)
+	{
+		if (searchServer(dir, server))
+			return true;
+	}
+
+	return false;
 }
 
 string CommandStart::getStartScript(const ServerObjectPtr &serverObjectPtr)
@@ -194,6 +267,45 @@ bool CommandStart::startByScript(string& sResult)
     return bSucc;
 }
 
+bool CommandStart::searchPackage(const string &searchDir, string &package)
+{
+	vector<string> files;
+
+	TC_File::listDirectory(searchDir, files, false);
+
+	vector<string> dirs;
+
+	for(auto &f : files)
+	{
+		string fileName = TC_File::extractFileName(f);
+
+		if(fileName == "node_modules" || fileName == "tars_nodejs")
+		{
+			continue;
+		}
+
+		if(TC_File::isFileExist(f, S_IFDIR))
+		{
+			dirs.push_back(f);
+			continue;
+		}
+
+		if(fileName == "package.json")
+		{
+			package = f;
+			return true;
+		}
+	}
+
+	for(auto &dir : dirs)
+	{
+		if (searchPackage(dir, package))
+			return true;
+	}
+
+	return false;
+}
+
 void CommandStart::prepareScript()
 {
 	vector<string> vEnvs;
@@ -248,7 +360,7 @@ void CommandStart::prepareScript()
 	{
 		//java服务
 		string packageFormat= _serverObjectPtr->getPackageFormat();
-		string sClassPath       = _serverObjectPtr->getClassPath();
+		string sClassPath   = _serverObjectPtr->getClassPath();
 		vOptions.push_back("-Dconfig=" + sConfigFile);
 		string s ;
 		if("jar" == packageFormat)
@@ -264,13 +376,25 @@ void CommandStart::prepareScript()
 	}
 	else if (_serverObjectPtr->getServerType() == "tars_nodejs")
 	{
-		vOptions.push_back(sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node-agent") + FILE_SEP + string("bin") + FILE_SEP + string("node-agent"));
-		string s = sExePath + FILE_SEP + "src" + FILE_SEP +" -c " + sConfigFile;
-		vector<string> v = TC_Common::sepstr<string>(s," \t");
-		vOptions.insert(vOptions.end(), v.begin(), v.end());
+		vOptions.emplace_back(TC_File::simplifyDirectory(
+				sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node-agent") + FILE_SEP +
+				string("bin") + FILE_SEP + string("node-agent")));
 
-		//对于tars_nodejs类型需要修改下_exeFile
-		_exeFile = sExePath + FILE_SEP + string("tars_nodejs") + FILE_SEP + string("node");
+		string package;
+		string src;
+		if(searchPackage(sExePath, package))
+		{
+			NODE_LOG(_serverObjectPtr->getServerId())->debug() << "search nodejs package.json: " << package << endl;
+
+			src = TC_File::simplifyDirectory(TC_File::extractFilePath(package)) + " -c " + sConfigFile;
+		}
+		else
+		{
+			src = TC_File::simplifyDirectory(sExePath) + " -c " + sConfigFile;
+		}
+
+		vector<string> v = TC_Common::sepstr<string>(src," \t");
+		vOptions.insert(vOptions.end(), v.begin(), v.end());
 
 		osStartStcript << TARS_START << _exeFile <<" "<<TC_Common::tostr(vOptions);
 	}
@@ -278,11 +402,12 @@ void CommandStart::prepareScript()
 	{
 		TC_Config conf;
 		conf.parseFile(sConfigFile);
-		string entrance    = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php";
+		string entrance = sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php";
 		entrance = conf.get("/tars/application/server<entrance>", entrance);
 
 		vOptions.push_back(entrance);
 		vOptions.push_back("--config=" + sConfigFile);
+
 		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
 	}
 	else
@@ -340,12 +465,12 @@ bool CommandStart::startNormal(string& sResult)
 bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
 {
 	//准备执行环境以及启动
-	std::string sRollLogFile;
-	string sLogPath = serverObjectPtr->getLogPath();
-
-	if (!sLogPath.empty()) {
-		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
-	}
+//	std::string sRollLogFile;
+//	string sLogPath = serverObjectPtr->getLogPath();
+//
+//	if (!sLogPath.empty()) {
+//		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
+//	}
 
 	ostringstream os;
 	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
@@ -362,7 +487,7 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	vOptions.emplace_back("-v");
 	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
 	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
+	vOptions.emplace_back(serverObjectPtr->getLogPath() + ":" + serverObjectPtr->getLogPath());
 	vOptions.emplace_back("-v");
 	vOptions.emplace_back("/etc/localtime:/etc/localtime");
 
@@ -379,7 +504,8 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
 	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
 
-	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
+//	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
+	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", "", vOptions);//, vEnvs);
 
 	if (iPid <= 0)  //child process or error;
 	{
