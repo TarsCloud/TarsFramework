@@ -296,8 +296,8 @@ int CommandLoad::updateConfigFile(string& sResult)
 
 			if(_serverObjectPtr->getRunType() == ServerObject::Container)
 			{
+				_serverObjectPtr->addPort(tEp.isTcp(), tEp.getHost(), tEp.getPort());
 				tEp.setHost("0.0.0.0");
-				_serverObjectPtr->addPort(tEp.getPort());
 			}
 
             {
@@ -371,7 +371,7 @@ int CommandLoad::updateConfigFile(string& sResult)
 		if(_serverObjectPtr->getRunType() == ServerObject::Container)
 		{
 			tLocalEndpoint.setHost("0.0.0.0");
-			_serverObjectPtr->addPort(tLocalEndpoint.getPort());
+			_serverObjectPtr->addPort(tLocalEndpoint.isTcp(), "127.0.0.1", tLocalEndpoint.getPort());
 
 		}
 		else

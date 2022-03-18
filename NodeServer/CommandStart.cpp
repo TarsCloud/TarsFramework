@@ -15,7 +15,7 @@
  */
 
 #include "CommandStart.h"
-
+#include "util/tc_docker.h"
 #if TARGET_PLATFORM_LINUX
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -458,51 +458,100 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 //		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
 //	}
 
-	ostringstream os;
-	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
- 	os << serverObjectPtr->getDataDir() << ":" << serverObjectPtr->getDataDir() << " ";
-	os << serverObjectPtr->getConfigPath() << ":" << serverObjectPtr->getConfigPath() << " ";
-	os << serverObjectPtr->getLogPath() << ":" << serverObjectPtr->getLogPath() << " ";
-	os << "/etc/localtime" << ":" << "/etc/locatime" << " ";
+	TC_Docker docker;
+	docker.setDockerUnixLocal(g_app.getDocketSocket());
 
-	vector<string> vOptions = {"run", "--rm", "--name", serverObjectPtr->getServerId()};
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getExePath() + ":" + serverObjectPtr->getExePath());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getDataDir() + ":" + serverObjectPtr->getDataDir());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back(serverObjectPtr->getLogPath() + ":" + serverObjectPtr->getLogPath());
-	vOptions.emplace_back("-v");
-	vOptions.emplace_back("/etc/localtime:/etc/localtime");
+	vector<string> entrypoint;
+	entrypoint.emplace_back(CommandStart::getStartScript(serverObjectPtr));
+	map<string, string> mounts;
+	mounts[serverObjectPtr->getExePath()] = serverObjectPtr->getExePath();
+	mounts[serverObjectPtr->getDataDir()] = serverObjectPtr->getDataDir();
+	mounts[serverObjectPtr->getConfigPath()] = serverObjectPtr->getConfigPath();
+	mounts[serverObjectPtr->getLogPath()] = serverObjectPtr->getLogPath();
+	mounts["/etc/localtime"] = "/etc/localtime";
 
+	map<string, pair<string, int>> ports;
+
+	string networkMode = "host";
 #if !PLATFORM_TARGET_LINUX
-	for(auto port : serverObjectPtr->getPorts())
-	{
-		vOptions.emplace_back("-p");
-		vOptions.emplace_back(TC_Common::tostr(port)+":"+TC_Common::tostr(port));
-	}
-#else
-	vOptions.emplace_back("--net=host");
+	ports = serverObjectPtr->getPorts();
+	networkMode = "bridge";
 #endif
 
-	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
-	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
+	bool succ = false;
 
-//	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
-	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", "", vOptions);//, vEnvs);
+	docker.remove(serverObjectPtr->getServerId(), true);
 
-	if (iPid <= 0)  //child process or error;
+	succ = docker.create(serverObjectPtr->getServerId(), serverObjectPtr->getServerDescriptor().baseImage, entrypoint, {}, {}, mounts, ports, "", 0, networkMode, "host", true, false);
+	if(!succ)
 	{
-		return false;
+		string result = "create container error: " + docker.getErrMessage();
+		NODE_LOG(serverObjectPtr->getServerId())->debug() << result << endl;
+		g_app.reportServer(serverObjectPtr->getServerId(), "", serverObjectPtr->getNodeInfo().nodeName, result);
 	}
+	else
+	{
+		succ = docker.start(serverObjectPtr->getServerId());
+		if(!succ)
+		{
+			string result = "start container error: " + docker.getErrMessage();
+			NODE_LOG(serverObjectPtr->getServerId())->debug() << result << endl;
+			g_app.reportServer(serverObjectPtr->getServerId(), "", serverObjectPtr->getNodeInfo().nodeName, result);
+		}
+		else
+		{
+			succ = docker.inspectContainer(serverObjectPtr->getServerId());
 
-	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "activate succ, pid:" << iPid << endl;
+			if(succ)
+			{
+				JsonValueObjPtr oPtr = JsonValueObjPtr::dynamicCast(TC_Json::getValue(docker.getResponseMessage()));
 
-	serverObjectPtr->setPid(iPid);
+				JsonValueObjPtr sPtr = JsonValueObjPtr::dynamicCast(oPtr->value["State"]);
 
-	return true;
+				int64_t value = JsonValueNumPtr::dynamicCast(sPtr->value["Pid"])->value;
+
+				serverObjectPtr->setPid(value);
+
+				return true;
+			}
+		}
+	}
+//
+//	ostringstream os;
+//	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
+// 	os << serverObjectPtr->getDataDir() << ":" << serverObjectPtr->getDataDir() << " ";
+//	os << serverObjectPtr->getConfigPath() << ":" << serverObjectPtr->getConfigPath() << " ";
+//	os << serverObjectPtr->getLogPath() << ":" << serverObjectPtr->getLogPath() << " ";
+//	os << "/etc/localtime" << ":" << "/etc/locatime" << " ";
+//
+//	vector<string> vOptions = {"run", "--rm", "--name", serverObjectPtr->getServerId()};
+//	vOptions.emplace_back("-v");
+//	vOptions.emplace_back(serverObjectPtr->getExePath() + ":" + serverObjectPtr->getExePath());
+//	vOptions.emplace_back("-v");
+//	vOptions.emplace_back(serverObjectPtr->getDataDir() + ":" + serverObjectPtr->getDataDir());
+//	vOptions.emplace_back("-v");
+//	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
+//	vOptions.emplace_back("-v");
+//	vOptions.emplace_back(serverObjectPtr->getLogPath() + ":" + serverObjectPtr->getLogPath());
+//	vOptions.emplace_back("-v");
+//	vOptions.emplace_back("/etc/localtime:/etc/localtime");
+//
+//
+//	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
+//	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
+//
+////	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
+//	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", "", vOptions);//, vEnvs);
+//
+//	if (iPid <= 0)  //child process or error;
+//	{
+//		return false;
+//	}
+//
+//	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "activate succ, pid:" << iPid << endl;
+
+
+	return false;
 }
 
 //////////////////////////////////////////////////////////////

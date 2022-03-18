@@ -483,14 +483,14 @@ public:
 	//清除端口
 	void clearPorts() { _ports.clear(); }
 	//添加服务需要映射端口(docker需要, 尤其mac下)
-	void addPort(const int &port)
+	void addPort(bool tcp, const string &hostIp, int port)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		_ports.insert(port);
+		_ports[TC_Common::tostr(port) + "/" + (tcp?"tcp":"udp")] = make_pair(hostIp, port);
 	}
 
 	//返回映射的端口
-	set<int> getPorts()
+	map<string, pair<string, int>> getPorts()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return _ports;
@@ -567,7 +567,7 @@ private:
     string _packageFormat;			   //上传包格式(tgz/jar/war, image), image表示镜像模式
     map<string,string> _macro;         //服务宏
 	std::mutex _mutex;
-	set<int>   _ports;					//容器模式下, 需要映射到宿主机的网络端口(mac下, 即使--net=host, 仍然需要配置映射)
+	map<string, pair<string, int>>   _ports;	//容器模式下, 需要映射到宿主机的网络端口(mac下, 即使--net=host, 仍然需要配置映射)
 private:
     PatchInfo           _patchInfo;            //下载信息
 
