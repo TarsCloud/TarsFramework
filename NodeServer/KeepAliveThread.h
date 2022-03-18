@@ -101,7 +101,9 @@ protected:
 
     RegistryPrx         _registryPrx;
 
-    time_t _latestKeepAliveTime;  
+    time_t _latestKeepAliveTime;
+
+	time_t 				_dockerLastUpdateTime = 0;
 
 private:
 

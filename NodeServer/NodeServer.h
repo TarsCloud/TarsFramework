@@ -96,6 +96,12 @@ public:
 	 */
 	const string &getDocketSocket() { return _dockerSocket; }
 
+	/**
+	 * 拉取超时时间(s)
+	 * @return
+	 */
+	int getDockerPullTimeout() { return _dockerPullTimeout; }
+
 protected:
 
     //host 换成ip
@@ -137,6 +143,8 @@ private:
 	DockerPullThread *	_dockerPullThread;
 
 	string 				_dockerSocket;
+
+	int 				_dockerPullTimeout = 5*60;
 
     static string       g_sNodeIp;
 };

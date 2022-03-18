@@ -69,10 +69,16 @@ public:
 	pair<string, string> getBaseImageById(const string &baseImageId);
 
 protected:
+
+	/**
+	 * 启动时加载基础镜像数据
+	 */
+	void loadDockerRegistry(bool pull);
+
 	/**
 	 * 检查
 	 */
-	void checkDockerRegistries(const map<string, DockerRegistry> &dockerRegistries);
+	void checkDockerRegistries(const map<string, DockerRegistry> &dockerRegistries, bool pull);
 
 protected:
     /*
@@ -128,6 +134,10 @@ protected:
 	 */
 	string 		_dockerSocket;
 
+	/**
+	 * pull timeout
+	 */
+	int 		_dockerTimeout = 300;
 	/**
 	 * docker的镜像仓库
 	 */

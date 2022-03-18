@@ -51,7 +51,7 @@ bool DockerPullThread::isPulling(const ServerObjectPtr &server)
 
 void DockerPullThread::pull(ServerObjectPtr server, std::function<void(ServerObjectPtr server, bool, string&)> callback)
 {
-	g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, "docker pull " + server->getServerDescriptor().baseImage);
+	g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, "check docker pull " + server->getServerDescriptor().baseImage);
 
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
@@ -77,6 +77,41 @@ DockerRegistry DockerPullThread::getDockerRegistry(const string &baseImageId)
 	}
 
 	return DockerRegistry();
+}
+
+void DockerPullThread::loadDockerRegistries()
+{
+	try
+	{
+		vector<DockerRegistry> dockerRegistries;
+
+		RegistryPrx registryPrx = AdminProxy::getInstance()->getRegistryProxy();
+
+		registryPrx->getDockerRegistry(dockerRegistries);
+
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
+
+			for (auto& e: dockerRegistries)
+			{
+				_dockerRegistries[e.sId] = e;
+			}
+
+			for(auto dr : _dockerRegistries)
+			{
+				for(auto bi : dr.second.baseImages)
+				{
+					_baseImages[bi.id] = dr.second.sId;
+				}
+			}
+
+			TLOG_DEBUG("docker registries size:" << _dockerRegistries.size() << ", base image size:" << _baseImages.size() << endl);
+		}
+	}
+	catch(exception &ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+	}
 }
 
 vector<string> DockerPullThread::checkDockerRegistries()
@@ -146,67 +181,129 @@ vector<string> DockerPullThread::checkDockerRegistries()
 
 void DockerPullThread::doPull(ServerObjectPtr server, std::function<void(ServerObjectPtr server, bool, string&)> callback)
 {
-	bool notChange = false;
-	string out;
-	if(!server->getServerDescriptor().sha.empty())
+	try
 	{
-		TC_Docker docker;
-		docker.setDockerUnixLocal(g_app.getDocketSocket());
+		bool isNeedPull = true;
+		bool isSucc = true;
+		string sha;
+		string result;
 
-		bool succ = docker.inspectImage(server->getServerDescriptor().baseImage);
-
-		if(succ)
+		do
 		{
+
+			if(server->getServerDescriptor().baseImage.empty())
+			{
+				isNeedPull = false;
+				isSucc = false;
+				result = "base image is empty, baseImageId:" + server->getServerDescriptor().baseImageId;
+				NODE_LOG(server->getServerId())->error() << FILE_FUN << result << endl;
+				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, result);
+				break;
+			}
+
+			//check sha
+			if (server->getServerDescriptor().sha.empty())
+			{
+				isNeedPull = true;
+				isSucc = true;
+				NODE_LOG(server->getServerId())->debug() << FILE_FUN << "sha is empty, need pull base image:" << server->getServerDescriptor().baseImage << endl;
+				break;
+			}
+
+			TC_Docker docker;
+			docker.setDockerUnixLocal(g_app.getDocketSocket());
+
+			isSucc = docker.inspectImage(server->getServerDescriptor().baseImage);
+
+			if(!isSucc)
+			{
+				isNeedPull = true;
+				result = "inspect image:" + server->getServerDescriptor().baseImage + "  error" + docker.getErrMessage();
+				NODE_LOG(server->getServerId())->debug() << FILE_FUN << result << endl;
+				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, result);
+				break;
+			}
+
 			JsonValueObjPtr oPtr = JsonValueObjPtr::dynamicCast(TC_Json::getValue(docker.getResponseMessage()));
 
-			string sha = JsonValueStringPtr::dynamicCast(oPtr->value["Id"])->value;
+			sha = JsonValueStringPtr::dynamicCast(oPtr->value["Id"])->value;
 
-			notChange = (out == server->getServerDescriptor().sha);
+			isNeedPull = (sha != server->getServerDescriptor().sha);
 
-			if(notChange)
+			if (isNeedPull)
 			{
-				NODE_LOG(server->getServerId())->debug() << FILE_FUN << "check " + server->getServerDescriptor().baseImage + " " + out + " not change" << endl;
-				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, server->getServerDescriptor().baseImage  + " sha:" + out + " not change.");
+				NODE_LOG(server->getServerId())->debug() << FILE_FUN
+														 << "check " + server->getServerDescriptor().baseImage +
+															": " + result + " != " +
+															server->getServerDescriptor().sha
+														 << endl;
+				result = server->getServerDescriptor().baseImage + " sha changed, need pull: " + server->getServerDescriptor().sha;
+
 			}
 			else
 			{
-				NODE_LOG(server->getServerId())->debug() << FILE_FUN << "check " + server->getServerDescriptor().baseImage + " " + out + " != " + server->getServerDescriptor().sha << endl;
+				NODE_LOG(server->getServerId())->debug() << FILE_FUN
+														 << "check " + server->getServerDescriptor().baseImage +
+															" " + result + " not change" << endl;
+				result = server->getServerDescriptor().baseImage + " sha not changed, no need pull: " + server->getServerDescriptor().sha;
+
 			}
+
+			g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, result);
+			break;
+		}
+		while(true);
+
+		if (isSucc && isNeedPull)
+		{
+			TC_Docker docker;
+			docker.setDockerUnixLocal(g_app.getDocketSocket());
+			docker.setRequestTimeout(g_app.getDockerPullTimeout() * 1000);
+
+			DockerRegistry dr = getDockerRegistry(server->getServerDescriptor().baseImageId);
+			if (dr.sId.empty())
+			{
+				isSucc = false;
+				result = "docker pull error: registry is empty! baseImageId:" +
+						 server->getServerDescriptor().baseImageId;
+
+				NODE_LOG(server->getServerId())->error() << FILE_FUN << result << endl;
+				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, result);
+			}
+
+			if (!dr.sUserName.empty())
+			{
+				docker.setAuthentication(dr.sUserName, dr.sPassword, dr.sRegistry);
+			}
+
+			isSucc = docker.pull(server->getServerDescriptor().baseImage);
+
+			NODE_LOG(server->getServerId())->debug() << FILE_FUN << "registry:" << dr.sRegistry
+													 << ", user:" << dr.sUserName << ", baseImage:"
+													 << server->getServerDescriptor().baseImage << ", out:"
+													 << (isSucc ? docker.getResponseMessage()
+																: docker.getErrMessage())
+													 << endl;
+
+			if (!isSucc)
+			{
+				result = "docker pull " + server->getServerDescriptor().baseImage + "error: " + docker.getErrMessage();
+				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, result);
+			}
+		}
+
+		if (isSucc)
+		{
+			callback(server, true, result);
 		}
 		else
 		{
-			NODE_LOG(server->getServerId())->debug() << "inspect image: " << server->getServerDescriptor().baseImage << ", error:" << docker.getErrMessage() << endl;
-			TARS_NOTIFY_ERROR(docker.getErrMessage());
+			callback(server, false, result);
 		}
 	}
-
-	if(!notChange)
+	catch(exception &ex)
 	{
-		TC_Docker docker;
-		docker.setDockerUnixLocal(g_app.getDocketSocket());
-
-		DockerRegistry dr = getDockerRegistry(server->getServerDescriptor().baseImageId);
-
-		if(!dr.sUserName.empty())
-		{
-			docker.setAuthentication(dr.sUserName, dr.sPassword, dr.sRegistry);
-		}
-
-		bool succ = docker.pull(server->getServerDescriptor().baseImage);
-
-		NODE_LOG(server->getServerId())->debug() << "registry:" << dr.sRegistry
-									<< ", user:" << dr.sUserName << ", baseImage:" << server->getServerDescriptor().baseImage << ", out:" << (succ ? docker.getResponseMessage() : docker.getErrMessage()) << endl;
-
-		g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, (succ ? docker.getResponseMessage() : docker.getErrMessage()));
-	}
-
-	if(notChange)
-	{
-		callback(server, true, out);
-	}
-	else
-	{
-		callback(server, false, out);
+		NODE_LOG(server->getServerId())->error() << FILE_FUN << "error:" << ex.what() << endl;
 	}
 
 	{

@@ -56,6 +56,11 @@ public:
 	vector<string> checkDockerRegistries();
 
 	/**
+	 * 加载仓库信息
+	 */
+	void loadDockerRegistries();
+
+	/**
 	 * 获取仓库信息
 	 * @param baseImageId
 	 * @return

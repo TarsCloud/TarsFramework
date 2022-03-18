@@ -27,7 +27,9 @@
 
         #open day log, default is N; Y means open day log
         openDayLog = N
-                
+
+        #check docker registry && update base image(秒)
+        checkDockerRegistry = 60
     </reap>
     <objname>
         #patch对象
@@ -49,8 +51,7 @@
         defaultTemplate = tars.tarsnode
     </nodeinfo>
     <container>
-        registry =
-        username =
-        password =
+        socket = /var/run/docker.sock
+        timeout = 300
     </container>
 </tars>

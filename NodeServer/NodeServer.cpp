@@ -57,6 +57,12 @@ void NodeServer::initialize()
 
     initHashMap();
 
+	_dockerPullThread = new DockerPullThread();
+	_dockerPullThread->start(3);
+
+	_dockerSocket = g_pconf->get("/tars/node/container<socket>", "/var/run/docker.sock");
+	_dockerPullTimeout = TC_Common::strto<int>(g_pconf->get("/tars/node/container<timeout>", "300"));
+
     //启动KeepAliveThread
     _keepAliveThread   = new KeepAliveThread();
     _keepAliveThread->start();
@@ -70,11 +76,6 @@ void NodeServer::initialize()
     TLOG_DEBUG("NodeServer::initialize |_reportMemThread start" << endl);
 
 #endif
-
-	_dockerPullThread = new DockerPullThread();
-	_dockerPullThread->start(3);
-
-	_dockerSocket = g_pconf->get("/tars/node/container<socket>", "/var/run/docker.sock");
 
 	//启动批量发布线程
     PlatformInfo plat;

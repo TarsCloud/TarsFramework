@@ -59,33 +59,6 @@ void KeepAliveThread::terminate()
 
     getThreadControl().join();
 }
-//
-//void KeepAliveThread::loadDockerRegistry()
-//{
-//	string buf = TC_File::load2str(ServerConfig::DataPath + "docker_registry.dat");
-//
-//	if(!buf.empty())
-//	{
-//		try
-//		{
-//			TarsInputStream<> is;
-//			is.setBuffer(buf.c_str(), buf.length());
-//			is.read(_dockerRegistries, 0, false);
-//		}
-//		catch (exception &ex)
-//		{
-//			TLOGEX_ERROR("KeepAliveThread", "error:" << ex.what() << endl);
-//		}
-//	}
-//}
-//
-//void KeepAliveThread::saveDockerRegistry()
-//{
-//	TarsOutputStream<BufferWriterString> os;
-//	os.write(_dockerRegistries, 0);
-//
-//	TC_File::save2file(ServerConfig::DataPath + "docker_registry.dat", os.getByteBuffer());
-//}
 
 bool KeepAliveThread::timedWait(int millsecond)
 {
@@ -127,12 +100,12 @@ void KeepAliveThread::run()
     {
         try
         {
-//			if(TNOW - _dockerLastUpdateTime > 10)
-//			{
-//				_dockerLastUpdateTime = TNOW;
-//
-//				checkDockerRegistries();
-//			}
+			if(TNOW - _dockerLastUpdateTime >= 5)
+			{
+				_dockerLastUpdateTime = TNOW;
+
+				g_app.getDockerPullThread()->loadDockerRegistries();
+			}
 
         	if(TNOW - updateConfigTime > 60 )
 	        {

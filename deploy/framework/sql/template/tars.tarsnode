@@ -32,5 +32,9 @@
             factor          =1
             size            =10M
         </hashmap>
+        <container>
+            socket = /var/run/docker.sock
+            timeout = 300
+        </container>
     </node>
 </tars>

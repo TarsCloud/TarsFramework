@@ -75,26 +75,9 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
 		{
 			string server;
 
+    		//为了兼容服务exe文件改名, 如果exeFile不存在, 则遍历目录下, 第一个文件名带Server的可执行程序
+
 			findExe = searchServer(_serverObjectPtr->getExePath(), server);
-//    	//为了兼容服务exe文件改名, 如果exeFile不存在, 则遍历目录下, 第一个文件名带Server的可执行程序
-//    	vector<string> files;
-//    	TC_File::listDirectory(_serverObjectPtr->getExePath(), files, false);
-//
-//    	bool findExe = false;
-//    	for(auto file : files)
-//    	{
-//    		if(TC_File::canExecutable(file))
-//    		{
-//				string fileName = TC_File::extractFileName(file);
-//
-//				if(fileName.find("Server") != string::npos || fileName.find("server") != string::npos)
-//				{
-//					findExe = true;
-//					_exeFile = file;
-//					break;
-//				}
-//    		}
-//    	}
 		}
 		else if(_serverObjectPtr->getServerType() == "tars_nodejs")
 		{
@@ -124,8 +107,11 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
     	if(!findExe)
     	{
     		_serverObjectPtr->setPatched(false);
-    		sResult      = "The server exe patch " + _exeFile + " is not exist.";
+    		sResult      = "server start error: " + _exeFile + " is not exist.";
     		NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << sResult << endl;
+			g_app.reportServer(_serverObjectPtr->getServerId(), "", _serverObjectPtr->getNodeInfo().nodeName,
+					sResult);
+
     		return DIS_EXECUTABLE;
     	}
     	else

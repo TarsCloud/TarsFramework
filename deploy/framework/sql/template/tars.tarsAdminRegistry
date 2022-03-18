@@ -26,5 +26,7 @@
         #stat reserve time(day)
         property_reserve_time = 31
     </db_reserve>
-
+    <container>
+        socket = /var/run/docker.sock
+    </container>
 </tars>
