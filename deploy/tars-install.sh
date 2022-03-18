@@ -238,6 +238,23 @@ function exec_mysql_script()
     return $ret
 }
 
+function exec_mysql_upgrade()
+{
+#    echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --tars-path=${TARS_PATH} --upgrade=$1"
+
+    ${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --tars-path=${TARS_PATH} --upgrade=$1
+
+    ret=$?
+
+    if [ $ret -eq 0 ]; then
+        LOG_DEBUG "exec_mysql_upgrade $1, ret code: $ret"
+    else
+        LOG_ERROR "exec_mysql_upgrade $1, ret code: $ret"
+    fi
+
+    return $ret
+}
+
 function exec_mysql_sql()
 {
     #echo "${MYSQL_TOOL} --host=${MYSQLIP} --user=${USER} --pass=${PASS} --port=${PORT} --charset=utf8 --db=$1 --file=$2"
@@ -433,10 +450,12 @@ function update_template()
     read_dir
 }
 
-
-#upgrade sql
-LOG_INFO "upgrade sql";
-exec_mysql_sql db_tars tars_upgrade.sql
+exec_mysql_has "db_tars"
+if [ $? == 0 ]; then
+  #upgrade sql
+  LOG_INFO "upgrade sql";
+  exec_mysql_upgrade tars_upgrade.conf
+fi
 
 if [ "${SLAVE}" != "true" ]; then
     exec_mysql_has "db_tars"

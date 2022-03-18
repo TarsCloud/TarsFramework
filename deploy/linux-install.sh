@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#./linux-install.sh 192.168.7.152 Rancher@12345 eth0 false false
-#./linux-install.sh 192.168.7.152 Rancher@12345 eth0 true false
+#./linux-install.sh 192.168.7.152 @tars12345 eth0 false false
+#./linux-install.sh 192.168.7.152 @tars12345 eth0 true false
 
 if (( $# < 7 ))
 then
@@ -69,6 +69,8 @@ else
 fi
 
 
+now_user=`whoami`
+
 export TARS_INSTALL=$(cd $(dirname $0); pwd)
 
 OS=`uname`
@@ -98,8 +100,10 @@ fi
 
 function exec_profile()
 {
-  source /etc/profile
-  source ~/.bashrc
+  if [ "$now_user" == "root" ]; then
+    . /etc/profile
+  fi
+  . ~/.bashrc
 }
 
 function get_host_ip()
@@ -118,23 +122,28 @@ function get_host_ip()
 
 if [ $OS != 3 ]; then
 
-    now_user=`whoami`
+#    now_user=`whoami`
 
-    if [ $now_user != "root" ]; then
-      echo "User error, must be root user! Now user is:"$now_user;
-      exit 1;
-    fi
+#    if [ $now_user != "root" ]; then
+#      echo "User error, must be root user! Now user is:"$now_user;
+#      exit 1;
+#    fi
 
+    echo "--------------------------------------------------------------------------------------------------"
     if [ $OS == 1 ]; then
 
-      cp centos7_base.repo /etc/yum.repos.d/
-      yum makecache fast
+#      cp centos7_base.repo /etc/yum.repos.d/
+#      yum makecache fast
 
-      yum install -y yum-utils psmisc telnet net-tools wget unzip
+#      yum install -y yum-utils psmisc telnet net-tools wget unzip
+       echo "You should install dependent packages: yum install -y yum-utils psmisc telnet net-tools wget unzip"
     else
-      apt-get update
-      apt-get install -y psmisc telnet net-tools wget unzip
+#      apt-get update
+#      apt-get install -y psmisc telnet net-tools wget unzip
+      echo "You should install dependent packages: sudo apt-get install -y psmisc telnet net-tools wget unzip"
     fi
+
+    sleep 3
 
 fi
 
@@ -143,15 +152,15 @@ for N in ${INET[@]};
 do
     HOSTIP=$(get_host_ip $N)
 
-    if [ "$HOSTIP" != "127.0.0.1" ] && [ "$HOSTIP" != "" ]; then
+    if [ "$HOSTIP" != "" ]; then
       break
     fi
 done
 
-#if [ "$HOSTIP" == "127.0.0.1" ] || [ "$HOSTIP" == "" ]; then
-#    echo "HOSTIP is [$HOSTIP], not valid. HOSTIP must not be 127.0.0.1 or empty."
-#    exit 1
-#fi
+if [ "$HOSTIP" == "" ]; then
+   echo "HOSTIP is [$HOSTIP], not valid. HOSTIP must not be empty."
+   exit 1
+fi
 
 function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" != "$1"; }
 
@@ -178,19 +187,29 @@ if [ "${SLAVE}" != "true" ]; then
 
   export NVM_NODEJS_ORG_MIRROR=${NODEJS_MIRROR}
 
+  echo "${CURRENT_NODE_SUCC} ${CURRENT_NODE_VERSION}"
   if [[ "${CURRENT_NODE_SUCC}" != "succ" ]] || version_lt "${CURRENT_NODE_VERSION}" "${NODE_VERSION}" ; then
 
     rm -rf v0.35.1.zip
     #centos8 need chmod a+x
-    chmod a+x /usr/bin/unzip
-    wget https://github.com/nvm-sh/nvm/archive/v0.35.1.zip --no-check-certificate;/usr/bin/unzip v0.35.1.zip
+    if [ "$now_user" == "root" ]; then
+       chmod a+x /usr/bin/unzip
+    fi
+
+    wget https://tars-thirdpart-1300910346.cos.ap-guangzhou.myqcloud.com/src/v0.35.1.zip --no-check-certificate;/usr/bin/unzip v0.35.1.zip
 
     NVM_HOME=$HOME
 
     rm -rf $NVM_HOME/.nvm; rm -rf $NVM_HOME/.npm; cp -rf nvm-0.35.1 $NVM_HOME/.nvm; rm -rf nvm-0.35.1;
 
     NVM_DIR=$NVM_HOME/.nvm;
-    echo "export NVM_DIR=$NVM_DIR; [ -s $NVM_DIR/nvm.sh ] && \. $NVM_DIR/nvm.sh; [ -s $NVM_DIR/bash_completion ] && \. $NVM_DIR/bash_completion;" >> /etc/profile
+    if [ "$now_user" == "root" ]; then
+        echo "export NVM_DIR=$NVM_DIR; [ -s $NVM_DIR/nvm.sh ] && \. $NVM_DIR/nvm.sh; [ -s $NVM_DIR/bash_completion ] && \. $NVM_DIR/bash_completion;" >> /etc/profile
+    fi
+
+    echo "export NVM_DIR=$NVM_DIR; [ -s $NVM_DIR/nvm.sh ] && \. $NVM_DIR/nvm.sh; [ -s $NVM_DIR/bash_completion ] && \. $NVM_DIR/bash_completion;" >> ~/.bashrc
+
+    export NVM_DIR=$NVM_DIR; [ -s $NVM_DIR/nvm.sh ] && \. $NVM_DIR/nvm.sh; [ -s $NVM_DIR/bash_completion ] && \. $NVM_DIR/bash_completion;
 
     exec_profile
 
@@ -212,9 +231,9 @@ if [ "${SLAVE}" != "true" ]; then
 
   cd web; npm install;
 
-  if [ -f demo/package.json ]; then
-    cd demo; npm install;
-  fi
+#  if [ -f demo/package.json ]; then
+#    cd demo; npm install;
+#  fi
 
 fi
 

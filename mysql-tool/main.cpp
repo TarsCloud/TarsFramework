@@ -116,6 +116,33 @@ struct MysqlCommand
         }
 	}
 
+	void executeUpgrade(TC_Mysql &mysql, const string &upgradeFile)
+	{
+		TC_Config conf;
+		conf.parseFile(upgradeFile);
+
+		vector<string> upgrades = conf.getDomainVector("/upgrades");
+
+		for(auto upgrade: upgrades)
+		{
+			string database = conf.get("/upgrades/" + upgrade + "<database>");
+			string table = conf.get("/upgrades/" + upgrade + "<table>");
+			string field = conf.get("/upgrades/" + upgrade + "<field>");
+			string upgradeSql = conf.get("/upgrades/" + upgrade + "<sql>");
+
+			string sql = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='" + database + "' AND table_name='" + table + "' AND COLUMN_NAME='" + field +"'";
+
+			auto data = mysql.queryRecord(sql);
+
+			if(data.size() == 0)
+			{
+				mysql.execute("use " + database);
+				cout << sql << endl;
+				mysql.execute(upgradeSql);
+			}
+		}
+	}
+
 	void executeTemplate(TC_Mysql &mysql, TC_Option &option)
 	{
 		string content = replaceConfig(option.getValue("profile"), option);
@@ -237,6 +264,10 @@ int main(int argc, char *argv[])
 	    {
 	    	mysqlCmd.executeSql(mysql, option.getValue("sql"));
 	    }
+		else if(option.hasParam("upgrade"))
+		{
+			mysqlCmd.executeUpgrade(mysql, option.getValue("upgrade"));
+		}
 	    else if(option.hasParam("file"))
 	    {
 		    mysqlCmd.executeFile(mysql, option);
