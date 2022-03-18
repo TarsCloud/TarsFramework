@@ -281,7 +281,7 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-//    virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::CurrentPtr current);
+    virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::CurrentPtr current);
 	virtual int prepareInfo_inner(PrepareInfo &pi, string &result);
 	virtual int preparePatch_inner(const PrepareInfo &pi, string &result);
 
