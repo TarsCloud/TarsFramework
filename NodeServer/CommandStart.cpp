@@ -180,6 +180,7 @@ string CommandStart::getStartScript(const ServerObjectPtr &serverObjectPtr)
 
 #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
 
+//这段代码如果调用会导致子进程启动时, 总是提示端口被占用, 要启动好几次, 原因未知!!!
 int CommandStart::waitProcessDone(int64_t iPid)
 {
 	assert(iPid > 0);
@@ -332,7 +333,7 @@ void CommandStart::prepareScript()
 
 	if(_serverObjectPtr->getRunType() != ServerObject::Container)
 	{
-		osStartStcript << "source /etc/profile" << std::endl;
+		osStartStcript << ". /etc/profile" << std::endl;
 	}
 
 	for (vector<string>::size_type i = 0; i < vEnvs.size(); i++)
@@ -437,9 +438,9 @@ bool CommandStart::startNormal(string& sResult)
 		return false;
 	}
 
-#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
-	waitProcessDone(iPid);
-#endif
+// #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
+// 	waitProcessDone(iPid);
+// #endif
 
 	_serverObjectPtr->setPid(iPid);
 

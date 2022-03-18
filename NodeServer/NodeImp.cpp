@@ -461,7 +461,7 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
 
         if (pServerObjectPtr)
         {
-            NODE_LOG(serverId)->debug() << serverId << " server exists to stop server" << endl;
+            NODE_LOG(serverId)->debug() << FILE_FUN << " server exists to stop server" << endl;
 
             string s;
             bool bByNode = true;

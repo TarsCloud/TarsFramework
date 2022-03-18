@@ -190,7 +190,7 @@ int CommandStop::execute(string& sResult)
     catch (...)
     {
     }
-
+    
     if (needWait)
     {
         while (TNOW - iStopWaitInterval < tNow)

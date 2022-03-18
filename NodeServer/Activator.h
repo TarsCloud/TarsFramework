@@ -103,7 +103,8 @@ public:
      *
      */
     Activator(ServerObject *server, int iTimeInterval,int iMaxCount,int iPunishInterval)
-    : _maxCount(iMaxCount)
+    : _limited(false)
+    , _maxCount(iMaxCount)
     , _timeInterval(iTimeInterval)
     , _punishInterval(iPunishInterval)
     // , _termSignal(false)

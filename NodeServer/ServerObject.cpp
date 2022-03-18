@@ -387,13 +387,6 @@ int ServerObject::checkPid()
 			NODE_LOG(_serverId)->debug() << "check container, error:" << docker.getErrMessage() << endl;
 		}
 
-//		string command = "docker inspect -f '{{.State.Status}}' " + getServerId() + "  2>&1";
-//		string out = TC_Common::trim(TC_Port::exec(command.c_str()));
-//		if(out == "running")
-//		{
-//			return 0;
-//		}
-
 		if(g_app.getDockerPullThread()->isPulling(this))
 		{
 			NODE_LOG(_serverId)->debug() << "checkPid, is docker pulling, please wait" << endl;
@@ -426,7 +419,7 @@ int ServerObject::checkPid()
 			iRet = ::kill(static_cast<pid_t>(_pid), 0);
 			if (iRet != 0)// && (errno == ESRCH || errno == ENOENT ))
 			{
-				NODE_LOG(_serverId)->error() << "kill " << signal << " to pid, pid not exsits, pid:" << _pid
+				NODE_LOG(_serverId)->error() << FILE_FUN << "kill " << signal << " to pid, pid not exsits, pid:" << _pid
 											 << ", catch exception: " << errno << endl;
 				return -1;
 			}
