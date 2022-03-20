@@ -284,8 +284,6 @@ public:
     virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::CurrentPtr current);
 	virtual int prepareInfo_inner(PrepareInfo &pi, string &result);
 	virtual int preparePatch_inner(const PrepareInfo &pi, string &result);
-
-//    virtual int preparePatch_inner(tars::PatchRequest & req, string &result, bool waitOtherThreadPreparePatchFile, std::shared_ptr<atomic_int>& preparePatchRet);
 	virtual int batchPatch_inner(const tars::PatchRequest & req, string &result);
 
     /**
@@ -472,30 +470,29 @@ protected:
 	string	 _remoteLogIp;
     string   _remoteLogObj;
 	string   _dockerSocket;
-//	RegistryPrx _registryPrx;
 };
-//
-//class PatchProCallbackImp: public NodePrxCallback
-//{
-//public:
-//    PatchProCallbackImp(const tars::PatchRequest& req, const NodePrx& nodePrx, int defaultTime, tars::CurrentPtr current)
-//    : _reqPro(req)
-//    , _nodePrx(nodePrx)
-//    , _defaultTime(defaultTime)
-//    , _current(current)
-//    {
-//    }
-//
-//    virtual void callback_patchPro(tars::Int32 ret,  const std::string& result);
-//    virtual void callback_patchPro_exception(tars::Int32 ret);
-//
-//private:
-//
-//    tars::PatchRequest _reqPro;
-//    NodePrx _nodePrx;
-//    int _defaultTime;
-//    tars::CurrentPtr _current;
-//};
+
+class PatchProCallbackImp: public NodePrxCallback
+{
+public:
+   PatchProCallbackImp(const tars::PatchRequest& req, const NodePrx& nodePrx, int defaultTime, tars::CurrentPtr current)
+   : _reqPro(req)
+   , _nodePrx(nodePrx)
+   , _defaultTime(defaultTime)
+   , _current(current)
+   {
+   }
+
+   virtual void callback_patchPro(tars::Int32 ret,  const std::string& result);
+   virtual void callback_patchPro_exception(tars::Int32 ret);
+
+private:
+
+   tars::PatchRequest _reqPro;
+   NodePrx _nodePrx;
+   int _defaultTime;
+   tars::CurrentPtr _current;
+};
 
 
 class StartServerCallbackImp: public NodePrxCallback

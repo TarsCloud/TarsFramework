@@ -159,102 +159,6 @@ int PatchImp::deletePatchFile(const string & app, const string & serverName, con
 	return TC_File::removeFile(upfile, false);
 }
 
-//
-//static int waitProcessDone(int64_t iPid) {
-//	assert(iPid > 0);
-//
-//	if (iPid <= 0) {
-//		throw std::runtime_error("iPid must bigger than zero");
-//	}
-//
-//	int process_status;
-//
-//	while (true) {
-//
-//		int v = ::waitpid(iPid, &process_status, WNOHANG);
-//		if (v != 0) {
-//			break;
-//		}
-//
-//		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//
-//	}
-//
-//	return process_status;
-//}
-//
-//int PatchImp::preparePatchImage(const string &app, const string &serverName, const string &serverVersion, const PatchImage & patchImage, string &result, CurrentPtr current)
-//{
-//	string dstDirectory = _directory + FILE_SEP + "TARSBatchPatching" + FILE_SEP + app + FILE_SEP + serverName;
-//	string dstfile = dstDirectory + FILE_SEP + app + "." + serverName + ".tgz";
-//
-//	if (!TC_File::isFileExist(dstfile))
-//	{
-//		result = dstfile + "not exist!";
-//
-//		TLOG_ERROR("isFileExist, file:" << dstfile << ", not exist!" << endl);
-//		return -1;
-//	}
-//
-//	if(patchImage.registry.empty())
-//	{
-//		result = "registryAddress is empty, please checkout tarsAdminRegistry template.";
-//		TLOG_ERROR("registryAddress is empty."<< endl);
-//		return -1;
-//	}
-//
-//	string build_dir = TC_File::simplifyDirectory(ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + "tmp" + FILE_SEP + "docker" + FILE_SEP + app + FILE_SEP + serverName);
-//
-//	string image = TC_Common::lower(app) + "/" + TC_Common::lower(serverName) + ":" + TC_Common::lower(serverVersion);
-//
-//	TLOG_DEBUG("TarsPath: " << ServerConfig::TarsPath << ", image: " << image << endl);
-//	TLOG_DEBUG("BasePath: " << ServerConfig::BasePath << ", image: " << image << endl);
-//
-//	TC_File::removeFile(build_dir, true);
-//	TC_File::makeDirRecursive(build_dir);
-//
-//	string baseImage = "tarscloud/tars.tarsnode";
-//
-//	string cmd = g_app.getDockerBuild() + " '" + g_app.getDockerFile() + "' '" + image + "' '" + dstfile + "' '" + baseImage + "' '" +  patchImage.registry + "' '" + patchImage.username + "' '" + patchImage.password + "' '" + build_dir + "'";
-//
-//	TLOG_DEBUG("cmd:" << cmd << endl);
-//
-//	string out = TC_Port::exec(cmd.c_str());
-//
-//	TLOG_DEBUG(out << endl);
-//
-//	result = out;
-//
-////	pid_t process = fork();
-////
-////	if (process == 0)
-////	{
-////		execl(build_path.c_str(), build_cmd.c_str(), image.c_str(), dstfile.c_str(), patchImage.baseImage.c_str(), patchImage.registry.c_str(), patchImage.username.c_str(), patchImage.password.c_str(), build_dir.c_str(), NULL);
-////	}
-////	else if (process > 0)
-////	{
-////		int status = waitProcessDone(process);
-////
-////		if (WIFEXITED(status))
-////		{
-////			if (WEXITSTATUS(status) == 0)
-////			{
-////				TLOG_DEBUG("preparePatchImage success , tag:" << patchImage.registry << "/" << app << "." << serverName << ":" << serverVersion);
-////				const std::string buildWorkPath = FILE_SEP + string("tmp") + FILE_SEP + app + "." + serverName + "." + serverVersion;
-////				TC_File::removeFile(buildWorkPath, true);
-////				return 0;
-////			}
-////			//todo log build error;
-////			return -1;
-////		}
-////
-////		//todo log build exception ;
-////		return -1;
-////	}
-//
-//	return 0;
-//}
-
 /**************************************************************************************************
  *  发布服务内部使用函数
  */
@@ -311,6 +215,12 @@ int PatchImp::upload(const std::string & app,const std::string & serverName,cons
     ofstream writer;
 
     string uploadFile = uploadDir + FILE_SEP + content.name;
+
+    if(TC_File::isFileExist(uploadFile) && TC_MD5::md5file(uploadFile) == content.md5)
+    {
+        LOG->debug() << __FUNCTION__ << uploadFile << " exist and md5 is same:" << content.md5 << endl;
+        return 1;
+    }
 
     if (content.firstChunk) {
         writer.open(uploadFile, ios_base::binary);

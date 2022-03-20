@@ -618,7 +618,7 @@ int CommandStart::execute(string& sResult)
 
 	startFinish(_serverObjectPtr, bSucc, startMs, sResult);
 
-    return -1;
+    return bSucc?0:-1;
 }
 
 void CommandStart::startFinish(const ServerObjectPtr &serverObjectPtr, bool bSucc, int64_t startMs, const string &sResult)

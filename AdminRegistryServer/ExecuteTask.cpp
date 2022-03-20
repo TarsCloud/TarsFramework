@@ -201,7 +201,12 @@ int TaskList::prepareFile()
 
 			PrepareInfo pi;
 			pi.application = req.application;
-			pi.serverName = req.serverName;
+			pi.serverName = get("group_name", req.parameters);
+			if(pi.serverName.empty())
+			{
+				pi.serverName = req.serverName;
+			}
+		
 			pi.patchId = get("patch_id", req.parameters);
 
 			string result;
