@@ -429,8 +429,8 @@ public:
     const string & getStartScript() {return _startScript;}
     const string & getStopScript() {return _stopScript;}
     const string & getMonitorScript() {return _monitorScript;}
-    const vector<string> & getVolumes() {return _sVolumes; }
-    const string & getEnv() { return _env; }
+    const map<string, string> & getVolumes() {return _sVolumes; }
+	const string & getEnv() { return _env; }
     const string & getRedirectPath() {return _redirectPath;}
     const string & getPackageFormat() { return _packageFormat; }
 
@@ -455,8 +455,8 @@ public:
     void setMacro(const map<string,string>& mMacro);
     void setScript(const string &sStartScript,const string &sStopScript,const string &sMonitorScript);
 
-    void setVolumes(const vector<string> & sVolumes) { _sVolumes = sVolumes; }
-    void setEnv(const string & sEnv) { _env = sEnv; }
+    void setVolumes(const map<string, string> & sVolumes) { _sVolumes = sVolumes; }
+	void setEnv(const string & sEnv) { _env = sEnv; }
     void setHeartTimeout(int iTimeout) { _timeout = iTimeout; }
     //设置启动activating超时时间 ms
     void setActivatingTimeout(int iTimeout) { _activatingTimeout = iTimeout; }
@@ -488,6 +488,12 @@ public:
 		std::lock_guard<std::mutex> lock(_mutex);
 		_ports[TC_Common::tostr(port) + "/" + (tcp?"tcp":"udp")] = make_pair(hostIp, port);
 	}
+
+	/**
+	 * 添加配置中的端口映射
+	 * @param portsLines
+	 */
+	void addPorts(const map<string, string> &portsLines);
 
 	//返回映射的端口
 	map<string, pair<string, int>> getPorts()
@@ -531,7 +537,7 @@ private:
     bool    _tarsServer;                //是否tars服务
     string  _serverType;               	//服务类型  tars_cpp tars_java not_tars
     RunType _eRunType;                 	//运行类型,原生启动还是容器化启动
-    vector<string> _sVolumes;           //当运行类型是 container　时, 需要挂载的路径或文件, 多行, 每行格式为: xxxpath:yyypath
+    map<string, string> _sVolumes;           //当运行类型是 container　时, 需要挂载的路径或文件, 多行, 每行格式为: hostpath=containerpath
 
 private:
     bool    _enabled;                  //服务是否有效
@@ -567,7 +573,8 @@ private:
     string _packageFormat;			   //上传包格式(tgz/jar/war, image), image表示镜像模式
     map<string,string> _macro;         //服务宏
 	std::mutex _mutex;
-	map<string, pair<string, int>>   _ports;	//容器模式下, 需要映射到宿主机的网络端口(mac下, 即使--net=host, 仍然需要配置映射)
+	map<string, pair<string, int>>   _ports;	//容器模式下, 需要映射到宿主机的网络端口(mac下, 即使--net=host, 仍然需要配置映射), 配置格式: 80/tcp=hostIp:hostPort
+
 private:
     PatchInfo           _patchInfo;            //下载信息
 

@@ -48,6 +48,31 @@ ServerObject::ServerObject( const ServerDescriptor& tDesc)
     _serviceLimitResource = new ServerLimitResource(5,10,60,_application,_serverName);
 }
 
+void ServerObject::addPorts(const map<string, string> &portsLines)
+{
+	NODE_LOG(_serverId)->debug() << "ServerObject::addPorts line:" << TC_Common::tostr(portsLines.begin(), portsLines.end()) <<endl;
+
+	for(auto e: portsLines)
+	{
+		//port/tcp, port/udp
+		string containerPort = e.first;
+		string hostPortLine = e.second;
+		string::size_type c = hostPortLine.rfind(":");
+
+		if (c == string::npos)
+		{
+			NODE_LOG(_serverId)->debug() << "ServerObject::addPorts line:" << e.first << "=" << e.second << " is illegal, format like this: 80/tcp=192.168.0.1:80" <<endl;
+			continue;
+		}
+
+		string hostIp = hostPortLine.substr(0, c);
+		int hostPort = TC_Common::strto<int>(hostPortLine.substr(c + 1));
+
+		std::lock_guard<std::mutex> lock(_mutex);
+		_ports[containerPort] = make_pair(hostIp, hostPort);
+	}
+}
+
 int64_t ServerObject::savePid()
 {
     string sPidFile = ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + _serverId + FILE_SEP + _serverId + ".pid";

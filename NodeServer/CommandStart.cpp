@@ -438,10 +438,6 @@ bool CommandStart::startNormal(string& sResult)
 		return false;
 	}
 
-// #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
-// 	waitProcessDone(iPid);
-// #endif
-
 	_serverObjectPtr->setPid(iPid);
 
 	bSucc = (_serverObjectPtr->checkPid() == 0) ? true : false;
@@ -451,14 +447,6 @@ bool CommandStart::startNormal(string& sResult)
 
 bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
 {
-	//准备执行环境以及启动
-//	std::string sRollLogFile;
-//	string sLogPath = serverObjectPtr->getLogPath();
-//
-//	if (!sLogPath.empty()) {
-//		sRollLogFile = sLogPath + FILE_SEP + serverObjectPtr->getServerDescriptor().application + FILE_SEP + serverObjectPtr->getServerDescriptor().serverName + FILE_SEP + serverObjectPtr->getServerDescriptor().application + "." + serverObjectPtr->getServerDescriptor().serverName + ".log";
-//	}
-
 	TC_Docker docker;
 	docker.setDockerUnixLocal(g_app.getDocketSocket());
 
@@ -471,6 +459,13 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	mounts[serverObjectPtr->getLogPath()] = serverObjectPtr->getLogPath();
 	mounts["/etc/localtime"] = "/etc/localtime";
 
+	for(auto &volume: serverObjectPtr->getVolumes())
+	{
+		mounts[volume.first] = volume.second;
+	}
+
+	NODE_LOG(serverObjectPtr->getServerId())->debug() << "mounts:" << TC_Common::tostr(mounts.begin(), mounts.end(), " ") << endl;
+
 	map<string, pair<string, int>> ports;
 
 	string networkMode = "host";
@@ -479,6 +474,10 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	networkMode = "bridge";
 #endif
 
+	for(auto port : ports)
+	{
+		NODE_LOG(serverObjectPtr->getServerId())->debug() << port.first << " " << port.second.first<<":"<< port.second.second << endl;
+	}
 	bool succ = false;
 
 	docker.remove(serverObjectPtr->getServerId(), true);

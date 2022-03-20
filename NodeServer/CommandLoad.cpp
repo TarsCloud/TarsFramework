@@ -506,8 +506,6 @@ int CommandLoad::updateConfigFile(string& sResult)
             TC_File::copyFile(_confFile, sConfigFileBak);
         }
 
-	    NODE_LOG(_serverObjectPtr->getServerId())->debug() << "save to: " << _confFile << endl;
-
 	    ofstream configfile(_confFile.c_str());
         if (!configfile.good())
         {
@@ -517,6 +515,9 @@ int CommandLoad::updateConfigFile(string& sResult)
 
         configfile << sStream;
         configfile.close();
+
+		NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
+
 
 	    _logPath       = tConf.get("/tars/application/server<logpath>", "");
 
@@ -528,8 +529,9 @@ int CommandLoad::updateConfigFile(string& sResult)
         _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "")));
         _serverObjectPtr->setPackageFormat(tConf.get("/tars/application/server<packageFormat>", "tgz"));
 
-		_serverObjectPtr->setVolumes(tConf.getDomainLine("/tars/appplication<volumes>"));
-        
+		_serverObjectPtr->setVolumes(tConf.getDomainMap("/tars/application/container/volumes"));
+		_serverObjectPtr->addPorts(tConf.getDomainMap("/tars/application/container/ports"));
+
         _serverObjectPtr->setRedirectPath(tConf.get("/tars/application/<redirectpath>", ""));
 
         _serverObjectPtr->setBackupFileNames(tConf.get("/tars/application/server<backupfiles>", "classes/autoconf"));

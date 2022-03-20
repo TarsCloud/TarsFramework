@@ -987,10 +987,7 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	}
 	
 	// memset(buf, 0, sizeof(buf));
-	cmd = "cd /usr/local/app/taf/app_log/; ls -alth core.*";
-	// FILE* fpLL = popen(cmd.c_str(), "r");
-	// fread(buf, sizeof(char), sizeof(buf)-1, fpLL);
-	// fclose(fpLL);
+	cmd = "cd " + ServerConfig::TarsPath + FILE_SEP + "app_log; ls -alth core.*";
 	fileData += "\n\n";
 	fileData += "#core-file-begin#" + string(100, '-');
 	fileData += "\n";
@@ -1003,8 +1000,6 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
             NODE_LOG(serverId)->error() << errstr << endl;
         }
     }
-	// fileData += string(buf);
-
 	NODE_LOG(serverId)->debug() << fileData << endl;
 #endif
 
