@@ -107,12 +107,27 @@ map<string, DockerRegistry> ReapThread::getDockerRegistry()
 
 pair<string, string> ReapThread::getBaseImageById(const string &baseImageId)
 {
-	TC_ThreadLock::Lock lock(*this);
-	auto it = _baseImages.find(baseImageId);
-	if(it != _baseImages.end())
 	{
-		return it->second;
+		TC_ThreadLock::Lock lock(*this);
+		auto it = _baseImages.find(baseImageId);
+		if(it != _baseImages.end())
+		{
+			return it->second;
+		}
 	}
+	//不存在, 则加载一次
+	loadDockerRegistry(false);
+	{
+		TC_ThreadLock::Lock lock(*this);
+		auto it = _baseImages.find(baseImageId);
+		if(it != _baseImages.end())
+		{
+			return it->second;
+		}
+	}
+
+	TLOGEX_DEBUG("ReapThread", "getBaseImageById baseImageId:" << baseImageId << " image is empty" << endl);
+
 	return make_pair("", "");
 }
 
@@ -146,6 +161,12 @@ void ReapThread::checkDockerRegistries(const map<string, DockerRegistry> &docker
 		//检查新的仓库是否有修改过
 		for (auto dr: dockerRegistries)
 		{
+			for(auto e : dr.second.baseImages)
+			{
+				TC_ThreadLock::Lock lock(*this);
+				_baseImages[e.id] = make_pair(e.image, "");
+			}
+
 			auto it = mDockerRegistry.find((dr.second.sId));
 
 			if (it != mDockerRegistry.end())
@@ -163,6 +184,11 @@ void ReapThread::checkDockerRegistries(const map<string, DockerRegistry> &docker
 				dr.second.bSucc = false;
 				mDockerRegistry[dr.second.sId] = dr.second;
 			}
+		}
+
+		{
+			TC_ThreadLock::Lock lock(*this);
+			TLOGEX_DEBUG("ReapThread", "base image size: " << _baseImages.size() << endl);
 		}
 
 		TC_Docker docker;

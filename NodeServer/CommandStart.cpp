@@ -469,7 +469,7 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	map<string, pair<string, int>> ports;
 
 	string networkMode = "host";
-#if !PLATFORM_TARGET_LINUX
+#if !TARGET_PLATFORM_LINUX
 	ports = serverObjectPtr->getPorts();
 	networkMode = "bridge";
 #endif

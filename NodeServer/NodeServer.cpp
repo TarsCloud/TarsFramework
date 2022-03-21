@@ -69,7 +69,7 @@ void NodeServer::initialize()
 
     TLOG_DEBUG("NodeServer::initialize |KeepAliveThread start" << endl);
 
-#if PLATFORM_TARGET_LINUX
+#if TARGET_PLATFORM_LINUX
     _reportMemThread = new ReportMemThread();
     _reportMemThread->start();
 

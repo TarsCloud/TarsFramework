@@ -227,7 +227,7 @@ int CommandLoad::execute(string& sResult)
 
 string CommandLoad::hostIp()
 {
-#if PLATFORM_TARGET_LINUX
+#if TARGET_PLATFORM_LINUX
 	return "127.0.0.1";
 #else
 	if(this->_serverObjectPtr->isContainer())
@@ -283,7 +283,7 @@ int CommandLoad::updateConfigFile(string& sResult)
         map<string, AdapterDescriptor>::const_reverse_iterator itAdapters;
         for (itAdapters = _desc.adapters.rbegin(); itAdapters != _desc.adapters.rend(); itAdapters++)
         {
-	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile get adapter " << itAdapters->first << endl;
+	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "get adapter: " << itAdapters->first << endl;
 
             if (itAdapters->first == "")
             {
@@ -427,17 +427,17 @@ int CommandLoad::updateConfigFile(string& sResult)
              try
             {
                 iRet = queryProxy->findObjectById4All(AdminProxy::getInstance()->getQueryProxyName(), activeEp, inactiveEp);
-                NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile " << _serverObjectPtr->getServerId() << "|iRet|" << iRet << "|" << activeEp.size() << "|" << inactiveEp.size() << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "iRet:" << iRet << ", " << activeEp.size() << "|" << inactiveEp.size() << endl;
             }
             catch (exception& e)
             {
                 //获取主控地址异常时,仍使用node中的locator
-                NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile:get registry locator exception:" << e.what() << "|" << _serverObjectPtr->getServerId() << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "get registry locator exception:" << e.what() << endl;
                 iRet = -1;
             }
             catch (...)
             {
-                NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile:get registry locator unknown exception|" << _serverObjectPtr->getServerId() << endl;
+                NODE_LOG(_serverObjectPtr->getServerId())->error()<< FILE_FUN << "get registry locator unknown exception"  << endl;
                 iRet = -1;
             }
         }
@@ -453,7 +453,7 @@ int CommandLoad::updateConfigFile(string& sResult)
 
             sLocator = sLocator.substr(0, sLocator.length() - 1);
             mMacro["locator"] = sLocator;
-	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << "CommandLoad::updateConfigFile:" << _serverObjectPtr->getServerId() << "|locator|" << sLocator << endl;
+	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "locator:" << sLocator << endl;
         }
 
         mMacro["modulename"] = _desc.application + "." + _desc.serverName;
@@ -509,15 +509,12 @@ int CommandLoad::updateConfigFile(string& sResult)
 	    ofstream configfile(_confFile.c_str());
         if (!configfile.good())
         {
-	        NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile cannot create configuration file: " << _confFile << endl;
+	        NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "cannot create configuration file: " << _confFile << endl;
             return -1;
         }
 
         configfile << sStream;
         configfile.close();
-
-		NODE_LOG(_serverObjectPtr->getServerId())->debug() << tConf.tostr() << endl;
-
 
 	    _logPath       = tConf.get("/tars/application/server<logpath>", "");
 
@@ -562,11 +559,11 @@ int CommandLoad::updateConfigFile(string& sResult)
     catch (exception& e)
     {
         sResult = e.what();
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile "<<e.what()<<endl;
+	    NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "error: " <<e.what()<<endl;
     }
     catch (...)
     {
-	    NODE_LOG(_serverObjectPtr->getServerId())->error() << "CommandLoad::updateConfigFile  catch unkown erro"<<endl;
+	    NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "catch unkown erro"<<endl;
     }
     return -1;
 }
