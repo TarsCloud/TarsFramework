@@ -1,3 +1,29 @@
+# v3.0.5 20210321
+
+### en
+- Add: tarscpp use v3.0.6
+- Add: tarsAdminRegistry add batchPatch to support dcache source compiler and publish
+- Add: deploy script support database table upgrade
+- Add: server template add volumes/ports in container mode.
+- Add: tarsnode/tarsregistry template add container socket(/var/run/docker.sock) config
+- Add: tarsnode/tarsregistry use tc_docker as docker api
+- Fix: tarsAdminRegistry support dcache publish
+- Fix: tarsnode start server return code bug
+- Fix: tarsnode load config parseFile(profile) bug
+- Fix: hostIp(host.docker.internal) in docker on mac platform
+
+### cn
+- 添加: tarscpp 使用到 v3.0.6
+- 添加: tarsAdminRegistry 还原了 batchPatch 以支持dcache的编译以及发布
+- 添加: 部署脚本支持了数据库表字段的升级
+- 添加: 容器模式下, 服务模板支持了volumes/ports的配置(/tars/application/container/volumes or /tars/application/container/ports)
+- 添加: tarsnode/tarsregistry使用 tc_docker 作为访问docker的api
+- 添加: tarsnode/tarsregistry模板添加了容器的unit socket的配置(默认/var/run/docker.sock)
+- 修复: tarsnode 启动服务时返回值的bug
+- 修复: tarsnode 加载解析私有模板的bug
+- 修复: 容器模式下, mac平台的hostIp使用host.docker.internal 
+
+
 # v3.0.4 20210225
 
 ### en
