@@ -11,7 +11,7 @@
 - Fix: tarsnode start server return code bug
 - Fix: tarsnode load config parseFile(profile) bug
 - Fix: hostIp(host.docker.internal) in docker on mac platform
-
+- Fix: tarsnode & tarsregistry load docker registry & image bug
 ### cn
 - 添加: tarscpp 使用到 v3.0.6
 - 添加: tarsAdminRegistry 还原了 batchPatch 以支持dcache的编译以及发布
@@ -22,7 +22,7 @@
 - 修复: tarsnode 启动服务时返回值的bug
 - 修复: tarsnode 加载解析私有模板的bug
 - 修复: 容器模式下, mac平台的hostIp使用host.docker.internal 
-
+- 修复: tarsnode & tarsregistry 加载仓库和容器信息的bug
 
 # v3.0.4 20210225
 
