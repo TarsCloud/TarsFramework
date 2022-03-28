@@ -406,7 +406,7 @@ int CommandLoad::updateConfigFile(string& sResult)
 					TC_Endpoint ep;
 					ep.parse(vEndpoints[i]);
 
-					locator += replaceHostLocalIp(ep) + ":";
+					locator += replaceHostLocalIp(ep);
                     
                     if(i != vEndpoints.size() - 1)
                         locator += ":";
