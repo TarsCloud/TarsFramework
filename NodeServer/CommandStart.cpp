@@ -144,16 +144,17 @@ bool CommandStart::searchServer(const string &searchDir, string &server)
 			continue;
 		}
 
-		if(!TC_File::canExecutable(f))
-		{
-			continue;
-		}
-
 		//找到了可执行程序
 		if(f == _exeFile)
 		{
 			server = f;
+			TC_File::setExecutable(f, true);
 			return true;
+		}
+
+		if(!TC_File::canExecutable(f))
+		{
+			continue;
 		}
 
 		string fileName = TC_File::extractFileName(f);
