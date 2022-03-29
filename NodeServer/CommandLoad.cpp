@@ -342,15 +342,7 @@ int CommandLoad::updateConfigFile(string& sResult)
                 TC_Socket s;
                 s.createSocket(SOCK_STREAM, AF_INET);
 
-				int ret;
-				if(_serverObjectPtr->getRunType() == ServerObject::Container)
-				{
-					ret = s.connectNoThrow(hostIp(), p);
-				}
-				else
-				{
-					ret = s.connectNoThrow("127.0.0.1", p);
-				}
+				int ret = s.connectNoThrow("127.0.0.1", p);
 
                 if(ret != 0 && _allPorts.find(p) == _allPorts.end())
                 {
