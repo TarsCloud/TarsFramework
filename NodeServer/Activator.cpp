@@ -27,7 +27,7 @@ static pid_t *childpid = NULL; /* ptr to array allocated at run-time */
 #define SHELL   "/bin/sh"
 #endif
 
-int64_t Activator::activate(const string& strExePath, const string& strPwdPath, const string& strRollLogPath, const vector<string>& vOptions)//, vector<string>& vEnvs)
+int64_t Activator::activate(const string& strExePath, const string& strPwdPath, const string& strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs)
 {
     TC_ThreadLock::Lock lock(*this);
     addActivatingRecord();
@@ -157,7 +157,7 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
             cout << argv[0] << " cannot redirect stdout and stderr to log file sRollLogPath is empty" << endl;
         }
 
-//        for_each(vEnvs.begin(), vEnvs.end(), EnvVal());
+        for_each(vEnvs.begin(), vEnvs.end(), EnvVal());
 
         if (strlen(pwdCStr) != 0)
         {

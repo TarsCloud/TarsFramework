@@ -129,7 +129,7 @@ public:
      * @return pid_t 生成子进程id 
      *
      */
-    int64_t activate(const string& strExePath, const string& strPwdPath, const string &strRollLogPath, const vector<string>& vOptions);//, vector<string>& vEnvs);
+    int64_t activate(const string& strExePath, const string& strPwdPath, const string &strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs);
 
     /**
      * 脚本启动服务
@@ -141,7 +141,6 @@ public:
      * @return pid_t 生成子进程id 
      *
      */
-    // pid_t activate(const string &strServerId, const string& strStartScript, const string &strMonitorScript, string &strResult);
     int64_t activate(const string& strStartScript, const string &strMonitorScript, string &strResult);
 
     /**

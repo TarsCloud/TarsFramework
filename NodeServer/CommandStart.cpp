@@ -433,7 +433,20 @@ bool CommandStart::startNormal(string& sResult)
 
 	const string sPwdPath = sLogPath != "" ? sLogPath : _serverObjectPtr->getServerDir(); //pwd patch 统一设置至log目录 以便core文件发现 删除
 
-	iPid = _serverObjectPtr->getActivator()->activate(getStartScript(_serverObjectPtr), sPwdPath, sRollLogFile, vector<string>());
+	vector<string> vEnvs;
+
+	//环境变量设置
+	vector<string> vecEnvs = TC_Common::sepstr<string>(_serverObjectPtr->getEnv(), ";|");
+	for (vector<string>::size_type i = 0; i < vecEnvs.size(); i++)
+	{
+		vEnvs.push_back(vecEnvs[i]);
+	}
+
+	string sLibPath         = _serverObjectPtr->getLibPath();
+	string sExePath         = _serverObjectPtr->getExePath();
+	vEnvs.push_back("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:" + sExePath + ":" + sLibPath);
+
+	iPid = _serverObjectPtr->getActivator()->activate(getStartScript(_serverObjectPtr), sPwdPath, sRollLogFile, {}, vEnvs);
 	if (iPid == 0)  //child process
 	{
 		return false;
