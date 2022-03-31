@@ -21,6 +21,7 @@
 #include "CheckNodeThread.h"
 #include "CheckSettingState.h"
 #include "RegistryProcThread.h"
+#include "DockerThread.h"
 
 using namespace tars;
 
@@ -65,7 +66,8 @@ public:
 	 * 返回reap thread
 	 * @return
 	 */
-	ReapThread *getReapThread() { return &_reapThread; }
+	DockerThread *getDockerThread() { return &_dockerThread; }
+
 protected:
 
     /*
@@ -75,7 +77,9 @@ protected:
 
     CheckNodeThread        _checkNodeThread;        //监控tarsnode超时的线程
 
-    CheckSettingState      _checksetingThread;      //监控所有服务状态的线程
+	DockerThread           _dockerThread;        //拉取docker镜像的线程
+
+	CheckSettingState      _checksetingThread;      //监控所有服务状态的线程
 
     RegistryProcThreadPtr  _registryProcThread;     //处理心跳、上报等的异步线程
 

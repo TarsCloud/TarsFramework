@@ -16,7 +16,6 @@
 
 #include "ReapThread.h"
 #include "servant/Application.h"
-#include "util/tc_docker.h"
 
 extern TC_Config * g_pconf;
 
@@ -57,9 +56,6 @@ int ReapThread::init()
 
     _loadObjectsInterval2 = TC_Common::strto<int>((*g_pconf).get("/tars/reap<loadObjectsInterval2>", "300"));
 
-	//检查docker仓库超时
-	_checkDockerRegistry  = TC_Common::strto<int>((*g_pconf).get("/tars/reap<checkDockerRegistry>", "60"));
-	
     //主控心跳超时时间
     _registryTimeout      = TC_Common::strto<int>((*g_pconf)["/tars/reap<registryTimeout>"]);
 
@@ -79,14 +75,8 @@ int ReapThread::init()
 
     _recoverProtectRate    = _recoverProtectRate   < 1 ? 30: _recoverProtectRate;
 
-	_dockerSocket		=	(*g_pconf).get("/tars/container<socket>", "/var/run/docker.sock");
-	_dockerTimeout		=	TC_Common::strto<int>((*g_pconf).get("/tars/container<timeout>", "300"));
-
     //加载对象列表
     _db.loadObjectIdCache(_recoverProtect, _recoverProtectRate,0,true, true);
-
-	//加载仓库信息以及基础镜像sha
-	loadDockerRegistry(false);
 
     TLOG_DEBUG("ReapThread init ok."<<endl);
 
@@ -97,208 +87,6 @@ void ReapThread::terminate()
 {
     TLOG_DEBUG("[ReapThread terminate.]" << endl);
     _terminate = true;
-}
-
-map<string, DockerRegistry> ReapThread::getDockerRegistry()
-{
-	TC_ThreadLock::Lock lock(*this);
-	return _dockerRegistries;
-}
-
-pair<string, string> ReapThread::getBaseImageById(const string &baseImageId)
-{
-	{
-		TC_ThreadLock::Lock lock(*this);
-		auto it = _baseImages.find(baseImageId);
-		if(it != _baseImages.end())
-		{
-			return it->second;
-		}
-	}
-	//不存在, 则加载一次
-	loadDockerRegistry(false);
-	{
-		TC_ThreadLock::Lock lock(*this);
-		auto it = _baseImages.find(baseImageId);
-		if(it != _baseImages.end())
-		{
-			return it->second;
-		}
-	}
-
-	TLOGEX_DEBUG("ReapThread", "getBaseImageById baseImageId:" << baseImageId << " image is empty" << endl);
-
-	return make_pair("", "");
-}
-
-void ReapThread::loadDockerRegistry(bool pull)
-{
-	map<string, DockerRegistry> rii;
-
-	int ret = _db.loadDockerInfo(rii);
-
-	if(ret == 0)
-	{
-		checkDockerRegistries(rii, pull);
-	}
-}
-
-void ReapThread::checkDockerRegistries(const map<string, DockerRegistry> &dockerRegistries, bool pull)
-{
-	try
-	{
-		map<string, DockerRegistry> mDockerRegistry;
-
-		{
-			//先历史的保存起来
-			TC_ThreadLock::Lock lock(*this);
-
-			mDockerRegistry = _dockerRegistries;
-		}
-
-		TLOGEX_DEBUG("ReapThread", "old docker registry size:" << mDockerRegistry.size() << ", new docker registry:" << dockerRegistries.size() << endl);
-
-		//检查新的仓库是否有修改过
-		for (auto dr: dockerRegistries)
-		{
-			for(auto e : dr.second.baseImages)
-			{
-				TC_ThreadLock::Lock lock(*this);
-				_baseImages[e.id] = make_pair(e.image, "");
-			}
-
-			auto it = mDockerRegistry.find((dr.second.sId));
-
-			if (it != mDockerRegistry.end())
-			{
-				if (it->second.sRegistry != dr.second.sRegistry || it->second.sUserName != dr.second.sUserName ||
-					it->second.sPassword != dr.second.sPassword)
-				{
-					dr.second.bSucc = false;
-
-					mDockerRegistry[dr.second.sId] = dr.second;
-				}
-			}
-			else
-			{
-				dr.second.bSucc = false;
-				mDockerRegistry[dr.second.sId] = dr.second;
-			}
-		}
-
-		{
-			TC_ThreadLock::Lock lock(*this);
-			TLOGEX_DEBUG("ReapThread", "base image size: " << _baseImages.size() << endl);
-		}
-
-		TC_Docker docker;
-
-		//修改过的需要重新登录
-		for (auto& e: mDockerRegistry)
-		{
-			if (!e.second.bSucc)
-			{
-				if (!e.second.sUserName.empty())
-				{
-					bool succ = docker.login(e.second.sUserName, e.second.sPassword, e.second.sRegistry);
-
-					if(succ)
-					{
-						TLOGEX_DEBUG("ReapThread",
-								"login registry:" << e.second.sRegistry << ", user:" << e.second.sUserName << ", result:" << docker.getResponseMessage() << endl);
-					}else
-					{
-						TLOGEX_ERROR("ReapThread",
-								"login registry:" << e.second.sRegistry << ", user:" << e.second.sUserName << ", error:"
-												  << docker.getErrMessage() << endl);
-					}
-
-					if(succ)
-					{
-						mDockerRegistry[e.first].bSucc = true;
-					}
-					else
-					{
-						TARS_NOTIFY_ERROR(docker.getErrMessage());
-					}
-				}
-				else
-				{
-					e.second.bSucc = true;
-				}
-			}
-
-			{
-				TC_ThreadLock::Lock lock(*this);
-
-				_dockerRegistries = mDockerRegistry;
-			}
-
-			TC_Docker docker;
-			docker.setDockerUnixLocal(_dockerSocket);
-			docker.setRequestTimeout(_dockerTimeout*1000);
-
-			//拉取基础镜像, 获取基础镜像的sha
-			for(auto e : mDockerRegistry)
-			{
-				//先加载本地sha
-				for(auto &b : e.second.baseImages)
-				{
-					if(docker.inspectImage(b.image))
-					{
-						JsonValueObjPtr  oPtr = JsonValueObjPtr::dynamicCast(TC_Json::getValue( docker.getResponseMessage()));
-
-						JsonValueStringPtr sPtr = JsonValueStringPtr::dynamicCast(oPtr->value["Id"]);
-
-						TLOGEX_DEBUG("ReapThread", "inspect image:" << b.image << ", sha:" << sPtr->value << endl);
-
-						{
-							TC_ThreadLock::Lock lock(*this);
-							_baseImages[b.id] = make_pair(b.image, sPtr->value);
-						}
-					}
-					else
-					{
-						TLOGEX_ERROR("ReapThread", "inspect error:" << docker.getErrMessage() << endl);
-
-						TARS_NOTIFY_ERROR(docker.getErrMessage());
-					}
-				}
-
-				if(!pull)
-				{
-					continue;
-				}
-
-				//如果如果仓库没有登录成功, 直接跳过, 否则pull镜像, 更新sha
-				if(!e.second.bSucc)
-				{
-					TLOGEX_DEBUG("ReapThread", "docker registry:" << e.second.sRegistry << ", " << e.second.sUserName << " not login." << endl);
-
-					continue;
-				}
-
-				for(auto &b : e.second.baseImages)
-				{
-					if(!e.second.sUserName.empty())
-					{
-						docker.setAuthentication(e.second.sUserName, e.second.sPassword, e.second.sRegistry);
-					}
-
-					if(!docker.pull(b.image))
-					{
-						TLOGEX_ERROR("ReapThread", "docker pull " << b.image << ", registry :" << e.second.sRegistry << ", " << e.second.sUserName << ", error:" << docker.getErrMessage() << endl);
-
-						TARS_NOTIFY_ERROR(docker.getErrMessage());
-					}
-				}
-			}
-		}
-	}
-	catch(exception &ex)
-	{
-		TLOGEX_ERROR("ReapThread", ex.what() << endl);
-	}
 }
 
 
@@ -312,7 +100,6 @@ void ReapThread::run()
     time_t tLastLoadObjectsStep2 = TC_TimeProvider::getInstance()->getNow();
 
     time_t tLastQueryServer      = 0;
-	time_t tLoadRegistryImageTimeout      = 0;
 	time_t tNow;
     while(!_terminate)
     {
@@ -344,13 +131,6 @@ void ReapThread::run()
 			{
 				tLastQueryServer = tNow;
 				_db.checkRegistryTimeout(_registryTimeout);
-			}
-
-			if (tNow - tLoadRegistryImageTimeout >= _checkDockerRegistry)
-			{
-				tLoadRegistryImageTimeout = tNow;
-
-				loadDockerRegistry(true);
 			}
 
             TC_ThreadLock::Lock lock(*this);

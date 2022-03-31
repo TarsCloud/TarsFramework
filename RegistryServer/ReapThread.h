@@ -55,31 +55,6 @@ public:
      */
     virtual void run();
 
-	/**
-	 * 获取docker仓库镜像地址
-	 * @return
-	 */
-	map<string, DockerRegistry> getDockerRegistry();
-
-	/**
-	 * 根据基础镜像ID获取基础镜像
-	 * @param baseImageId
-	 * @return <image, sha>
-	 */
-	pair<string, string> getBaseImageById(const string &baseImageId);
-
-protected:
-
-	/**
-	 * 启动时加载基础镜像数据
-	 */
-	void loadDockerRegistry(bool pull);
-
-	/**
-	 * 检查
-	 */
-	void checkDockerRegistries(const map<string, DockerRegistry> &dockerRegistries, bool pull);
-
 protected:
     /*
      * 线程结束标志
@@ -124,29 +99,6 @@ protected:
      */
     bool       _heartBeatOff;
 
-	/*
-	 * 加载docker仓库镜像定时(秒)
-	 */
-	int        _checkDockerRegistry = 10;
-
-	/**
-	 * docker socket
-	 */
-	string 		_dockerSocket;
-
-	/**
-	 * pull timeout
-	 */
-	int 		_dockerTimeout = 300;
-	/**
-	 * docker的镜像仓库
-	 */
-	map<string, DockerRegistry> _dockerRegistries;
-
-	/**
-	 * imageId-><image, sha>
-	 */
-	unordered_map<string, pair<string, string>> _baseImages;
 };
 
 #endif

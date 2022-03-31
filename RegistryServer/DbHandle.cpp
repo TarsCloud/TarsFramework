@@ -128,6 +128,7 @@ int CDbHandle::loadDockerInfo(map<string, DockerRegistry> &info)
 				baseImage.id = res[i]["id"];
 				baseImage.image = res[i]["image"];
 				baseImage.registryId = res[i]["registryId"];
+				baseImage.sha = res[i]["sha"];
 
 				auto it = info.find(baseImage.registryId);
 				if(it != info.end())
@@ -140,10 +141,45 @@ int CDbHandle::loadDockerInfo(map<string, DockerRegistry> &info)
 	}
 	catch(exception &ex)
 	{
-		TLOG_ERROR("error:" << ex.what() << endl);
+		TLOGEX_ERROR("DockerThread","error:" << ex.what() << endl);
 		return -1;
 	}
 }
+
+int CDbHandle::updateBaseImageSha(const string &baseImageId, const string &sha)
+{
+	try
+	{
+		map<string, pair<TC_Mysql::FT, string> > mpColumns;
+		mpColumns["sha"] = make_pair(TC_Mysql::FT::DB_STR, sha);
+
+		_mysqlReg.updateRecord("t_base_image", mpColumns, "where id = '" + _mysqlReg.realEscapeString(baseImageId) + "'");
+		return 0;
+	}
+	catch(exception &ex)
+	{
+		TLOGEX_ERROR("DockerThread", "error:" << ex.what() << endl);
+		return -1;
+	}
+}
+
+int CDbHandle::updateBaseImageResult(const string &baseImageId, const string &result)
+{
+	try
+	{
+		map<string, pair<TC_Mysql::FT, string> > mpColumns;
+		mpColumns["result"] = make_pair(TC_Mysql::FT::DB_STR, result);
+
+		_mysqlReg.updateRecord("t_base_image", mpColumns, "where id = '" + _mysqlReg.realEscapeString(baseImageId) + "'");
+		return 0;
+	}
+	catch(exception &ex)
+	{
+		TLOGEX_ERROR("DockerThread", "error:" << ex.what() << endl);
+		return -1;
+	}
+}
+
 
 int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadInfo& li)
 {
@@ -384,7 +420,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
 
 				if(!server.baseImageId.empty())
 				{
-					auto image = g_app.getReapThread()->getBaseImageById(server.baseImageId);
+					auto image = g_app.getDockerThread()->getBaseImageById(server.baseImageId);
 					server.baseImage = image.first;
 					server.sha = image.second;
 				}

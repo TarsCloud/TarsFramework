@@ -29,7 +29,9 @@ void AdminRegistryImp::initialize()
 
     _patchPrx = Application::getCommunicator()->stringToProxy<PatchPrx>(g_pconf->get("/tars/objname<patchServerObj>", "tars.tarspatch.PatchObj"));
 
-//	_registryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>("/tars/objname<RegistryObjName>", "tars.tarsregistry.RegistryObj");
+	_registryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>(g_pconf->get("/tars/objname<RegistryObjName>"), "tars.tarsregistry.RegistryObj");
+
+	_registryPrx->tars_async_timeout(60*1000);
 
 	int timeout = TC_Common::strto<int>(g_pconf->get("/tars/patch<patch_timeout>", "30000"));
 
@@ -1481,6 +1483,22 @@ int AdminRegistryImp::checkDockerRegistry(const string & registry, const string 
 	catch (exception & ex)
 	{
 		result = ex.what();
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::dockerPull(const string & baseImageId, CurrentPtr current)
+{
+	TLOG_DEBUG("base image id: " << baseImageId << endl);
+	try
+	{
+		return _registryPrx->dockerPull(baseImageId);
+	}
+	catch (exception & ex)
+	{
 		TLOG_ERROR(ex.what() << endl);
 		return EM_TARS_UNKNOWN_ERR;
 	}

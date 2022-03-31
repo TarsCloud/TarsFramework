@@ -158,6 +158,14 @@ public:
 	 */
 	virtual int getDockerRegistry(vector<DockerRegistry> &doctorRegistries, CurrentPtr current);
 
+	/**
+	 * 拉取基础镜像
+	 * @param baseImageId
+	 * @param current
+	 * @return
+	 */
+	virtual int dockerPull(const string & baseImageId,  CurrentPtr current);
+
 protected:
 
     /*

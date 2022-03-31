@@ -454,6 +454,14 @@ public:
 	 */
 	virtual int checkDockerRegistry(const string & registry, const string & userName, const string & password, string &result, CurrentPtr current);
 
+	/**
+	 * 调用主控拉取镜像
+	 * @param baseImageId
+	 * @param current
+	 * @return
+	 */
+	virtual int dockerPull(const string & baseImageId, CurrentPtr current);
+
 protected:
 	/**
 	 * 删除太早的历史记录
@@ -467,6 +475,7 @@ protected:
 
 	string getServerType(const std::string & application, const std::string & serverName, const std::string & nodeName);
     PatchPrx _patchPrx;
+	RegistryPrx _registryPrx;
 	string	 _remoteLogIp;
     string   _remoteLogObj;
 	string   _dockerSocket;

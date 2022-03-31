@@ -208,6 +208,22 @@ public:
 	 */
 	int loadDockerInfo(map<string, DockerRegistry> &info);
 
+	/**
+	 * 更新sha
+	 * @param baseImageId
+	 * @param sha
+	 * @return
+	 */
+	int updateBaseImageSha(const string &baseImageId, const string &sha);
+
+	/**
+	 *
+	 * @param baseImageId
+	 * @param result
+	 * @return
+	 */
+	int updateBaseImageResult(const string &baseImageId, const string &result);
+
 protected:
     /**
      * 获取server的配置模板

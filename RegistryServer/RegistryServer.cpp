@@ -46,6 +46,10 @@ void RegistryServer::initialize()
         _checkNodeThread.init();
         _checkNodeThread.start();
 
+		//拉取docker镜像
+		_dockerThread.init();
+		_dockerThread.start();
+
         //监控所有服务状态的线程
         _checksetingThread.init();
         _checksetingThread.start();
