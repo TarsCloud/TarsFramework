@@ -36,9 +36,6 @@ KeepAliveThread::KeepAliveThread()
     _monitorInterval        = _monitorInterval > 10 ? 10 : (_monitorInterval < 1 ? 1 : _monitorInterval);
 
     _latestKeepAliveTime    = TNOW;
-
-//	loadDockerRegistry();
-
 }
 
 KeepAliveThread::~KeepAliveThread()
@@ -72,6 +69,32 @@ bool KeepAliveThread::timedWait(int millsecond)
     return _lock.timedWait(millsecond);
 }
 
+FrameworkKey KeepAliveThread::getFrameworkKey()
+{
+	TC_ThreadLock::Lock lock(_lock);
+
+	return _fKey;
+}
+
+void KeepAliveThread::loadFrameworkKey()
+{
+	try {
+
+		FrameworkKey fKey;
+		_registryPrx->getFrameworkKey(fKey);
+
+		if(!fKey.priKey.empty())
+		{
+			TC_ThreadLock::Lock lock(_lock);
+
+			_fKey = fKey;
+		}
+	}
+	catch (exception &ex)
+	{
+		NODE_LOG("KeepAliveThread")->error() << FILE_FUN << "catch exception:" << ex.what() << endl;
+	}
+}
 void KeepAliveThread::run()
 {
     bool bLoaded        = false;
@@ -90,21 +113,21 @@ void KeepAliveThread::run()
 		}
 		catch (exception &ex)
 		{
-            cout << "keep alive:" << ex.what() << endl;
+			NODE_LOG("KeepAliveThread")->error() << FILE_FUN << "catch exception:" << ex.what() << endl;
 		}
 	}while(true);
-
-//	checkDockerRegistries();
 
     while (!_terminate)
     {
         try
         {
-			if(TNOW - _dockerLastUpdateTime >= 5)
+			if(TNOW - _dockerLastUpdateTime >= 10)
 			{
 				_dockerLastUpdateTime = TNOW;
 
 				g_app.getDockerPullThread()->loadDockerRegistries();
+
+				loadFrameworkKey();
 			}
 
         	if(TNOW - updateConfigTime > 60 )

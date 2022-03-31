@@ -2128,3 +2128,16 @@ int CDbHandle::updateServerFlowState(const string & app, const string & serverNa
 
     return 0;
 }
+
+int CDbHandle::getFrameworkKey(FrameworkKey &fKey)
+{
+	auto data = _mysqlReg.queryRecord("select * from t_framework_key");
+
+	if(data.size() > 0)
+	{
+		fKey.cuid = data[0]["cuid"];
+		fKey.priKey = data[0]["pri_key"];
+	}
+
+	return 0;
+}

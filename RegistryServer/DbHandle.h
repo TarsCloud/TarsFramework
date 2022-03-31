@@ -224,6 +224,12 @@ public:
 	 */
 	int updateBaseImageResult(const string &baseImageId, const string &result);
 
+	/**
+	 *
+	 * @param fKey
+	 * @return
+	 */
+	int getFrameworkKey(FrameworkKey &fKey);
 protected:
     /**
      * 获取server的配置模板

@@ -166,12 +166,25 @@ public:
 	 */
 	virtual int dockerPull(const string & baseImageId,  CurrentPtr current);
 
+	/**
+	 * 获取框架的pri key
+	 * @param fKey
+	 * @param current
+	 * @return
+	 */
+	virtual int getFrameworkKey(FrameworkKey &fKey,  CurrentPtr current);
+
 protected:
 
     /*
      * 数据库操作
      */
     CDbHandle      _db;
+
+	/**
+	 * pri key
+	 */
+	FrameworkKey   _fKey;
 
 };
 

@@ -50,6 +50,11 @@ public:
 	 */
     time_t getLatestKeepAliveTime() const { return _latestKeepAliveTime; }
 
+	/**
+	 *
+	 * @return
+	 */
+	FrameworkKey getFrameworkKey();
 protected:
 
     virtual void run();
@@ -85,6 +90,11 @@ protected:
      */
     bool timedWait(int millsecond);
 
+	/**
+	 * 同步framekey
+	 */
+	void loadFrameworkKey();
+
 protected:
 
     NodeInfo            _nodeInfo;
@@ -105,6 +115,7 @@ protected:
 
 	time_t 				_dockerLastUpdateTime = 0;
 
+	FrameworkKey		_fKey;
 private:
 
     vector<ServerStateInfo>     _stat;         //服务状态列表

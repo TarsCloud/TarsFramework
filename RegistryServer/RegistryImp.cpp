@@ -30,6 +30,7 @@ void RegistryImp::initialize()
 
     _db.init(g_pconf);
 
+	_db.getFrameworkKey(_fKey);
     TLOG_DEBUG("RegistryImp init ok."<<endl);
 }
 
@@ -138,4 +139,10 @@ int RegistryImp::dockerPull(const string & baseImageId, CurrentPtr current)
 	TLOGEX_DEBUG("DockerThread", "RegistryImp::dockerPull baseImageId: " << baseImageId <<  endl);
 
 	return g_app.getDockerThread()->dockerPull(baseImageId);
+}
+
+int RegistryImp::getFrameworkKey(FrameworkKey &fKey,  CurrentPtr current)
+{
+	fKey = _fKey;
+	return 0;
 }

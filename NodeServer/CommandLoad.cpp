@@ -459,6 +459,13 @@ int CommandLoad::updateConfigFile(string& sResult)
         mMacro["logpath"]    = ServerConfig::LogPath;
         mMacro["local"]      = tLocalEndpoint.toString();
 
+		//框架的私有key
+		string fKey = g_app.getKeepAliveThread()->getFrameworkKey().priKey;
+		if(fKey.empty())
+		{
+			mMacro["priKey"] = fKey;
+		}
+
         mMacro["mainclass"]   = "com.qq." + TC_Common::lower(_desc.application) + "." + TC_Common::lower(_desc.serverName) + "." + _desc.serverName;
         mMacro["config-center-port"] = TC_Common::tostr(_desc.configCenterPort);
 
