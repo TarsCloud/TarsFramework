@@ -337,6 +337,24 @@ CREATE TABLE `t_base_image` (
 
 
 --
+-- Table structure for table `t_framework_key`
+--
+
+DROP TABLE IF EXISTS `t_framework_key`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `t_framework_key` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `key` varchar(16) NOT NULL DEFAULT 'key',
+      `cuid`  varchar(128) NOT NULL DEFAULT '',
+      `pri_key` TEXT,
+      `autologin` int(11) DEFAULT '1',
+      `update_time` datetime DEFAULT NULL,
+      PRIMARY KEY (`id`),
+      KEY `idx_key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
 -- Table structure for table `t_docker_registry`
 --
 
