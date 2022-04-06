@@ -406,10 +406,15 @@ int ServerObject::checkPid()
 			{
 				return 0;
 			}
+            else if(value == "exited")
+            {
+                docker.remove(getServerId(), true);
+            }
 		}
 		else
 		{
 			NODE_LOG(_serverId)->debug() << "check container, error:" << docker.getErrMessage() << endl;
+            // exit(-1);
 		}
 
 		if(g_app.getDockerPullThread()->isPulling(this))
