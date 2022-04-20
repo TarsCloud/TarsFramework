@@ -76,13 +76,16 @@ ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
 			string server;
 
     		//为了兼容服务exe文件改名, 如果exeFile不存在, 则遍历目录下, 第一个文件名带Server的可执行程序
-
-			findExe = searchServer(_serverObjectPtr->getExePath(), server);
-
-			if(findExe)
+			if(!TC_File::isFileExist(_exeFile))
 			{
-				_exeFile = server;
+				findExe = searchServer(_serverObjectPtr->getExePath(), server);
+
+				if(findExe)
+				{
+					_exeFile = server;
+				}
 			}
+			
 		}
 		else if(_serverObjectPtr->getServerType() == "tars_nodejs")
 		{
