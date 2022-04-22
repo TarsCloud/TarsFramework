@@ -130,10 +130,10 @@ void StatServer::doReserveDb(const string path, TC_Config *pconf)
 			{
 				string name = datas[i]["table_name"];
 
-                if(name == "t_ecstatus")
-                {
-                    continue;
-                }
+				if(name == "t_ecstatus")
+				{
+				    continue;
+				}
 
 				if(name < tableName)
 				{
