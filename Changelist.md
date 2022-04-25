@@ -1,6 +1,29 @@
-# v3.0.5 20210328
+# v3.0.6 20220425
 
 ### en
+
+- Fix: when the exe program exists and some files in the bin directory contain the string "server", the program may fail to run
+- Fix: tarsnode checkPid in container, if container is exited then remove it
+- Fix: tarsnode activate not set env bug
+- Fix: tarsnode load config, check local port error in container mode
+- Add: deploy create t_framework_key in db_tars.sql
+- Optimize: tarsregistry/tarsAdminRegistry support container mode
+- Optimize: db_tars.sql remove auto test table(not use)
+
+### cn
+
+- 修复: tarsnode 启动服务时, cpp/go 找不到对应的可执行程序的 bug
+- 修复: tarsnode 以容器方式启动业务服务时, 当业务服务已经退出, checkPid 检查到后应该删除容器
+- 修复: tarsnode 启动服务时, 没有设置环境变量的 bug
+- 修复: tarsnode 拉取业务服务配置时, 检查 local port 端口错误
+- 添加: db_tars.sql 添加了 t_framework_key, 支持云市场
+- 优化: tarsregistry/tarsAdminRegistry 完成业务服务镜像模式的支持
+- 优化: db_tars.sql 去掉了自动测试的记录表, 该表不在使用了
+
+# v3.0.5 20220328
+
+### en
+
 - Add: tarscpp use v3.0.6
 - Add: tarsAdminRegistry add batchPatch to support dcache source compiler and publish
 - Add: deploy script support database table upgrade
@@ -13,20 +36,22 @@
 - Fix: hostIp(host.docker.internal) in docker on mac platform
 - Fix: tarsnode & tarsregistry load docker registry & image bug
 - Fix: tarsnode load and create config bug
-### cn
-- 添加: tarscpp 使用到 v3.0.6
-- 添加: tarsAdminRegistry 还原了 batchPatch 以支持dcache的编译以及发布
-- 添加: 部署脚本支持了数据库表字段的升级
-- 添加: 容器模式下, 服务模板支持了volumes/ports的配置(/tars/application/container/volumes or /tars/application/container/ports)
-- 添加: tarsnode/tarsregistry使用 tc_docker 作为访问docker的api
-- 添加: tarsnode/tarsregistry模板添加了容器的unit socket的配置(默认/var/run/docker.sock)
-- 修复: tarsnode 启动服务时返回值的bug
-- 修复: tarsnode 加载解析私有模板的bug
-- 修复: 容器模式下, mac平台的hostIp使用host.docker.internal 
-- 修复: tarsnode & tarsregistry 加载仓库和容器信息的bug
-- 修复: tarsnode加载生成配置的bug(新增的,没有重新打tag)
 
-# v3.0.4 20210225
+### cn
+
+- 添加: tarscpp 使用到 v3.0.6
+- 添加: tarsAdminRegistry 还原了 batchPatch 以支持 dcache 的编译以及发布
+- 添加: 部署脚本支持了数据库表字段的升级
+- 添加: 容器模式下, 服务模板支持了 volumes/ports 的配置(/tars/application/container/volumes or /tars/application/container/ports)
+- 添加: tarsnode/tarsregistry 使用 tc_docker 作为访问 docker 的 api
+- 添加: tarsnode/tarsregistry 模板添加了容器的 unit socket 的配置(默认/var/run/docker.sock)
+- 修复: tarsnode 启动服务时返回值的 bug
+- 修复: tarsnode 加载解析私有模板的 bug
+- 修复: 容器模式下, mac 平台的 hostIp 使用 host.docker.internal
+- 修复: tarsnode & tarsregistry 加载仓库和容器信息的 bug
+- 修复: tarsnode 加载生成配置的 bug(新增的,没有重新打 tag)
+
+# v3.0.4 20220225
 
 ### en
 
