@@ -55,12 +55,13 @@ public:
      * 获取文件下载目录
      */
     string getDownLoadDir() ;
-//
-//	/**
-//	 * 镜像仓库地址
-//	 * @return
-//	 */
-//	string getRegistry() const;
+	
+    /**
+     * 获取进程状态信息
+     */
+    static char getPIDState(int pid);	
+	
+	
 
 protected:
     list<float>   _load5;

@@ -18,7 +18,7 @@
 #include "util.h"
 #include "NodeServer.h"
 
-int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current )
+int ServerImp::keepAlive( const ServerInfo& serverInfo, CurrentPtr current )
 {
 	string serverId = serverInfo.application + "." + serverInfo.serverName;
 
@@ -31,8 +31,9 @@ int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentP
         ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( sApp, sName );
         if(pServerObjectPtr)
         {
-            pServerObjectPtr->keepAlive(serverInfo);
+            NODE_LOG(serverId)->debug() << "server " << serverInfo.application << "." << serverInfo.serverName << " keep alive"<< endl;
 
+            pServerObjectPtr->keepAlive(serverInfo.pid,serverInfo.adapter);
             return 0;
         }
 		NODE_LOG(serverId)->debug() << "ServerImp::keepAlive server " << serverId << " is not exist, pid:" << serverInfo.pid << endl;
@@ -50,7 +51,7 @@ int ServerImp::keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentP
     return -1;
 }
 
-int ServerImp::keepActiving( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current )
+int ServerImp::keepActiving( const ServerInfo& serverInfo, CurrentPtr current )
 {
 	string serverId = serverInfo.application + "." + serverInfo.serverName;
 
@@ -79,7 +80,7 @@ int ServerImp::keepActiving( const tars::ServerInfo& serverInfo, tars::TarsCurre
     return -1;
 }
 
-int ServerImp::reportVersion( const string &app,const string &serverName,const string &version,tars::TarsCurrentPtr current)
+int ServerImp::reportVersion( const string &app,const string &serverName,const string &version,CurrentPtr current)
 {
 	string serverId = app + "." + serverName;
 
@@ -109,7 +110,7 @@ int ServerImp::reportVersion( const string &app,const string &serverName,const s
     return -1;
 }
 
-unsigned int ServerImp::getLatestKeepAliveTime(tars::CurrentPtr current)
+unsigned int ServerImp::getLatestKeepAliveTime(CurrentPtr current)
 {
     try
     {

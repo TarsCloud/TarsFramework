@@ -30,7 +30,7 @@
 class CommandPatch : public ServerCommand
 {
 public:
-    CommandPatch(const ServerObjectPtr & server, const std::string & sDownloadPath, const tars::PatchRequest & request);
+    CommandPatch(const ServerObjectPtr & server, const std::string & sDownloadPath, const PatchRequest & request);
 
     ExeStatus canExecute(std::string &sResult);
 
@@ -61,7 +61,7 @@ private:
 private:
     ServerObjectPtr     _serverObjectPtr;
 
-    tars::PatchRequest   _patchRequest;
+    PatchRequest   _patchRequest;
 
     //本地存放tgz的目录
     std::string         _localTgzBasePath;

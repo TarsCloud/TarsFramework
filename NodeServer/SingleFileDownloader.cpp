@@ -24,7 +24,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
 {
 	string serverId = application + "." + serverName;
 
-    vector<tars::FileInfo> vFiles;
+    vector<FileInfo> vFiles;
     int ret = 0;
     
     for( int i = 0; i < 2; i ++)
@@ -60,7 +60,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         return -2;
     }
 
-    tars::FileInfo fileInfo = vFiles[0];
+    FileInfo fileInfo = vFiles[0];
 
     FILE *fp = fopen(localFile.c_str(), "wb");
     if (!fp)
@@ -98,7 +98,7 @@ int SingleFileDownloader::download(const PatchPrx &patchPrx, const string &remot
         if (downloadRet < 0)
         {
 	        NODE_LOG(serverId)->error() << "SingleFileDownloader::download " << "|downloadRet:" << downloadRet << "|remoteFile:"  << remoteFile << endl;
-            sResult = remoteFile + " download from tarspatch error " + TC_Common::tostr(downloadRet);
+            sResult = remoteFile + " download from patch error " + TC_Common::tostr(downloadRet);
             ret = downloadRet - 100;
             g_app.reportServer(application + "." + serverName, "", nodeName, string("download error:") + sResult);     
             break;

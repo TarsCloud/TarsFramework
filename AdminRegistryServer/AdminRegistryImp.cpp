@@ -244,6 +244,7 @@ int AdminRegistryImp::getServerState(const string & application, const string & 
         state.patchVersion      = server[0].patchVersion;
         state.patchTime         = server[0].patchTime;
         state.patchUser         = server[0].patchUser;
+//        state.bakFlag = server[0].bakFlag;
 
         //判断是否为dns 非dns才需要到node调用
         if(server[0].serverType == "tars_dns")

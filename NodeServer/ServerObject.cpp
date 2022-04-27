@@ -25,6 +25,7 @@
 #include "CommandStart.h"
 #include "CommandNotify.h"
 #include "CommandStop.h"
+#include "CommandDestroy.h"
 #include "CommandAddFile.h"
 
 ServerObject::ServerObject( const ServerDescriptor& tDesc)
@@ -36,6 +37,7 @@ ServerObject::ServerObject( const ServerDescriptor& tDesc)
 , _enSynState(true)
 , _pid(0)
 , _state(ServerObject::Inactive)
+, _coreTimeout(60)
 , _limitStateUpdated(false)
 , _started(false)
 {
@@ -541,9 +543,6 @@ void ServerObject::setLastKeepAliveTime(time_t t,const string& adapter)
 {
     Lock lock(*this);
     _keepAliveTime = t;
-
-	// NODE_LOG(_serverId)->debug() << "setLastKeepAliveTime keepAliveTime:" << _keepAliveTime << ", now:" << TNOW << endl;
-
     map<string, time_t>::iterator it1 = _adapterKeepAliveTime.begin();
     if(adapter.empty())
     {
@@ -607,8 +606,8 @@ bool ServerObject::isStartTimeOut()
 	Lock lock(*this);
 	int64_t now = TNOWMS;
 
-	//int timeout = 11000;
 	int timeout=_activatingTimeout >0 ? _activatingTimeout : 11000;
+
 	if (now - _startTime >= timeout && now - _keepAliveTime >= timeout)
 	{
 		NODE_LOG(_serverId)->debug()<<FILE_FUN<<"server start time  out "<<now - _startTime << ">" <<timeout<<endl;
@@ -784,12 +783,24 @@ void ServerObject::doMonScript()
     }
 }
 
+bool ServerObject::isCoreDump(int pid)
+{
+    char state = PlatformInfo::getPIDState(pid);
+    if ('R' == state || 'D' == state)
+    {
+        NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<"|" << pid << "|is coredump, state:" << state <<endl;
+        return true;
+    }
+
+    return false;
+}
+
 //checkServer时对服务所占用的内存上报到主控
-void ServerObject::checkServer(int iTimeout)
+bool ServerObject::checkServer(int iTimeout)
 {
 	if(_state == ServerObject::Inactive && _desc.settingState == "inactive")
 	{
-		return;
+		return false;
 	}
 
     try
@@ -829,11 +840,13 @@ void ServerObject::checkServer(int iTimeout)
         int iRealTimeout = _timeout > 0?_timeout:iTimeout;
         if( _state == ServerObject::Active && isTimeOut(iRealTimeout))
         {
-            sResult = "[alarm] zombie process,no keep alive msg for " + TC_Common::tostr(iRealTimeout) + " seconds";
-            NODE_LOG(_serverId)->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
-	        NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
-            CommandStop command(this, true);
-            command.doProcess();
+            if (!isCoreDump(_pid) || isTimeOut(_coreTimeout))
+            {
+                sResult = "[alarm] zombie process,no keep alive msg for " + TC_Common::tostr(iRealTimeout) + " seconds";
+                NODE_LOG("KeepAliveThread")->debug()<<FILE_FUN<<_serverId<<" "<<sResult << endl;
+                CommandStop command(this, true);
+                command.doProcess();
+            }
         }
 
         //启动服务
@@ -853,6 +866,8 @@ void ServerObject::checkServer(int iTimeout)
             {
                 _serviceLimitResource->addExcStopRecord();
             }
+
+            return true;
         }
     }
     catch(exception &ex)
@@ -865,6 +880,8 @@ void ServerObject::checkServer(int iTimeout)
         NODE_LOG(_serverId)->error()<<FILE_FUN << "unknown ex." << endl;
 	    NODE_LOG("KeepAliveThread")->error()<<FILE_FUN << "unknown ex." << endl;
     }
+
+    return false;
 }
 
 /**
@@ -883,12 +900,12 @@ void ServerObject::reportMemProperty()
         stream = TC_File::load2str(filename);
         if(!stream.empty())
         {
-            // NODE_LOG("ReportMemThread")->debug()<<FILE_FUN<<"filename:"<<filename<<",stream:"<<stream<<endl;
+            NODE_LOG("ReportThread")->debug()<<FILE_FUN<<"filename:"<<filename<<",stream:"<<stream<<endl;
             //>>改成上报物理内存
             vector<string> vtStatm = TC_Common::sepstr<string>(stream, " ");
             if (vtStatm.size() < 2)
             {
-                NODE_LOG("ReportMemThread")->error() <<FILE_FUN<< "cannot get server[" + _serverId  + "] physical mem size|stream|" << stream  << endl;
+                NODE_LOG("ReportThread")->error() <<FILE_FUN<< "cannot get server[" + _serverId  + "] physical mem size|stream|" << stream  << endl;
             }
             else
             {
@@ -898,27 +915,27 @@ void ServerObject::reportMemProperty()
             if(TC_Common::isdigit(stream))
             {
                 REPORT_MAX(_serverId, _serverId+".memsize", TC_Common::strto<int>(stream) * 4);
-                NODE_LOG("ReportMemThread")->debug()<<FILE_FUN<<"report_max("<<_serverId<<".memsize,"<<TC_Common::strto<int>(stream)*4<<") OK."<<endl;
+                NODE_LOG("ReportThread")->debug()<<FILE_FUN<<"report_max("<<_serverId<<".memsize,"<<TC_Common::strto<int>(stream)*4<<")OK."<<endl;
                 return;
             }
             else
             {
-                NODE_LOG("ReportMemThread")->error()<<FILE_FUN<<"stream : "<<stream<<" ,is not a digit."<<endl;
+                NODE_LOG("ReportThread")->error()<<FILE_FUN<<"stream : "<<stream<<" ,is not a digit."<<endl;
             }
        }
        else
        {
-           NODE_LOG("ReportMemThread")->error()<<FILE_FUN<<"stream is empty: "<<stream<<endl;
+           NODE_LOG("ReportThread")->error()<<FILE_FUN<<"stream is empty: "<<stream<<endl;
        }
     }
     catch(exception &ex)
     {
-        NODE_LOG("ReportMemThread")->error() << FILE_FUN << " ex:" << ex.what() << endl;
+        NODE_LOG("ReportThread")->error() << FILE_FUN << " ex:" << ex.what() << endl;
         TLOG_ERROR(FILE_FUN << " ex:" << ex.what() << endl);
     }
     catch(...)
     {
-        NODE_LOG("ReportMemThread")->error() << FILE_FUN << " unknown error" << endl;
+        NODE_LOG("ReportThread")->error() << FILE_FUN << " unknown error" << endl;
         TLOG_ERROR(FILE_FUN << "unknown ex." << endl);
     }
 }
@@ -1042,12 +1059,12 @@ void ServerObject::onUpdateServerResult(int result)
     }
 }
 
-void ServerObject::callback_updateServer(tars::Int32 ret)
+void ServerObject::callback_updateServer(Int32 ret)
 {
     onUpdateServerResult(ret);
 }
 
-void ServerObject::callback_updateServer_exception(tars::Int32 ret)
+void ServerObject::callback_updateServer_exception(Int32 ret)
 {
     onUpdateServerResult(ret == 0 ? -1 : ret);
 }

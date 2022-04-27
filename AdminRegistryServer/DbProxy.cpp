@@ -301,6 +301,9 @@ int DbProxy::undeploy(const string & application, const string & serverName, con
 
 		MYSQL_INDEX->deleteRecord("t_adapter_conf", where);
 
+        // 删除掉节点配置信息
+        where = "where server_name='" + application + "." + serverName + "' and host='" + nodeName + "'";
+        MYSQL_INDEX->deleteRecord("t_config_files", where);
     }
     catch (exception &ex)
     {
@@ -500,7 +503,7 @@ vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& se
                "    allow_ip, max_connections, servant, queuecap, queuetimeout,protocol,handlegroup,"
                "    patch_version, patch_time, patch_user, "
                "    server_type, start_script_path, stop_script_path, monitor_script_path,config_center_port ,"
-               "     enable_set, set_name, set_area, set_group "
+               "     enable_set, set_name, set_area, set_group, bak_flag "
                "from t_server_conf as server "
                "    left join t_adapter_conf as adapter using(application, server_name, node_name) "
                "where " + sCondition;
@@ -542,6 +545,7 @@ vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& se
                 server.monitorScript    = res[i]["monitor_script_path"];
                 server.configCenterPort = TC_Common::strto<int>(res[i]["config_center_port"]);
 				server.runType      = res[i]["run_type"];
+//                server.bakFlag      = TC_Common::strto<int>(res[i]["bak_flag"]);
 
                 server.setId = "";
                 if (TC_Common::lower(res[i]["enable_set"]) == "y")

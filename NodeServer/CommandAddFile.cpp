@@ -15,6 +15,18 @@
  */
 
 #include "CommandAddFile.h"
+
+
+//////////////////////////////////////////////////////////////
+//
+CommandAddFile::CommandAddFile(const ServerObjectPtr &pServerObjectPtr,const string &sFile,bool bByNode)
+		: _file(sFile)
+		,_serverObjectPtr(pServerObjectPtr)
+{
+	_desc      = _serverObjectPtr->getServerDescriptor();
+	_serverId  = _serverObjectPtr->getServerId();
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // 
 ServerCommand::ExeStatus CommandAddFile::canExecute(string &sResult)

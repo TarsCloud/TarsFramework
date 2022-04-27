@@ -24,7 +24,7 @@
 
 class RemoveLogThread;
 
-class RemoveLogManager// : public tars::TC_ThreadLock
+class RemoveLogManager// : public TC_ThreadLock
 {
 public:
     /**

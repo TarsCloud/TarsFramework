@@ -39,12 +39,4 @@ private:
     ServerObjectPtr     _serverObjectPtr;     
 };
 
-//////////////////////////////////////////////////////////////
-//
-inline CommandNotify::CommandNotify(const ServerObjectPtr &pServerObjectPtr,const string &sMsg,bool bByNode)
-: _msg(sMsg)
-,_serverObjectPtr(pServerObjectPtr)
-{ 
-    _desc  = _serverObjectPtr->getServerDescriptor();
-}
 #endif 

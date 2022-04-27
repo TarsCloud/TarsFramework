@@ -61,11 +61,11 @@ public:
         return execute(sResult);
     }
 
-    virtual int doProcess(const TarsCurrentPtr current,string &sResult, bool bValid=true)
+    virtual int doProcess(const CurrentPtr current,string &sResult, bool bValid=true)
     {
         if( bValid && g_app.isValid(current->getIp()) == false )
         {
-            sResult = " erro:ip "+ current->getIp()+" is invalid";
+            sResult = " error:ip "+ current->getIp()+" is invalid";
             return -1;
         }
 

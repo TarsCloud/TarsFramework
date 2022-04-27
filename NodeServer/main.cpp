@@ -68,18 +68,16 @@ void parseConfig(int argc, char *argv[])
         exit(0);
     }
 
-
     if (tOp.hasParam("monitor"))
     {
         try
         {
             string configFile = tOp.getValue("config");
-
             monitorNode(configFile);
         }
         catch (exception &ex)
-        {
-            cout << "failed:" << ex.what() << endl;
+        {   
+            cout << "Do monitor failed:" << ex.what() << endl;
             exit(-1);
         }
         exit(0);
@@ -109,7 +107,12 @@ void parseConfig(int argc, char *argv[])
         sNodeId = "";
     }
 
-	NodeServer::onUpdateConfig(sNodeId, sConfigFile, true);
+	int ret = NodeServer::onUpdateConfig(sNodeId, sConfigFile);
+
+    if(ret < 0)
+    {
+    	exit(-1);
+    }
 }
 
 int main( int argc, char* argv[] )

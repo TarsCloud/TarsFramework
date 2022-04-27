@@ -372,7 +372,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                "    allow_ip, max_connections, servant, queuecap, queuetimeout,protocol,handlegroup,"
                "    patch_version, patch_time, patch_user, "
                "    server_type, start_script_path, stop_script_path, monitor_script_path,config_center_port ,"
-               "    enable_set, set_name, set_area, set_group "
+               "    enable_set, set_name, set_area, set_group, bak_flag "
                "from t_server_conf as server "
                "    left join t_adapter_conf as adapter using(application, server_name, node_name) "
                "where " + sCondition;
@@ -417,6 +417,7 @@ vector<ServerDescriptor> CDbHandle::getServers(const string& app, const string& 
                 server.configCenterPort = TC_Common::strto<int>(res[i]["config_center_port"]);
 				server.runType      = res[i]["run_type"];
 				server.baseImageId 	= res[i]["base_image_id"];
+//				server.bakFlag      = TC_Common::strto<int>(res[i]["bak_flag"]);
 
 				if(!server.baseImageId.empty())
 				{
@@ -1440,7 +1441,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
 
                 epf.authType    = ep.getAuthType();
                 epf.grouprealid = getGroupId(epf.host);
-                string ip_group_name = res[i]["ip_group_name"];
+                string ip_group_name = TC_Common::trim(res[i]["ip_group_name"]);
                 epf.grouprealid = ip_group_name.empty() ? getGroupId(epf.host) : getGroupIdByName(ip_group_name);
                 epf.groupworkid = TC_Common::lower(res[i]["enable_group"]) == "y" ? epf.grouprealid : -1;
                 if (TC_Common::lower(res[i]["enable_group"]) == "y" && epf.grouprealid == -1)

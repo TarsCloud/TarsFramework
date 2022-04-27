@@ -42,15 +42,4 @@ private:
     ServerDescriptor _desc;
 };
 
-//////////////////////////////////////////////////////////////
-//
-inline CommandStop::CommandStop(const ServerObjectPtr& pServerObjectPtr, bool bUseAdmin, bool bByNode, bool bGenerateCore)
-: _serverObjectPtr(pServerObjectPtr)
-, _useAdmin(bUseAdmin)
-, _byNode(bByNode)
-, _generateCore(bGenerateCore)
-{
-    _desc      = _serverObjectPtr->getServerDescriptor();
-}
-
 #endif

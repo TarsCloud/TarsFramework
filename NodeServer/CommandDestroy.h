@@ -38,11 +38,4 @@ private:
     ServerObjectPtr     _serverObjectPtr;
 };
 
-//////////////////////////////////////////////////////////////
-//
-inline CommandDestroy::CommandDestroy(const ServerObjectPtr &pServerObjectPtr,bool bByNode)
-: _serverObjectPtr(pServerObjectPtr)
-{
-    _desc      = _serverObjectPtr->getServerDescriptor();
-}
 #endif

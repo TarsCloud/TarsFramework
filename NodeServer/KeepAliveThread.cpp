@@ -371,7 +371,7 @@ void KeepAliveThread::checkAlive()
                     g_serverInfoHashmap.set(tServerInfo, tServerDescriptor);
 
                     ServerStateInfo tServerStateInfo;
-                    tServerStateInfo.serverState    = (pServerObjectPtr->isEnSynState() ? pServerObjectPtr->getState() : tars::Inactive);
+                    tServerStateInfo.serverState    = (pServerObjectPtr->isEnSynState() ? pServerObjectPtr->getState() : Inactive);
                     tServerStateInfo.processId      = pServerObjectPtr->getPid();
                     tServerStateInfo.nodeName       = _nodeInfo.nodeName;
                     tServerStateInfo.application    = it->first;

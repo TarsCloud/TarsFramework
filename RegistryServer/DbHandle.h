@@ -271,7 +271,7 @@ public:
      */
     vector<EndpointF> findObjectById(const string & id);
 
-    /** 根据id获取对象
+    /** 根据id获取对象(同一个IDC)
      *
      * @param id 对象名称
      * @out param activeEp    存活的列表

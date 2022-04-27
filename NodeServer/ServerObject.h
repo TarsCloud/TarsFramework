@@ -99,7 +99,7 @@ public:
 
         ostream& displaySimple(ostream& _os, int _level=0) const
         {
-            tars::TarsDisplayer _ds(_os, _level);
+            TarsDisplayer _ds(_os, _level);
             _ds.displaySimple(bEnableCoreLimit, true);
             _ds.displaySimple(bCloseCore, true);
             _ds.displaySimple(eCoreType, true);
@@ -304,9 +304,9 @@ public:
     /**
      * 获取服务状态
      *
-     * @return tars::ServerState
+     * @return ServerState
      */
-    tars::ServerState getState();
+    ServerState getState();
 
     /**
      * 获取server内部状态
@@ -337,9 +337,9 @@ public:
     /**
     *监控server状态
     * @para  iTimeout 心跳超时时间
-    * @return void
+    * @return bool true表示状态有问题被重启， false表示未被重启
     */
-    void checkServer(int iTimeout);
+    bool checkServer(int iTimeout);
 
     /**
      * 属性上报单独出来
@@ -450,7 +450,7 @@ public:
     void setServerDir(const  string &sServerDir){_serverDir = sServerDir;}
     void setNodeInfo(const NodeInfo &tNodeInfo){_nodeInfo = tNodeInfo;}
     const NodeInfo & getNodeInfo() { return _nodeInfo;}
-    void setPackageFormat(const string &packageFormat) { _packageFormat = packageFormat; }
+
     void setServerType( const string &sType ){ _serverType = TC_Common::lower(TC_Common::trim(sType));_serverType == "not_tars"?_tarsServer = false:_tarsServer=true;}
     void setMacro(const map<string,string>& mMacro);
     void setScript(const string &sStartScript,const string &sStopScript,const string &sMonitorScript);
@@ -458,17 +458,21 @@ public:
     void setVolumes(const map<string, string> & sVolumes) { _sVolumes = sVolumes; }
 	void setEnv(const string & sEnv) { _env = sEnv; }
     void setHeartTimeout(int iTimeout) { _timeout = iTimeout; }
-    //设置启动activating超时时间 ms
-    void setActivatingTimeout(int iTimeout) { _activatingTimeout = iTimeout; }
 
+    void setCoreDumpTimeout(int iTimeout) { _coreTimeout = iTimeout; }
+	//设置启动activating超时时间 ms
+	void setActivatingTimeout(int iTimeout) { _activatingTimeout = iTimeout; }
     //java服务
     void setJvmParams(const string &sJvmParams){_jvmParams = sJvmParams;}
     void setMainClass(const string &sMainClass){_mainClass = TC_Common::trim(sMainClass);}
     void setClassPath(const  string &sClassPath){_classPath = sClassPath;}
+    void setPackageFormat(const string &sPkgFormat) { _packageFormat = TC_Common::trim(sPkgFormat); }
     void setRedirectPath(const string& sRedirectpath) {_redirectPath = sRedirectpath;}
     void setBackupFileNames(const string& sFileNames){_backupFiles = sFileNames;}
 
-    //重置core计数信息
+	bool isCoreDump(int pid);
+
+	//重置core计数信息
     void resetCoreInfo();
 
 	//是否已经通过commandStart启动成功
@@ -529,16 +533,16 @@ public:
 public:
     void onUpdateServerResult(int result);
 
-    virtual void callback_updateServer(tars::Int32 ret);
+    virtual void callback_updateServer(Int32 ret);
 
-    virtual void callback_updateServer_exception(tars::Int32 ret);
+    virtual void callback_updateServer_exception(Int32 ret);
 
 private:
     bool    _tarsServer;                //是否tars服务
     string  _serverType;               	//服务类型  tars_cpp tars_java not_tars
     RunType _eRunType;                 	//运行类型,原生启动还是容器化启动
     map<string, string> _sVolumes;           //当运行类型是 container　时, 需要挂载的路径或文件, 多行, 每行格式为: hostpath=containerpath
-
+	string _packageFormat;
 private:
     bool    _enabled;                  //服务是否有效
     bool    _loaded;                   //服务配置是否已成功加载
@@ -570,7 +574,7 @@ private:
     string _exeFile;                   //一般为_exePath+_serverName 可个性指定
     string _logPath;                   //服务日志目录
     string _libPath;                   //动态库目录 一般为_desc.basePath/lib
-    string _packageFormat;			   //上传包格式(tgz/jar/war, image), image表示镜像模式
+
     map<string,string> _macro;         //服务宏
 	std::mutex _mutex;
 	map<string, pair<string, int>>   _ports;	//容器模式下, 需要映射到宿主机的网络端口(mac下, 即使--net=host, 仍然需要配置映射), 配置格式: 80/tcp=hostIp:hostPort
@@ -592,6 +596,7 @@ private:
     InternalServerState _lastState;            //上一次服务状态
 
     int                 _timeout;              //心跳超时时间
+    int                 _coreTimeout;           // coredump 超时时间
     string              _env;                  //环境变量字符串
     string              _backupFiles;          //针对java服务发布时bin目录下需要保留的文件；可以用;|来分隔
     int                 _activatingTimeout;    //服务启动activating状态超时时间

@@ -16,6 +16,15 @@
 
 #include "CommandDestroy.h"
 
+
+//////////////////////////////////////////////////////////////
+//
+CommandDestroy::CommandDestroy(const ServerObjectPtr &pServerObjectPtr,bool bByNode)
+		: _serverObjectPtr(pServerObjectPtr)
+{
+	_desc      = _serverObjectPtr->getServerDescriptor();
+}
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandDestroy::canExecute(string &sResult)

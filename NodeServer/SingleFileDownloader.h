@@ -56,7 +56,7 @@ class DownloadTaskFactory
 
 public:
 
-    tars::TC_ThreadRecLock* getRecLock(const DownloadTask& task) 
+    TC_ThreadRecLock* getRecLock(const DownloadTask& task) 
     {
         size_t hashcode = _hashf(task.sLocalTgzFile);
         size_t index = hashcode % POOLSIZE;
@@ -70,12 +70,12 @@ public:
 
 private:
     DownloadTaskFactory()
-    : _hashf(tars::hash<string>()) 
+    : _hashf(magic_string_hash())
     {
     }
 
 private:
-    tars::TC_ThreadRecLock       _lockPool[POOLSIZE];
+    TC_ThreadRecLock       _lockPool[POOLSIZE];
     hash_functor                _hashf;
     static DownloadTaskFactory* _instance;
 };

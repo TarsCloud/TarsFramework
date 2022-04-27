@@ -22,7 +22,7 @@
 
 class BatchPatchThread;
 
-class BatchPatch //: public tars::TC_ThreadLock
+class BatchPatch //: public TC_ThreadLock
 {
 public:
     /**
@@ -50,12 +50,12 @@ public:
     /**
      * 插入发布请求
      */
-    void push_back(const tars::PatchRequest & request, ServerObjectPtr servePtr);
+    void push_back(const PatchRequest & request, ServerObjectPtr servePtr);
 
     /**
      * 从发布队列中获取发布请求
      */
-    bool pop_front(pair<tars::PatchRequest,ServerObjectPtr>& item);
+    bool pop_front(pair<PatchRequest,ServerObjectPtr>& item);
 
     /**
      * 设置下载暂存目录
@@ -65,9 +65,9 @@ public:
         _downloadPath = sDownloadPath;
     }
 private:
-    tars::TC_ThreadLock                  _queueMutex;
+    TC_ThreadLock                  _queueMutex;
 
-    TC_ThreadQueue<pair<tars::PatchRequest,ServerObjectPtr> > _patchQueue;
+    TC_ThreadQueue<pair<PatchRequest,ServerObjectPtr> > _patchQueue;
 
     std::set<std::string>               _patchIng;
 
@@ -100,7 +100,7 @@ public:
     /**
      * 执行发布单个请求
      */
-    void doPatchRequest(const tars::PatchRequest & request, ServerObjectPtr server);
+    void doPatchRequest(const PatchRequest & request, ServerObjectPtr server);
 
 protected:
     BatchPatch *    _batchPatch;

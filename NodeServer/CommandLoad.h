@@ -88,16 +88,5 @@ private:
     string _monitorScript;             //监控脚本
 };
 
-//////////////////////////////////////////////////////////////
-//
-inline CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ)
-: _nodeInfo(tNodeInfo)
-, _serverObjectPtr(pServerObjectPtr)
-, _succ(succ)
-{
-    _desc      = _serverObjectPtr->getServerDescriptor();
-
-//	_serverObjectPtr->setDockerRegistry(dockerRegistry);
-}
 
 #endif

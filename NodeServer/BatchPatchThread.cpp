@@ -62,10 +62,9 @@ void BatchPatch::terminate()
     {
         _runners[i]->getThreadControl().join();
     }
-
 }
 
-void BatchPatch::push_back(const tars::PatchRequest & request, ServerObjectPtr serverPtr)
+void BatchPatch::push_back(const PatchRequest & request, ServerObjectPtr serverPtr)
 {
     {
         TC_ThreadLock::Lock LockQueue(_queueMutex);
@@ -91,7 +90,7 @@ void BatchPatch::push_back(const tars::PatchRequest & request, ServerObjectPtr s
 
 }
 
-bool BatchPatch::pop_front(pair<tars::PatchRequest,ServerObjectPtr>& item)
+bool BatchPatch::pop_front(pair<PatchRequest,ServerObjectPtr>& item)
 {
     TC_ThreadLock::Lock LockQueue(_queueMutex);
 
@@ -129,7 +128,7 @@ void BatchPatchThread::terminate()
     _shutDown = true;
 }
 
-void BatchPatchThread::doPatchRequest(const tars::PatchRequest & request, ServerObjectPtr server)
+void BatchPatchThread::doPatchRequest(const PatchRequest & request, ServerObjectPtr server)
 {
 	string serverId = request.appname + "." + request.servername;
 
@@ -187,7 +186,7 @@ void BatchPatchThread::run()
 {
     while (!_shutDown)
     {
-	    pair<tars::PatchRequest,ServerObjectPtr> item;
+	    pair<PatchRequest,ServerObjectPtr> item;
 
 	    try
         {

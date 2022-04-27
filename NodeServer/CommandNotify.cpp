@@ -15,6 +15,17 @@
  */
 
 #include "CommandNotify.h"
+
+
+//////////////////////////////////////////////////////////////
+//
+CommandNotify::CommandNotify(const ServerObjectPtr &pServerObjectPtr,const string &sMsg,bool bByNode)
+		: _msg(sMsg)
+		,_serverObjectPtr(pServerObjectPtr)
+{
+	_desc  = _serverObjectPtr->getServerDescriptor();
+}
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandNotify::canExecute(string &sResult)

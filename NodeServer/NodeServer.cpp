@@ -139,7 +139,7 @@ void NodeServer::initHashMap()
     int iMinBlock       = TC_Common::strto<int>(g_pconf->get("/tars/node/hashmap<minBlock>", "500"));
     int iMaxBlock       = TC_Common::strto<int>(g_pconf->get("/tars/node/hashmap<maxBlock>", "500"));
     float iFactor       = TC_Common::strto<float>(g_pconf->get("/tars/node/hashmap<factor>", "1"));
-    int iSize           = TC_Common::toSize(g_pconf->get("/tars/node/hashmap<size>"), 1024 * 1024 * 10);
+    size_t iSize           = TC_Common::toSize(g_pconf->get("/tars/node/hashmap<size>"), 1024 * 1024 * 10);
 
     if (!TC_File::makeDirRecursive(sPath))
     {
@@ -460,7 +460,17 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 		CONFIG  = sConfigFile;
 
 		TC_Config config;
-		config.parseFile(CONFIG);
+
+        if(g_pconf)
+        {
+            //运行中更新配置
+            config = *g_pconf;
+        }
+        else 
+        {
+            //启动时更新配置
+            config.parseFile(CONFIG);
+        }
 
 		string sLocator = config.get("/tars/application/client<locator>");
 		Application::getCommunicator()->setProperty("locator", sLocator);

@@ -143,16 +143,6 @@ public:
      *    是否上报节点负载信息
      */
     bool getReportLoadInfo() {return _bReportLoadInfo;}
-//
-//	/**
-//	 * 从本地文件中加载(启动时调用)
-//	 */
-//	void loadDockerRegistry();
-//
-//	/**
-//	 * 存储配置
-//	 */
-//	void saveDockerRegistry();
 
 private:
 

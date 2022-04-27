@@ -48,7 +48,7 @@ void NodeImp::initialize()
     }
 }
 
-int NodeImp::destroyServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
+int NodeImp::destroyServer( const string& application, const string& serverName,string &result, CurrentPtr current )
 {
     int64_t startMs = TC_TimeProvider::getInstance()->getNowMs();
 	string serverId = application + "." + serverName;
@@ -93,7 +93,7 @@ int NodeImp::destroyServer( const string& application, const string& serverName,
     return iRet;
 }
 
-int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurrentPtr current)
+int NodeImp::patchPro(const PatchRequest & req, string & result, CurrentPtr current)
 {
 	string serverId = req.appname + "." + req.servername;
 
@@ -201,7 +201,7 @@ int NodeImp::patchPro(const tars::PatchRequest & req, string & result, TarsCurre
     return EM_TARS_SUCCESS;
 }
 
-int NodeImp::addFile(const string &application,const string &serverName,const string &file, string &result, TarsCurrentPtr current)
+int NodeImp::addFile(const string &application,const string &serverName,const string &file, string &result, CurrentPtr current)
 {
 	string serverId = application + "." + serverName;
 
@@ -231,7 +231,7 @@ int NodeImp::addFile(const string &application,const string &serverName,const st
     return -1;
 }
 
-string NodeImp::getName( TarsCurrentPtr current )
+string NodeImp::getName( CurrentPtr current )
 {
     TLOG_DEBUG(FILE_FUN << endl);
 
@@ -240,14 +240,14 @@ string NodeImp::getName( TarsCurrentPtr current )
     return _nodeInfo.nodeName;
 }
 
-LoadInfo NodeImp::getLoad( TarsCurrentPtr current )
+LoadInfo NodeImp::getLoad( CurrentPtr current )
 {
     TLOG_DEBUG(FILE_FUN<< endl);
 
     return  _platformInfo.getLoadInfo();
 }
 
-int NodeImp::shutdown( string &result,TarsCurrentPtr current )
+int NodeImp::shutdown( string &result,CurrentPtr current )
 {
     try
     {
@@ -274,7 +274,7 @@ int NodeImp::shutdown( string &result,TarsCurrentPtr current )
     return -1;
 }
 
-int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
+int NodeImp::stopAllServers( string &result,CurrentPtr current )
 {
     try
     {
@@ -335,7 +335,7 @@ int NodeImp::stopAllServers( string &result,TarsCurrentPtr current )
     return -1;
 }
 
-int NodeImp::loadServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
+int NodeImp::loadServer( const string& application, const string& serverName,string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -380,7 +380,7 @@ int NodeImp::loadServer( const string& application, const string& serverName,str
     return -1;
 }
 
-int NodeImp::startServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
+int NodeImp::startServer( const string& application, const string& serverName,string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -446,7 +446,7 @@ int NodeImp::startServer( const string& application, const string& serverName,st
     return iRet;
 }
 
-int NodeImp::stopServer( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
+int NodeImp::stopServer( const string& application, const string& serverName,string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -501,7 +501,7 @@ int NodeImp::stopServer( const string& application, const string& serverName,str
     return EM_TARS_UNKNOWN_ERR;
 }
 
-int NodeImp::notifyServer( const string& application, const string& serverName, const string &sMsg, string &result, TarsCurrentPtr current )
+int NodeImp::notifyServer( const string& application, const string& serverName, const string &sMsg, string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -557,7 +557,7 @@ int NodeImp::notifyServer( const string& application, const string& serverName, 
     return -1;
 }
 
-int NodeImp::getServerPid( const string& application, const string& serverName,string &result,TarsCurrentPtr current )
+int NodeImp::getServerPid( const string& application, const string& serverName,string &result,CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -578,7 +578,7 @@ int NodeImp::getServerPid( const string& application, const string& serverName,s
     return -1;
 }
 
-ServerState NodeImp::getSettingState( const string& application, const string& serverName,string &result, TarsCurrentPtr current )
+ServerState NodeImp::getSettingState( const string& application, const string& serverName,string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -587,16 +587,16 @@ ServerState NodeImp::getSettingState( const string& application, const string& s
     if ( pServerObjectPtr )
     {
         result += "succ";
-        return pServerObjectPtr->isEnabled()==true?tars::Active:tars::Inactive;
+        return pServerObjectPtr->isEnabled()==true?Active:Inactive;
     }
     result += "server not exist";
 
 	NODE_LOG(serverId)->error() << "NodeImp::getSettingState " << result << endl;
 
-    return tars::Inactive;
+    return Inactive;
 }
 
-ServerState NodeImp::getState( const string& application, const string& serverName, string &result, TarsCurrentPtr current )
+ServerState NodeImp::getState( const string& application, const string& serverName, string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -609,10 +609,10 @@ ServerState NodeImp::getState( const string& application, const string& serverNa
     }
     result += "server not exist";
 	NODE_LOG(serverId)->error() << "NodeImp::getState " << result << endl;
-    return tars::Inactive;
+    return Inactive;
 }
 
-tars::Int32 NodeImp::getStateInfo(const std::string & application,const std::string & serverName,tars::ServerStateInfo &info,std::string &result,tars::TarsCurrentPtr current)
+Int32 NodeImp::getStateInfo(const std::string & application,const std::string & serverName,ServerStateInfo &info,std::string &result,CurrentPtr current)
 {
 	string serverId = application + "." + serverName;
 
@@ -624,7 +624,7 @@ tars::Int32 NodeImp::getStateInfo(const std::string & application,const std::str
 
         info.serverState = pServerObjectPtr->getState();
         info.processId = pServerObjectPtr->getPid();
-        info.settingState = pServerObjectPtr->isEnabled()==true?tars::Active:tars::Inactive;
+        info.settingState = pServerObjectPtr->isEnabled()==true?Active:Inactive;
 
 	    NODE_LOG(serverId)->debug() << "NodeImp::getStateInfo " << result << endl;
 
@@ -634,14 +634,14 @@ tars::Int32 NodeImp::getStateInfo(const std::string & application,const std::str
     result += "server not exist";
 	NODE_LOG(serverId)->error() << "NodeImp::getStateInfo " << result << endl;
 
-    info.serverState = tars::Inactive;
+    info.serverState = Inactive;
     info.processId = -1;
-    info.settingState = tars::Inactive;
+    info.settingState = Inactive;
 
     return EM_TARS_UNKNOWN_ERR;
 }
 
-int NodeImp::synState( const string& application, const string& serverName, string &result, TarsCurrentPtr current )
+int NodeImp::synState( const string& application, const string& serverName, string &result, CurrentPtr current )
 {
 	string serverId = application + "." + serverName;
 
@@ -671,7 +671,7 @@ int NodeImp::synState( const string& application, const string& serverName, stri
     return -1;
 }
 
-int NodeImp::getPatchPercent( const string& application, const string& serverName,PatchInfo &tPatchInfo, TarsCurrentPtr current)
+int NodeImp::getPatchPercent( const string& application, const string& serverName,PatchInfo &tPatchInfo, CurrentPtr current)
 {
 	string serverId = application + "." + serverName;
 
@@ -707,7 +707,7 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
 
 }
 
-tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std :: string &result, TarsCurrentPtr current)
+Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std :: string &result, CurrentPtr current)
 {
 #if TARGET_PLATFORM_WINDOWS
 	 return -1;
@@ -793,7 +793,7 @@ tars::Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &
 	 return -1;
 }
 
-tars::Int32 NodeImp::getUnusedShmKeys(tars::Int32 count,vector<tars::Int32> &shm_keys,tars::TarsCurrentPtr current) {
+Int32 NodeImp::getUnusedShmKeys(Int32 count,vector<Int32> &shm_keys,CurrentPtr current) {
 #if TARGET_PLATFORM_WINDOWS
 	 return -1;
 #else
@@ -834,7 +834,7 @@ string NodeImp::keyToStr(key_t key_value)
     return s;
 }
 
-int NodeImp::getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,tars::TarsCurrentPtr current)
+int NodeImp::getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,CurrentPtr current)
 {
 	string serverId = application + "." + serverName;
 
@@ -856,7 +856,7 @@ int NodeImp::getLogFileList(const string& application, const string& serverName,
     return 0;
 }
 
-int NodeImp::getLogData(const string& application, const string& serverName, const string& logFile, const string& cmd, string& fileData, tars::TarsCurrentPtr current)
+int NodeImp::getLogData(const string& application, const string& serverName, const string& logFile, const string& cmd, string& fileData, CurrentPtr current)
 {
 	string serverId = application + "." + serverName;
 
@@ -937,7 +937,7 @@ int NodeImp::getLogData(const string& application, const string& serverName, con
 //}
 
 // TASKLIST /FI "USERNAME ne NT AUTHORITY\SYSTEM" /FI "STATUS eq running" /V /FO TABLE
-int NodeImp::getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current)
+int NodeImp::getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, CurrentPtr current)
 {
 	string serverId = application + "." + serverName;
 
@@ -1006,7 +1006,7 @@ int NodeImp::getNodeLoad(const string& application, const string& serverName, in
 	return 0;
 }
 
-int NodeImp::forceDockerLogin(vector<string> &result, tars::TarsCurrentPtr current)
+int NodeImp::forceDockerLogin(vector<string> &result, CurrentPtr current)
 {
 	TLOG_DEBUG("" << endl);
 

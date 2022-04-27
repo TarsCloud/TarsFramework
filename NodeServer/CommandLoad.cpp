@@ -20,6 +20,17 @@
 std::mutex CommandLoad::_mutex;
 set<int> CommandLoad::_allPorts;
 
+
+//////////////////////////////////////////////////////////////
+//
+CommandLoad::CommandLoad(const ServerObjectPtr& pServerObjectPtr, const NodeInfo& tNodeInfo, bool succ)
+		: _nodeInfo(tNodeInfo)
+		, _serverObjectPtr(pServerObjectPtr)
+		, _succ(succ)
+{
+	_desc      = _serverObjectPtr->getServerDescriptor();
+}
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandLoad::canExecute(string& sResult)
@@ -277,6 +288,7 @@ int CommandLoad::updateConfigFile(string& sResult)
         map<string, string> m;
 
         m["node"] = ServerConfig::Application + "." + ServerConfig::ServerName + ".ServerObj@" + replaceHostLocalIp(g_app.getAdapterEndpoint("ServerAdapter"));
+//		m["bakFlag"] = TC_Common::tostr(_desc.bakFlag);
         tConf.insertDomainParam("/tars/application/server", m, true);
         m.clear();
 
@@ -409,8 +421,8 @@ int CommandLoad::updateConfigFile(string& sResult)
 		}
 
         //>>修改成从主控获取locator地址
-        vector<tars::EndpointF> activeEp;
-        vector<tars::EndpointF> inactiveEp;
+        vector<EndpointF> activeEp;
+        vector<EndpointF> inactiveEp;
         int iRet = 0;
 
         if(_succ)

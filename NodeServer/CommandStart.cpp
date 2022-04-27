@@ -31,6 +31,18 @@
 #define TARS_SCRIPT "tars_start.sh"
 #endif
 
+
+//////////////////////////////////////////////////////////////
+//
+CommandStart::CommandStart(const ServerObjectPtr& pServerObjectPtr, bool bByNode)
+		: _byNode(bByNode)
+		, _serverObjectPtr(pServerObjectPtr)
+{
+	_exeFile   = _serverObjectPtr->getExeFile();
+	_logPath   = _serverObjectPtr->getLogPath();
+	_desc      = _serverObjectPtr->getServerDescriptor();
+}
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandStart::canExecute(string& sResult)
@@ -187,34 +199,6 @@ string CommandStart::getStartScript(const ServerObjectPtr &serverObjectPtr)
 	return TC_File::simplifyDirectory(serverObjectPtr->getExePath() + FILE_SEP + TARS_SCRIPT);
 }
 
-#if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
-
-//这段代码如果调用会导致子进程启动时, 总是提示端口被占用, 要启动好几次, 原因未知!!!
-int CommandStart::waitProcessDone(int64_t iPid)
-{
-	assert(iPid > 0);
-
-	if (iPid <= 0)
-	{
-		throw std::runtime_error("iPid must bigger than zero");
-	}
-
-	int process_status;
-
-	while (true)
-	{
-		int v = ::waitpid(iPid, &process_status, WNOHANG);
-		if (v != 0)
-		{
-			break;
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	}
-
-	return process_status;
-}
-
-#endif
 
 bool CommandStart::startByScript(string& sResult)
 {

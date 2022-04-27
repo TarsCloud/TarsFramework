@@ -40,14 +40,5 @@ private:
     ServerObjectPtr     _serverObjectPtr;
 };
 
-//////////////////////////////////////////////////////////////
-//
-inline CommandAddFile::CommandAddFile(const ServerObjectPtr &pServerObjectPtr,const string &sFile,bool bByNode)
-: _file(sFile)
-,_serverObjectPtr(pServerObjectPtr)
-{ 
-    _desc      = _serverObjectPtr->getServerDescriptor();
-    _serverId  = _serverObjectPtr->getServerId();
-}
 
 #endif 

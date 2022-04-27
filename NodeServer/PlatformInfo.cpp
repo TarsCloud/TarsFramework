@@ -30,8 +30,7 @@ NodeInfo PlatformInfo::getNodeInfo()
     tNodeInfo.endpointIp    = tEndPoint.getHost();
     tNodeInfo.endpointPort  = tEndPoint.getPort();
     tNodeInfo.timeOut       = tEndPoint.getTimeout();
-    tNodeInfo.version       = TARS_VERSION+string(".")+NODE_VERSION;
-
+    tNodeInfo.version       = Application::getTarsVersion()+string("_")+NODE_VERSION;
     return tNodeInfo;
 }
 
@@ -150,6 +149,69 @@ string PlatformInfo::getDownLoadDir()
 
     return sDownLoadDir;
 }
+
+
+char PlatformInfo::getPIDState(int pid)
+{
+#if TARGET_PLATFORM_LINUX 
+    string fpath = "/proc/" + TC_Common::tostr(pid) + "/status";
+    int fd;
+    if((fd = open(fpath.c_str(), O_RDONLY)) == -1)
+    {
+        TLOG_ERROR("open file error: " << fpath << endl);
+        return false;
+    }
+
+    int cnt = 0;
+    char buf[4096];
+    char line[1024];
+
+    lseek(fd, 0, SEEK_SET);
+    if((cnt = read(fd, buf, sizeof(buf)-1)) < 0)
+    {
+        TLOG_ERROR("read file error, ret:" << cnt << endl);
+        return false;
+    }
+
+    //cout << buf << endl;
+
+    buf[cnt] = '\0';
+
+    int pos = 0;
+    char name[32];
+    //char state = 0;
+    char state = 0;
+    for (size_t i = 0; i < cnt; i++)
+    {
+        line[pos++] = buf[i];
+        if(buf[i] != '\n' && buf[i] != '\0')
+            continue;
+
+        line[pos] = '\0';
+        pos = 0;
+        char value[100] = {0};
+        sscanf(line, "%s%s", name, value);
+
+        if(!strcmp(name, "State:"))
+        {
+            state = value[0];
+            TLOG_DEBUG("pid:" << pid << ", State:" << state << endl);
+            break;  
+        }
+        else
+        {
+            state = 0;
+            cout << "line:" << line << endl;
+        }
+    }
+   
+    close(fd);
+
+    return state;
+#endif
+    return '\0';    
+}
+
 //
 //string PlatformInfo::getRegistry() const
 //{

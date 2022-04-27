@@ -16,6 +16,18 @@
 
 #include "CommandStop.h"
 #include "servant/AdminF.h"
+
+//////////////////////////////////////////////////////////////
+//
+CommandStop::CommandStop(const ServerObjectPtr& pServerObjectPtr, bool bUseAdmin, bool bByNode, bool bGenerateCore)
+		: _serverObjectPtr(pServerObjectPtr)
+		, _useAdmin(bUseAdmin)
+		, _byNode(bByNode)
+		, _generateCore(bGenerateCore)
+{
+	_desc      = _serverObjectPtr->getServerDescriptor();
+}
+
 //////////////////////////////////////////////////////////////
 //
 ServerCommand::ExeStatus CommandStop::canExecute(string& sResult)
@@ -95,7 +107,7 @@ int CommandStop::execute(string& sResult)
             string sServerDir       = _serverObjectPtr->getServerDir();
             string sLibPath         = _serverObjectPtr->getLibPath();
             string sExePath         = _serverObjectPtr->getExePath();
-            string sLogRealPath     = sLogPath + _desc.application +"/" + _desc.serverName + "/" ;
+            string sLogRealPath     = sLogPath + _desc.application +"/" + _desc.serverName + FILE_SEP ;
             string sLogRealPathFile = sLogRealPath +_serverObjectPtr->getServerId() +".log";
 
             TC_Config conf;

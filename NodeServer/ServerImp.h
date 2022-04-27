@@ -61,7 +61,7 @@ public:
     /**
      * 上报心跳
      */
-    virtual int keepAlive( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current ) ;
+    virtual int keepAlive( const ServerInfo& serverInfo, CurrentPtr current ) ;
 
     /**
      * 激活中状态
@@ -69,18 +69,18 @@ public:
      * @param current
      * @return
      */
-    virtual int keepActiving( const tars::ServerInfo& serverInfo, tars::TarsCurrentPtr current ) ;
+    virtual int keepActiving( const ServerInfo& serverInfo, CurrentPtr current ) ;
 
     /**
      * 上报tars版本
      */
-    virtual int reportVersion( const string &app,const string &serverName,const string &version,tars::TarsCurrentPtr current) ;
+    virtual int reportVersion( const string &app,const string &serverName,const string &version,CurrentPtr current) ;
 
     /**
     * 获取最近keepalive的时间戳
     * @return 最后一次keepalive的时间戳
     */
-    unsigned int getLatestKeepAliveTime(tars::CurrentPtr current);
+    unsigned int getLatestKeepAliveTime(CurrentPtr current);
 
 private:
 };

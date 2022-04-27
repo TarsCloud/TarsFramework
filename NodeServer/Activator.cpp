@@ -322,8 +322,6 @@ bool Activator::isActivatingLimited()
     //惩罚时间段内禁止启动
     if (_limited == true && uLen > 0 && TNOW - _activingRecord[uLen - 1] < _punishInterval)
     {
-	    // NODE_LOG(_server->getServerId())->debug() << FILE_FUN << "limit: " << _limited << ", len:" << uLen << ", interval:" << TNOW - _activingRecord[uLen - 1] << ", punishInterval:" << _punishInterval << endl;
-
         return true;
     }
 

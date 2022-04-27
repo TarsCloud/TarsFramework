@@ -61,7 +61,7 @@ public:
      * @param serverName  服务名
      * @return  int
     */
-    virtual int destroyServer( const string& application, const string& serverName, string &result,TarsCurrentPtr current );
+    virtual int destroyServer( const string& application, const string& serverName, string &result,CurrentPtr current );
 
     /**
      * 增强的发布接口
@@ -69,38 +69,38 @@ public:
      * @param req  发布请求
      * @return  int 0成功 其它失败
      */
-    int patchPro(const tars::PatchRequest & req, string & result, TarsCurrentPtr current);
+    int patchPro(const PatchRequest & req, string & result, CurrentPtr current);
 
     /**
      * 加载指定文件
      * @param out result  失败说明
      * @return  int 0成功  非0失败
      */
-    virtual int addFile(const string &application,const string &serverName,const string &file, string &result, TarsCurrentPtr current);
+    virtual int addFile(const string &application,const string &serverName,const string &file, string &result, CurrentPtr current);
 
     /**
      * 获取node名称
      * @return  string
      */
-    virtual string getName( TarsCurrentPtr current ) ;
+    virtual string getName( CurrentPtr current ) ;
 
     /**
      * 获取node上负载
      * @return  LoadInfo
      */
-    virtual tars::LoadInfo getLoad( TarsCurrentPtr current ) ;
+    virtual LoadInfo getLoad( CurrentPtr current ) ;
 
     /**
      * 关闭node
      * @return  int
      */
-    virtual int shutdown( string &result, TarsCurrentPtr current );
+    virtual int shutdown( string &result, CurrentPtr current );
 
     /**
      * 关闭nodes上所有服务
      * @return  int
      */
-    virtual int stopAllServers( string &result,TarsCurrentPtr current );
+    virtual int stopAllServers( string &result,CurrentPtr current );
 
     /**
      * 载入指定服务
@@ -108,7 +108,7 @@ public:
      * @param serverName  服务名
      * @return  int
      */
-    virtual int loadServer( const string& application, const string& serverName, string &result, TarsCurrentPtr current );
+    virtual int loadServer( const string& application, const string& serverName, string &result, CurrentPtr current );
 
     /**
      * 启动指定服务
@@ -116,7 +116,7 @@ public:
      * @param serverName  服务名
      * @return  int
      */
-    virtual int startServer( const string& application, const string& serverName, string &result, TarsCurrentPtr current ) ;
+    virtual int startServer( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 停止指定服务
@@ -124,7 +124,7 @@ public:
      * @param serverName  服务名
      * @return  int
      */
-    virtual int stopServer( const string& application, const string& serverName, string &result, TarsCurrentPtr current ) ;
+    virtual int stopServer( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 通知服务
@@ -135,7 +135,7 @@ public:
      *
      * @return int
      */
-    virtual int notifyServer( const string& application, const string& serverName, const string &command, string &result, TarsCurrentPtr current );
+    virtual int notifyServer( const string& application, const string& serverName, const string &command, string &result, CurrentPtr current );
 
     /**
      *  获取指定服务pid进程号
@@ -143,7 +143,7 @@ public:
      * @param serverName  服务名
      * @return  int
      */
-    int getServerPid( const string& application, const string& serverName, string &result, TarsCurrentPtr current);
+    int getServerPid( const string& application, const string& serverName, string &result, CurrentPtr current);
 
     /**
      *  获取指定服务registry设置的状态
@@ -151,7 +151,7 @@ public:
      * @param serverName  服务名
      * @return  int
      */
-    virtual ServerState getSettingState( const string& application, const string& serverName, string &result, TarsCurrentPtr current ) ;
+    virtual ServerState getSettingState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 获取指定服务状态
@@ -159,7 +159,7 @@ public:
      * @param serverName  服务名
      * @return  ServerState
      */
-    virtual ServerState getState( const string& application, const string& serverName, string &result, TarsCurrentPtr current ) ;
+    virtual ServerState getState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 获取指定服务在node的信息
@@ -167,7 +167,7 @@ public:
      * @param serverName  服务名
      * @return  ServerState
      */
-    virtual int getStateInfo(const std::string & application,const std::string & serverName,tars::ServerStateInfo &info,std::string &result,tars::TarsCurrentPtr current);
+    virtual int getStateInfo(const std::string & application,const std::string & serverName,ServerStateInfo &info,std::string &result,CurrentPtr current);
 
     /**
      * 同步指定服务状态
@@ -175,7 +175,7 @@ public:
      * @param serverName  服务名
      * @return  int
      */
-    virtual int synState( const string& application, const string& serverName, string &result, TarsCurrentPtr current ) ;
+    virtual int synState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 发布服务进度
@@ -184,21 +184,21 @@ public:
      * @out tPatchInfo  下载信息
      * @return  int
      */
-    virtual int getPatchPercent( const string& application, const string& serverName, PatchInfo &tPatchInfo, TarsCurrentPtr current);
+    virtual int getPatchPercent( const string& application, const string& serverName, PatchInfo &tPatchInfo, CurrentPtr current);
 
-    virtual tars::Int32 delCache(const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,TarsCurrentPtr current);
+    virtual Int32 delCache(const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,CurrentPtr current);
 
-    virtual tars::Int32 getUnusedShmKeys(tars::Int32 count,vector<tars::Int32> &shm_keys,tars::TarsCurrentPtr current);
+    virtual Int32 getUnusedShmKeys(Int32 count,vector<Int32> &shm_keys,CurrentPtr current);
 
     /**
     * 列举某个app下面某个服务的日志文件列表，以文件最后修改时间倒排序
     */
-    int getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,tars::TarsCurrentPtr current);
+    int getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,CurrentPtr current);
 
     /**
     * 获取某个日志文件的内容，cmd表示参数， 比如 tail -1000 | grep xxx
     */
-    int getLogData(const string& application, const string& serverName,const string& logFile, const string& cmd, string& fileData, tars::TarsCurrentPtr current);
+    int getLogData(const string& application, const string& serverName,const string& logFile, const string& cmd, string& fileData, CurrentPtr current);
 
     /**
      * 获取节点的负载
@@ -209,13 +209,13 @@ public:
      * @param current
      * @return
      */
-	int getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, tars::TarsCurrentPtr current);
+	int getNodeLoad(const string& application, const string& serverName, int pid, string& fileData, CurrentPtr current);
 
 	/**
 	 * 强制docker做一次login
 	 * @return
 	 */
-	int forceDockerLogin(vector<string> &result, tars::TarsCurrentPtr current);
+	int forceDockerLogin(vector<string> &result, CurrentPtr current);
 
 private:
     string keyToStr(key_t key_value);
