@@ -287,6 +287,7 @@ CREATE TABLE `t_base_image` (
       `image` varchar(255) NOT NULL DEFAULT '',
       `registryId`  int(11) NOT NULL DEFAULT '0',
       `remark` varchar(255) NOT NULL DEFAULT '',
+      `result` TEXT,
       `create_time` datetime DEFAULT NULL,
       `update_time` datetime DEFAULT NULL,
       PRIMARY KEY (`id`)
