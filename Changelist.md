@@ -12,18 +12,19 @@
 - Optimize: db_tars.sql remove auto test table(not use)
 - Adjust: adjust the code structure to facilitate code synchronization
 - Fix: tarsregistry docker pull bug
+
 ### cn
 
 - 修复: tarsnode 启动服务时, cpp/go 找不到对应的可执行程序的 bug
 - 修复: tarsnode 以容器方式启动业务服务时, 当业务服务已经退出, checkPid 检查到后应该删除容器
 - 修复: tarsnode 启动服务时, 没有设置环境变量的 bug
 - 修复: tarsnode 拉取业务服务配置时, 检查 local port 端口错误
-- 修复: db_tars.sql & tars_update.conf 升级framework时 db更新字段的bug
+- 修复: db_tars.sql & tars_update.conf 升级 framework 时 db 更新字段的 bug
 - 添加: db_tars.sql 添加了 t_framework_key, 支持云市场
 - 优化: tarsregistry/tarsAdminRegistry 完成业务服务镜像模式的支持
 - 优化: db_tars.sql 去掉了自动测试的记录表, 该表不在使用了
 - 调整: 调整点结构, 方便同步内部代码
-- 修复: tarsregistry 拉取docker镜像的bug
+- 修复: tarsregistry 拉取 docker 镜像的 bug
 
 # v3.0.5 20220328
 
