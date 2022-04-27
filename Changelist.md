@@ -6,6 +6,7 @@
 - Fix: tarsnode checkPid in container, if container is exited then remove it
 - Fix: tarsnode activate not set env bug
 - Fix: tarsnode load config, check local port error in container mode
+- Fix: db_tars.sql & tars_update.conf for upgrade framework
 - Add: deploy create t_framework_key in db_tars.sql
 - Optimize: tarsregistry/tarsAdminRegistry support container mode
 - Optimize: db_tars.sql remove auto test table(not use)
@@ -16,6 +17,7 @@
 - 修复: tarsnode 以容器方式启动业务服务时, 当业务服务已经退出, checkPid 检查到后应该删除容器
 - 修复: tarsnode 启动服务时, 没有设置环境变量的 bug
 - 修复: tarsnode 拉取业务服务配置时, 检查 local port 端口错误
+- 修复: db_tars.sql & tars_update.conf 升级framework时 db更新字段的bug
 - 添加: db_tars.sql 添加了 t_framework_key, 支持云市场
 - 优化: tarsregistry/tarsAdminRegistry 完成业务服务镜像模式的支持
 - 优化: db_tars.sql 去掉了自动测试的记录表, 该表不在使用了
