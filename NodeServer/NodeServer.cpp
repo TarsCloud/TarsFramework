@@ -18,6 +18,7 @@
 #include "NodeImp.h"
 #include "ServerImp.h"
 #include "RegistryProxy.h"
+#include "servant/CommunicatorFactory.h"
 #include "util/tc_md5.h"
 
 string NodeServer::g_sNodeIp;
@@ -473,8 +474,8 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
         }
 
 		string sLocator = config.get("/tars/application/client<locator>");
-		Application::getCommunicator()->setProperty("locator", sLocator);
-		RegistryPrx pRegistryPrx = Application::getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
+		CommunicatorFactory::getInstance()->getCommunicator()->setProperty("locator", sLocator);
+		RegistryPrx pRegistryPrx = CommunicatorFactory::getInstance()->getCommunicator()->stringToProxy<RegistryPrx>(config.get("/tars/node<registryObj>"));
 
 		//if registry is dead, do not block too match time, avoid monitor check tarsnode is dead(first start)
 		if(first)
