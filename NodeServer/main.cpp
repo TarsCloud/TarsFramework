@@ -107,12 +107,7 @@ void parseConfig(int argc, char *argv[])
         sNodeId = "";
     }
 
-	int ret = NodeServer::onUpdateConfig(sNodeId, sConfigFile);
-
-    if(ret < 0)
-    {
-    	exit(-1);
-    }
+	NodeServer::onUpdateConfig(sNodeId, sConfigFile, true);
 }
 
 int main( int argc, char* argv[] )
