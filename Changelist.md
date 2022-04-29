@@ -1,4 +1,4 @@
-# v3.0.6 20220427
+# v3.0.6 20220429
 
 ### en
 
@@ -11,6 +11,7 @@
 - Optimize: tarsregistry/tarsAdminRegistry support container mode
 - Optimize: db_tars.sql remove auto test table(not use)
 - Adjust: adjust the code structure to facilitate code synchronization
+- Fix: tarsregistry docker pull bug
 ### cn
 
 - 修复: tarsnode 启动服务时, cpp/go 找不到对应的可执行程序的 bug
@@ -22,6 +23,7 @@
 - 优化: tarsregistry/tarsAdminRegistry 完成业务服务镜像模式的支持
 - 优化: db_tars.sql 去掉了自动测试的记录表, 该表不在使用了
 - 调整: 调整点结构, 方便同步内部代码
+- 修复: tarsregistry 拉取docker镜像的bug
 
 # v3.0.5 20220328
 
