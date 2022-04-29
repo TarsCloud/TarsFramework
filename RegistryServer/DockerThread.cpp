@@ -116,7 +116,7 @@ void DockerThread::loadDockerRegistry()
 	}
 }
 
-string DockerThread::doPull(DockerRegistry dockerRegistry, BaseImageInfo baseImageInfo)
+string DockerThread::doPull(const DockerRegistry &dockerRegistry, const BaseImageInfo &baseImageInfo)
 {
 	TC_Docker docker;
 	docker.setDockerUnixLocal(_dockerSocket);
@@ -227,7 +227,7 @@ void DockerThread::checkPullDocker()
 	}
 }
 
-bool DockerThread::findBaseImage(const string & baseImageId, DockerRegistry dockerRegistry, BaseImageInfo baseImageInfo)
+bool DockerThread::findBaseImage(const string & baseImageId, DockerRegistry &dockerRegistry, BaseImageInfo &baseImageInfo)
 {
 	TC_ThreadLock::Lock lock(*this);
 

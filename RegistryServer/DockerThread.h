@@ -95,7 +95,7 @@ protected:
 	 * @param baseImageInfo
 	 * @return
 	 */
-	bool findBaseImage(const string & baseImageId, DockerRegistry dockerRegistry, BaseImageInfo baseImageInfo);
+	bool findBaseImage(const string & baseImageId, DockerRegistry &dockerRegistry, BaseImageInfo &baseImageInfo);
 
 	/**
 	 * 拉取镜像, 并更新sha5
@@ -103,7 +103,7 @@ protected:
 	 * @param baseImageInfo
 	 * @return
 	 */
-	string doPull(DockerRegistry dockerRegistry, BaseImageInfo baseImageInfo);
+	string doPull(const DockerRegistry &dockerRegistry, const BaseImageInfo &baseImageInfo);
 
 protected:
     /*
