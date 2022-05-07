@@ -71,24 +71,24 @@ public:
      */
     int patchPro(const PatchRequest & req, string & result, CurrentPtr current);
 
-    /**
-     * 加载指定文件
-     * @param out result  失败说明
-     * @return  int 0成功  非0失败
-     */
-    virtual int addFile(const string &application,const string &serverName,const string &file, string &result, CurrentPtr current);
-
-    /**
-     * 获取node名称
-     * @return  string
-     */
-    virtual string getName( CurrentPtr current ) ;
-
-    /**
-     * 获取node上负载
-     * @return  LoadInfo
-     */
-    virtual LoadInfo getLoad( CurrentPtr current ) ;
+//    /**
+//     * 加载指定文件
+//     * @param out result  失败说明
+//     * @return  int 0成功  非0失败
+//     */
+//    virtual int addFile(const string &application,const string &serverName,const string &file, string &result, CurrentPtr current);
+//
+//    /**
+//     * 获取node名称
+//     * @return  string
+//     */
+//    virtual string getName( CurrentPtr current ) ;
+//
+//    /**
+//     * 获取node上负载
+//     * @return  LoadInfo
+//     */
+//    virtual LoadInfo getLoad( CurrentPtr current ) ;
 
     /**
      * 关闭node
@@ -137,29 +137,29 @@ public:
      */
     virtual int notifyServer( const string& application, const string& serverName, const string &command, string &result, CurrentPtr current );
 
-    /**
-     *  获取指定服务pid进程号
-     * @param application  服务所属应用名
-     * @param serverName  服务名
-     * @return  int
-     */
-    int getServerPid( const string& application, const string& serverName, string &result, CurrentPtr current);
+//    /**
+//     *  获取指定服务pid进程号
+//     * @param application  服务所属应用名
+//     * @param serverName  服务名
+//     * @return  int
+//     */
+//    int getServerPid( const string& application, const string& serverName, string &result, CurrentPtr current);
 
-    /**
-     *  获取指定服务registry设置的状态
-     * @param application    服务所属应用名
-     * @param serverName  服务名
-     * @return  int
-     */
-    virtual ServerState getSettingState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
-
-    /**
-     * 获取指定服务状态
-     * @param application    服务所属应用名
-     * @param serverName  服务名
-     * @return  ServerState
-     */
-    virtual ServerState getState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
+//    /**
+//     *  获取指定服务registry设置的状态
+//     * @param application    服务所属应用名
+//     * @param serverName  服务名
+//     * @return  int
+//     */
+//    virtual ServerState getSettingState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
+//
+//    /**
+//     * 获取指定服务状态
+//     * @param application    服务所属应用名
+//     * @param serverName  服务名
+//     * @return  ServerState
+//     */
+//    virtual ServerState getState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 获取指定服务在node的信息
@@ -169,13 +169,13 @@ public:
      */
     virtual int getStateInfo(const std::string & application,const std::string & serverName,ServerStateInfo &info,std::string &result,CurrentPtr current);
 
-    /**
-     * 同步指定服务状态
-     * @param application    服务所属应用名
-     * @param serverName  服务名
-     * @return  int
-     */
-    virtual int synState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
+//    /**
+//     * 同步指定服务状态
+//     * @param application    服务所属应用名
+//     * @param serverName  服务名
+//     * @return  int
+//     */
+//    virtual int synState( const string& application, const string& serverName, string &result, CurrentPtr current ) ;
 
     /**
      * 发布服务进度
@@ -185,10 +185,10 @@ public:
      * @return  int
      */
     virtual int getPatchPercent( const string& application, const string& serverName, PatchInfo &tPatchInfo, CurrentPtr current);
-
-    virtual Int32 delCache(const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,CurrentPtr current);
-
-    virtual Int32 getUnusedShmKeys(Int32 count,vector<Int32> &shm_keys,CurrentPtr current);
+//
+//    virtual Int32 delCache(const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,CurrentPtr current);
+//
+//    virtual Int32 getUnusedShmKeys(Int32 count,vector<Int32> &shm_keys,CurrentPtr current);
 
     /**
     * 列举某个app下面某个服务的日志文件列表，以文件最后修改时间倒排序
@@ -216,9 +216,9 @@ public:
 	 * @return
 	 */
 	int forceDockerLogin(vector<string> &result, CurrentPtr current);
-
-private:
-    string keyToStr(key_t key_value);
+//
+//private:
+//    string keyToStr(key_t key_value);
 
 private:
 

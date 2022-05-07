@@ -200,52 +200,52 @@ int NodeImp::patchPro(const PatchRequest & req, string & result, CurrentPtr curr
 
     return EM_TARS_SUCCESS;
 }
-
-int NodeImp::addFile(const string &application,const string &serverName,const string &file, string &result, CurrentPtr current)
-{
-	string serverId = application + "." + serverName;
-
-    result = string(__FUNCTION__)+" server ["+serverId+"] file:"+file;
-
-    NODE_LOG(serverId) ->debug() << FILE_FUN << result  << endl;
-
-    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
-    if ( pServerObjectPtr )
-    {
-        string s;
-        CommandAddFile command(pServerObjectPtr,file);
-        int iRet = command.doProcess(current,s);
-        if ( iRet == 0)
-        {
-            result = result+"succ:" + s;
-        }
-        else
-        {
-            result = FILE_FUN_STR+"error:"+s;
-        }
-        return iRet;
-    }
-
-    result += FILE_FUN_STR+"server is  not exist";
-
-    return -1;
-}
-
-string NodeImp::getName( CurrentPtr current )
-{
-    TLOG_DEBUG(FILE_FUN << endl);
-
-    _nodeInfo = _platformInfo.getNodeInfo();
-
-    return _nodeInfo.nodeName;
-}
-
-LoadInfo NodeImp::getLoad( CurrentPtr current )
-{
-    TLOG_DEBUG(FILE_FUN<< endl);
-
-    return  _platformInfo.getLoadInfo();
-}
+//
+//int NodeImp::addFile(const string &application,const string &serverName,const string &file, string &result, CurrentPtr current)
+//{
+//	string serverId = application + "." + serverName;
+//
+//    result = string(__FUNCTION__)+" server ["+serverId+"] file:"+file;
+//
+//    NODE_LOG(serverId) ->debug() << FILE_FUN << result  << endl;
+//
+//    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
+//    if ( pServerObjectPtr )
+//    {
+//        string s;
+//        CommandAddFile command(pServerObjectPtr,file);
+//        int iRet = command.doProcess(current,s);
+//        if ( iRet == 0)
+//        {
+//            result = result+"succ:" + s;
+//        }
+//        else
+//        {
+//            result = FILE_FUN_STR+"error:"+s;
+//        }
+//        return iRet;
+//    }
+//
+//    result += FILE_FUN_STR+"server is  not exist";
+//
+//    return -1;
+//}
+//
+//string NodeImp::getName( CurrentPtr current )
+//{
+//    TLOG_DEBUG(FILE_FUN << endl);
+//
+//    _nodeInfo = _platformInfo.getNodeInfo();
+//
+//    return _nodeInfo.nodeName;
+//}
+//
+//LoadInfo NodeImp::getLoad( CurrentPtr current )
+//{
+//    TLOG_DEBUG(FILE_FUN<< endl);
+//
+//    return  _platformInfo.getLoadInfo();
+//}
 
 int NodeImp::shutdown( string &result,CurrentPtr current )
 {
@@ -556,61 +556,61 @@ int NodeImp::notifyServer( const string& application, const string& serverName, 
     }
     return -1;
 }
+//
+//int NodeImp::getServerPid( const string& application, const string& serverName,string &result,CurrentPtr current )
+//{
+//	string serverId = application + "." + serverName;
+//
+//	result = string(__FUNCTION__)+" ["+serverId+"] ";
+//
+//    NODE_LOG(serverId)->debug() << "NodeImp::getServerPid " << result  << endl;
+//
+//    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
+//    if ( pServerObjectPtr )
+//    {
+//        result += "succ";
+//        return pServerObjectPtr->getPid();
+//    }
+//    result += "server not exist";
+//
+//	NODE_LOG(serverId)->error() << "NodeImp::getServerPid " << result << endl;
+//
+//    return -1;
+//}
 
-int NodeImp::getServerPid( const string& application, const string& serverName,string &result,CurrentPtr current )
-{
-	string serverId = application + "." + serverName;
-
-	result = string(__FUNCTION__)+" ["+serverId+"] ";
-
-    NODE_LOG(serverId)->debug() << "NodeImp::getServerPid " << result  << endl;
-
-    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
-    if ( pServerObjectPtr )
-    {
-        result += "succ";
-        return pServerObjectPtr->getPid();
-    }
-    result += "server not exist";
-
-	NODE_LOG(serverId)->error() << "NodeImp::getServerPid " << result << endl;
-
-    return -1;
-}
-
-ServerState NodeImp::getSettingState( const string& application, const string& serverName,string &result, CurrentPtr current )
-{
-	string serverId = application + "." + serverName;
-
-	result = string(__FUNCTION__)+" ["+serverId+"] ";
-    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
-    if ( pServerObjectPtr )
-    {
-        result += "succ";
-        return pServerObjectPtr->isEnabled()==true?Active:Inactive;
-    }
-    result += "server not exist";
-
-	NODE_LOG(serverId)->error() << "NodeImp::getSettingState " << result << endl;
-
-    return Inactive;
-}
-
-ServerState NodeImp::getState( const string& application, const string& serverName, string &result, CurrentPtr current )
-{
-	string serverId = application + "." + serverName;
-
-	result = string(__FUNCTION__)+" ["+serverId+"] ";
-    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
-    if ( pServerObjectPtr )
-    {
-        result += "succ";
-        return pServerObjectPtr->getState();
-    }
-    result += "server not exist";
-	NODE_LOG(serverId)->error() << "NodeImp::getState " << result << endl;
-    return Inactive;
-}
+//ServerState NodeImp::getSettingState( const string& application, const string& serverName,string &result, CurrentPtr current )
+//{
+//	string serverId = application + "." + serverName;
+//
+//	result = string(__FUNCTION__)+" ["+serverId+"] ";
+//    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
+//    if ( pServerObjectPtr )
+//    {
+//        result += "succ";
+//        return pServerObjectPtr->isEnabled()==true?Active:Inactive;
+//    }
+//    result += "server not exist";
+//
+//	NODE_LOG(serverId)->error() << "NodeImp::getSettingState " << result << endl;
+//
+//    return Inactive;
+//}
+//
+//ServerState NodeImp::getState( const string& application, const string& serverName, string &result, CurrentPtr current )
+//{
+//	string serverId = application + "." + serverName;
+//
+//	result = string(__FUNCTION__)+" ["+serverId+"] ";
+//    ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
+//    if ( pServerObjectPtr )
+//    {
+//        result += "succ";
+//        return pServerObjectPtr->getState();
+//    }
+//    result += "server not exist";
+//	NODE_LOG(serverId)->error() << "NodeImp::getState " << result << endl;
+//    return Inactive;
+//}
 
 Int32 NodeImp::getStateInfo(const std::string & application,const std::string & serverName,ServerStateInfo &info,std::string &result,CurrentPtr current)
 {
@@ -622,6 +622,8 @@ Int32 NodeImp::getStateInfo(const std::string & application,const std::string & 
     {
         result += "succ";
 
+		info.application = application;
+		info.serverName = serverName;
         info.serverState = pServerObjectPtr->getState();
         info.processId = pServerObjectPtr->getPid();
         info.settingState = pServerObjectPtr->isEnabled()==true?Active:Inactive;
@@ -640,36 +642,36 @@ Int32 NodeImp::getStateInfo(const std::string & application,const std::string & 
 
     return EM_TARS_UNKNOWN_ERR;
 }
-
-int NodeImp::synState( const string& application, const string& serverName, string &result, CurrentPtr current )
-{
-	string serverId = application + "." + serverName;
-
-	try
-    {
-        result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
-        ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
-        if ( pServerObjectPtr )
-        {
-            result += "succ";
-            pServerObjectPtr->synState();
-            return  0;
-        }
-        result += "server not exist";
-	    NODE_LOG(serverId)->debug() << "NodeImp::synState "<<result<< endl;
-    }
-    catch ( exception& e )
-    {
-	    NODE_LOG(serverId)->error() << "NodeImp::synState catch exception :" << e.what() << endl;
-        result += e.what();
-    }
-    catch ( ... )
-    {
-	    NODE_LOG(serverId)->error() << "NodeImp::synState catch unkown exception" << endl;
-        result += "catch unkown exception";
-    }
-    return -1;
-}
+//
+//int NodeImp::synState( const string& application, const string& serverName, string &result, CurrentPtr current )
+//{
+//	string serverId = application + "." + serverName;
+//
+//	try
+//    {
+//        result = string(__FUNCTION__)+" ["+application + "." + serverName+"] ";
+//        ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
+//        if ( pServerObjectPtr )
+//        {
+//            result += "succ";
+//            pServerObjectPtr->synState();
+//            return  0;
+//        }
+//        result += "server not exist";
+//	    NODE_LOG(serverId)->debug() << "NodeImp::synState "<<result<< endl;
+//    }
+//    catch ( exception& e )
+//    {
+//	    NODE_LOG(serverId)->error() << "NodeImp::synState catch exception :" << e.what() << endl;
+//        result += e.what();
+//    }
+//    catch ( ... )
+//    {
+//	    NODE_LOG(serverId)->error() << "NodeImp::synState catch unkown exception" << endl;
+//        result += "catch unkown exception";
+//    }
+//    return -1;
+//}
 
 int NodeImp::getPatchPercent( const string& application, const string& serverName,PatchInfo &tPatchInfo, CurrentPtr current)
 {
@@ -706,133 +708,133 @@ int NodeImp::getPatchPercent( const string& application, const string& serverNam
     return EM_TARS_UNKNOWN_ERR;
 
 }
-
-Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std :: string &result, CurrentPtr current)
-{
-#if TARGET_PLATFORM_WINDOWS
-	 return -1;
-#else
-    try
-    {
-        TLOG_DEBUG("NodeImp::delCache "<<sFullCacheName << "|" << sBackupPath << "|" << sKey << endl);
-        if (sFullCacheName.empty())
-        {
-            result = "cache server name is empty";
-            throw runtime_error(result);
-        }
-
-        string sBasePath = "/usr/local/app/tars/tarsnode/data/"+sFullCacheName+"/bin/";
-        if (!TC_File::isFileExistEx(sBasePath, S_IFDIR))
-        {
-            result = "no such directory:" + sBasePath;
-            return 0;
-        }
-
-        key_t key;
-        if (sKey.empty())
-        {
-            key = ftok(sBasePath.c_str(), 'D');
-        }
-        else
-        {
-            key = TC_Common::strto<key_t>(sKey);
-        }
-        TLOG_DEBUG("NodeImp::delCache|key=" << key << endl);
-
-        int shmid = shmget(key, 0, 0666);
-        if (shmid == -1)
-        {
-            result = "failed to shmget " + sBasePath + "|key=" + TC_Common::tostr(key);
-            //如果获取失败则认为共享内存已经删除,直接返回成功
-            TLOG_DEBUG("NodeImp::delCache"<< "|"  << sFullCacheName << "|" << result << endl);
-            return 0;
-        }
-
-        shmid_ds *pShmInfo= new shmid_ds;
-        int iRet = shmctl(shmid, IPC_STAT, pShmInfo);
-        if (iRet != 0)
-        {
-            result = "failed to shmctl " + sBasePath + "|key=" + TC_Common::tostr(key) + "|ret=" + TC_Common::tostr(iRet);
-            delete pShmInfo;
-            pShmInfo = NULL;
-            throw runtime_error(result);
-        }
-
-        if (pShmInfo->shm_nattch>=1)
-        {
-            result = "current attach count >= 1,please check it |" + sBasePath + "|key=" +TC_Common::tostr(key)+"|attch_count=" + TC_Common::tostr(pShmInfo->shm_nattch);
-            delete pShmInfo;
-            pShmInfo = NULL;
-            throw runtime_error(result);
-        };
-
-        delete pShmInfo;
-        pShmInfo = NULL;
-
-        int ret =shmctl(shmid, IPC_RMID, NULL);
-        if (ret !=0)
-        {
-            result = "failed to rm share memory|key=" + TC_Common::tostr(key) + "|shmid=" + TC_Common::tostr(shmid) + "|ret=" + TC_Common::tostr(ret);
-            throw runtime_error(result);
-        }
-
-        TLOG_DEBUG("NodeImp::delCache success delete cache:" << sFullCacheName <<", no need backup it"<< endl);
-
-        return 0;
-    }
-    catch ( exception& e )
-    {
-        result = TC_Common::tostr(__FILE__)+":"+TC_Common::tostr(__FUNCTION__) + ":"+ TC_Common::tostr(__LINE__)  + "|" + e.what();
-        TLOG_ERROR("NodeImp::delCache " << result << endl);
-        TARS_NOTIFY_ERROR(result);
-    }
-
-    return -1;
-#endif
-
-	 return -1;
-}
-
-Int32 NodeImp::getUnusedShmKeys(Int32 count,vector<Int32> &shm_keys,CurrentPtr current) {
-#if TARGET_PLATFORM_WINDOWS
-	 return -1;
-#else
-    int ret = 0;
-    for(size_t i = 0; i < 256 && shm_keys.size() < (size_t)count; i++) 
-    {
-        key_t key = ftok(ServerConfig::BasePath.c_str(), i);
-        if(key == -1) 
-        {
-            TLOG_DEBUG("NodeImp::getUnusedShmKeys create an key failed, i=" << i << endl);
-        }
-        else 
-        {
-            int shmid = shmget(key, 0, 0666);
-            if(shmid == -1) 
-            {
-                TLOG_DEBUG("NodeImp::getUnusedShmKeys find an key:" << key << " 0x" << keyToStr(key) << endl);
-                shm_keys.push_back(key);
-            }
-            else 
-            {
-                TLOG_DEBUG("NodeImp::getUnusedShmKeys key: " << key << " 0x" << keyToStr(key) << " is busy"<< endl);
-            }
-        }
-    }
-
-    return ret;
-#endif // TARGET_PLATFORM_WINDOWS
-
-	 return -1;	 
-}
-
-string NodeImp::keyToStr(key_t key_value)
-{
-    char buf[32];
-    snprintf(buf, 32, "%08x", key_value);
-    string s(buf);
-    return s;
-}
+//
+//Int32 NodeImp::delCache(const  string &sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std :: string &result, CurrentPtr current)
+//{
+//#if TARGET_PLATFORM_WINDOWS
+//	 return -1;
+//#else
+//    try
+//    {
+//        TLOG_DEBUG("NodeImp::delCache "<<sFullCacheName << "|" << sBackupPath << "|" << sKey << endl);
+//        if (sFullCacheName.empty())
+//        {
+//            result = "cache server name is empty";
+//            throw runtime_error(result);
+//        }
+//
+//        string sBasePath = "/usr/local/app/tars/tarsnode/data/"+sFullCacheName+"/bin/";
+//        if (!TC_File::isFileExistEx(sBasePath, S_IFDIR))
+//        {
+//            result = "no such directory:" + sBasePath;
+//            return 0;
+//        }
+//
+//        key_t key;
+//        if (sKey.empty())
+//        {
+//            key = ftok(sBasePath.c_str(), 'D');
+//        }
+//        else
+//        {
+//            key = TC_Common::strto<key_t>(sKey);
+//        }
+//        TLOG_DEBUG("NodeImp::delCache|key=" << key << endl);
+//
+//        int shmid = shmget(key, 0, 0666);
+//        if (shmid == -1)
+//        {
+//            result = "failed to shmget " + sBasePath + "|key=" + TC_Common::tostr(key);
+//            //如果获取失败则认为共享内存已经删除,直接返回成功
+//            TLOG_DEBUG("NodeImp::delCache"<< "|"  << sFullCacheName << "|" << result << endl);
+//            return 0;
+//        }
+//
+//        shmid_ds *pShmInfo= new shmid_ds;
+//        int iRet = shmctl(shmid, IPC_STAT, pShmInfo);
+//        if (iRet != 0)
+//        {
+//            result = "failed to shmctl " + sBasePath + "|key=" + TC_Common::tostr(key) + "|ret=" + TC_Common::tostr(iRet);
+//            delete pShmInfo;
+//            pShmInfo = NULL;
+//            throw runtime_error(result);
+//        }
+//
+//        if (pShmInfo->shm_nattch>=1)
+//        {
+//            result = "current attach count >= 1,please check it |" + sBasePath + "|key=" +TC_Common::tostr(key)+"|attch_count=" + TC_Common::tostr(pShmInfo->shm_nattch);
+//            delete pShmInfo;
+//            pShmInfo = NULL;
+//            throw runtime_error(result);
+//        };
+//
+//        delete pShmInfo;
+//        pShmInfo = NULL;
+//
+//        int ret =shmctl(shmid, IPC_RMID, NULL);
+//        if (ret !=0)
+//        {
+//            result = "failed to rm share memory|key=" + TC_Common::tostr(key) + "|shmid=" + TC_Common::tostr(shmid) + "|ret=" + TC_Common::tostr(ret);
+//            throw runtime_error(result);
+//        }
+//
+//        TLOG_DEBUG("NodeImp::delCache success delete cache:" << sFullCacheName <<", no need backup it"<< endl);
+//
+//        return 0;
+//    }
+//    catch ( exception& e )
+//    {
+//        result = TC_Common::tostr(__FILE__)+":"+TC_Common::tostr(__FUNCTION__) + ":"+ TC_Common::tostr(__LINE__)  + "|" + e.what();
+//        TLOG_ERROR("NodeImp::delCache " << result << endl);
+//        TARS_NOTIFY_ERROR(result);
+//    }
+//
+//    return -1;
+//#endif
+//
+//	 return -1;
+//}
+//
+//Int32 NodeImp::getUnusedShmKeys(Int32 count,vector<Int32> &shm_keys,CurrentPtr current) {
+//#if TARGET_PLATFORM_WINDOWS
+//	 return -1;
+//#else
+//    int ret = 0;
+//    for(size_t i = 0; i < 256 && shm_keys.size() < (size_t)count; i++)
+//    {
+//        key_t key = ftok(ServerConfig::BasePath.c_str(), i);
+//        if(key == -1)
+//        {
+//            TLOG_DEBUG("NodeImp::getUnusedShmKeys create an key failed, i=" << i << endl);
+//        }
+//        else
+//        {
+//            int shmid = shmget(key, 0, 0666);
+//            if(shmid == -1)
+//            {
+//                TLOG_DEBUG("NodeImp::getUnusedShmKeys find an key:" << key << " 0x" << keyToStr(key) << endl);
+//                shm_keys.push_back(key);
+//            }
+//            else
+//            {
+//                TLOG_DEBUG("NodeImp::getUnusedShmKeys key: " << key << " 0x" << keyToStr(key) << " is busy"<< endl);
+//            }
+//        }
+//    }
+//
+//    return ret;
+//#endif // TARGET_PLATFORM_WINDOWS
+//
+//	 return -1;
+//}
+//
+//string NodeImp::keyToStr(key_t key_value)
+//{
+//    char buf[32];
+//    snprintf(buf, 32, "%08x", key_value);
+//    string s(buf);
+//    return s;
+//}
 
 int NodeImp::getLogFileList(const string& application, const string& serverName, vector<string>& logFileList,CurrentPtr current)
 {

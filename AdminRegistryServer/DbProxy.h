@@ -291,9 +291,9 @@ protected:
     static vector<TC_Mysql*> _mysqlReg;
 	static vector<TC_ThreadMutex*> _mysqlLocks;
 
-    //node节点代理列表
-    static map<string , NodePrx> _mapNodePrxCache;
-    static TC_ThreadLock _NodePrxLock;
+//    //node节点代理列表
+//    static map<string , NodePrx> _mapNodePrxCache;
+//    static TC_ThreadLock _NodePrxLock;
 
     //匹配分组信息
     static vector<map<string,string>> _serverGroupRule;
@@ -303,7 +303,7 @@ protected:
 
     //分组信息
     static map<string,int> _serverGroupCache;
-    static map<string,int> _groupNameIDCache;
+//    static map<string,int> _groupNameIDCache;
 
     //保留历史发布记录
     static int _patchHistory;
