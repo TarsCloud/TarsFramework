@@ -30,7 +30,7 @@ NodeInfo PlatformInfo::getNodeInfo()
     tNodeInfo.endpointIp    = tEndPoint.getHost();
     tNodeInfo.endpointPort  = tEndPoint.getPort();
     tNodeInfo.timeOut       = tEndPoint.getTimeout();
-    tNodeInfo.version       = Application::getTarsVersion()+string("_")+NODE_VERSION;
+    tNodeInfo.version       = Application::getTarsVersion();//+string("_")+NODE_VERSION;
     return tNodeInfo;
 }
 

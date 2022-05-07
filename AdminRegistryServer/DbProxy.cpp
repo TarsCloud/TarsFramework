@@ -22,9 +22,9 @@
 
 TC_ThreadLock DbProxy::_mutex;
 
-map<string, NodePrx> DbProxy::_mapNodePrxCache;
+//map<string, NodePrx> DbProxy::_mapNodePrxCache;
+//TC_ThreadLock DbProxy::_NodePrxLock;
 
-TC_ThreadLock DbProxy::_NodePrxLock;
 vector<map<string, string>> DbProxy::_serverGroupRule;
 
 //key-ip, value-组编号
@@ -842,12 +842,12 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
 {
     try
     {
-        TC_ThreadLock::Lock lock(_NodePrxLock);
-
-        if (_mapNodePrxCache.find(nodeName) != _mapNodePrxCache.end())
-        {
-            return _mapNodePrxCache[nodeName];
-        }
+//        TC_ThreadLock::Lock lock(_NodePrxLock);
+//
+//        if (_mapNodePrxCache.find(nodeName) != _mapNodePrxCache.end())
+//        {
+//            return _mapNodePrxCache[nodeName];
+//        }
 
 		TC_Mysql::MysqlData res;
 		{
@@ -868,7 +868,7 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
         NodePrx nodePrx;
         g_app.getCommunicator()->stringToProxy(res[0]["node_obj"], nodePrx);
 
-        _mapNodePrxCache[nodeName] = nodePrx;
+//        _mapNodePrxCache[nodeName] = nodePrx;
 
         return nodePrx;
 

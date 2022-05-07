@@ -62,22 +62,39 @@ public:
      */
     virtual void destroy() {};
 
+	/**
+	 * 连接关闭
+	 * @param current
+	 * @return
+	 */
+	virtual int doClose(CurrentPtr current);
+
 public:
 
-    /**
+	/**
+	 * 上报
+	 * @param nodeName
+	 * @param current
+	 * @return
+	 */
+	virtual int reportNode(const string &nodeName, CurrentPtr current);
+
+	/**
+	 * 上报结果
+	 * @param funcName
+	 * @param result
+	 * @param current
+	 * @return
+	 */
+	virtual int reportResult(int requestId, const string &result, CurrentPtr current);
+
+	/**
      * 
      * @param taskList 
      * 
      * @return string, TaskNo
      */
-   virtual int addTaskReq(const TaskReq &taskReq, tars::CurrentPtr current);
-    /**
-    * 取消异步任务
-    *
-    * @param taskNo : 任务id
-    * @return 0: 成功, <0:失败
-    */
-    int cancelTask(const string& taskNo, tars::CurrentPtr current);
+   virtual int addTaskReq(const TaskReq &taskReq, CurrentPtr current);
 
     /**
      * 获取任务状态
@@ -86,7 +103,7 @@ public:
      *
      * @return 任务状态
      */
-    virtual int getTaskRsp(const string &taskNo, TaskRsp &taskRsp, tars::CurrentPtr current);
+    virtual int getTaskRsp(const string &taskNo, TaskRsp &taskRsp, CurrentPtr current);
 
     /**
      * 获取TaskRsp信息
@@ -98,7 +115,7 @@ public:
      * 
      * @return vector<TaskRsp> 
      */
-    virtual int getTaskHistory(const string & application, const string & serverName, const string & command, vector<TaskRsp> &taskRsp, tars::CurrentPtr current);
+    virtual int getTaskHistory(const string & application, const string & serverName, const string & command, vector<TaskRsp> &taskRsp, CurrentPtr current);
 
 	/**
      * 设置任务状态
@@ -112,7 +129,7 @@ public:
      * 
      * @return int 
      */
-    virtual int setTaskItemInfo(const string & itemNo, const map<string, string> &info, tars::CurrentPtr current);
+    virtual int setTaskItemInfo(const string & itemNo, const map<string, string> &info, CurrentPtr current);
 	virtual int setTaskItemInfo_inner(const string & itemNo, const map<string, string> &info);
 
     /***********application****************/
@@ -126,7 +143,7 @@ public:
      * 
      * @return int 
      */
-    virtual int undeploy(const string & application, const string & serverName, const string & nodeName, const string &user, string &log, tars::CurrentPtr current);
+    virtual int undeploy(const string & application, const string & serverName, const string & nodeName, const string &user, string &log, CurrentPtr current);
 	virtual int undeploy_inner(const string & application, const string & serverName, const string & nodeName, const string &user, string &log);
 
     /**
@@ -137,7 +154,7 @@ public:
      *
      * @return application列表
      */
-    virtual vector<string> getAllApplicationNames(string &result, tars::CurrentPtr current);
+    virtual vector<string> getAllApplicationNames(string &result, CurrentPtr current);
 
     /**
      * 获取node列表
@@ -147,7 +164,7 @@ public:
      *
      * @return node 列表
      */
-    virtual vector<string> getAllNodeNames(string &result, tars::CurrentPtr current);
+    virtual vector<string> getAllNodeNames(string &result, CurrentPtr current);
 
     /**
      * 获取node版本
@@ -156,7 +173,7 @@ public:
      * @param out result 结果描述
      * @return  0-成功 others-失败
      */
-    virtual int getNodeVesion(const string &nodeName, string &version, string & result, tars::CurrentPtr current);
+    virtual int getNodeVesion(const string &nodeName, string &version, string & result, CurrentPtr current);
 
     /**
      * ping node
@@ -166,7 +183,7 @@ public:
      *
      * @return : true-ping通；false-不通
      */
-    virtual bool pingNode(const string & name, string &result, tars::CurrentPtr current);
+    virtual bool pingNode(const string & name, string &result, CurrentPtr current);
 
     /**
      * 停止 node
@@ -176,7 +193,7 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int shutdownNode(const string & name, string &result, tars::CurrentPtr current);
+    virtual int shutdownNode(const string & name, string &result, CurrentPtr current);
 
     /**
      * 获取server列表
@@ -186,7 +203,7 @@ public:
      *
      * @return: server列表及相关信息
      */
-    virtual vector<vector<string> > getAllServerIds(string &result, tars::CurrentPtr current);
+    virtual vector<vector<string> > getAllServerIds(string &result, CurrentPtr current);
 
     /**
      * 获取特定server状态
@@ -199,7 +216,7 @@ public:
      *
      * @return : 处理结果
      */
-    virtual int getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string &result, tars::CurrentPtr current);
+    virtual int getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string &result, CurrentPtr current);
 
      /**
      * 获取特定ip所属group
@@ -211,7 +228,7 @@ public:
      * @return : 处理结果
      */
 
-    virtual int getGroupId(const string & ip,int &groupId, string &result, tars::CurrentPtr current);
+    virtual int getGroupId(const string & ip,int &groupId, string &result, CurrentPtr current);
 
     /**
      * 启动特定server
@@ -224,7 +241,7 @@ public:
      * @return : 0-成功 others-失败
      */
     virtual int startServer(const string & application, const string & serverName, const string & nodeName,
-            string &result, tars::CurrentPtr current);
+            string &result, CurrentPtr current);
 	virtual int startServer_inner(const string & application, const string & serverName, const string & nodeName,
 		string &result);
 
@@ -239,7 +256,7 @@ public:
      * @return : 0-成功 others-失败
      */
     virtual int stopServer(const string & application, const string & serverName, const string & nodeName,
-            string &result, tars::CurrentPtr current);
+            string &result, CurrentPtr current);
 	virtual int stopServer_inner(const string & application, const string & serverName, const string & nodeName,
 		string &result);
 
@@ -254,7 +271,7 @@ public:
      * @return : 0-成功 others-失败
      */
     virtual int restartServer(const string & application, const string & serverName, const string & nodeName,
-            string &result, tars::CurrentPtr current);
+            string &result, CurrentPtr current);
 	virtual int restartServer_inner(const string & application, const string & serverName, const string & nodeName,
 		string &result);
     /**
@@ -269,7 +286,7 @@ public:
      * @return int
      */
     virtual int notifyServer(const string & application, const string & serverName, const string & nodeName,
-            const string &command, string &result, tars::CurrentPtr current);
+            const string &command, string &result, CurrentPtr current);
     virtual int notifyServer_inner(const string & application, const string & serverName, const string & nodeName,
     		const string &command, string &result);
 
@@ -281,10 +298,10 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int batchPatch(const tars::PatchRequest & req, string &result, tars::CurrentPtr current);
+    virtual int batchPatch(const PatchRequest & req, string &result, CurrentPtr current);
 	virtual int prepareInfo_inner(PrepareInfo &pi, string &result);
 	virtual int preparePatch_inner(const PrepareInfo &pi, string &result);
-	virtual int batchPatch_inner(const tars::PatchRequest & req, string &result);
+	virtual int batchPatch_inner(const PatchRequest & req, string &result);
 
     /**
      * 发布成功
@@ -295,7 +312,7 @@ public:
      * 
      * @return int 
      */
-    virtual int updatePatchLog(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ, tars::CurrentPtr current);
+    virtual int updatePatchLog(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ, CurrentPtr current);
 	virtual int updatePatchLog_inner(const string &application, const string & serverName, const string & nodeName, const string & patchId, const string & user, const string &patchType, bool succ);
 
     /**
@@ -307,7 +324,7 @@ public:
     * @return :0-成功 others-失败
     */
     virtual int getPatchPercent(const string &application, const string &serverName,const string & nodeName,
-            PatchInfo &tPatchInfo, tars::CurrentPtr current);
+            PatchInfo &tPatchInfo, CurrentPtr current);
 	virtual int getPatchPercent_inner(const string &application, const string &serverName, const string & nodeName,
 		PatchInfo &tPatchInfo);
     /**
@@ -320,7 +337,7 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int loadServer(const string & application, const string & serverName, const string & nodeName, string &result, tars::CurrentPtr current);
+    virtual int loadServer(const string & application, const string & serverName, const string & nodeName, string &result, CurrentPtr current);
 
     /**
      * 获取相应模板
@@ -331,7 +348,7 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int getProfileTemplate(const std::string & profileName,std::string &profileTemplate, std::string & resultDesc, tars::CurrentPtr current);
+    virtual int getProfileTemplate(const std::string & profileName,std::string &profileTemplate, std::string & resultDesc, CurrentPtr current);
 
     /**
      * 获取务服相应模板
@@ -344,7 +361,7 @@ public:
      *
      * @return : 0-成功 others-失败
      */
-    virtual int getServerProfileTemplate(const string & application, const string & serverName, const string & nodeName,std::string &profileTemplate, std::string & resultDesc, tars::CurrentPtr current);
+    virtual int getServerProfileTemplate(const string & application, const string & serverName, const string & nodeName,std::string &profileTemplate, std::string & resultDesc, CurrentPtr current);
 
     /**
      * node通过接口获取连接上主控的node ip
@@ -352,7 +369,7 @@ public:
      *
      * @return 0-成功 others-失败
      */
-    virtual int getClientIp(std::string &sClientIp,tars::CurrentPtr current);
+    virtual int getClientIp(std::string &sClientIp,CurrentPtr current);
 
 	/**
 	 * 获取日志数据
@@ -365,7 +382,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-    virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,tars::CurrentPtr current);
+    virtual int getLogData(const std::string & application,const std::string & serverName,const std::string & nodeName,const std::string & logFile,const std::string & cmd,std::string &fileData,CurrentPtr current);
 
 	/**
 	 * 获取日志文件列表
@@ -376,7 +393,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-    virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,tars::CurrentPtr current);
+    virtual int getLogFileList(const std::string & application,const std::string & serverName,const std::string & nodeName,vector<std::string> &logFileList,CurrentPtr current);
 
 	/**
 	 * 获取node的负载
@@ -388,7 +405,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, tars::CurrentPtr current);
+	virtual int getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, CurrentPtr current);
 
 	/**
 	 * 删除发布文件
@@ -398,7 +415,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, tars::CurrentPtr current);
+	virtual int deletePatchFile(const string &application, const string &serverName, const string & patchFile, CurrentPtr current);
 
 	/**
 	 * 获取框架所有的服务
@@ -406,7 +423,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int getServers(vector<FrameworkServer> &servers, tars::CurrentPtr current);
+	virtual int getServers(vector<FrameworkServer> &servers, CurrentPtr current);
 
 	/**
 	 * 检查服务是否活着
@@ -414,7 +431,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int checkServer(const FrameworkServer &server, tars::CurrentPtr current);
+	virtual int checkServer(const FrameworkServer &server, CurrentPtr current);
 
 	/**
 	 * 获取框架版本
@@ -422,7 +439,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-    virtual int getVersion(string &version, tars::CurrentPtr current);
+    virtual int getVersion(string &version, CurrentPtr current);
 
 	/**
 	 * 更新服务的庄国泰
@@ -480,138 +497,138 @@ protected:
     string   _remoteLogObj;
 	string   _dockerSocket;
 };
-
-class PatchProCallbackImp: public NodePrxCallback
-{
-public:
-   PatchProCallbackImp(const tars::PatchRequest& req, const NodePrx& nodePrx, int defaultTime, tars::CurrentPtr current)
-   : _reqPro(req)
-   , _nodePrx(nodePrx)
-   , _defaultTime(defaultTime)
-   , _current(current)
-   {
-   }
-
-   virtual void callback_patchPro(tars::Int32 ret,  const std::string& result);
-   virtual void callback_patchPro_exception(tars::Int32 ret);
-
-private:
-
-   tars::PatchRequest _reqPro;
-   NodePrx _nodePrx;
-   int _defaultTime;
-   tars::CurrentPtr _current;
-};
-
-
-class StartServerCallbackImp: public NodePrxCallback
-{
-public:
-    StartServerCallbackImp(string application, string serverName, string nodeName, tars::CurrentPtr current)
-    : _application(application)
-    , _serverName(serverName)
-    , _nodeName(nodeName)
-    , _current(current)
-    {
-    }
-
-    virtual void callback_startServer(tars::Int32 ret,  const std::string& result);
-    virtual void callback_startServer_exception(tars::Int32 ret);
-
-private:
-    string _application;
-    string _serverName;
-    string _nodeName;
-    tars::CurrentPtr _current;
-};
-
-class StopServerCallbackImp: public NodePrxCallback
-{
-public:
-    StopServerCallbackImp(const string &application, const string &serverName, const string &nodeName, tars::CurrentPtr current)
-    : _application(application)
-    , _serverName(serverName)
-    , _nodeName(nodeName)
-    , _current(current)
-    {
-    }
-
-    virtual void callback_stopServer(tars::Int32 ret,  const std::string& result);
-    virtual void callback_stopServer_exception(tars::Int32 ret);
-
-private:
-    string _application;
-    string _serverName;
-    string _nodeName;
-    tars::CurrentPtr _current;
-};
-
-class NotifyServerCallbackImp: public NodePrxCallback
-{
-public:
-    NotifyServerCallbackImp(const string &application, const string &serverName, const string &nodeName, tars::CurrentPtr current)
-	    : _application(application)
-	    , _serverName(serverName)
-	    , _nodeName(nodeName)
-	    , _current(current)
-    {
-    }
-
-    virtual void callback_notifyServer(tars::Int32 ret,  const std::string& result);
-    virtual void callback_notifyServer_exception(tars::Int32 ret);
-
-private:
-	string _application;
-	string _serverName;
-	string _nodeName;
-    tars::CurrentPtr _current;
-};
-
-class GetServerStateCallbackImp: public NodePrxCallback
-{
-public:
-    GetServerStateCallbackImp(const NodePrx& nodePrx, string application, string serverName, string nodeName, const ServerStateDesc& state, tars::CurrentPtr current)
-    : _nodePrx(nodePrx)
-    , _application(application)
-    , _serverName(serverName)
-    , _nodeName(nodeName)
-    , _state(state)
-    , _current(current)
-    {
-    }
-
-    virtual void callback_getStateInfo(tars::Int32 ret,  const tars::ServerStateInfo& info,  const std::string& result);
-    virtual void callback_getStateInfo_exception(tars::Int32 ret);
-private:
-    NodePrx _nodePrx;
-    string  _application;
-    string  _serverName;
-    string  _nodeName;
-    ServerStateDesc _state;
-    tars::CurrentPtr _current;
-};
-
-
-class GetPatchPercentCallbackImp: public NodePrxCallback
-{
-public:
-    GetPatchPercentCallbackImp(string application, string serverName, string nodeName, tars::CurrentPtr current)
-    : _application(application)
-    , _serverName(serverName)
-    , _nodeName(nodeName)
-    , _current(current)
-    {
-    }
-
-    virtual void callback_getPatchPercent(tars::Int32 ret,  const tars::PatchInfo& tPatchInfo);
-    virtual void callback_getPatchPercent_exception(tars::Int32 ret);
-
-private:
-    string _application;
-    string _serverName;
-    string _nodeName;
-    tars::CurrentPtr _current;
-};
+//
+//class PatchProCallbackImp: public NodePrxCallback
+//{
+//public:
+//   PatchProCallbackImp(const PatchRequest& req, const NodePrx& nodePrx, int defaultTime, CurrentPtr current)
+//   : _reqPro(req)
+//   , _nodePrx(nodePrx)
+//   , _defaultTime(defaultTime)
+//   , _current(current)
+//   {
+//   }
+//
+//   virtual void callback_patchPro(Int32 ret,  const std::string& result);
+//   virtual void callback_patchPro_exception(Int32 ret);
+//
+//private:
+//
+//   PatchRequest _reqPro;
+//   NodePrx _nodePrx;
+//   int _defaultTime;
+//   CurrentPtr _current;
+//};
+//
+//
+//class StartServerCallbackImp: public NodePrxCallback
+//{
+//public:
+//    StartServerCallbackImp(string application, string serverName, string nodeName, CurrentPtr current)
+//    : _application(application)
+//    , _serverName(serverName)
+//    , _nodeName(nodeName)
+//    , _current(current)
+//    {
+//    }
+//
+//    virtual void callback_startServer(Int32 ret,  const std::string& result);
+//    virtual void callback_startServer_exception(Int32 ret);
+//
+//private:
+//    string _application;
+//    string _serverName;
+//    string _nodeName;
+//    CurrentPtr _current;
+//};
+//
+//class StopServerCallbackImp: public NodePrxCallback
+//{
+//public:
+//    StopServerCallbackImp(const string &application, const string &serverName, const string &nodeName, CurrentPtr current)
+//    : _application(application)
+//    , _serverName(serverName)
+//    , _nodeName(nodeName)
+//    , _current(current)
+//    {
+//    }
+//
+//    virtual void callback_stopServer(Int32 ret,  const std::string& result);
+//    virtual void callback_stopServer_exception(Int32 ret);
+//
+//private:
+//    string _application;
+//    string _serverName;
+//    string _nodeName;
+//    CurrentPtr _current;
+//};
+//
+//class NotifyServerCallbackImp: public NodePrxCallback
+//{
+//public:
+//    NotifyServerCallbackImp(const string &application, const string &serverName, const string &nodeName, CurrentPtr current)
+//	    : _application(application)
+//	    , _serverName(serverName)
+//	    , _nodeName(nodeName)
+//	    , _current(current)
+//    {
+//    }
+//
+//    virtual void callback_notifyServer(Int32 ret,  const std::string& result);
+//    virtual void callback_notifyServer_exception(Int32 ret);
+//
+//private:
+//	string _application;
+//	string _serverName;
+//	string _nodeName;
+//    CurrentPtr _current;
+//};
+//
+//class GetServerStateCallbackImp: public NodePrxCallback
+//{
+//public:
+//    GetServerStateCallbackImp(const NodePrx& nodePrx, string application, string serverName, string nodeName, const ServerStateDesc& state, CurrentPtr current)
+//    : _nodePrx(nodePrx)
+//    , _application(application)
+//    , _serverName(serverName)
+//    , _nodeName(nodeName)
+//    , _state(state)
+//    , _current(current)
+//    {
+//    }
+//
+//    virtual void callback_getStateInfo(Int32 ret,  const ServerStateInfo& info,  const std::string& result);
+//    virtual void callback_getStateInfo_exception(Int32 ret);
+//private:
+//    NodePrx _nodePrx;
+//    string  _application;
+//    string  _serverName;
+//    string  _nodeName;
+//    ServerStateDesc _state;
+//    CurrentPtr _current;
+//};
+//
+//
+//class GetPatchPercentCallbackImp: public NodePrxCallback
+//{
+//public:
+//    GetPatchPercentCallbackImp(string application, string serverName, string nodeName, CurrentPtr current)
+//    : _application(application)
+//    , _serverName(serverName)
+//    , _nodeName(nodeName)
+//    , _current(current)
+//    {
+//    }
+//
+//    virtual void callback_getPatchPercent(Int32 ret,  const PatchInfo& tPatchInfo);
+//    virtual void callback_getPatchPercent_exception(Int32 ret);
+//
+//private:
+//    string _application;
+//    string _serverName;
+//    string _nodeName;
+//    CurrentPtr _current;
+//};
 
 
 #endif

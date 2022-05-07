@@ -47,7 +47,14 @@ public:
      */
     virtual void destroy() {};
 
-    /**
+	/**
+	 * 连接关闭
+	 * @param current
+	 * @return
+	 */
+	virtual int doClose(CurrentPtr current);
+
+	/**
      * 获取数据
      * @param k
      * @param v
@@ -56,7 +63,15 @@ public:
      */
     int get(int &i, CurrentPtr current);
 
-    /**
+	/**
+	 * 上报节点
+	 * @param rn
+	 * @param current
+	 * @return
+	 */
+	virtual int reportNode(const ReportNode &rn, CurrentPtr current);
+
+	/**
      * node启动的时候往registry注册一个session
      *
      * @param name node名称

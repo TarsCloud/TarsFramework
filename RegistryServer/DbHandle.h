@@ -30,15 +30,15 @@
 #include "Node.h"
 #include "servant/RemoteLogger.h"
 
-#define GROUPCACHEFILE      "serverGroupCache.dat"
-#define GROUPPROICACHEFILE  "GroupPrioCache.dat"
+//#define GROUPCACHEFILE      "serverGroupCache.dat"
+//#define GROUPPROICACHEFILE  "GroupPrioCache.dat"
 
 using namespace tars;
 //////////////////////////////////////////////////////
 
 //<servant, ObjectItem>
 typedef map<string, ObjectItem> ObjectsCache;
-typedef TarsHashMap<ObjectName, ObjectItem, ThreadLockPolicy, FileStorePolicy> FileHashMap;
+//typedef TarsHashMap<ObjectName, ObjectItem, ThreadLockPolicy, FileStorePolicy> FileHashMap;
 
 //_mapServantStatus的key
 struct ServantStatusKey
@@ -567,9 +567,9 @@ protected:
     //mysql连接对象
     TC_Mysql _mysqlReg;
 
-    //node节点代理列表
-    static map<string , NodePrx> _mapNodePrxCache;
-    static TC_ThreadLock _NodePrxLock;
+//    //node节点代理列表
+//    static map<string , NodePrx> _mapNodePrxCache;
+//    static TC_ThreadLock _NodePrxLock;
 
     //对象列表缓存
     static TC_ReadersWriterData<ObjectsCache>    _objectsCache;

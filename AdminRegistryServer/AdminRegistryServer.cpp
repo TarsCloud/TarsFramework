@@ -18,6 +18,7 @@
 #include "AdminRegistryImp.h"
 #include "DbProxy.h"
 #include "ExecuteTask.h"
+#include "NodeManager.h"
 
 TC_Config * g_pconf;
 AdminRegistryServer g_app;
@@ -54,6 +55,8 @@ void AdminRegistryServer::initialize()
             addServant<AdminRegistryImp>(adminObj);
         }
 		ExecuteTask::getInstance()->init(g_pconf);
+
+		NodeManager::getInstance()->start();
     }
     catch(TC_Exception & ex)
     {
@@ -86,8 +89,10 @@ int AdminRegistryServer::loadServantEndpoint()
 void AdminRegistryServer::destroyApp()
 {
     _reapThread.terminate();
+	NodeManager::getInstance()->terminate();
+	NodeManager::getInstance()->join();
 
-    TLOG_DEBUG("AdminRegistryServer::destroyApp ok" << endl);
+	TLOG_DEBUG("AdminRegistryServer::destroyApp ok" << endl);
 }
 
 void doMonitor(const string &configFile)

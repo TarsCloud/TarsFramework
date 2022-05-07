@@ -19,6 +19,7 @@
 #include "RegistryImp.h"
 #include "RegistryProcThread.h"
 #include "RegistryServer.h"
+#include "NodeManager.h"
 
 //初始化配置db连接
 extern TC_Config * g_pconf;
@@ -32,6 +33,19 @@ void RegistryImp::initialize()
 
 	_db.getFrameworkKey(_fKey);
     TLOG_DEBUG("RegistryImp init ok."<<endl);
+}
+
+int RegistryImp::doClose(CurrentPtr current)
+{
+	NodeManager::getInstance()->eraseNodeCurrent(current);
+
+	return 0;
+}
+
+int RegistryImp::reportNode(const ReportNode &rn, CurrentPtr current)
+{
+	NodeManager::getInstance()->createNodeCurrent(rn.nodeName, current);
+	return 0;
 }
 
 int RegistryImp::registerNode(const string & name, const NodeInfo & ni, const LoadInfo & li, CurrentPtr current)
