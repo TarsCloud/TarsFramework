@@ -17,7 +17,6 @@
 #ifndef __NODE_IMP_H_
 #define __NODE_IMP_H_
 #include "Node.h"
-//#include <unistd.h>
 #include "PlatformInfo.h"
 #include "Activator.h"
 #include "KeepAliveThread.h"

@@ -64,7 +64,7 @@ void parseConfig(int argc, char *argv[])
     
     if (tOp.hasParam("nodeversion"))
     {
-        cout << "Node:" << Application::getTarsVersion() << "_" << NODE_VERSION << endl;
+        cout << "Node:" << FRAMEWORK_VERSION << endl;
         exit(0);
     }
 

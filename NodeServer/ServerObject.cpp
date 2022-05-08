@@ -678,7 +678,7 @@ string ServerObject::getPatchVersion()
 
 int ServerObject::getPatchPercent(PatchInfo &tPatchInfo)
 {
-    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent, "<< _application << "_" << _serverName << "|"<< _serverId<< endl;
+    NODE_LOG(_serverId)->debug() << "ServerObject::getPatchPercent, "<< _application << "_" << _serverName << endl;
 
     Lock lock(*this);
 

@@ -49,19 +49,24 @@ void AdminRegistryImp::initialize()
 
 int AdminRegistryImp::doClose(CurrentPtr current)
 {
+	TLOG_DEBUG("uid:" << current->getUId() << endl);
 	NodeManager::getInstance()->eraseNodeCurrent(current);
 	return 0;
 }
 
 int AdminRegistryImp::reportNode(const string &nodeName, CurrentPtr current)
 {
+//	TLOG_DEBUG("nodeName:" << nodeName << ", uid:" << current->getUId() << endl);
+
 	NodeManager::getInstance()->createNodeCurrent(nodeName, current);
 	return 0;
 }
 
-int AdminRegistryImp::reportResult(int requestId, const string &result, CurrentPtr current)
+int AdminRegistryImp::reportResult(int requestId, const string &funcName, int ret, const string &result, CurrentPtr current)
 {
-	NodeManager::getInstance()->reportResult(requestId, result, current);
+	TLOG_DEBUG("requestId:" << requestId << ", " << funcName << ", ret:" << ret << endl);
+
+	NodeManager::getInstance()->reportResult(requestId, funcName, ret, result, current);
 	return 0;
 }
 
