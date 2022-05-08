@@ -20,6 +20,7 @@
 #include "RegistryProxy.h"
 #include "servant/CommunicatorFactory.h"
 #include "util/tc_md5.h"
+#include "ServerManager.h"
 
 string NodeServer::g_sNodeIp;
 string NodeServer::NODE_ID = "";
@@ -94,6 +95,8 @@ void NodeServer::initialize()
     _removeLogThread->start(2);
 
     g_RemoveLogThread = _removeLogThread;
+
+	ServerManager::getInstance()->initialize(g_pconf->get("/tars/node<adminObj>", "tars.tarsAdminRegistry.AdminRegObj"));
 
     TLOG_DEBUG("NodeServer::initialize |RemoveLogThread start(" << iThreads << ")" << endl);
 }
@@ -218,6 +221,8 @@ bool NodeServer::cmdReLoadConfig(const string& command, const string& params, st
 
 void NodeServer::destroyApp()
 {
+	ServerManager::getInstance()->terminate();
+
     if (_keepAliveThread)
     {
         delete _keepAliveThread;

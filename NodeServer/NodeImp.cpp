@@ -17,13 +17,11 @@
 #include "util/tc_clientsocket.h"
 #include "BatchPatchThread.h"
 #include "NodeImp.h"
-#include "RegistryProxy.h"
 #include "NodeServer.h"
 #include "CommandStart.h"
 #include "CommandNotify.h"
 #include "CommandStop.h"
 #include "CommandDestroy.h"
-#include "CommandAddFile.h"
 #include "CommandPatch.h"
 #include "AdminReg.h"
 #include "util/tc_timeprovider.h"
@@ -37,9 +35,6 @@ void NodeImp::initialize()
         TLOG_DEBUG("initialize NodeImp" << endl);
 
         _nodeInfo      = _platformInfo.getNodeInfo();
-//        _downloadPath  = _platformInfo.getDownLoadDir();
-
-//		setRegistry(_platformInfo.getRegistry());
     }
     catch ( exception& e )
     {

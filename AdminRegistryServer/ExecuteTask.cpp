@@ -229,7 +229,7 @@ int TaskList::prepareFile()
 	{
 		string result;
 
-		TLOG_DEBUG("preparePatch_inner prepare :" << e.second.application << "." << e.second.serverName << ", patchId:" << e.second.patchId << ", file:" << e.second.patchFile << ", image:" << e.second.baseImage << endl);
+		TLOG_DEBUG("preparePatch_inner prepare :" << e.second.application << "." << e.second.serverName << ", patchId:" << e.second.patchId << ", file:" << e.second.patchFile << ", docker image:" << e.second.baseImage << endl);
 
 		int ret = this->_adminPrx->preparePatch_inner(e.second, result);
 		if(ret != 0)
@@ -387,15 +387,6 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
 		//外部是串行处理的
         try
         {
-//            std::shared_ptr<atomic_int> taskItemSharedState=std::make_shared<atomic_int>(TASK_ITEM_SHARED_STATED_DEFAULT);
-//            ret = _adminPrx->preparePatch_inner(patchReq,log, false,taskItemSharedState);
-//            if (ret!=0)
-//			{
-//                log = "tarsAdminRegistry batchPatch err:" + log;
-//                TLOG_ERROR("TaskList::patch batchPatch error:" << log << endl);
-//                return EM_I_FAILED;
-//            }
-//            ret = _adminPrx->batchPatch_inner(patchReq, runType=="container", log);
 			ret = _adminPrx->batchPatch_inner(patchReq, log);
 		}
         catch (exception &ex)
@@ -407,9 +398,9 @@ EMTaskItemStatus TaskList::patch(size_t index, const TaskItemReq &req, string &l
 
         if (ret != EM_TARS_SUCCESS)
         {
-            log = "tarsAdminRegistry batchPatch err:" + log;
+            log = "tarsAdminRegistry batchPatch error, ret:" + TC_Common::tostr(ret) + ", info:" + log;
 
-            TLOG_ERROR("TaskList::patch error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", info:" << log << endl);
+            TLOG_ERROR("TaskList::patch error:" << req.application << "," << req.serverName << "," << req.nodeName << "," << req.userName << ", " << log << endl);
             return EM_I_FAILED;
         }
 

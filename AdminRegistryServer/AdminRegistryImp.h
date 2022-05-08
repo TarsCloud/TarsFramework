@@ -86,7 +86,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int reportResult(int requestId, const string &result, CurrentPtr current);
+	virtual int reportResult(int requestId, const string &funcName, int ret, const string &result, CurrentPtr current);
 
 	/**
      * 

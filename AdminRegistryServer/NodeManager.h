@@ -18,9 +18,9 @@ class NodeManager : public TC_Singleton<NodeManager>, public TC_Thread
 {
 public:
 
-	using push_type = std::function<void(CurrentPtr &, int ret, int requestId)>;
-	using callback_type = std::function<void(CurrentPtr &, int ret, const string&)>;
-	using sync_type = std::function<int(CurrentPtr &, NodePrx &, string &result)>;
+	using push_type = std::function<void(CurrentPtr &, int requestId)>;
+	using callback_type = std::function<int(CurrentPtr &, bool timeout, int ret, const string&)>;
+	using sync_type = std::function<int(CurrentPtr &, NodePrx &, string &out)>;
 
 	NodeManager();
 
@@ -47,6 +47,8 @@ public:
 		}
 
 		int _requestId = 0;
+		int _ret;
+		string _result;
 		CurrentPtr _current;
 		NodeManager::callback_type _callback;
 		std::mutex _m;
@@ -57,117 +59,117 @@ public:
 	/**
 	 * tarsnode 上报执行结果
 	 * @param requestId
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int reportResult(int requestId, const string &result, CurrentPtr current);
+	int reportResult(int requestId, const string &funcName, int ret, const string &out, CurrentPtr current);
 
 	/**
 	 * 请求节点
 	 * @param nodeName
+	 * @param out: 老tarsnode下才使用
 	 * @param current
-	 * @param result
 	 * @param push
 	 * @param callback
 	 * @param sync
 	 * @return
 	 */
-	int requestNode(const string & nodeName, CurrentPtr current, string &result, NodeManager::push_type push, NodeManager::callback_type callback, NodeManager::sync_type sync);
+	int requestNode(const string & nodeName, string &out, CurrentPtr current, NodeManager::push_type push, NodeManager::callback_type callback, NodeManager::sync_type sync);
 
 	/**
 	 *
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int pingNode(const string & nodeName, string & result, tars::CurrentPtr current);
+	int pingNode(const string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int shutdownNode(const string & nodeName, string & result, tars::CurrentPtr current);
-
-	/**
-	 *
-	 * @param application
-	 * @param serverName
-	 * @param nodeName
-	 * @param result
-	 * @param current
-	 * @return
-	 */
-	int getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string & result, tars::CurrentPtr current);
+	int shutdownNode(const string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
 	 * @param application
 	 * @param serverName
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int loadServer(const std::string & application, const std::string & serverName, const std::string & nodeName, string & result, tars::CurrentPtr current);
+	int getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string & out, tars::CurrentPtr current);
+
+	/**
+	 *
+	 * @param application
+	 * @param serverName
+	 * @param nodeName
+	 * @param out
+	 * @param current
+	 * @return
+	 */
+	int loadServer(const std::string & application, const std::string & serverName, const std::string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
 	 * 启动服务
 	 * @param application
 	 * @param serverName
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int startServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current);
+	int startServer(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
 	 * 停止服务
 	 * @param application
 	 * @param serverName
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int stopServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current);
+	int stopServer(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
 	 * @param application
 	 * @param serverName
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string & result, tars::CurrentPtr current);
+	int notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string & out, tars::CurrentPtr current);
 
 	/**
 	 * 发布
 	 * @param req
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @param syncCall
 	 * @return
 	 */
-	int patchPro(const tars::PatchRequest &req, string & result, tars::CurrentPtr current);
+	int patchPro(const tars::PatchRequest &req, string & out, tars::CurrentPtr current);
 
 	/**
 	 * 获取发布进度
 	 * @param application
 	 * @param serverName
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int getPatchPercent(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current);
+	int getPatchPercent(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
@@ -176,24 +178,24 @@ public:
 	 * @param nodeName
 	 * @param logFile
 	 * @param cmd
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @param syncCall
 	 * @return
 	 */
-	int getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd,  map<string, string> &context, string & result, tars::CurrentPtr current);
+	int getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string & logFile, const std::string & cmd,  map<string, string> &context, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
 	 * @param application
 	 * @param serverName
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @param syncCall
 	 * @return
 	 */
-	int getLogFileList(const std::string & application, const std::string & serverName, const std::string & nodeName, map<string, string> &context, string & result, tars::CurrentPtr current);
+	int getLogFileList(const std::string & application, const std::string & serverName, const std::string & nodeName, map<string, string> &context, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
@@ -201,20 +203,20 @@ public:
 	 * @param serverName
 	 * @param nodeName
 	 * @param pid
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int getNodeLoad(const std::string & application, const std::string & serverName, const std::string & nodeName, int pid, string & result, tars::CurrentPtr current);
+	int getNodeLoad(const std::string & application, const std::string & serverName, const std::string & nodeName, int pid, string & out, tars::CurrentPtr current);
 
 	/**
 	 *
 	 * @param nodeName
-	 * @param result
+	 * @param out
 	 * @param current
 	 * @return
 	 */
-	int forceDockerLogin(const std::string & nodeName, string & result, tars::CurrentPtr current);
+	int forceDockerLogin(const std::string & nodeName, string & out, tars::CurrentPtr current);
 
 protected:
 	virtual void run();

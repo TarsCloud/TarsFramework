@@ -100,7 +100,7 @@ void NodeManager::async_startServer(const string &application, const string &ser
 	CurrentPtr current = getNodeCurrent(nodeName);
 	if(current)
 	{
-		NodePush::async_response_push_startServer(current, 0, 0, application, server_name);
+		NodePush::async_response_push_startServer(current, 0, application, server_name);
 		return;
 	}
 
