@@ -20,7 +20,7 @@
 #include <iostream>
 
 #include "util/tc_thread.h"
-#include "Node.h"
+//#include "Node.h"
 #include "DbHandle.h"
 
 using namespace tars;

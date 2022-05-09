@@ -15,19 +15,24 @@
  */
 
 #include "NodeServer.h"
-#include "NodeImp.h"
+//#include "NodeImp.h"
 #include "ServerImp.h"
 #include "RegistryProxy.h"
 #include "servant/CommunicatorFactory.h"
 #include "util/tc_md5.h"
 #include "ServerManager.h"
 
-string NodeServer::g_sNodeIp;
+//string NodeServer::g_sNodeIp;
 string NodeServer::NODE_ID = "";
 string NodeServer::CONFIG  = "";
 
 BatchPatch *g_BatchPatchThread;
 RemoveLogManager *g_RemoveLogThread;
+
+void NodeServer::onServerConfig()
+{
+	_conf.eraseDomain("/tars/application/server/NodeAdapter");
+}
 
 void NodeServer::initialize()
 {
@@ -37,16 +42,16 @@ void NodeServer::initialize()
     initRegistryObj();
 
     //增加对象
-    string sNodeObj     = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj";
+//    string sNodeObj     = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj";
     string sServerObj   = ServerConfig::Application + "." + ServerConfig::ServerName + ".ServerObj";
 
-    addServant<NodeImp>(sNodeObj);
+//    addServant<NodeImp>(sNodeObj);
     addServant<ServerImp>(sServerObj);
 
     TLOG_DEBUG("NodeServer::initialize ServerAdapter " << (getAdapterEndpoint("ServerAdapter")).toString() << endl);
-    TLOG_DEBUG("NodeServer::initialize NodeAdapter "   << (getAdapterEndpoint("NodeAdapter")).toString() << endl);
+//    TLOG_DEBUG("NodeServer::initialize NodeAdapter "   << (getAdapterEndpoint("NodeAdapter")).toString() << endl);
 
-    g_sNodeIp = getAdapterEndpoint("NodeAdapter").getHost();
+//    g_sNodeIp = getAdapterEndpoint("NodeAdapter").getHost();
 
     if (!ServerFactory::getInstance()->loadConfig())
     {
@@ -81,7 +86,7 @@ void NodeServer::initialize()
 
 	//启动批量发布线程
     PlatformInfo plat;
-    int iThreads        = TC_Common::strto<int>(g_pconf->get("/tars/node<bpthreads>", "5"));
+    int iThreads        = TC_Common::strto<int>(g_pconf->get("/tars/node<bpthreads>", "2"));
 
     _batchPatchThread  = new BatchPatch();
     _batchPatchThread->setPath(plat.getDownLoadDir());
@@ -92,7 +97,7 @@ void NodeServer::initialize()
     TLOG_DEBUG("NodeServer::initialize |BatchPatchThread start(" << iThreads << ")" << endl);
 
     _removeLogThread = new RemoveLogManager();
-    _removeLogThread->start(2);
+    _removeLogThread->start(1);
 
     g_RemoveLogThread = _removeLogThread;
 
@@ -278,110 +283,110 @@ string tostr(const set<string>& setStr)
     return str;
 }
 
-string NodeServer::host2Ip(const string& host)
-{
-    struct in_addr stSinAddr;
-    TC_Socket::parseAddr(host, stSinAddr);
-
-    char ip[INET_ADDRSTRLEN] = "\0";
-    inet_ntop(AF_INET, &stSinAddr, ip, INET_ADDRSTRLEN);
-
-    return ip;
-}
-
-bool NodeServer::isValid(const string& ip)
-{
-    static time_t g_tTime = 0;
-    static set<string> g_ipSet;
-
-    time_t tNow = TNOW;
-
-    // TLOG_DEBUG("NodeServer::isValid ip:" << ip << " -> dst:" << dst << endl);
-
-    static  TC_ThreadLock g_tMutex;
-
-    TC_ThreadLock::Lock  lock(g_tMutex);
-    if (tNow - g_tTime > 60)
-    {
-        string objs = g_pconf->get("/tars/node<cmd_white_list>", "tars.tarsregistry.AdminRegObj:tars.tarsAdminRegistry.AdminRegObj");
-        string ips  = g_pconf->get("/tars/node<cmd_white_list_ip>", "");
-
-        if(!ips.empty())
-        {
-            ips += ":";
-        }
-        ips += string("127.0.0.1:") + host2Ip(ServerConfig::LocalIp);
-
-        TLOG_DEBUG("NodeServer::isValid objs:" << objs << "|ips:" << ips << endl);
-
-        vector<string> vObj = TC_Common::sepstr<string>(objs, ":");
-
-        vector<string> vIp = TC_Common::sepstr<string>(ips, ":");
-        for (size_t i = 0; i < vIp.size(); i++)
-        {
-            g_ipSet.insert(vIp[i]);
-            LOG->debug() << ips << ", g_ipSet insert ip:" << vIp[i] << endl;
-        }
-
-        map<string, string> context;
-        //获取实际ip, 穿透代理, 给TarsCloud云使用
-        context["TARS_REAL"] = "true";
-
-        QueryFPrx queryPrx = AdminProxy::getInstance()->getQueryProxy();
-
-        for (size_t i = 0; i < vObj.size(); i++)
-        {
-            set<string> tempSet;
-            string obj = vObj[i];
-            try
-            {
-
-                vector<EndpointF> vActiveEp, vInactiveEp;
-                queryPrx->findObjectById4All(obj, vActiveEp, vInactiveEp, context);
-
-                for (unsigned i = 0; i < vActiveEp.size(); i++)
-                {
-                    tempSet.insert(host2Ip(vActiveEp[i].host));
-                }
-
-                for (unsigned i = 0; i < vInactiveEp.size(); i++)
-                {
-                    tempSet.insert(host2Ip(vInactiveEp[i].host));
-                }
-
-                TLOG_DEBUG("NodeServer::isValid "<< obj << "|tempSet.size():" << tempSet.size() << "|" << tostr(tempSet) << endl);
-            }
-            catch (exception& e)
-            {
-                TLOG_ERROR("NodeServer::isValid catch error: " << e.what() << endl);
-            }
-            catch (...)
-            {
-                TLOG_ERROR("NodeServer::isValid catch error: " << endl);
-            }
-
-            if (tempSet.size() > 0)
-            {
-                g_ipSet.insert(tempSet.begin(), tempSet.end());
-            }
-        }
-
-        TLOG_DEBUG("NodeServer::isValid g_ipSet.size():" << g_ipSet.size() << "|" << tostr(g_ipSet) << endl);
-        g_tTime = tNow;
-    }
-
-    if (g_ipSet.count(ip) > 0)
-    {
-        return true;
-    }
-
-    if (g_sNodeIp == ip || ServerConfig::LocalIp == ip)
-    {
-        return true;
-    }
-
-    return false;
-}
+//string NodeServer::host2Ip(const string& host)
+//{
+//    struct in_addr stSinAddr;
+//    TC_Socket::parseAddr(host, stSinAddr);
+//
+//    char ip[INET_ADDRSTRLEN] = "\0";
+//    inet_ntop(AF_INET, &stSinAddr, ip, INET_ADDRSTRLEN);
+//
+//    return ip;
+//}
+//
+//bool NodeServer::isValid(const string& ip)
+//{
+//    static time_t g_tTime = 0;
+//    static set<string> g_ipSet;
+//
+//    time_t tNow = TNOW;
+//
+//    // TLOG_DEBUG("NodeServer::isValid ip:" << ip << " -> dst:" << dst << endl);
+//
+//    static  TC_ThreadLock g_tMutex;
+//
+//    TC_ThreadLock::Lock  lock(g_tMutex);
+//    if (tNow - g_tTime > 60)
+//    {
+//        string objs = g_pconf->get("/tars/node<cmd_white_list>", "tars.tarsregistry.AdminRegObj:tars.tarsAdminRegistry.AdminRegObj");
+//        string ips  = g_pconf->get("/tars/node<cmd_white_list_ip>", "");
+//
+//        if(!ips.empty())
+//        {
+//            ips += ":";
+//        }
+//        ips += string("127.0.0.1:") + host2Ip(ServerConfig::LocalIp);
+//
+//        TLOG_DEBUG("NodeServer::isValid objs:" << objs << "|ips:" << ips << endl);
+//
+//        vector<string> vObj = TC_Common::sepstr<string>(objs, ":");
+//
+//        vector<string> vIp = TC_Common::sepstr<string>(ips, ":");
+//        for (size_t i = 0; i < vIp.size(); i++)
+//        {
+//            g_ipSet.insert(vIp[i]);
+//            LOG->debug() << ips << ", g_ipSet insert ip:" << vIp[i] << endl;
+//        }
+//
+//        map<string, string> context;
+//        //获取实际ip, 穿透代理, 给TarsCloud云使用
+//        context["TARS_REAL"] = "true";
+//
+//        QueryFPrx queryPrx = AdminProxy::getInstance()->getQueryProxy();
+//
+//        for (size_t i = 0; i < vObj.size(); i++)
+//        {
+//            set<string> tempSet;
+//            string obj = vObj[i];
+//            try
+//            {
+//
+//                vector<EndpointF> vActiveEp, vInactiveEp;
+//                queryPrx->findObjectById4All(obj, vActiveEp, vInactiveEp, context);
+//
+//                for (unsigned i = 0; i < vActiveEp.size(); i++)
+//                {
+//                    tempSet.insert(host2Ip(vActiveEp[i].host));
+//                }
+//
+//                for (unsigned i = 0; i < vInactiveEp.size(); i++)
+//                {
+//                    tempSet.insert(host2Ip(vInactiveEp[i].host));
+//                }
+//
+//                TLOG_DEBUG("NodeServer::isValid "<< obj << "|tempSet.size():" << tempSet.size() << "|" << tostr(tempSet) << endl);
+//            }
+//            catch (exception& e)
+//            {
+//                TLOG_ERROR("NodeServer::isValid catch error: " << e.what() << endl);
+//            }
+//            catch (...)
+//            {
+//                TLOG_ERROR("NodeServer::isValid catch error: " << endl);
+//            }
+//
+//            if (tempSet.size() > 0)
+//            {
+//                g_ipSet.insert(tempSet.begin(), tempSet.end());
+//            }
+//        }
+//
+//        TLOG_DEBUG("NodeServer::isValid g_ipSet.size():" << g_ipSet.size() << "|" << tostr(g_ipSet) << endl);
+//        g_tTime = tNow;
+//    }
+//
+//    if (g_ipSet.count(ip) > 0)
+//    {
+//        return true;
+//    }
+//
+//    if (g_sNodeIp == ip || ServerConfig::LocalIp == ip)
+//    {
+//        return true;
+//    }
+//
+//    return false;
+//}
 
 void NodeServer::reportServer(const string& sServerId, const string &sSet, const string &sNodeName, const string& sResult)
 {

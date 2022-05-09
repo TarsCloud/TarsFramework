@@ -56,10 +56,10 @@ public:
      */
     bool addConfig(const string &filename){return Application::addConfig(filename);}
 
-    /*
-    *   权限控制
-    */
-    bool isValid(const string& ip);
+//    /*
+//    *   权限控制
+//    */
+//    bool isValid(const string& ip);
 
      /*
     *   上报string至notify
@@ -104,8 +104,10 @@ public:
 
 protected:
 
+	virtual void onServerConfig();
+
     //host 换成ip
-    string host2Ip(const string& host);
+//    string host2Ip(const string& host);
 
     /**
      * 初始化, 只会进程调用一次
@@ -146,7 +148,7 @@ private:
 
 	int 				_dockerPullTimeout = 5*60;
 
-    static string       g_sNodeIp;
+//    static string       g_sNodeIp;
 };
 
 #endif

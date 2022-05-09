@@ -60,17 +60,17 @@ public:
 
         return execute(sResult);
     }
-
-    virtual int doProcess(const CurrentPtr current,string &sResult, bool bValid=true)
-    {
-        if( bValid && g_app.isValid(current->getIp()) == false )
-        {
-            sResult = " error:ip "+ current->getIp()+" is invalid";
-            return -1;
-        }
-
-        return doProcess(sResult);
-    }      
+//
+//    virtual int doProcess(const CurrentPtr current,string &sResult, bool bValid=true)
+//    {
+//        if( bValid && g_app.isValid(current->getIp()) == false )
+//        {
+//            sResult = " error:ip "+ current->getIp()+" is invalid";
+//            return -1;
+//        }
+//
+//        return doProcess(sResult);
+//    }
 };
 
 

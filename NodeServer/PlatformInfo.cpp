@@ -25,11 +25,11 @@ NodeInfo PlatformInfo::getNodeInfo()
     NodeInfo tNodeInfo;
     tNodeInfo.nodeName      = getNodeName();
     tNodeInfo.dataDir       = getDataDir();
-    TC_Endpoint tEndPoint   = g_app.getAdapterEndpoint("NodeAdapter");
-    tNodeInfo.nodeObj       = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj@" + tEndPoint.toString();
-    tNodeInfo.endpointIp    = tEndPoint.getHost();
-    tNodeInfo.endpointPort  = tEndPoint.getPort();
-    tNodeInfo.timeOut       = tEndPoint.getTimeout();
+//    TC_Endpoint tEndPoint   = g_app.getAdapterEndpoint("NodeAdapter");
+//    tNodeInfo.nodeObj       = ServerConfig::Application + "." + ServerConfig::ServerName + ".NodeObj@" + tEndPoint.toString();
+//    tNodeInfo.endpointIp    = tEndPoint.getHost();
+//    tNodeInfo.endpointPort  = tEndPoint.getPort();
+//    tNodeInfo.timeOut       = tEndPoint.getTimeout();
     tNodeInfo.version       = FRAMEWORK_VERSION;
     return tNodeInfo;
 }
