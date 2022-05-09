@@ -16,9 +16,8 @@
 
 #ifndef __ACTIVATOR_H_
 #define __ACTIVATOR_H_
-#include "Node.h"
-//#include <unistd.h>
 #include "util/tc_platform.h"
+#include "util/tc_autoptr.h"
 #include "util/tc_file.h"
 #include "util/tc_monitor.h"
 #include <iostream>
