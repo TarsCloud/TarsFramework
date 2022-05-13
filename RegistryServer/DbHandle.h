@@ -27,7 +27,7 @@
 #include <set>
 
 #include "Registry.h"
-//#include "Node.h"
+#include "Node.h"
 #include "servant/RemoteLogger.h"
 
 //#define GROUPCACHEFILE      "serverGroupCache.dat"
