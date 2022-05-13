@@ -49,10 +49,10 @@ void RegistryServer::initialize()
 		//拉取docker镜像
 		_dockerThread.init();
 		_dockerThread.start();
-
-        //监控所有服务状态的线程
-        _checksetingThread.init();
-        _checksetingThread.start();
+//
+//        //监控所有服务状态的线程
+//        _checksetingThread.init();
+//        _checksetingThread.start();
 
         // 启动动态负载均衡加载线程
         LOAD_BALANCE_INS->init();

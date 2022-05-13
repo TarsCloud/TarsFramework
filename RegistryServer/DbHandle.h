@@ -27,7 +27,7 @@
 #include <set>
 
 #include "Registry.h"
-#include "Node.h"
+//#include "Node.h"
 #include "servant/RemoteLogger.h"
 
 //#define GROUPCACHEFILE      "serverGroupCache.dat"
@@ -402,15 +402,6 @@ public:
      * @return
      */
     int checkRegistryTimeout(unsigned uTimeout);
-
-    /**
-     * 定时检查在数据库的设置状态为“active”的服务在Node节点上的状态：
-     * 如果服务在Node的设置状态不是“active”，则通知Node主动重启该服务
-     *
-     * @param iCheckTimeInterval 每次轮询最近更新的记录，单位为秒
-     * @return
-     */
-    int checkSettingState(const int iCheckLeastChangedTime=3600);
 
     /**
      * 在加载对象列表之前，计算当前非活动状态的node的比率
