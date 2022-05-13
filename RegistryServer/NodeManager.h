@@ -24,8 +24,6 @@ public:
 	void eraseNodeCurrent(const string& nodeName);
 	void eraseNodeCurrent(CurrentPtr &current);
 
-	void async_startServer(const string &application, const string &server_name, const string &nodeName);
-
 protected:
 
 	//node节点代理列表

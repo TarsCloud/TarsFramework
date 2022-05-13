@@ -93,20 +93,3 @@ void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 		_mapIdCurrent.erase(it->first);
 	}
 }
-
-void NodeManager::async_startServer(const string &application, const string &server_name, const string &nodeName)
-{
-	//先看长连接是否有
-	CurrentPtr current = getNodeCurrent(nodeName);
-	if(current)
-	{
-		NodePush::async_response_push_startServer(current, 0, application, server_name);
-		return;
-	}
-
-	NodePrx nodePrx = getNodePrx(nodeName);
-	if(nodePrx)
-	{
-		nodePrx->async_startServer(NULL, application, server_name);
-	}
-}

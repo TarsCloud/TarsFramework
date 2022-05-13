@@ -880,13 +880,6 @@ NodePrx CDbHandle::getNodePrx(const string& nodeName)
         {
             return nodePrx;
         }
-//
-//        TC_ThreadLock::Lock lock(_NodePrxLock);
-//
-//        if (_mapNodePrxCache.find(nodeName) != _mapNodePrxCache.end())
-//        {
-//            return _mapNodePrxCache[nodeName];
-//        }
 
         string sSql = "select node_obj "
                       "from t_node_info "
@@ -901,11 +894,6 @@ NodePrx CDbHandle::getNodePrx(const string& nodeName)
         }
 
         nodePrx = NodeManager::getInstance()->createNodePrx(nodeName, res[0]["node_obj"]);
-//
-//        NodePrx nodePrx;
-//        g_app.getCommunicator()->stringToProxy(res[0]["node_obj"], nodePrx);
-//
-//        _mapNodePrxCache[nodeName] = nodePrx;
 
         return nodePrx;
 
@@ -1068,52 +1056,52 @@ int CDbHandle::checkRegistryTimeout(unsigned uTimeout)
 //    return 0;
 //}
 
-
-int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
-{
-    try
-    {
-        TLOG_DEBUG("CDbHandle::checkSettingState ____________________________________" << endl);
-
-        string sSql = "select application, server_name, node_name, setting_state "
-                      "from t_server_conf "
-                      "where setting_state='active' "  //检查应当启动的
-                      "and server_type != 'tars_dns'"  //仅用来提供dns服务的除外
-                      "and registry_timestamp >='" + TC_Common::tm2str(TC_TimeProvider::getInstance()->getNow() - iCheckLeastChangedTime) + "'";
-
-        int64_t iStart = TNOWMS;
-
-        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-
-        TLOG_DEBUG("CDbHandle::checkSettingState setting_state='active' affected:" << res.size() << "|cost:" << (TNOWMS - iStart) << endl);
-
-        for (unsigned i = 0; i < res.size(); i++)
-        {
-            TLOG_DEBUG("checking [" << i << "]: " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << endl);
-            try
-            {
-              	NodeManager::getInstance()->async_startServer(res[i]["application"], res[i]["server_name"], res[i]["node_name"]);
-            }
-            catch (TarsException& ex)
-            {
-                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
-                                       << "' exception: " << ex.what() << endl);
-            }
-            catch (exception& ex)
-            {
-                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << "' exception: " << ex.what() << endl);
-            }
-        }
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR("CDbHandle::checkSettingState  exception: " << ex.what() << endl);
-        return -1;
-    }
-    TLOG_DEBUG("CDbHandle::checkSettingState ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl);
-
-    return 0;
-}
+//
+//int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
+//{
+//    try
+//    {
+//        TLOG_DEBUG("CDbHandle::checkSettingState ____________________________________" << endl);
+//
+//        string sSql = "select application, server_name, node_name, setting_state "
+//                      "from t_server_conf "
+//                      "where setting_state='active' "  //检查应当启动的
+//                      "and server_type != 'tars_dns'"  //仅用来提供dns服务的除外
+//                      "and registry_timestamp >='" + TC_Common::tm2str(TC_TimeProvider::getInstance()->getNow() - iCheckLeastChangedTime) + "'";
+//
+//        int64_t iStart = TNOWMS;
+//
+//        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
+//
+//        TLOG_DEBUG("CDbHandle::checkSettingState setting_state='active' affected:" << res.size() << "|cost:" << (TNOWMS - iStart) << endl);
+//
+//        for (unsigned i = 0; i < res.size(); i++)
+//        {
+//            TLOG_DEBUG("checking [" << i << "]: " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << endl);
+//            try
+//            {
+//              	NodeManager::getInstance()->async_startServer(res[i]["application"], res[i]["server_name"], res[i]["node_name"]);
+//            }
+//            catch (TarsException& ex)
+//            {
+//                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
+//                                       << "' exception: " << ex.what() << endl);
+//            }
+//            catch (exception& ex)
+//            {
+//                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << "' exception: " << ex.what() << endl);
+//            }
+//        }
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR("CDbHandle::checkSettingState  exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//    TLOG_DEBUG("CDbHandle::checkSettingState ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl);
+//
+//    return 0;
+//}
 
 
 int CDbHandle::getGroupId(const string& ip)

@@ -19,7 +19,7 @@
 #include "QueryImp.h"
 #include "ReapThread.h"
 #include "CheckNodeThread.h"
-#include "CheckSettingState.h"
+//#include "CheckSettingState.h"
 #include "RegistryProcThread.h"
 #include "DockerThread.h"
 
@@ -79,7 +79,7 @@ protected:
 
 	DockerThread           _dockerThread;        //拉取docker镜像的线程
 
-	CheckSettingState      _checksetingThread;      //监控所有服务状态的线程
+//	CheckSettingState      _checksetingThread;      //监控所有服务状态的线程
 
     RegistryProcThreadPtr  _registryProcThread;     //处理心跳、上报等的异步线程
 
