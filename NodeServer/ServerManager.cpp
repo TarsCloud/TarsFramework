@@ -214,7 +214,7 @@ void ServerManager::run()
 		}
 
 		std::unique_lock<std::mutex> lock(_mutex);
-		_cond.wait_for(lock, std::chrono::milliseconds(1000));
+		_cond.wait_for(lock, std::chrono::milliseconds(5000));
 	}
 }
 
