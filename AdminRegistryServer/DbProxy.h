@@ -56,7 +56,6 @@ public:
      */
     int init(TC_Config *pconf);
 
-
     /**
      * 获取框架服务
      */

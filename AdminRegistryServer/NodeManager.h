@@ -234,7 +234,7 @@ protected:
 	map<int, string> _mapIdNode;
 	map<int, CurrentPtr> _mapIdCurrent;
 
-	int _timeout = 2500;
+	int _timeout = 5000;
 
 	TC_TimeoutQueue<NodeResultInfoPtr>	_timeoutQueue;
 };
