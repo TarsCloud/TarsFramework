@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -129,6 +129,11 @@ void PropertyServer::doReserveDb(const string path, TC_Config *pconf)
 			for(size_t i = 0; i < datas.size(); i++)
 			{
 				string name = datas[i]["table_name"];
+
+				if(name == "t_ecstatus")
+				{
+				    continue;
+				}
 
 				if(name < tableName)
 				{
