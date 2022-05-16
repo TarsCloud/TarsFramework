@@ -552,7 +552,7 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
         }
 		else
 		{
-			iRet = NodeManager::getInstance()->startServer(application, serverName, nodeName, result, NULL);
+			iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, NULL);
 //
 //			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
 //			TLOGINFO("call node into " << __FUNCTION__ << "|"

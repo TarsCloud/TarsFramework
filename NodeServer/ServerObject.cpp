@@ -853,7 +853,7 @@ bool ServerObject::checkServer(int iTimeout)
         if( _state == ServerObject::Inactive && isAutoStart() == true)
         {
             sResult = sResult == ""?"[alarm] down, server is inactive":sResult;
-            NODE_LOG(_serverId)->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
+            NODE_LOG(_serverId)->debug() <<FILE_FUN<<_serverId<<" "<<sResult << ", _state:" << toStringState(_state) << endl;
 	        NODE_LOG("KeepAliveThread")->debug() <<FILE_FUN<<_serverId<<" "<<sResult << "|_state:" << toStringState(_state) << endl;
 
 	        g_app.reportServer(_serverId, "", getNodeInfo().nodeName, sResult);

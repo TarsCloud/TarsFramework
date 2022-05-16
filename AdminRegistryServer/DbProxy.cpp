@@ -80,7 +80,6 @@ int DbProxy::init(TC_Config *pconf)
     return 0;
 }
 
-
 int DbProxy::addTaskReq(const TaskReq &taskReq)
 {
     try
@@ -427,7 +426,7 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
                       "    and node_name='" + MYSQL_INDEX->escapeString(nodeName) + "' ";
 
         MYSQL_INDEX->execute(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+        TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName << ", " << etos(state) << ", processId:" << processId
 			<< " affected:" << MYSQL_INDEX->getAffectedRows()
                   << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
         return 0;

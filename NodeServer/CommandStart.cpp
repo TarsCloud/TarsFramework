@@ -333,6 +333,9 @@ void CommandStart::prepareScript()
 	{
 		osStartStcript << "export " << vEnvs[i] << std::endl;
 	}
+
+	osStartStcript << "trap 'exit' SIGTERM SIGINT" << endl;
+
 #endif
 
 	osStartStcript << std::endl;
@@ -404,6 +407,8 @@ void CommandStart::prepareScript()
 #endif
 	}
 
+
+
 	//保存启动方式到bin目录供手工启动
 	TC_File::save2file(getStartScript(_serverObjectPtr), osStartStcript.str());
 	TC_File::setExecutable(getStartScript(_serverObjectPtr), true);
@@ -453,21 +458,29 @@ bool CommandStart::startNormal(string& sResult)
 
 bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
 {
+	string command = "docker run --rm --name " + TC_Common::lower(serverObjectPtr->getServerId());
+
 	TC_Docker docker;
 	docker.setDockerUnixLocal(g_app.getDocketSocket());
 
 	vector<string> entrypoint;
-	entrypoint.emplace_back(CommandStart::getStartScript(serverObjectPtr));
+	entrypoint.emplace_back("sh");
+	entrypoint.emplace_back("-c");
+	entrypoint.emplace_back("touch " + TC_File::simplifyDirectory(serverObjectPtr->getServerDir() + FILE_SEP + "bin/*") + " && " + CommandStart::getStartScript(serverObjectPtr));
+
 	map<string, string> mounts;
-	mounts[serverObjectPtr->getExePath()] = serverObjectPtr->getExePath();
-	mounts[serverObjectPtr->getDataDir()] = serverObjectPtr->getDataDir();
-	mounts[serverObjectPtr->getConfigPath()] = serverObjectPtr->getConfigPath();
+	mounts[serverObjectPtr->getServerDir()] = serverObjectPtr->getServerDir();
 	mounts[serverObjectPtr->getLogPath()] = serverObjectPtr->getLogPath();
 	mounts["/etc/localtime"] = "/etc/localtime";
 
 	for(auto &volume: serverObjectPtr->getVolumes())
 	{
 		mounts[volume.first] = volume.second;
+	}
+
+	for(auto &volume: mounts)
+	{
+		command += (" -v " + volume.first + ":" + volume.second);
 	}
 
 	NODE_LOG(serverObjectPtr->getServerId())->debug() << "mounts:" << TC_Common::tostr(mounts.begin(), mounts.end(), " ") << endl;
@@ -478,17 +491,26 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 #if !TARGET_PLATFORM_LINUX
 	ports = serverObjectPtr->getPorts();
 	networkMode = "bridge";
+#else
+	command += " --net=host "
 #endif
 
 	for(auto port : ports)
 	{
+		command += " -p " + TC_Common::tostr(port.second.second) + ":" + TC_Common::tostr(port.second.second);
+
 		NODE_LOG(serverObjectPtr->getServerId())->debug() << port.first << " " << port.second.first<<":"<< port.second.second << endl;
 	}
 	bool succ = false;
 
+	docker.stop(serverObjectPtr->getServerId(), 10000);
 	docker.remove(serverObjectPtr->getServerId(), true);
 
-	succ = docker.create(serverObjectPtr->getServerId(), serverObjectPtr->getServerDescriptor().baseImage, entrypoint, {}, {}, mounts, ports, "", 0, networkMode, "host", true, false);
+	command += " " + serverObjectPtr->getServerDescriptor().baseImage + " " + CommandStart::getStartScript(serverObjectPtr);
+
+	NODE_LOG(serverObjectPtr->getServerId())->debug() << command << endl;
+
+	succ = docker.create(serverObjectPtr->getServerId(), serverObjectPtr->getServerDescriptor().baseImage, entrypoint, {}, {}, mounts, ports, "", 0, networkMode, "host", true, true);
 	if(!succ)
 	{
 		string result = "create container error: " + docker.getErrMessage();
@@ -497,6 +519,7 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	}
 	else
 	{
+
 		succ = docker.start(serverObjectPtr->getServerId());
 		if(!succ)
 		{
