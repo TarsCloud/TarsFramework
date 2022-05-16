@@ -197,7 +197,7 @@ int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadIn
         if (res.size() != 0)
         {
             //合法性判断，是否存在名字相同已经存活但node obj不同的注册节点
-            if (res[0]["present_state"] == "active" && res[0]["node_obj"] != ni.nodeObj)
+            if (res[0]["present_state"] == "active" && !ni.nodeObj.empty() && res[0]["node_obj"] != ni.nodeObj)
             {
                 TLOG_ERROR("registery node :" << name << " error, other node has registered, obj:" << res[0]["node_obj"] << ", register obj:" << ni.nodeObj << endl);
                 return 1;
