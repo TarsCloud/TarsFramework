@@ -464,9 +464,11 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	docker.setDockerUnixLocal(g_app.getDocketSocket());
 
 	vector<string> entrypoint;
-	entrypoint.emplace_back("sh");
-	entrypoint.emplace_back("-c");
-	entrypoint.emplace_back("touch " + TC_File::simplifyDirectory(serverObjectPtr->getServerDir() + FILE_SEP + "bin/*") + " && " + CommandStart::getStartScript(serverObjectPtr));
+//	entrypoint.emplace_back("sh");
+//	entrypoint.emplace_back("-c");
+//	entrypoint.emplace_back("touch " + TC_File::simplifyDirectory(serverObjectPtr->getServerDir() + FILE_SEP + "bin/*") + " && " + CommandStart::getStartScript(serverObjectPtr));
+
+	entrypoint.emplace_back(CommandStart::getStartScript(serverObjectPtr));
 
 	map<string, string> mounts;
 	mounts[serverObjectPtr->getServerDir()] = serverObjectPtr->getServerDir();
@@ -492,7 +494,7 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	ports = serverObjectPtr->getPorts();
 	networkMode = "bridge";
 #else
-	command += " --net=host "
+	command += " --net=host ";
 #endif
 
 	for(auto port : ports)
@@ -545,41 +547,6 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 			}
 		}
 	}
-//
-//	ostringstream os;
-//	os << serverObjectPtr->getExePath() << ":" << serverObjectPtr->getExePath() << " ";
-// 	os << serverObjectPtr->getDataDir() << ":" << serverObjectPtr->getDataDir() << " ";
-//	os << serverObjectPtr->getConfigPath() << ":" << serverObjectPtr->getConfigPath() << " ";
-//	os << serverObjectPtr->getLogPath() << ":" << serverObjectPtr->getLogPath() << " ";
-//	os << "/etc/localtime" << ":" << "/etc/locatime" << " ";
-//
-//	vector<string> vOptions = {"run", "--rm", "--name", serverObjectPtr->getServerId()};
-//	vOptions.emplace_back("-v");
-//	vOptions.emplace_back(serverObjectPtr->getExePath() + ":" + serverObjectPtr->getExePath());
-//	vOptions.emplace_back("-v");
-//	vOptions.emplace_back(serverObjectPtr->getDataDir() + ":" + serverObjectPtr->getDataDir());
-//	vOptions.emplace_back("-v");
-//	vOptions.emplace_back(serverObjectPtr->getConfigPath() + ":" + serverObjectPtr->getConfigPath());
-//	vOptions.emplace_back("-v");
-//	vOptions.emplace_back(serverObjectPtr->getLogPath() + ":" + serverObjectPtr->getLogPath());
-//	vOptions.emplace_back("-v");
-//	vOptions.emplace_back("/etc/localtime:/etc/localtime");
-//
-//
-//	vOptions.emplace_back(serverObjectPtr->getServerDescriptor().baseImage);
-//	vOptions.emplace_back(CommandStart::getStartScript(serverObjectPtr));
-//
-////	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", sRollLogFile, vOptions);//, vEnvs);
-//	int64_t iPid = serverObjectPtr->getActivator()->activate("docker", "", "", vOptions);//, vEnvs);
-//
-//	if (iPid <= 0)  //child process or error;
-//	{
-//		return false;
-//	}
-//
-//	NODE_LOG(serverObjectPtr->getServerId())->debug() << FILE_FUN << "activate succ, pid:" << iPid << endl;
-
-
 	return false;
 }
 
