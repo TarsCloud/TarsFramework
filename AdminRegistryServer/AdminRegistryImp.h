@@ -479,6 +479,15 @@ public:
 	 */
 	virtual int dockerPull(const string & baseImageId, CurrentPtr current);
 
+	/**
+	 *
+	 * @param nodeNames
+	 * @param heartbeats
+	 * @param current
+	 * @return
+	 */
+	virtual int getNodeList(const vector<string> &nodeNames, map<string, string> &heartbeats, CurrentPtr current);
+
 protected:
 	/**
 	 * 删除太早的历史记录

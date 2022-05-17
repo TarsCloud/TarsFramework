@@ -199,13 +199,18 @@ void ServerManager::createAdminPrx()
 
 	for(auto e : endpoints)
 	{
-		AdminRegPrx prx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(_adminObj + "@" + e.toString());
+		string key = e.getHost() + ":" + TC_Common::tostr(e.getPort());
 
-		NodePushPrxCallbackPtr callback = new AdminNodePushPrxCallback(prx);
+		if(_adminPrxs.find(key) == _adminPrxs.end())
+		{
+			AdminRegPrx prx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(_adminObj + "@" + e.toString());
 
-		_adminPrxs[e.getHost() + ":" + TC_Common::tostr(e.getPort())] = prx;
+			NodePushPrxCallbackPtr callback = new AdminNodePushPrxCallback(prx);
 
-		prx->tars_set_push_callback(callback);
+			prx->tars_set_push_callback(callback);
+
+			_adminPrxs[key] = prx;
+		}
 	}
 }
 void ServerManager::run()
@@ -229,9 +234,6 @@ void ServerManager::run()
 		}
 
 		createAdminPrx();
-
-		//每5秒发送一次心跳
-		std::unique_lock<std::mutex> lock(_mutex);
 
 		int64_t diff = 5000-(TNOWMS-now);
 
