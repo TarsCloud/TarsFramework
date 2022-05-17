@@ -1591,6 +1591,18 @@ int AdminRegistryImp::dockerPull(const string & baseImageId, CurrentPtr current)
 
 	return -1;
 }
+
+int AdminRegistryImp::getNodeList(const vector<string> &nodeNames, map<string, string> &heartbeats, CurrentPtr current)
+{
+	auto data = NodeManager::getInstance()->getNodeList();
+
+	for(auto nodeName : nodeNames)
+	{
+		heartbeats[nodeName] = data[nodeName].second;
+	}
+	return 0;
+}
+
 //
 ///////////////////////////////////////////////////////////////////////////////
 //void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
