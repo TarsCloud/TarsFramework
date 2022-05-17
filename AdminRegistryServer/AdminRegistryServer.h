@@ -35,6 +35,15 @@ protected:
      */
     virtual void destroyApp();
 
+	/**
+	 * tarsnode list
+	 * @param command
+	 * @param params
+	 * @param result
+	 * @return
+	 */
+	bool cmdNodeList(const string &command, const string &params, string &result);
+
 public:
     /**
      * 获取registry对象的端口信息

@@ -841,13 +841,6 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
 {
     try
     {
-//        TC_ThreadLock::Lock lock(_NodePrxLock);
-//
-//        if (_mapNodePrxCache.find(nodeName) != _mapNodePrxCache.end())
-//        {
-//            return _mapNodePrxCache[nodeName];
-//        }
-
 		TC_Mysql::MysqlData res;
 		{
 			MYSQL_LOCK;
@@ -864,10 +857,13 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
             throw TarsNodeNotRegistryException("node '" + nodeName + "' not registered  or heartbeart timeout,please check for it");
         }
 
+		if(res[0]["node_obj"].empty())
+		{
+			return NULL;
+		}
+
         NodePrx nodePrx;
         g_app.getCommunicator()->stringToProxy(res[0]["node_obj"], nodePrx);
-
-//        _mapNodePrxCache[nodeName] = nodePrx;
 
         return nodePrx;
 

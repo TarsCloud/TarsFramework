@@ -34,6 +34,8 @@ public:
 	void eraseNodeCurrent(const string& nodeName);
 	void eraseNodeCurrent(CurrentPtr &current);
 
+	map<string, pair<int, string>> getNodeList();
+
 public:
 
 	struct NodeResultInfo : public TC_HandleBase
@@ -230,7 +232,7 @@ protected:
 	map<string , NodePrx> _mapNodePrxCache;
 	TC_ThreadLock _NodePrxLock;
 
-	map<string, int> _mapNodeId;
+	map<string, pair<int, string>> _mapNodeId;
 	map<int, string> _mapIdNode;
 	map<int, CurrentPtr> _mapIdCurrent;
 

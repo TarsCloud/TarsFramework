@@ -66,6 +66,19 @@ void AdminRegistryServer::initialize()
     }
 
     TLOG_DEBUG("RegistryServer::initialize OK!" << endl);
+
+	TARS_ADD_ADMIN_CMD_PREFIX("nodelist", AdminRegistryServer::cmdNodeList);
+}
+
+bool AdminRegistryServer::cmdNodeList(const string &command, const string &params, string &result)
+{
+	auto data = NodeManager::getInstance()->getNodeList();
+
+	for(auto e: data)
+	{
+		result += e.first + " " + e.second.second + "\r\n";
+	}
+	return true;
 }
 
 int AdminRegistryServer::loadServantEndpoint()

@@ -121,11 +121,13 @@ public:
 protected:
 	virtual void run();
 
+	void createAdminPrx();
 protected:
 	bool _terminate = false;
 	std::mutex _mutex;
 	std::condition_variable _cond;
-	vector<AdminRegPrx> _adminPrxs;
+	string _adminObj;
+	map<string, AdminRegPrx> _adminPrxs;
 };
 
 

@@ -165,10 +165,9 @@ NodePrx NodeManager::getNodePrx(const string& nodeName)
 
 	NodePrx nodePrx = DbProxy::getInstance()->getNodePrx(nodeName);
 
-	{
-		TC_ThreadLock::Lock lock(_NodePrxLock);
-		_mapNodePrxCache[nodeName] = nodePrx;
-	}
+	TC_ThreadLock::Lock lock(_NodePrxLock);
+
+	_mapNodePrxCache[nodeName] = nodePrx;
 
 	return nodePrx;
 }
@@ -180,13 +179,19 @@ void NodeManager::eraseNodePrx(const string& nodeName)
 	_mapNodePrxCache.erase(nodeName);
 }
 
+map<string, pair<int, string>> NodeManager::getNodeList()
+{
+	TC_ThreadLock::Lock lock(_NodePrxLock);
+	return _mapNodeId;
+}
+
 void NodeManager::createNodeCurrent(const string& nodeName, CurrentPtr &current)
 {
 	eraseNodeCurrent(nodeName);
 
 	TC_ThreadLock::Lock lock(_NodePrxLock);
 
-	_mapNodeId[nodeName] = current->getUId();
+	_mapNodeId[nodeName] = make_pair(current->getUId(), TC_Common::now2str("%Y-%m-%d %H:%M:%S"));
 	_mapIdNode[current->getUId()] = nodeName;
 	_mapIdCurrent[current->getUId()] = current;
 }
@@ -198,7 +203,7 @@ CurrentPtr NodeManager::getNodeCurrent(const string& nodeName)
 	auto it = _mapNodeId.find(nodeName);
 	if(it != _mapNodeId.end())
 	{
-		return _mapIdCurrent.at(it->second);
+		return _mapIdCurrent.at(it->second.first);
 	}
 
 	return NULL;
@@ -211,8 +216,8 @@ void NodeManager::eraseNodeCurrent(const string& nodeName)
 	auto it = _mapNodeId.find(nodeName);
 	if(it != _mapNodeId.end())
 	{
-		_mapIdNode.erase(it->second);
-		_mapIdCurrent.erase(it->second);
+		_mapIdNode.erase(it->second.first);
+		_mapIdCurrent.erase(it->second.first);
 	}
 
 	_mapNodeId.erase(nodeName);
@@ -326,6 +331,12 @@ int NodeManager::requestNode(const string & nodeName, string &out, CurrentPtr cu
 	{
 		NodePrx nodePrx = getNodePrx(nodeName);
 
+		if(!nodePrx)
+		{
+			TLOG_ERROR("nodeName:" << nodeName << ", no long connection" <<endl);
+			return EM_TARS_NODE_NO_CONNECTION;
+		}
+
 		if(current)
 		{
 			current->setResponse(false);
@@ -345,7 +356,7 @@ int NodeManager::pingNode(const string & nodeName, string &out, tars::CurrentPtr
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::pingNode callback:" << nodeName << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::pingNode callback:" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -385,7 +396,7 @@ int NodeManager::shutdownNode(const string & nodeName, string &out, tars::Curren
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::shutdownNode name:" << nodeName << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::shutdownNode name:" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -506,7 +517,7 @@ int NodeManager::startServer(const string & application, const string & serverNa
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::startServer: " << application << "." << serverName << "_" << nodeName << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::startServer: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -548,7 +559,7 @@ int NodeManager::stopServer(const string & application, const string & serverNam
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::stopServer: " << application << "." << serverName << "_" << nodeName << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::stopServer: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -590,7 +601,7 @@ int NodeManager::notifyServer(const string & application, const string & serverN
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::notifyServer: " << application << "." << serverName << "_" << nodeName << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::notifyServer: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -632,7 +643,7 @@ int NodeManager::patchPro(const tars::PatchRequest &req, string & out, tars::Cur
 
 	NodeManager::callback_type callback = [req](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::patchPro: " << req.appname << "." << req.servername << "_" << req.nodename << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::patchPro: " << req.appname << "." << req.servername << "_" << req.nodename << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -675,7 +686,7 @@ int NodeManager::getPatchPercent(const string & application, const string & serv
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::getPatchPercent: " << application << "." << serverName << "_" << nodeName  << ", ret:" << ret <<endl);
+		TLOG_DEBUG("NodeManager::getPatchPercent: " << application << "." << serverName << "_" << nodeName  << ", timeout:" << timeout << ", ret:" << ret <<endl);
 
 		if(current)
 		{
@@ -742,7 +753,7 @@ int NodeManager::getLogData(const std::string & application, const std::string &
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::getLogData: " << application << "." << serverName << "_" << nodeName  << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::getLogData: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -797,7 +808,7 @@ int NodeManager::getLogFileList(const std::string & application, const std::stri
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::getLogFileList: " << application << "." << serverName << "_" << nodeName  << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::getLogFileList: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -861,7 +872,7 @@ int NodeManager::getNodeLoad(const std::string & application, const std::string 
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::getNodeLoad: " << application << "." << serverName << "_" << nodeName  << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::getNodeLoad: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -917,7 +928,7 @@ int NodeManager::loadServer(const std::string & application, const std::string &
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::loadServer: " << application << "." << serverName << "_" << nodeName << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::loadServer: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
@@ -959,7 +970,7 @@ int NodeManager::forceDockerLogin(const std::string & nodeName, string & out, ta
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::forceDockerLogin: " << nodeName << ", ret:" << ret << ", result:" << buff <<endl);
+		TLOG_DEBUG("NodeManager::forceDockerLogin: " << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
 
 		if(current)
 		{
