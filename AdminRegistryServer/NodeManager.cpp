@@ -220,6 +220,29 @@ void NodeManager::createNodeCurrent(const string& nodeName, const string &sid, C
 	_mapIdCurrent[current->getUId()] = current;
 }
 
+void NodeManager::deleteNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current)
+{
+	TC_ThreadLock::Lock lock(_NodePrxLock);
+
+	auto it = _mapNodeId.find(nodeName);
+
+	if(it != _mapNodeId.end())
+	{
+		//所有连接上, 把这个节点下线
+		for(auto uid: it->second.uids)
+		{
+			auto ii = _mapIdNode.find(uid);
+			if(ii != _mapIdNode.end())
+			{
+				TLOG_DEBUG("nodeName:" << nodeName << ", uid:" << current->getUId() << endl);
+
+				ii->second.erase(nodeName);
+			}
+		}
+		_mapNodeId.erase(it);
+	}
+}
+
 CurrentPtr NodeManager::getNodeCurrent(const string& nodeName)
 {
 	TC_ThreadLock::Lock lock(_NodePrxLock);
