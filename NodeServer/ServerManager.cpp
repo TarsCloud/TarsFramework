@@ -215,7 +215,10 @@ void ServerManager::createAdminPrx()
 }
 void ServerManager::run()
 {
+	ReportNode rn;
 	PlatformInfo platformInfo;
+	rn.nodeName = platformInfo.getNodeName();
+	rn.sid = TC_UUIDGenerator::getInstance()->genID();
 
 	while(!_terminate)
 	{
@@ -225,7 +228,7 @@ void ServerManager::run()
 		{
 			try
 			{
-				prx.second->tars_set_timeout(3000)->reportNode(platformInfo.getNodeName());
+				prx.second->tars_set_timeout(3000)->reportNode(rn);
 			}
 			catch(exception &ex)
 			{

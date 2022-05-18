@@ -179,20 +179,33 @@ void NodeManager::eraseNodePrx(const string& nodeName)
 	_mapNodePrxCache.erase(nodeName);
 }
 
-map<string, pair<int, string>> NodeManager::getNodeList()
+unordered_map<string, NodeManager::UidTimeStr> NodeManager::getNodeList()
 {
 	TC_ThreadLock::Lock lock(_NodePrxLock);
 	return _mapNodeId;
 }
 
-void NodeManager::createNodeCurrent(const string& nodeName, CurrentPtr &current)
+void NodeManager::createNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current)
 {
-	eraseNodeCurrent(nodeName);
-
 	TC_ThreadLock::Lock lock(_NodePrxLock);
 
-	_mapNodeId[nodeName] = make_pair(current->getUId(), TC_Common::now2str("%Y-%m-%d %H:%M:%S"));
-	_mapIdNode[current->getUId()] = nodeName;
+	auto it = _mapNodeId.find(nodeName);
+	if(it != _mapNodeId.end())
+	{
+		it->second.timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
+		it->second.uidSId[current->getUId()] = sid;
+	}
+	else
+	{
+		_mapNodeId[nodeName].timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
+		_mapNodeId[nodeName].uidSId[current->getUId()] = sid;
+	}
+
+	NodeNameSId nns;
+	nns.nodeName = nodeName;
+	nns.sid = sid;
+	_mapIdNode[current->getUId()] = nns;
+
 	_mapIdCurrent[current->getUId()] = current;
 }
 
@@ -203,25 +216,30 @@ CurrentPtr NodeManager::getNodeCurrent(const string& nodeName)
 	auto it = _mapNodeId.find(nodeName);
 	if(it != _mapNodeId.end())
 	{
-		return _mapIdCurrent.at(it->second.first);
+		auto uid = it->second.uidSId.begin();
+		if(uid == it->second.uidSId.end())
+		{
+			return  NULL;
+		}
+		return _mapIdCurrent.at(uid->first);
 	}
 
 	return NULL;
 }
-
-void NodeManager::eraseNodeCurrent(const string& nodeName)
-{
-	TC_ThreadLock::Lock lock(_NodePrxLock);
-
-	auto it = _mapNodeId.find(nodeName);
-	if(it != _mapNodeId.end())
-	{
-		_mapIdNode.erase(it->second.first);
-		_mapIdCurrent.erase(it->second.first);
-	}
-
-	_mapNodeId.erase(nodeName);
-}
+//
+//void NodeManager::eraseNodeCurrent(const string& nodeName)
+//{
+//	TC_ThreadLock::Lock lock(_NodePrxLock);
+//
+//	auto it = _mapNodeId.find(nodeName);
+//	if(it != _mapNodeId.end())
+//	{
+//		_mapIdNode.erase(it->second.first);
+//		_mapIdCurrent.erase(it->second.first);
+//	}
+//
+//	_mapNodeId.erase(nodeName);
+//}
 
 void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 {
@@ -230,9 +248,18 @@ void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 	auto it = _mapIdNode.find(current->getUId());
 	if(it != _mapIdNode.end())
 	{
-		_mapNodeId.erase(it->second);
-		_mapIdNode.erase(it->first);
+		_mapIdNode.erase(it);
 		_mapIdCurrent.erase(it->first);
+
+		auto ii = _mapNodeId.find(it->second.nodeName);
+		if(ii != _mapNodeId.end())
+		{
+			ii->second.uidSId.erase(current->getUId());
+			if(ii->second.uidSId.empty())
+			{
+				_mapNodeId.erase(ii);
+			}
+		}
 	}
 }
 

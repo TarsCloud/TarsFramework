@@ -18,6 +18,18 @@ class NodeManager : public TC_Singleton<NodeManager>, public TC_Thread
 {
 public:
 
+	struct NodeNameSId
+	{
+		string nodeName;
+		string sid;
+	};
+
+	struct UidTimeStr
+	{
+		string timeStr;
+		map<int, string> uidSId;
+	};
+
 	using push_type = std::function<void(CurrentPtr &, int requestId)>;
 	using callback_type = std::function<int(CurrentPtr &, bool timeout, int ret, const string&)>;
 	using sync_type = std::function<int(CurrentPtr &, NodePrx &, string &out)>;
@@ -29,12 +41,12 @@ public:
 	NodePrx getNodePrx(const string& nodeName);
 	void eraseNodePrx(const string& nodeName);
 
-	void createNodeCurrent(const string& nodeName, CurrentPtr &current);
+	void createNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current);
 	CurrentPtr getNodeCurrent(const string& nodeName);
-	void eraseNodeCurrent(const string& nodeName);
+//	void eraseNodeCurrent(const string& nodeName);
 	void eraseNodeCurrent(CurrentPtr &current);
 
-	map<string, pair<int, string>> getNodeList();
+	unordered_map<string, UidTimeStr> getNodeList();
 
 public:
 
@@ -228,13 +240,17 @@ protected:
 	std::mutex _mutex;
 	std::condition_variable _cond;
 
-	//node节点代理列表
-	map<string , NodePrx> _mapNodePrxCache;
 	TC_ThreadLock _NodePrxLock;
 
-	map<string, pair<int, string>> _mapNodeId;
-	map<int, string> _mapIdNode;
-	map<int, CurrentPtr> _mapIdCurrent;
+	//node节点代理列表
+	map<string , NodePrx> _mapNodePrxCache;
+
+	//<nodename, UidTimeStr>
+	unordered_map<string, UidTimeStr> _mapNodeId;
+	//<uid, NodeNameSId>
+	unordered_map<int, NodeNameSId> _mapIdNode;
+	//<uid, current>
+	unordered_map<int, CurrentPtr> _mapIdCurrent;
 
 	int _timeout = 5000;
 
