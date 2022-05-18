@@ -80,6 +80,14 @@ public:
 	virtual int reportNode(const ReportNode &rn, CurrentPtr current);
 
 	/**
+	 * 下线(长连接, 有代理的模式下, 代理主动通知)
+	 * @param rn
+	 * @param current
+	 * @return
+	 */
+	virtual int deleteNode(const ReportNode &rn, CurrentPtr current);
+
+	/**
 	 * 上报结果
 	 * @param funcName
 	 * @param result

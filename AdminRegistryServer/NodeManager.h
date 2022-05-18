@@ -37,8 +37,8 @@ public:
 	void eraseNodePrx(const string& nodeName);
 
 	void createNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current);
+	void deleteNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current);
 	CurrentPtr getNodeCurrent(const string& nodeName);
-//	void eraseNodeCurrent(const string& nodeName);
 	void eraseNodeCurrent(CurrentPtr &current);
 
 	unordered_map<string, UidTimeStr> getNodeList();
