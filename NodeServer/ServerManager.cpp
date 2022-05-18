@@ -203,6 +203,8 @@ void ServerManager::createAdminPrx()
 
 		if(_adminPrxs.find(key) == _adminPrxs.end())
 		{
+			TLOG_DEBUG("adminObj:" << _adminObj + "@" + e.toString() << endl);
+
 			AdminRegPrx prx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(_adminObj + "@" + e.toString());
 
 			NodePushPrxCallbackPtr callback = new AdminNodePushPrxCallback(prx);
@@ -232,7 +234,7 @@ void ServerManager::run()
 			}
 			catch(exception &ex)
 			{
-				TLOG_ERROR("report admin:" << prx.first <<", error:" << ex.what() << endl);
+				TLOG_ERROR("report admin:" << prx.first <<", error:" << ex.what() << ", adminPrx size:" << _adminPrxs.size() << endl);
 			}
 		}
 
