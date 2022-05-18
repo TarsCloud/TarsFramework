@@ -54,11 +54,11 @@ int AdminRegistryImp::doClose(CurrentPtr current)
 	return 0;
 }
 
-int AdminRegistryImp::reportNode(const string &nodeName, CurrentPtr current)
+int AdminRegistryImp::reportNode(const ReportNode &rn, CurrentPtr current)
 {
 //	TLOG_DEBUG("nodeName:" << nodeName << ", uid:" << current->getUId() << endl);
 
-	NodeManager::getInstance()->createNodeCurrent(nodeName, current);
+	NodeManager::getInstance()->createNodeCurrent(rn.nodeName, rn.sid, current);
 	return 0;
 }
 
@@ -215,15 +215,6 @@ int AdminRegistryImp::shutdownNode(const string & name, string & result, tars::C
     try
     {
 		return NodeManager::getInstance()->shutdownNode(name, result, current);
-//
-//		NodeManager::callback_type callback = [name](CurrentPtr &current, int ret, const string &buff)
-//		{
-//			TLOG_DEBUG("AdminRegistryImp::shutdownNode name:" << name << ", result:" << buff <<endl);
-//
-//			AdminReg::async_response_shutdownNode(current, ret, buff);
-//		};
-//
-//		return NodeManager::getInstance()->shutdown(name, result, current, callback);
     }
     catch(TarsException & ex)
     {
@@ -274,28 +265,6 @@ int AdminRegistryImp::getServerState(const string & application, const string & 
         else
         {
 			return NodeManager::getInstance()->getServerState(application, serverName, nodeName, state, result, current);
-
-//            NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//            try
-//            {
-//                tars::ServerStateInfo info;
-//                current->setResponse(false);
-//
-//                NodePrxCallbackPtr callback = new GetServerStateCallbackImp(nodePrx, application, serverName, nodeName, state, current);
-//                nodePrx->async_getStateInfo(callback, application, serverName);
-//            }
-//            catch(TarsException & e )
-//            {
-//                current->setResponse(true);
-//                string s = e.what();
-//                if(s.find("server function mismatch exception") != string::npos)
-//                {
-//                    ServerState stateInNode  = nodePrx->getState(application, serverName, result);
-//                    state.presentStateInNode = etos(stateInNode);
-//                    state.processId = nodePrx->getServerPid(application, serverName, result);
-//                }
-//                TLOG_ERROR("AdminRegistryImp::getServerState "<<"'" + application + "." + serverName + "_" + nodeName<<"|"<< e.what() <<endl);
-//            }
         }
 
         TLOG_DEBUG("AdminRegistryImp::getServerState: "  << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
@@ -369,17 +338,6 @@ int AdminRegistryImp::startServer(const string & application, const string & ser
         else
         {
 			return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
-
-
-//			return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current, callback);
-//
-//            NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//            TLOGINFO("call node into " << __FUNCTION__ << "|"
-//                << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
-//
-//            current->setResponse(false);
-//            NodePrxCallbackPtr callback = new StartServerCallbackImp(application, serverName, nodeName, current);
-//            nodePrx->async_startServer(callback, application, serverName);
         }
 
         return iRet;
@@ -432,11 +390,6 @@ int AdminRegistryImp::startServer_inner(const string & application, const string
 		else
 		{
 			iRet = NodeManager::getInstance()->startServer(application, serverName, nodeName, result, NULL);
-//
-//			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//			TLOGINFO("call node into " << __FUNCTION__ << "|"
-//				<< application << "." << serverName << "_" << nodeName << endl);
-//			iRet = nodePrx->startServer(application, serverName, result);
 		}
 
 		if(iRet != EM_TARS_SUCCESS)
@@ -493,13 +446,6 @@ int AdminRegistryImp::stopServer(const string & application, const string & serv
         else
         {
 			iRet = NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
-//
-//			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//            TLOGINFO("call node into " << __FUNCTION__ << "|"
-//                << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() <<endl);
-//            current->setResponse(false);
-//            NodePrxCallbackPtr callback = new StopServerCallbackImp(application, serverName, nodeName, current);
-//            nodePrx->async_stopServer(callback, application, serverName);
         }
 
         return iRet;
@@ -553,12 +499,6 @@ int AdminRegistryImp::stopServer_inner(const string & application, const string 
 		else
 		{
 			iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, NULL);
-//
-//			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//			TLOGINFO("call node into " << __FUNCTION__ << "|"
-//				<< application << "." << serverName << "_" << nodeName << endl);
-//
-//			iRet = nodePrx->stopServer(application, serverName, result);
 		}
 
 		if(iRet != EM_TARS_SUCCESS)
@@ -631,10 +571,6 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 			else
 			{
 				iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
-//
-//				NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//				nodePrx->tars_timeout(12000);
-//				iRet = nodePrx->stopServer(application, serverName, result);
 			}
 			TLOG_DEBUG("call node restartServer, stop|" << application << "." << serverName << "_" << nodeName << "|"
 														<< current->getHostName() << ":" << current->getPort() << endl);
@@ -670,12 +606,6 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
             else
             {
 				return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
-//
-//                NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//
-//                TLOG_DEBUG("call node restartServer(), start|" << application << "." << serverName << "_" << nodeName << "|" << current->getHostName() << ":" << current->getPort() << endl);
-//
-//                return nodePrx->startServer(application, serverName, result);
             }
         }
         catch(TarsSyncCallTimeoutException& ex)
@@ -724,10 +654,6 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
 		else
 		{
 			iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, NULL);
-//
-//			NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//			nodePrx->tars_timeout(12000);
-//			iRet = (tarsErrCode)nodePrx->stopServer(application, serverName, result);
 		}
 		if(iRet != EM_TARS_SUCCESS)
 		{
@@ -759,10 +685,6 @@ int AdminRegistryImp::restartServer_inner(const string & application, const stri
 			else
 			{
 				return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, NULL);
-//
-//				NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//				TLOG_DEBUG("start, " << application << "." << serverName << "_" << nodeName << endl);
-//				return nodePrx->startServer(application, serverName, result);
 			}
 		}
 		catch (TarsSyncCallTimeoutException& tex)
@@ -801,12 +723,6 @@ int AdminRegistryImp::notifyServer(const string & application, const string & se
     try
     {
 		return NodeManager::getInstance()->notifyServer(application, serverName, nodeName, command, result, current);
-//
-//		NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//        current->setResponse(false);
-//        NodePrxCallbackPtr callback = new NotifyServerCallbackImp(application, serverName, nodeName, current);
-//        nodePrx->async_notifyServer(callback, application, serverName, command);
-//        return EM_TARS_SUCCESS;
     }
     catch(TarsSyncCallTimeoutException& ex)
     {
@@ -842,9 +758,6 @@ int AdminRegistryImp::notifyServer_inner(const string & application, const strin
     try
     {
 		return NodeManager::getInstance()->notifyServer(application, serverName, nodeName, command, result, NULL);
-
-//        NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//        iRet = nodePrx->notifyServer(application, serverName, command, result);
 	}
     catch(TarsSyncCallTimeoutException& ex)
     {
@@ -920,19 +833,7 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
 
        reqPro.md5 = md5;
 
-//       iRet = EM_TARS_UNKNOWN_ERR;
-
 	   return NodeManager::getInstance()->patchPro(req, result, current);
-//
-//	   int defaultTime = 3000;
-//       NodePrx proxy;
-//
-//       proxy = DBPROXY->getNodePrx(reqPro.nodename);
-//       int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
-//
-//       current->setResponse(false);
-//       NodePrxCallbackPtr callback = new PatchProCallbackImp(reqPro, proxy, defaultTime, current);
-//       proxy->tars_set_timeout(timeout)->async_patchPro(callback, reqPro);
    }
    catch(TarsSyncCallTimeoutException& ex)
    {
@@ -998,18 +899,6 @@ int AdminRegistryImp::batchPatch_inner(const tars::PatchRequest & req, string &r
                  << endl);
 
 		iRet = NodeManager::getInstance()->patchPro(reqPro, result, NULL);
-//
-//		int timeout = TC_Common::strto<int>(g_pconf->get("/tars/nodeinfo<batchpatch_node_timeout>", "10000"));
-//
-//	    iRet = EM_TARS_UNKNOWN_ERR;
-//
-//        NodePrx proxy;
-//
-//        proxy = DBPROXY->getNodePrx(reqPro.nodename);
-//
-//		iRet = proxy->tars_set_timeout(timeout)->patchPro(reqPro, result);
-//
-//		TLOG_DEBUG(reqPro.appname + "." + reqPro.servername + "_" + reqPro.nodename << ", patchPro ret: " << iRet << ", result:" << result << endl);
 
         deleteHistorys(reqPro.appname, sServerName);
 
@@ -1070,17 +959,7 @@ int AdminRegistryImp::getPatchPercent( const string& application, const string& 
         TLOG_DEBUG( "AdminRegistryImp::getPatchPercent: " + application  + "." + serverName + "_" + nodeName
                 << "|caller: " << current->getHostName()  << ":" << current->getPort() <<endl);
 
-//		string result;
-
 		return NodeManager::getInstance()->getPatchPercent(application, serverName, nodeName, result, current);
-
-//		return NodeManager::getInstance()->requestNode(nodeName, current, result, push, callback, sync, false);
-//
-//        NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//
-//        current->setResponse(false);
-//        NodePrxCallbackPtr callback = new GetPatchPercentCallbackImp(application, serverName, nodeName, current);
-//        nodePrx->async_getPatchPercent(callback, application, serverName);
     }
     catch(TarsSyncCallTimeoutException& ex)
     {
@@ -1134,16 +1013,6 @@ int AdminRegistryImp::getPatchPercent_inner(const string &application, const str
 			TLOG_ERROR(application + "." + serverName + "_" + nodeName << ", iRet:" << iRet << ", result:" << result << endl);
 			tPatchInfo.sResult = "getPatchPercent " + nodeName + " error, iRet:" + TC_Common::tostr(iRet);
 		}
-//
-//		NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//
-//		iRet = nodePrx->getPatchPercent(application, serverName, tPatchInfo);
-//
-//		if(iRet != 0)
-//		{
-//			TLOG_ERROR(application + "." + serverName + "_" + nodeName << ", iRet:" << iRet << endl);
-//			tPatchInfo.sResult = "getPatchPercent " + nodeName + " error, iRet:" + TC_Common::tostr(iRet);
-//		}
 	}
 	catch (TarsSyncCallTimeoutException& ex)
 	{
@@ -1194,9 +1063,6 @@ int AdminRegistryImp::getLogData(const std::string & application, const std::str
 
 		string result;
 		return NodeManager::getInstance()->getLogData(application, serverName, nodeName, logFile, cmd, context, result, current);
-//
-//		NodePrx nodePrx = DBPROXY->getNodePrx(nodeIp);
-//        return nodePrx->getLogData(application, serverName, logFile, cmd, fileData, context);
     }
     catch (TarsSyncCallTimeoutException& tex)
     {
@@ -1249,12 +1115,6 @@ int AdminRegistryImp::getLogFileList(const std::string & application,const std::
 		string result;
 
 		return NodeManager::getInstance()->getLogFileList(application, serverName, nodeName, context, result, current);
-
-//		TLOG_DEBUG("into " << __FUNCTION__ << "|" << application << "|" << serverName << "|" << nodeName << "|" << nodeIp << endl);
-//		NodePrx nodePrx = DBPROXY->getNodePrx(nodeIp);
-//        int ret = nodePrx->getLogFileList(application, serverName, logFileList, context);
-        //TLOG_DEBUG("logFileList===>" + TC_Common::tostr(logFileList));
-//        return ret;
     }
     catch (TarsSyncCallTimeoutException& tex)
     {
@@ -1536,8 +1396,6 @@ int AdminRegistryImp::forceDockerLogin(const string &nodeName, vector<string> &r
 	{
 		string buff;
 		return NodeManager::getInstance()->forceDockerLogin( nodeName, buff, current);
-//		NodePrx nodePrx = DBPROXY->getNodePrx(nodeName);
-//		return nodePrx->tars_set_timeout(10000)->forceDockerLogin(result);
 	}
 	catch (exception & ex)
 	{
@@ -1598,189 +1456,8 @@ int AdminRegistryImp::getNodeList(const vector<string> &nodeNames, map<string, s
 
 	for(auto nodeName : nodeNames)
 	{
-		heartbeats[nodeName] = data[nodeName].second;
+		heartbeats[nodeName] = data[nodeName].timeStr;
 	}
 	return 0;
 }
 
-//
-///////////////////////////////////////////////////////////////////////////////
-//void PatchProCallbackImp::callback_patchPro(tars::Int32 ret,
-//       const std::string& result)
-//{
-//   TLOG_DEBUG("PatchProCallbackImp::callback_patchPro: |success ret."<<ret<<"|"
-//                << _reqPro.appname + "." + _reqPro.servername + "_" + _reqPro.nodename << "|"
-//                << _reqPro.binname      << "|"
-//                << _reqPro.version      << "|"
-//                << _reqPro.user         << "|"
-//                << _reqPro.servertype   << endl);
-//
-//   _nodePrx->tars_timeout(_defaultTime);
-//
-//   AdminReg::async_response_batchPatch(_current, ret, result);
-//
-//}
-//
-//void PatchProCallbackImp::callback_patchPro_exception(tars::Int32 ret)
-//{
-//   int iRet = EM_TARS_UNKNOWN_ERR;
-//   _nodePrx->tars_timeout(_defaultTime);
-//
-//   if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
-//   {
-//       iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-//   }
-//
-//   RemoteNotify::getInstance()->report("call node to patch, timeout, ret:" + TC_Common::tostr(ret), _reqPro.appname, _reqPro.servername, _reqPro.nodename);
-//
-//   AdminReg::async_response_batchPatch(_current, iRet, "");
-//   TLOG_DEBUG("PatchProCallbackImp::callback_patchPro_exception: |exception ret."<<ret<<"|"
-//                << _reqPro.appname + "." + _reqPro.servername + "_" + _reqPro.nodename << "|"
-//                << _reqPro.binname      << "|"
-//                << _reqPro.version      << "|"
-//                << _reqPro.user         << "|"
-//                << _reqPro.servertype   << endl);
-//}
-///////////////////////////////////////////////////////////////////////////////
-//void StartServerCallbackImp::callback_startServer(tars::Int32 ret,
-//        const std::string& result)
-//{
-//    TLOG_DEBUG( _application << "." << _serverName << "_" << _nodeName
-//        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
-//
-//	if(ret != EM_TARS_SUCCESS)
-//	{
-//		RemoteNotify::getInstance()->report(string("start server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
-//	}
-//    AdminReg::async_response_startServer(_current, ret, result);
-//}
-//
-//void StartServerCallbackImp::callback_startServer_exception(tars::Int32 ret)
-//{
-//    TLOG_DEBUG(_application << "." << _serverName << "_" << _nodeName
-//        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
-//
-//    int iRet = EM_TARS_UNKNOWN_ERR;
-//    if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
-//    {
-//        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-//    }
-//
-//	RemoteNotify::getInstance()->report(string("start server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
-//
-//    AdminReg::async_response_startServer(_current, iRet, "");
-//}
-///////////////////////////////////////////////////////////////////////////////
-//void StopServerCallbackImp::callback_stopServer(tars::Int32 ret,
-//        const std::string& result)
-//{
-//    TLOG_DEBUG( _application << "." << _serverName << "_" << _nodeName
-//        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
-//
-//	if(ret != EM_TARS_SUCCESS)
-//	{
-//		RemoteNotify::getInstance()->report(string("stop server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
-//	}
-//
-//    AdminReg::async_response_stopServer(_current, ret, result);
-//}
-//
-//void StopServerCallbackImp::callback_stopServer_exception(tars::Int32 ret)
-//{
-//    TLOG_DEBUG( _application << "." << _serverName << "_" << _nodeName
-//        << "|" << _current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
-//    int iRet = EM_TARS_UNKNOWN_ERR;
-//    if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
-//    {
-//        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-//    }
-//
-//	RemoteNotify::getInstance()->report(string("stop server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
-//
-//    AdminReg::async_response_stopServer(_current, iRet, "");
-//}
-///////////////////////////////////////////////////////////////////////////////
-//void NotifyServerCallbackImp::callback_notifyServer(tars::Int32 ret,  const std::string& result)
-//{
-//    TLOG_DEBUG(_current->getHostName() << ":" << _current->getPort() << "|" << ret  << "|" << result <<endl);
-//	if(ret != EM_TARS_SUCCESS)
-//	{
-//		RemoteNotify::getInstance()->report(string("notify server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
-//	}
-//
-//	AdminReg::async_response_notifyServer(_current, ret, result);
-//}
-//
-//void NotifyServerCallbackImp::callback_notifyServer_exception(tars::Int32 ret)
-//{
-//    TLOG_DEBUG(_current->getHostName() << ":" << _current->getPort() << "|" << ret <<endl);
-//    int iRet = EM_TARS_UNKNOWN_ERR;
-//    if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
-//    {
-//        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-//    }
-//	RemoteNotify::getInstance()->report(string("notify server error:" + etos((tarsErrCode)ret)) , _application, _serverName, _nodeName);
-//
-//    AdminReg::async_response_notifyServer(_current, iRet, "");
-//}
-///////////////////////////////////////////////////////////////////////////////
-//void GetServerStateCallbackImp::callback_getStateInfo(tars::Int32 ret,  const tars::ServerStateInfo& info,  const std::string& result)
-//{
-//    string resultRef = result;
-//    if(EM_TARS_SUCCESS == ret|| EM_TARS_UNKNOWN_ERR == ret)
-//    {
-//        _state.presentStateInNode = etos(info.serverState);
-//        _state.processId          = info.processId;
-//    }
-////    else
-////    {
-////        if(result.find("server function mismatch exception") != string::npos)
-////        {
-////            ServerState stateInNode   = _nodePrx->getState(_application, _serverName, resultRef);
-////            _state.presentStateInNode = etos(stateInNode);
-////            _state.processId = _nodePrx->getServerPid(_application, _serverName, resultRef);
-////            TLOG_WARN(_application + "." + _serverName + "_" + _nodeName<<"|"<< resultRef <<endl);
-////        }
-////    }
-//    AdminReg::async_response_getServerState(_current, EM_TARS_SUCCESS, _state, resultRef);
-//    TLOG_DEBUG("GetServerStateCallbackImp::callback_getStateInfo_exception " <<"|position2|"<<"'" + _application  + "." + _serverName + "_" + _nodeName<<"|"<< ret << "|" << resultRef <<endl);
-//
-//}
-//
-//void GetServerStateCallbackImp::callback_getStateInfo_exception(tars::Int32 ret)
-//{
-//    int iRet = EM_TARS_UNKNOWN_ERR;
-//    string result;
-//    if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
-//    {
-//        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-//    }
-////    else if(ret == tars::TARSSERVERNOFUNCERR)
-////    {
-////        iRet = EM_TARS_SUCCESS;
-////        ServerState stateInNode = _nodePrx->getState(_application, _serverName, result);
-////        _state.presentStateInNode = etos(stateInNode);
-////        _state.processId = _nodePrx->getServerPid(_application, _serverName, result);
-////        TLOG_ERROR(_application  + "." + _serverName + "_" + _nodeName<<"|"<< result <<endl);
-////    }
-//    AdminReg::async_response_getServerState(_current, iRet, _state, result);
-//    TLOG_ERROR( _application  + "." + _serverName + "_" + _nodeName<<"|"<< ret << "|" << iRet <<endl);
-//}
-///////////////////////////////////////////////////////////////////////////////
-//void GetPatchPercentCallbackImp::callback_getPatchPercent(tars::Int32 ret,  const tars::PatchInfo& tPatchInfo)
-//{
-//    AdminReg::async_response_getPatchPercent(_current, ret, tPatchInfo);
-//    TLOG_DEBUG(_application + "." + _serverName + "_" + _nodeName<<"|"<< ret <<endl);
-//}
-//
-//void GetPatchPercentCallbackImp::callback_getPatchPercent_exception(tars::Int32 ret)
-//{
-//    TLOG_ERROR(_application + "." + _serverName + "_" + _nodeName<<"|"<< ret <<endl);
-//    int iRet = EM_TARS_UNKNOWN_ERR;
-//    if(ret == tars::TARSSERVERQUEUETIMEOUT || ret == tars::TARSASYNCCALLTIMEOUT)
-//    {
-//        iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
-//    }
-//    tars::PatchInfo tPatchInfo;
-//    AdminReg::async_response_getPatchPercent(_current, iRet, tPatchInfo);
-//}

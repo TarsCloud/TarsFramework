@@ -77,7 +77,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	virtual int reportNode(const string &nodeName, CurrentPtr current);
+	virtual int reportNode(const ReportNode &rn, CurrentPtr current);
 
 	/**
 	 * 上报结果

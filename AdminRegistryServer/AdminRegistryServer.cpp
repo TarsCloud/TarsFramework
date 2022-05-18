@@ -76,7 +76,7 @@ bool AdminRegistryServer::cmdNodeList(const string &command, const string &param
 
 	for(auto e: data)
 	{
-		result += e.first + " " + e.second.second + "\r\n";
+		result += e.first + "     " + e.second.timeStr + "\r\n";
 	}
 	return true;
 }
