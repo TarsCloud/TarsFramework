@@ -187,25 +187,36 @@ unordered_map<string, NodeManager::UidTimeStr> NodeManager::getNodeList()
 
 void NodeManager::createNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current)
 {
+
 	TC_ThreadLock::Lock lock(_NodePrxLock);
 
 	auto it = _mapNodeId.find(nodeName);
 	if(it != _mapNodeId.end())
 	{
 		it->second.timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
-		it->second.uidSId[current->getUId()] = sid;
+
+//		TLOG_DEBUG("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << ", uid:" << current->getUId() << endl);
+
+		auto ii = it->second.its.find(current->getUId());
+		if(ii != it->second.its.end())
+		{
+			it->second.uids.erase(ii->second);
+		}
+
+		it->second.uids.push_front(current->getUId());
+		it->second.its[current->getUId()] = it->second.uids.begin();
 	}
 	else
 	{
-		_mapNodeId[nodeName].timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
-		_mapNodeId[nodeName].uidSId[current->getUId()] = sid;
+		TLOG_DEBUG("nodeName:" << nodeName << ", uid:" << current->getUId() << endl);
+
+		UidTimeStr &str = _mapNodeId[nodeName];
+		str.timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
+		str.uids.push_front(current->getUId());
+		str.its[current->getUId()] = str.uids.begin();
 	}
 
-	NodeNameSId nns;
-	nns.nodeName = nodeName;
-	nns.sid = sid;
-	_mapIdNode[current->getUId()] = nns;
-
+	_mapIdNode[current->getUId()].insert(nodeName);
 	_mapIdCurrent[current->getUId()] = current;
 }
 
@@ -216,30 +227,21 @@ CurrentPtr NodeManager::getNodeCurrent(const string& nodeName)
 	auto it = _mapNodeId.find(nodeName);
 	if(it != _mapNodeId.end())
 	{
-		auto uid = it->second.uidSId.begin();
-		if(uid == it->second.uidSId.end())
+		auto uid = it->second.uids.begin();
+		if(uid == it->second.uids.end())
 		{
+			TLOG_ERROR("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << " no alive connection." << endl);
 			return  NULL;
 		}
-		return _mapIdCurrent.at(uid->first);
+//		TLOG_DEBUG("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << ", uid:" << *uid << endl);
+
+		return _mapIdCurrent.at(*uid);
 	}
+
+	TLOG_ERROR("nodeName:" << nodeName << " no alive connection." << endl);
 
 	return NULL;
 }
-//
-//void NodeManager::eraseNodeCurrent(const string& nodeName)
-//{
-//	TC_ThreadLock::Lock lock(_NodePrxLock);
-//
-//	auto it = _mapNodeId.find(nodeName);
-//	if(it != _mapNodeId.end())
-//	{
-//		_mapIdNode.erase(it->second.first);
-//		_mapIdCurrent.erase(it->second.first);
-//	}
-//
-//	_mapNodeId.erase(nodeName);
-//}
 
 void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 {
@@ -248,18 +250,21 @@ void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 	auto it = _mapIdNode.find(current->getUId());
 	if(it != _mapIdNode.end())
 	{
-		_mapIdNode.erase(it);
-		_mapIdCurrent.erase(it->first);
-
-		auto ii = _mapNodeId.find(it->second.nodeName);
-		if(ii != _mapNodeId.end())
+		for(auto nodeName : it->second)
 		{
-			ii->second.uidSId.erase(current->getUId());
-			if(ii->second.uidSId.empty())
+			auto ii = _mapNodeId.find(nodeName);
+			if(ii != _mapNodeId.end())
 			{
-				_mapNodeId.erase(ii);
+				auto iu = ii->second.its.find(current->getUId());
+				if(iu != ii->second.its.end())
+				{
+					ii->second.uids.erase(iu->second);
+					ii->second.its.erase(iu);
+				}
 			}
 		}
+		_mapIdCurrent.erase(it->first);
+		_mapIdNode.erase(it);
 	}
 }
 

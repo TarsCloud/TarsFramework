@@ -18,16 +18,11 @@ class NodeManager : public TC_Singleton<NodeManager>, public TC_Thread
 {
 public:
 
-	struct NodeNameSId
-	{
-		string nodeName;
-		string sid;
-	};
-
 	struct UidTimeStr
 	{
-		string timeStr;
-		map<int, string> uidSId;
+		string timeStr;				//更新时间
+		list<int>	uids;			//连接ID, 按照时间排序
+		unordered_map<int, list<int>::iterator> its;
 	};
 
 	using push_type = std::function<void(CurrentPtr &, int requestId)>;
@@ -245,10 +240,11 @@ protected:
 	//node节点代理列表
 	map<string , NodePrx> _mapNodePrxCache;
 
+	//一个连接上, 可能有多个nodeName的请求
 	//<nodename, UidTimeStr>
 	unordered_map<string, UidTimeStr> _mapNodeId;
-	//<uid, NodeNameSId>
-	unordered_map<int, NodeNameSId> _mapIdNode;
+	//<uid, nodeNames[]>
+	unordered_map<int, unordered_set<string>> _mapIdNode;
 	//<uid, current>
 	unordered_map<int, CurrentPtr> _mapIdCurrent;
 
