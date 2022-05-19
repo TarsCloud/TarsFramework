@@ -195,26 +195,15 @@ void ServerManager::initialize(const string &adminObj)
 
 void ServerManager::createAdminPrx()
 {
-	vector<TC_Endpoint> endpoints = Application::getCommunicator()->getEndpoint4All(_adminObj);
+	AdminRegPrx prx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(_adminObj);
 
-	for(auto e : endpoints)
-	{
-		string key = e.getHost() + ":" + TC_Common::tostr(e.getPort());
+	NodePushPrxCallbackPtr callback = new AdminNodePushPrxCallback(prx);
 
-		if(_adminPrxs.find(key) == _adminPrxs.end())
-		{
-			TLOG_DEBUG("adminObj:" << _adminObj + "@" + e.toString() << endl);
+	prx->tars_set_push_callback(callback);
 
-			AdminRegPrx prx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(_adminObj + "@" + e.toString());
-
-			NodePushPrxCallbackPtr callback = new AdminNodePushPrxCallback(prx);
-
-			prx->tars_set_push_callback(callback);
-
-			_adminPrxs[key] = prx;
-		}
-	}
+	_adminPrx = prx;
 }
+
 void ServerManager::run()
 {
 	ReportNode rn;
@@ -222,33 +211,30 @@ void ServerManager::run()
 	rn.nodeName = platformInfo.getNodeName();
 	rn.sid = TC_UUIDGenerator::getInstance()->genID();
 
+	int timeout = 10000;
+
 	while(!_terminate)
 	{
 		time_t now = TNOWMS;
 
-		for(auto prx: _adminPrxs)
+		try
 		{
-			try
-			{
-				prx.second->tars_set_timeout(3000)->reportNode(rn);
-			}
-			catch(exception &ex)
-			{
-				TLOG_ERROR("report admin:" << prx.first <<", error:" << ex.what() << ", adminPrx size:" << _adminPrxs.size() << endl);
-			}
+			_adminPrx->tars_set_timeout(timeout/2)->tars_hash(tars::hash<string>()(rn.nodeName))->reportNode(rn);
+		}
+		catch(exception &ex)
+		{
+			TLOG_ERROR("report admin, error:" << ex.what() << endl);
 		}
 
-		createAdminPrx();
-
-		int64_t diff = 5000-(TNOWMS-now);
+		int64_t diff = timeout-(TNOWMS-now);
 
 		if(diff > 0 )
 		{
 			std::unique_lock<std::mutex> lock(_mutex);
 
-			if(diff > 5000)
+			if(diff > timeout)
 			{
-				diff = 5000;
+				diff = timeout;
 			}
 			_cond.wait_for(lock, std::chrono::milliseconds(diff));
 		}
