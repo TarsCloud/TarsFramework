@@ -814,13 +814,7 @@ int NodeManager::getLogData(const std::string & application, const std::string &
 		{
 			if(!timeout)
 			{
-				TarsInputStream<> is;
-				is.setBuffer(buff.c_str(), buff.length());
-
-				string fileData;
-				is.read(fileData, 0, true);
-
-				AdminReg::async_response_getLogData(current, ret, fileData);
+				AdminReg::async_response_getLogData(current, ret, buff);
 			}
 			else
 			{
