@@ -5,7 +5,7 @@ WORKDIR /root/
 
 # Install
 RUN apt update 
-RUN DEBIAN_FRONTEND=noninteractive apt install -y mysql-client git build-essential unzip make golang flex bison net-tools wget cmake psmisc \
+RUN DEBIAN_FRONTEND=noninteractive apt install -y mysql-client build-essential unzip make flex bison net-tools wget cmake psmisc telnet iputils-ping vim net-tools \
     && apt install -y libprotobuf-dev libprotobuf-c-dev \
     && apt install -y zlib1g-dev curl libssl-dev \
     && apt install -y npm \
