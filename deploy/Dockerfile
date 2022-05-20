@@ -3,9 +3,10 @@ FROM ubuntu:20.04
 
 WORKDIR /root/
 
+ENV DEBIAN_FRONTEND=noninteractive
 # Install
 RUN apt update 
-RUN DEBIAN_FRONTEND=noninteractive apt install -y mysql-client build-essential unzip make flex bison net-tools wget cmake psmisc telnet iputils-ping vim net-tools \
+RUN apt install -y mysql-client build-essential unzip make flex bison net-tools wget cmake psmisc telnet iputils-ping vim \
     && apt install -y libprotobuf-dev libprotobuf-c-dev \
     && apt install -y zlib1g-dev curl libssl-dev \
     && apt install -y npm \
