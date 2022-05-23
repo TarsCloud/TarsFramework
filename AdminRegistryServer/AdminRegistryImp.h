@@ -238,6 +238,17 @@ public:
 
     virtual int getGroupId(const string & ip,int &groupId, string &result, CurrentPtr current);
 
+	/**
+	 *
+	 * @param application
+	 * @param serverName
+	 * @param nodeName
+	 * @param result
+	 * @param current
+	 * @return
+	 */
+	virtual int destroyServer(const string & application, const string & serverName, const string & nodeName,
+			string &result, CurrentPtr current);
     /**
      * 启动特定server
      *
@@ -335,6 +346,18 @@ public:
             PatchInfo &tPatchInfo, CurrentPtr current);
 	virtual int getPatchPercent_inner(const string &application, const string &serverName, const string & nodeName,
 		PatchInfo &tPatchInfo);
+
+	/**
+	 *
+	 * @param sFullCacheName
+	 * @param sBackupPath
+	 * @param sKey
+	 * @param result
+	 * @param current
+	 * @return
+	 */
+	virtual tars::Int32 delCache(const string &nodeName, const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,CurrentPtr current);
+
     /**
      * 加载特定server
      *

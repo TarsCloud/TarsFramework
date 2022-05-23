@@ -48,6 +48,14 @@ public:
 	int loadServer( const string& application, const string& serverName, string &result);
 
 	/**
+	 * 删除服务
+	 * @param application    服务所属应用名
+	 * @param serverName  服务名
+	 * @return  int
+	 */
+	int destroyServer( const string& application, const string& serverName, string &result) ;
+
+	/**
 	 * 启动指定服务
 	 * @param application    服务所属应用名
 	 * @param serverName  服务名
@@ -90,6 +98,15 @@ public:
 	 * @return  int
 	 */
 	int getPatchPercent( const string& application, const string& serverName, PatchInfo &tPatchInfo);
+
+	/**
+	 *
+	 * @param sFullCacheName
+	 * @param sBackupPath
+	 * @param sKey
+	 * @return
+	 */
+	int delCache(const std::string& sFullCacheName,  const std::string& sBackupPath,  const std::string& sKey, std::string &result);
 
 	/**
 	* 列举某个app下面某个服务的日志文件列表，以文件最后修改时间倒排序

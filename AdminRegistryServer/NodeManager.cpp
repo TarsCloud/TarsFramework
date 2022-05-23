@@ -66,6 +66,17 @@ public:
 	{
 		AdminReg::async_response_getPatchPercent(_current, ret, tPatchInfo);
 	}
+
+	virtual void callback_delCache(tars::Int32 ret,  const std::string& result)
+	{
+		AdminReg::async_response_delCache(_current, ret, result);
+	}
+
+	virtual void callback_delCache_exception(tars::Int32 ret)
+	{
+		AdminReg::async_response_delCache(_current, ret, "");
+	}
+
 	virtual void callback_getPatchPercent_exception(tars::Int32 ret)
 	{
 		AdminReg::async_response_getPatchPercent(_current, ret, PatchInfo());
@@ -605,6 +616,48 @@ int NodeManager::startServer(const string & application, const string & serverNa
 	return requestNode(nodeName, out, current, push, callback, sync);
 }
 
+int NodeManager::destroyServer(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current)
+{
+	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
+		TLOG_DEBUG("NodeManager::destroyServer push :" << application << "." << serverName << "_" << nodeName <<endl);
+		NodePush::async_response_push_destroyServer(nodeCurrent, requestId, nodeName, application, serverName);
+	};
+
+	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
+	{
+		TLOG_DEBUG("NodeManager::destroyServer: " << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
+
+		if(current)
+		{
+			AdminReg::async_response_destroyServer(current, timeout?EM_TARS_CALL_NODE_TIMEOUT_ERR:ret, buff);
+		}
+
+		return ret;
+	};
+
+	NodeManager::sync_type sync = [application, serverName, nodeName](CurrentPtr &current, NodePrx &nodePrx, string &out){
+
+		TLOG_DEBUG("NodeManager::destroyServer sync :" << application << "." << serverName << "_" << nodeName <<endl);
+		int ret = 0;
+		if(current)
+		{
+			//异步
+			NodePrxCallbackPtr cb = new AsyncNodePrxCallback(nodeName, current);
+
+			nodePrx->async_destroyServer(cb, application, serverName);
+		}
+		else
+		{
+			//同步
+			ret = nodePrx->destroyServer(application, serverName, out);
+		}
+
+		return ret;
+	};
+
+	return requestNode(nodeName, out, current, push, callback, sync);
+}
+
 int NodeManager::stopServer(const string & application, const string & serverName, const string & nodeName, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
@@ -791,6 +844,48 @@ int NodeManager::getPatchPercent(const string & application, const string & serv
 				info.writeTo(os);
 				out = os.getByteBuffer();
 			}
+		}
+
+		return ret;
+	};
+
+	return requestNode(nodeName, out, current, push, callback, sync);
+}
+
+int NodeManager::delCache(const string & nodeName, const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &out,CurrentPtr current)
+{
+	NodeManager::push_type push = [nodeName, sFullCacheName, sBackupPath, sKey](CurrentPtr &nodeCurrent, int requestId){
+		TLOG_DEBUG("NodeManager::delCache push :" << sFullCacheName << ", " << sBackupPath << "_" << nodeName << endl);
+		NodePush::async_response_push_delCache(nodeCurrent, requestId, nodeName, sFullCacheName, sBackupPath, sKey);
+	};
+
+	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
+	{
+		TLOG_DEBUG("NodeManager::delCache: " << nodeName << ", timeout:" << timeout << ", ret:" << ret << ", result:" << buff <<endl);
+
+		if(current)
+		{
+			AdminReg::async_response_delCache(current, timeout?EM_TARS_CALL_NODE_TIMEOUT_ERR:ret, buff);
+		}
+
+		return ret;
+	};
+
+	NodeManager::sync_type sync = [nodeName, sFullCacheName, sBackupPath, sKey](CurrentPtr &current, NodePrx &nodePrx, string &out){
+
+		TLOG_DEBUG("NodeManager::delCache sync: " << nodeName <<endl);
+		int ret = 0;
+		if(current)
+		{
+			//异步
+			NodePrxCallbackPtr cb = new AsyncNodePrxCallback(nodeName, current);
+
+			nodePrx->async_delCache(cb, sFullCacheName, sBackupPath, sKey);
+		}
+		else
+		{
+			//同步
+			ret = nodePrx->delCache(sFullCacheName, sBackupPath, sKey, out);
 		}
 
 		return ret;

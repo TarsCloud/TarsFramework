@@ -320,6 +320,60 @@ int AdminRegistryImp::getGroupId(const string & ip, int &groupId, string &result
     }
 }
 
+int AdminRegistryImp::destroyServer(const string & application, const string & serverName, const string & nodeName, string &result, CurrentPtr current)
+{
+	TLOG_DEBUG("AdminRegistryImp::destroyServer: "<< application << "." << serverName << "_" << nodeName
+											   << "|" << current->getHostName() << ":" << current->getPort() <<endl);
+
+	int iRet = EM_TARS_UNKNOWN_ERR;
+	try
+	{
+		//更新数据库server的设置状态
+		DBPROXY->updateServerState(application, serverName, nodeName, "setting_state", tars::Inactive);
+
+		vector<ServerDescriptor> server;
+		server = DBPROXY->getServers(application, serverName, nodeName, true);
+
+		//判断是否为dns 非dns才需要到node启动服务
+		if(server.size() != 0 && server[0].serverType == "tars_dns")
+		{
+			TLOGINFO( "|" << " '" + application  + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
+			iRet = DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Inactive);
+			TLOG_DEBUG( __FUNCTION__ << "|" << application << "." << serverName << "_" << nodeName
+									 << "|" << current->getHostName() << ":" << current->getPort() << "|" << iRet <<endl);
+		}
+		else
+		{
+			iRet = NodeManager::getInstance()->destroyServer(application, serverName, nodeName, result, current);
+		}
+
+		return iRet;
+	}
+	catch(TarsSyncCallTimeoutException& ex)
+	{
+		current->setResponse(true);
+		iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
+		RemoteNotify::getInstance()->report(string("destroyServer:") + ex.what(), application, serverName, nodeName);
+		TLOG_ERROR("AdminRegistryImp::destroyServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsSyncCallTimeoutException:" + ex.what())<<endl);
+	}
+	catch(TarsNodeNotRegistryException& ex)
+	{
+		current->setResponse(true);
+		iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+		RemoteNotify::getInstance()->report(string("destroyServer:") + ex.what(), application, serverName, nodeName);
+		TLOG_ERROR("AdminRegistryImp::destroyServer '"<<(application  + "." + serverName + "_" + nodeName+ "' TarsNodeNotRegistryException:" + ex.what())<<endl);
+	}
+	catch(TarsException & ex)
+	{
+		current->setResponse(true);
+		result = string(__FUNCTION__) + " '" + application  + "." + serverName + "_" + nodeName
+				 + "' Exception:" + ex.what();
+		RemoteNotify::getInstance()->report(result, application, serverName, nodeName);
+		TLOG_ERROR(result << endl);
+	}
+	return iRet;
+}
+
 int AdminRegistryImp::startServer(const string & application, const string & serverName, const string & nodeName, string & result, tars::CurrentPtr current)
 {
     TLOG_DEBUG("AdminRegistryImp::startServer: "<< application << "." << serverName << "_" << nodeName
@@ -1040,6 +1094,43 @@ int AdminRegistryImp::getPatchPercent_inner(const string &application, const str
 		RemoteNotify::getInstance()->report(result, application, serverName, nodeName);
 		TLOG_ERROR(result << endl);
 		iRet = EM_TARS_UNKNOWN_ERR;
+	}
+	return iRet;
+}
+
+tars::Int32 AdminRegistryImp::delCache(const string &nodeName, const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,CurrentPtr current)
+{
+	int iRet = EM_TARS_UNKNOWN_ERR;
+	try
+	{
+		TLOG_DEBUG( "AdminRegistryImp::delCache: " + sFullCacheName  + "." + sBackupPath + "_" + sKey
+				<< "|caller: " << current->getHostName()  << ":" << current->getPort() <<endl);
+
+		return NodeManager::getInstance()->delCache(nodeName, sFullCacheName, sBackupPath, sKey, result, current);
+	}
+	catch(TarsSyncCallTimeoutException& ex)
+	{
+		current->setResponse(true);
+//		result = "delCache: " + application + "." + serverName + "-" + nodeName + string(", error:") + ex.what();
+		TLOG_ERROR(result << endl);
+//		RemoteNotify::getInstance()->report(result, application, serverName, nodeName);
+		iRet = EM_TARS_CALL_NODE_TIMEOUT_ERR;
+	}
+	catch(TarsNodeNotRegistryException& ex)
+	{
+		current->setResponse(true);
+		iRet = EM_TARS_NODE_NOT_REGISTRY_ERR;
+//		result = "getPatchPercent: " + application + "." + serverName + "-" + nodeName + string(", error:") + ex.what();
+//		RemoteNotify::getInstance()->report(result, application, serverName, nodeName);
+		TLOG_ERROR(result << endl);
+	}
+	catch(TarsException & ex)
+	{
+		current->setResponse(true);
+		iRet = EM_TARS_UNKNOWN_ERR;
+//		result = "getPatchPercent: " + application + "." + serverName + "-" + nodeName + string(", error:") + ex.what();
+//		RemoteNotify::getInstance()->report(result, application, serverName, nodeName);
+		TLOG_ERROR(result << endl);
 	}
 	return iRet;
 }
