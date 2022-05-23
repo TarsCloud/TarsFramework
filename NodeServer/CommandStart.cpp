@@ -391,8 +391,12 @@ void CommandStart::prepareScript()
 		vOptions.push_back(entrance);
 		vOptions.push_back("--config=" + sConfigFile);
 
-		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
-		osStartStcript << "while true; do sleep 1; done" << endl;
+		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) << endl;
+
+		if(_serverObjectPtr->isContainer())
+		{
+			osStartStcript << "while true; do sleep 1; done" << endl;
+		}
 	}
 	else
 	{
