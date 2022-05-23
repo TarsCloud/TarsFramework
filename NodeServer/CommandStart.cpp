@@ -392,6 +392,7 @@ void CommandStart::prepareScript()
 		vOptions.push_back("--config=" + sConfigFile);
 
 		osStartStcript << TARS_START << _exeFile << " " << TC_Common::tostr(vOptions) ;
+		osStartStcript << "while true; do sleep 1; done" << endl;
 	}
 	else
 	{

@@ -1456,16 +1456,28 @@ int AdminRegistryImp::checkServer(const FrameworkServer &server, tars::CurrentPt
 {
 	TLOG_DEBUG(__FUNCTION__ << ", " << server.objName << endl);
 
-	ServantPrx prx = Application::getCommunicator()->stringToProxy<ServantPrx>(server.objName);
+	if(server.objName != "")
+	{
+		ServantPrx prx = Application::getCommunicator()->stringToProxy<ServantPrx>(server.objName);
 
-	try
-	{
-		prx->tars_ping();
+		try
+		{
+			prx->tars_ping();
+		}
+		catch (exception& ex)
+		{
+			TLOG_ERROR(__FUNCTION__ << ", ping: " << server.objName << ", failed:" << ex.what() << endl);
+			return -1;
+		}
 	}
-	catch(exception &ex)
+	else
 	{
-		TLOG_ERROR(__FUNCTION__ << ", ping: " << server.objName << ", failed:" << ex.what() << endl);
-		return -1;
+		//tarnode 长连接
+		string result;
+		int ret = NodeManager::getInstance()->pingNode(server.nodeName, result, NULL);
+		TLOG_DEBUG(__FUNCTION__ << ", ping: " << server.objName << ", result:" << result << ", ret:" << ret<< endl);
+
+		return ret;
 	}
 
 	return 0;
