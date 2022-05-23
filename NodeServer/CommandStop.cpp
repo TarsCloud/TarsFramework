@@ -16,6 +16,7 @@
 
 #include "CommandStop.h"
 #include "servant/AdminF.h"
+#include "util/tc_docker.h"
 
 //////////////////////////////////////////////////////////////
 //
@@ -89,6 +90,7 @@ int CommandStop::execute(string& sResult)
     bool needWait = false;
     try
     {
+
         int64_t pid = _serverObjectPtr->getPid();
         NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "pid:" << pid << endl;
 #if TARGET_PLATFORM_LINUX 
@@ -100,46 +102,81 @@ int CommandStop::execute(string& sResult)
 #endif
         string sStopScript   = _serverObjectPtr->getStopScript();
         //配置了脚本或者非tars服务
-        if( TC_Common::lower(TC_Common::trim(_desc.serverType)) == "tars_php" ){
-            //生成停止shell脚本 
-            string sConfigFile      = _serverObjectPtr->getConfigFile();
-            string sLogPath         = _serverObjectPtr->getLogPath();
-            string sServerDir       = _serverObjectPtr->getServerDir();
-            string sLibPath         = _serverObjectPtr->getLibPath();
-            string sExePath         = _serverObjectPtr->getExePath();
-            string sLogRealPath     = sLogPath + _desc.application +"/" + _desc.serverName + FILE_SEP ;
-            string sLogRealPathFile = sLogRealPath +_serverObjectPtr->getServerId() +".log";
+        if( TC_Common::lower(TC_Common::trim(_desc.serverType)) == "tars_php" )
+		{
+			//生成停止shell脚本
+			string sConfigFile = _serverObjectPtr->getConfigFile();
+			string sLogPath = _serverObjectPtr->getLogPath();
+			string sServerDir = _serverObjectPtr->getServerDir();
+			string sLibPath = _serverObjectPtr->getLibPath();
+			string sExePath = _serverObjectPtr->getExePath();
+			string sLogRealPath = sLogPath + _desc.application + "/" + _desc.serverName + FILE_SEP;
+			string sLogRealPathFile = sLogRealPath + _serverObjectPtr->getServerId() + ".log";
 
-            TC_Config conf;
-            conf.parseFile(sConfigFile);
-            string phpexecPath = "";
-            string entrance = "";
-            try{
-                phpexecPath = TC_Common::strto<string>(conf["/tars/application/server<php>"]);
-                entrance =  TC_Common::strto<string>(conf["/tars/application/server<entrance>"]);
-            } catch (...){}
-            entrance = entrance=="" ? sServerDir+"/bin/src/index.php" : entrance;
+			TC_Config conf;
+			conf.parseFile(sConfigFile);
+			string phpexecPath = "";
+			string entrance = "";
+			try
+			{
+				phpexecPath = TC_Common::strto<string>(conf["/tars/application/server<php>"]);
+				entrance = TC_Common::strto<string>(conf["/tars/application/server<entrance>"]);
+			}
+			catch (...)
+			{}
+			entrance = entrance == "" ? TC_File::simplifyDirectory(sServerDir + FILE_SEP + "bin" + FILE_SEP + "src" + FILE_SEP + "index.php") : entrance;
 
-            std::ostringstream osStopStcript;
-            osStopStcript << "#!/bin/sh" << std::endl;
-            osStopStcript << "if [ ! -d \"" << sLogRealPath << "\" ];then mkdir -p \"" << sLogRealPath << "\"; fi" << std::endl;
-            osStopStcript << phpexecPath << " " << entrance <<" --config=" << sConfigFile << " stop  >> " << sLogRealPathFile << " 2>&1 " << std::endl;
-            osStopStcript << "echo \"end-tars_stop.sh\"" << std::endl;
+			std::ostringstream osStopScript;
+			osStopScript << "#!/bin/sh" << std::endl;
+			osStopScript << "if [ ! -d \"" << sLogRealPath << "\" ];then mkdir -p \"" << sLogRealPath << "\"; fi"
+						 << std::endl;
+			osStopScript << phpexecPath << " " << entrance << " --config=" << sConfigFile << " stop  >> "
+						 << sLogRealPathFile << " 2>&1 " << std::endl;
+			osStopScript << "echo \"end-tars_stop.sh\"" << std::endl;
 
-            TC_File::save2file(sExePath + "/tars_stop.sh", osStopStcript.str());
-            TC_File::setExecutable(sExePath + "/tars_stop.sh", true);
+			string stopScriptPath = TC_File::simplifyDirectory(sExePath + FILE_SEP + "tars_stop.sh");
 
-            sStopScript = sStopScript=="" ? _serverObjectPtr->getExePath() + "/tars_stop.sh" : sStopScript;
+			TC_File::save2file(stopScriptPath, osStopScript.str());
+			TC_File::setExecutable(stopScriptPath, true);
 
-            map<string, string> mResult;
-            _serverObjectPtr->getActivator()->doScript(sStopScript, sResult, mResult);
-            needWait = true;
+			sStopScript = sStopScript == "" ? stopScriptPath : sStopScript;
 
-        }else if (!sStopScript.empty() || _serverObjectPtr->isTarsServer() == false) {
-            map<string, string> mResult;
-            _serverObjectPtr->getActivator()->doScript(sStopScript, sResult, mResult);
-            needWait = true;
-        }
+			if(!_serverObjectPtr->isContainer())
+			{
+				map<string, string> mResult;
+				_serverObjectPtr->getActivator()->doScript(sStopScript, sResult, mResult);
+
+			}
+			else
+			{
+
+				TC_Docker docker;
+				docker.setDockerUnixLocal(g_app.getDocketSocket());
+
+				vector<string> commands = {stopScriptPath};
+				docker.exec(_serverObjectPtr->getServerId(), commands, {}, true);
+			}
+
+			needWait = true;
+
+		}
+		else if (!sStopScript.empty() || _serverObjectPtr->isTarsServer() == false)
+		{
+			if(!_serverObjectPtr->isContainer())
+			{
+				map<string, string> mResult;
+				_serverObjectPtr->getActivator()->doScript(sStopScript, sResult, mResult);
+			}
+			else
+			{
+				TC_Docker docker;
+				docker.setDockerUnixLocal(g_app.getDocketSocket());
+
+				vector<string> commands = {sStopScript};
+				docker.exec(_serverObjectPtr->getServerId(), commands, {}, true);
+			}
+			needWait = true;
+		}
         else
         {
             if (_useAdmin)
@@ -163,7 +200,6 @@ int CommandStop::execute(string& sResult)
                 needWait = true;
             }
         }
-
     }
     catch (exception& e)
     {
@@ -178,33 +214,32 @@ int CommandStop::execute(string& sResult)
         _serverObjectPtr->getActivator()->deactivate(pid);
     }
 
-    //等待STOP_WAIT_INTERVAL秒
-    time_t tNow = TNOW; 
-    int iStopWaitInterval = STOP_WAIT_INTERVAL;
-    try
-    {
-        //服务停止,超时时间自己定义的情况
-        TC_Config conf;
-        conf.parseFile(_serverObjectPtr->getConfigFile());
-        iStopWaitInterval = TC_Common::strto<int>(conf["/tars/application/server<deactivating-timeout>"]) / 1000;
+	if (needWait)
+	{
+	    //等待STOP_WAIT_INTERVAL秒
+	    time_t tNow = TNOW;
+	    int iStopWaitInterval = STOP_WAIT_INTERVAL;
+	    try
+		{
+			//服务停止,超时时间自己定义的情况
+			TC_Config conf;
+			conf.parseFile(_serverObjectPtr->getConfigFile());
+			iStopWaitInterval = TC_Common::strto<int>(conf["/tars/application/server<deactivating-timeout>"]) / 1000;
 
-        if (iStopWaitInterval < STOP_WAIT_INTERVAL)
-        {
-            iStopWaitInterval = STOP_WAIT_INTERVAL;
-        }
+			if (iStopWaitInterval < STOP_WAIT_INTERVAL)
+			{
+				iStopWaitInterval = STOP_WAIT_INTERVAL;
+			}
 
-        if (iStopWaitInterval > 60)
-        {
-            iStopWaitInterval = 60;
-        }
+			if (iStopWaitInterval > 60)
+			{
+				iStopWaitInterval = 60;
+			}
+		}
+	    catch (...)
+	    {
+		}
 
-    }
-    catch (...)
-    {
-    }
-    
-    if (needWait)
-    {
         while (TNOW - iStopWaitInterval < tNow)
         {
             if (_serverObjectPtr->checkPid() != 0)  //如果pid已经不存在
@@ -231,7 +266,7 @@ int CommandStop::execute(string& sResult)
         _serverObjectPtr->getActivator()->deactivate(pid);
     }
 
-    tNow = TNOW;
+	time_t tNow = TNOW;
     while (TNOW - STOP_WAIT_INTERVAL < tNow)
     {
         if (_serverObjectPtr->checkPid() != 0)  //如果pid已经不存在
