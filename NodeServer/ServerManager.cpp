@@ -87,6 +87,17 @@ public:
 		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__ ,  ret, os.getByteBuffer());
 	}
 
+	virtual void callback_delCache(tars::Int32 requestId,  const std::string& nodeName,  const std::string& sFullCacheName,  const std::string& sBackupPath,  const std::string& sKey)
+	{
+		string result;
+
+		int ret = ServerManager::getInstance()->delCache(sFullCacheName, sBackupPath, sKey, result);
+
+		TLOG_DEBUG("requestId:" << requestId << ", " << sFullCacheName << ", " << sBackupPath << ", " << sKey << result << endl);
+
+		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+	}
+
 	virtual void callback_getStateInfo(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
 	{
 		ServerStateInfo info;
@@ -147,6 +158,17 @@ public:
 		string result;
 
 		int ret = ServerManager::getInstance()->shutdown(result);
+
+		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+	}
+
+	virtual void callback_destroyServer(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
+	{
+		string result;
+
+		int ret = ServerManager::getInstance()->destroyServer(application, serverName, result);
+
+		NODE_LOG(application + "." + serverName)->debug() << result << endl;
 
 		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
@@ -373,6 +395,54 @@ int ServerManager::loadServer( const string& application, const string& serverNa
 	return 0;
 }
 
+
+int ServerManager::destroyServer( const string& application, const string& serverName, string &result)
+{
+	string serverId = application + "." + serverName;
+	int iRet = EM_TARS_UNKNOWN_ERR;
+
+	try
+	{
+		string s;
+
+		ServerObjectPtr pServerObjectPtr = ServerFactory::getInstance()->getServer( application, serverName );
+		if ( pServerObjectPtr )
+		{
+			string s;
+			CommandDestroy command(pServerObjectPtr);
+			iRet = command.doProcess(s);
+			if ( iRet == 0 && ServerFactory::getInstance()->eraseServer(application, serverName) == 0)
+			{
+				pServerObjectPtr = NULL;
+				result = result+"succ:" + s;
+			}
+			else
+			{
+				result = FILE_FUN_STR+"error:"+s;
+			}
+		}
+		else
+		{
+			result += FILE_FUN_STR+"server is not exist";
+			iRet = -2;
+		}
+
+		result += "error::cannot load server description from registry.\n" + s;
+		iRet = EM_TARS_LOAD_SERVICE_DESC_ERR;
+	}
+	catch ( exception& e )
+	{
+		NODE_LOG(serverId)->error() << FILE_FUN << " catch exception:" << e.what() << endl;
+		result += e.what();
+	}
+	catch ( ... )
+	{
+		NODE_LOG(serverId)->error() << FILE_FUN <<" catch unkown exception" << endl;
+		result += "catch unkown exception";
+	}
+	return iRet;
+}
+
 int ServerManager::startServer( const string& application, const string& serverName, string &result)
 {
 	string serverId = application + "." + serverName;
@@ -589,6 +659,92 @@ int ServerManager::getPatchPercent( const string& application, const string& ser
 	}
 
 	return EM_TARS_UNKNOWN_ERR;
+}
+
+int ServerManager::delCache(const std::string& sFullCacheName,  const std::string& sBackupPath,  const std::string& sKey, std::string &result)
+{
+#if TARGET_PLATFORM_WINDOWS
+	return -1;
+#else
+	try
+	{
+		LOG->debug() << FILE_FUN << sFullCacheName << "|" << sBackupPath << "|" << sKey << endl;
+		if (sFullCacheName.empty())
+		{
+			result = "cache server name is empty";
+			throw runtime_error(result);
+		}
+
+		string sBasePath = ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + sFullCacheName + FILE_SEP + "bin";
+		if (!TC_File::isFileExistEx(sBasePath, S_IFDIR))
+		{
+			result = "no such directory:" + sBasePath;
+			return 0;
+		}
+
+		key_t key;
+		if (sKey.empty())
+		{
+			key = ftok(sBasePath.c_str(), 'D');
+		}
+		else
+		{
+			key = TC_Common::strto<key_t>(sKey);
+		}
+		LOG->debug() << FILE_FUN << "|key=" << key << endl;
+
+		int shmid = shmget(key, 0, 0666);
+		if (shmid == -1)
+		{
+			result = "failed to shmget " + sBasePath + "|key=" + TC_Common::tostr(key);
+			//如果获取失败则认为共享内存已经删除,直接返回成功
+			LOG->debug() << FILE_FUN << "|" << sFullCacheName << "|" << result << endl;
+			return 0;
+		}
+
+		shmid_ds *pShmInfo = new shmid_ds;
+		int iRet = shmctl(shmid, IPC_STAT, pShmInfo);
+		if (iRet != 0)
+		{
+			result = "failed to shmctl " + sBasePath + "|key=" + TC_Common::tostr(key) + "|ret=" + TC_Common::tostr(iRet);
+			delete pShmInfo;
+			pShmInfo = NULL;
+			throw runtime_error(result);
+		}
+
+		if (pShmInfo->shm_nattch >= 1)
+		{
+			result = "current attach count >= 1,please check it |" + sBasePath + "|key=" + TC_Common::tostr(key) + "|attch_count=" + TC_Common::tostr(pShmInfo->shm_nattch);
+			delete pShmInfo;
+			pShmInfo = NULL;
+			throw runtime_error(result);
+		};
+
+		delete pShmInfo;
+		pShmInfo = NULL;
+
+		//删除共享内存
+		int ret = shmctl(shmid, IPC_RMID, NULL);
+		if (ret != 0)
+		{
+			result = "failed to rm share memory|key=" + TC_Common::tostr(key) + "|shmid=" + TC_Common::tostr(shmid) + "|ret=" + TC_Common::tostr(ret);
+			throw runtime_error(result);
+		}
+
+		TLOG_DEBUG("delCache success delete cache:" << sFullCacheName <<", no need backup it"<< endl);
+
+		return 0;
+	}
+	catch (exception& e)
+	{
+		result = TC_Common::tostr(__FILE__) + ":" + TC_Common::tostr(__FUNCTION__) + ":" + TC_Common::tostr(__LINE__) + "|" + e.what();
+		LOG->error() << FILE_FUN << result << endl;
+	}
+
+	return -1;
+#endif
+
+	return -1;
 }
 
 int ServerManager::getLogFileList(const string& application, const string& serverName, vector<string>& logFileList)

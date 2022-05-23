@@ -127,6 +127,17 @@ public:
 	int loadServer(const std::string & application, const std::string & serverName, const std::string & nodeName, string & out, tars::CurrentPtr current);
 
 	/**
+	 * 毁掉服务
+	 * @param application
+	 * @param serverName
+	 * @param nodeName
+	 * @param out
+	 * @param current
+	 * @return
+	 */
+	int destroyServer(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current);
+
+	/**
 	 * 启动服务
 	 * @param application
 	 * @param serverName
@@ -179,6 +190,17 @@ public:
 	 * @return
 	 */
 	int getPatchPercent(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current);
+
+	/**
+	 *
+	 * @param sFullCacheName
+	 * @param sBackupPath
+	 * @param sKey
+	 * @param result
+	 * @param current
+	 * @return
+	 */
+	int delCache(const string & nodeName, const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &result,CurrentPtr current);
 
 	/**
 	 *
