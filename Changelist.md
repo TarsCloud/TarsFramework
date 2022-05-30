@@ -1,3 +1,27 @@
+# v3.0.7 20220530
+
+### en
+
+- Fix: sleep after start php only in container
+- Fix: tarsnode call stop script in container
+- Fix: view log bug
+- Fix: deploy dockerfile
+- Add: tarslog Topology.tars move to servant protocol
+- Add: tars node add long connection to tars admin
+- Add: tars node delete NodeAdapter
+
+### cn
+
+- 修复: 容器模式下 php 服务启动以后 sleep, 防止容器退出
+- 修复: 容器模式下, tarsnode 调用停止服务服务的 bug
+- 修复: 修复查看 log 日志的 bug
+- 修复: 部署 dockerfile 增加依赖包
+- 添加: tarslog 的 Topology.tars 移动到 tarscpp/servant/protocol
+- 添加: tarsnode 添加长连接到 tarsAdmin
+- 添加: tarsnode 删除 NodeAdapter
+
+### cn
+
 # v3.0.6 20220429
 
 ### en
