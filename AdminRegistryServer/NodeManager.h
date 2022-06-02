@@ -113,7 +113,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	int getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &state, string & out, tars::CurrentPtr current);
+	int getServerState(const string & application, const string & serverName, const string & nodeName, const ServerStateDesc &state, string & out, tars::CurrentPtr current);
 
 	/**
 	 *

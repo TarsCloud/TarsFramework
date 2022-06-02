@@ -519,6 +519,77 @@ public:
 	 */
 	virtual int getNodeList(const vector<string> &nodeNames, map<string, string> &heartbeats, CurrentPtr current);
 
+    /**
+     * 卸载服务
+     *
+     * @param application: 应用
+     * @param serverName : server名
+     * @param nodeName   : node id
+     * @param out profileTemplate: 模板内容
+     * @param out resultDesc: 结果描述
+     *
+     * @return : 0-成功 others-失败
+     */
+    virtual int uninstallServer(const string &application, const string &serverName, const string &nodeName, string &result, CurrentPtr current);
+
+
+    /**
+    * 是否有服务
+    *
+    * @param application: 服务基本信心 
+    * @param serverName: 是否替换
+    * @return : 返回值详见tarsErrCode枚举值
+    */
+    virtual int hasServer(const string &application, const string &serverName, bool &has, CurrentPtr current);
+
+    /**
+    * 新增服务
+    *
+    * @param conf: 服务基本信心 
+    * @param replace: 是否替换()
+    * @return : 返回值详见tarsErrCode枚举值
+    */
+    virtual int insertServerConf(const ServerConf &conf, bool replace, CurrentPtr current);
+
+    /**
+    * 新增adapter
+    *
+    * @param conf: 服务基本信心 
+    * @param replace: 是否替换()
+    * @return : 返回值详见tarsErrCode枚举值
+    */
+    virtual int insertAdapterConf(const string &sApplication, const string &sServerName, const string &sNodeName, const AdapterConf &conf, bool replace, CurrentPtr current);
+
+	/**
+	 * 插入配置文件
+	 * @param sFullServerName
+	 * @param fileName
+	 * @param content
+	 * @param level
+	 * @param replace
+	 * @return
+	 */
+	virtual int insertConfigFile(const string &sFullServerName, const string &fileName, const string &content, const string &sNodeName, int level, bool replace, CurrentPtr current);
+
+	/**
+	 *
+	 * @param sFullServerName
+	 * @param fileName
+	 * @param sNodeName
+	 * @param level
+	 * @param configId
+	 * @param current
+	 * @return
+	 */
+	virtual int getConfigFileId(const string &sFullServerName, const string &fileName, const string &sNodeName, int level, int &configId, CurrentPtr current);
+
+	/**
+	 * 新增配置文件
+	 *
+	 * @param replace: 是否替换(false时, 如果有冲突就insert失败)
+	 * @return : 返回值详见tarsErrCode枚举值
+	 */
+	virtual int insertHistoryConfigFile(int configId, const string &reason, const string &content, bool replace, CurrentPtr current);
 protected:
 	/**
 	 * 删除太早的历史记录
@@ -537,138 +608,6 @@ protected:
     string   _remoteLogObj;
 	string   _dockerSocket;
 };
-//
-//class PatchProCallbackImp: public NodePrxCallback
-//{
-//public:
-//   PatchProCallbackImp(const PatchRequest& req, const NodePrx& nodePrx, int defaultTime, CurrentPtr current)
-//   : _reqPro(req)
-//   , _nodePrx(nodePrx)
-//   , _defaultTime(defaultTime)
-//   , _current(current)
-//   {
-//   }
-//
-//   virtual void callback_patchPro(Int32 ret,  const std::string& result);
-//   virtual void callback_patchPro_exception(Int32 ret);
-//
-//private:
-//
-//   PatchRequest _reqPro;
-//   NodePrx _nodePrx;
-//   int _defaultTime;
-//   CurrentPtr _current;
-//};
-//
-//
-//class StartServerCallbackImp: public NodePrxCallback
-//{
-//public:
-//    StartServerCallbackImp(string application, string serverName, string nodeName, CurrentPtr current)
-//    : _application(application)
-//    , _serverName(serverName)
-//    , _nodeName(nodeName)
-//    , _current(current)
-//    {
-//    }
-//
-//    virtual void callback_startServer(Int32 ret,  const std::string& result);
-//    virtual void callback_startServer_exception(Int32 ret);
-//
-//private:
-//    string _application;
-//    string _serverName;
-//    string _nodeName;
-//    CurrentPtr _current;
-//};
-//
-//class StopServerCallbackImp: public NodePrxCallback
-//{
-//public:
-//    StopServerCallbackImp(const string &application, const string &serverName, const string &nodeName, CurrentPtr current)
-//    : _application(application)
-//    , _serverName(serverName)
-//    , _nodeName(nodeName)
-//    , _current(current)
-//    {
-//    }
-//
-//    virtual void callback_stopServer(Int32 ret,  const std::string& result);
-//    virtual void callback_stopServer_exception(Int32 ret);
-//
-//private:
-//    string _application;
-//    string _serverName;
-//    string _nodeName;
-//    CurrentPtr _current;
-//};
-//
-//class NotifyServerCallbackImp: public NodePrxCallback
-//{
-//public:
-//    NotifyServerCallbackImp(const string &application, const string &serverName, const string &nodeName, CurrentPtr current)
-//	    : _application(application)
-//	    , _serverName(serverName)
-//	    , _nodeName(nodeName)
-//	    , _current(current)
-//    {
-//    }
-//
-//    virtual void callback_notifyServer(Int32 ret,  const std::string& result);
-//    virtual void callback_notifyServer_exception(Int32 ret);
-//
-//private:
-//	string _application;
-//	string _serverName;
-//	string _nodeName;
-//    CurrentPtr _current;
-//};
-//
-//class GetServerStateCallbackImp: public NodePrxCallback
-//{
-//public:
-//    GetServerStateCallbackImp(const NodePrx& nodePrx, string application, string serverName, string nodeName, const ServerStateDesc& state, CurrentPtr current)
-//    : _nodePrx(nodePrx)
-//    , _application(application)
-//    , _serverName(serverName)
-//    , _nodeName(nodeName)
-//    , _state(state)
-//    , _current(current)
-//    {
-//    }
-//
-//    virtual void callback_getStateInfo(Int32 ret,  const ServerStateInfo& info,  const std::string& result);
-//    virtual void callback_getStateInfo_exception(Int32 ret);
-//private:
-//    NodePrx _nodePrx;
-//    string  _application;
-//    string  _serverName;
-//    string  _nodeName;
-//    ServerStateDesc _state;
-//    CurrentPtr _current;
-//};
-//
-//
-//class GetPatchPercentCallbackImp: public NodePrxCallback
-//{
-//public:
-//    GetPatchPercentCallbackImp(string application, string serverName, string nodeName, CurrentPtr current)
-//    : _application(application)
-//    , _serverName(serverName)
-//    , _nodeName(nodeName)
-//    , _current(current)
-//    {
-//    }
-//
-//    virtual void callback_getPatchPercent(Int32 ret,  const PatchInfo& tPatchInfo);
-//    virtual void callback_getPatchPercent_exception(Int32 ret);
-//
-//private:
-//    string _application;
-//    string _serverName;
-//    string _nodeName;
-//    CurrentPtr _current;
-//};
 
 
 #endif

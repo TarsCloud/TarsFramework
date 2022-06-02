@@ -268,6 +268,8 @@ void ServerObject::synState()
         stringstream ss;
         tServerStateInfo.displaySimple(ss);
         NODE_LOG(_serverId)->debug()<<FILE_FUN << "synState state:" << std::boolalpha << _enSynState <<", " << ss.str() << endl;
+        _noticed = true;
+        _noticeFailTimes = 0;
     }
     catch (exception &e)
     {

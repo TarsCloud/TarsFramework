@@ -498,7 +498,7 @@ int NodeManager::shutdownNode(const string & nodeName, string &out, tars::Curren
 	return NodeManager::getInstance()->requestNode(nodeName, out, current, push, callback, sync);
 }
 
-int NodeManager::getServerState(const string & application, const string & serverName, const string & nodeName, ServerStateDesc &desc, string &out, tars::CurrentPtr current)
+int NodeManager::getServerState(const string & application, const string & serverName, const string & nodeName, const ServerStateDesc &desc, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
 		TLOG_DEBUG("NodeManager::getServerState push name:" << nodeName <<endl);
@@ -507,10 +507,10 @@ int NodeManager::getServerState(const string & application, const string & serve
 
 	NodeManager::callback_type callback = [application, serverName, nodeName, desc](CurrentPtr &current, bool timeout, int ret, const string &buff)
 	{
-		TLOG_DEBUG("NodeManager::getServerState :" << application << "." << serverName << "_" << nodeName << ", ret:" << ret <<endl);
+		TLOG_DEBUG("NodeManager::getServerState :" << application << "." << serverName << "_" << nodeName << ", timeout:" << timeout << ", ret:" << ret <<endl);
 
 		if(current)
-		{
+		{	
 			if(!timeout)
 			{
 				TarsInputStream<> is;

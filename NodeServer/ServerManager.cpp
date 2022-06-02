@@ -414,7 +414,8 @@ int ServerManager::destroyServer( const string& application, const string& serve
 			if ( iRet == 0 && ServerFactory::getInstance()->eraseServer(application, serverName) == 0)
 			{
 				pServerObjectPtr = NULL;
-				result = result+"succ:" + s;
+				result = result + "succ:" + s;
+				return 0;
 			}
 			else
 			{
@@ -427,7 +428,6 @@ int ServerManager::destroyServer( const string& application, const string& serve
 			iRet = -2;
 		}
 
-		result += "error::cannot load server description from registry.\n" + s;
 		iRet = EM_TARS_LOAD_SERVICE_DESC_ERR;
 	}
 	catch ( exception& e )
@@ -668,14 +668,14 @@ int ServerManager::delCache(const std::string& sFullCacheName,  const std::strin
 #else
 	try
 	{
-		LOG->debug() << FILE_FUN << sFullCacheName << "|" << sBackupPath << "|" << sKey << endl;
+		NODE_LOG(sFullCacheName)->debug() << FILE_FUN << sFullCacheName << "|" << sBackupPath << "|" << sKey << endl;
 		if (sFullCacheName.empty())
 		{
 			result = "cache server name is empty";
 			throw runtime_error(result);
 		}
 
-		string sBasePath = ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + sFullCacheName + FILE_SEP + "bin";
+		string sBasePath = TC_File::simplifyDirectory(ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data" + FILE_SEP + sFullCacheName + FILE_SEP + "bin");
 		if (!TC_File::isFileExistEx(sBasePath, S_IFDIR))
 		{
 			result = "no such directory:" + sBasePath;
@@ -691,14 +691,14 @@ int ServerManager::delCache(const std::string& sFullCacheName,  const std::strin
 		{
 			key = TC_Common::strto<key_t>(sKey);
 		}
-		LOG->debug() << FILE_FUN << "|key=" << key << endl;
+		NODE_LOG(sFullCacheName)->debug() << FILE_FUN << "|key=" << key << endl;
 
 		int shmid = shmget(key, 0, 0666);
 		if (shmid == -1)
 		{
 			result = "failed to shmget " + sBasePath + "|key=" + TC_Common::tostr(key);
 			//如果获取失败则认为共享内存已经删除,直接返回成功
-			LOG->debug() << FILE_FUN << "|" << sFullCacheName << "|" << result << endl;
+			NODE_LOG(sFullCacheName)->debug() << FILE_FUN << "|" << sFullCacheName << "|" << result << endl;
 			return 0;
 		}
 

@@ -893,7 +893,7 @@ int AdminRegistryImp::batchPatch(const tars::PatchRequest & req, string & result
 
        reqPro.md5 = md5;
 
-	   return NodeManager::getInstance()->patchPro(req, result, current);
+	   return NodeManager::getInstance()->patchPro(reqPro, result, current);
    }
    catch(TarsSyncCallTimeoutException& ex)
    {
@@ -1570,3 +1570,200 @@ int AdminRegistryImp::getNodeList(const vector<string> &nodeNames, map<string, s
 	return 0;
 }
 
+
+int AdminRegistryImp::uninstallServer(const string &application, const string &serverName, const string &nodeName, string &result, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << application << ", serverName:" << serverName << ", nodeName:" << nodeName << endl);
+
+	try
+	{
+
+        ServerStateDesc state;
+
+ 		int ret = NodeManager::getInstance()->getServerState(application, serverName, nodeName, state, result, NULL);
+        if(ret != 0)
+        {
+			TLOG_ERROR("application: " << application << ", serverName:" << serverName << ", nodeName:" << nodeName << ", getServerState error, ret:" << ret << endl);
+
+            return ret;
+        }
+
+		TarsInputStream<> is;
+		is.setBuffer(result.c_str(), result.length());
+
+		ServerStateInfo info;
+		is.read(info, 0, true);
+
+		state.processId = info.processId;
+		state.presentStateInNode = etos(info.serverState);
+
+		TLOG_DEBUG("application: " << application << ", serverName:" << serverName << ", nodeName:" << nodeName << ", info:" << info.writeToJsonString() << ", state:" << state.writeToJsonString() << endl);
+
+        if(state.presentStateInNode != "Inactive")
+        {
+			TLOG_ERROR("application: " << application << ", serverName:" << serverName << ", nodeName:" << nodeName << ", presentStateInNode != Inactive" << endl);
+            return EM_TARS_SERVICE_STATE_ERR;
+        }
+
+		DBPROXY->updateServerState(application, serverName, nodeName, "setting_state", tars::Inactive);
+
+		ret = NodeManager::getInstance()->destroyServer(application, serverName, nodeName, result, NULL);
+        
+    	TLOG_DEBUG("application: " << application << ", serverName:" << serverName << ", nodeName:" << nodeName << ", ret: " << ret << ", result:" << result << endl);
+
+        ret = DBPROXY->uninstallServer(application, serverName, nodeName, result);
+
+        return ret;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::hasServer(const string &application, const string &serverName, bool &has, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << application << ", serverName:" << serverName << endl);
+
+	try
+	{
+		int ret = DBPROXY->hasServer(application, serverName, has);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::insertServerConf(const ServerConf &conf, bool replace, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << conf.application << ", serverName:" << conf.serverName << endl);
+
+	try
+	{
+		int ret = DBPROXY->insertServerConf(conf, replace);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::insertAdapterConf(const string &application, const string &serverName, const string &nodeName, const AdapterConf &conf, bool replace, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << application << ", serverName:" << serverName << endl);
+
+	try
+	{
+		int ret = DBPROXY->insertAdapterConf(application, serverName, nodeName, conf, replace);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::insertConfigFile(const string &sFullServerName, const string &fileName, const string &content, const string &sNodeName, int level, bool replace, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << sFullServerName << ", fileName:" << fileName << endl);
+
+	try
+	{
+		int ret = DBPROXY->insertConfigFile(sFullServerName, fileName, content, sNodeName, level, replace);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::getConfigFileId(const string &sFullServerName, const string &fileName, const string &sNodeName, int level, int &configId, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << sFullServerName << ", fileName:" << fileName << endl);
+
+	try
+	{
+		int ret = DBPROXY->getConfigFileId(sFullServerName, fileName, sNodeName, level, configId);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::insertHistoryConfigFile(int configId, const string &reason, const string &content, bool replace, CurrentPtr current)
+{
+	TLOG_DEBUG("configId: " << configId << ", reason:" << reason << endl);
+
+	try
+	{
+		int ret = DBPROXY->insertHistoryConfigFile(configId, reason, content, replace);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}

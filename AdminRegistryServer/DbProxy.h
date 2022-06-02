@@ -187,6 +187,70 @@ public:
      */   
     vector<string> deleteHistorys(const string &application, const string &serverName);
 
+    /**
+     * 从数据库中删除服务
+     * 
+     */      
+    int uninstallServer(const string &application, const string &serverName, const string &nodeName, string &result);
+
+
+    /**
+    * 是否有服务
+    *
+    * @param application: 服务基本信心 
+    * @param serverName: 是否替换
+    * @return : 返回值详见tarsErrCode枚举值
+    */
+    int hasServer(const string &application, const string &serverName, bool &has);
+
+    /**
+    * 新增服务
+    *
+    * @param conf: 服务基本信心 
+    * @param replace: 是否替换()
+    * @return : 返回值详见tarsErrCode枚举值
+    */
+    int insertServerConf(const ServerConf &conf, bool replace);
+
+    /**
+    * 新增adapter
+    *
+    * @param conf: 服务基本信心 
+    * @param replace: 是否替换()
+    * @return : 返回值详见tarsErrCode枚举值
+    */
+    int insertAdapterConf(const string &sApplication, const string &sServerName, const string &sNodeName, const AdapterConf &conf, bool replace);
+
+	/**
+	 * 插入配置文件
+	 * @param sFullServerName
+	 * @param fileName
+	 * @param content
+	 * @param level
+	 * @param replace
+	 * @return
+	 */
+	int insertConfigFile(const string &sFullServerName, const string &fileName, const string &content, const string &sNodeName, int level, bool replace);
+
+	/**
+	 * 获取配置Id
+	 * @param sFullServerName
+	 * @param fileName
+	 * @param sNodeName
+	 * @param level
+	 * @param configId
+	 * @return
+	 */
+	int getConfigFileId(const string &sFullServerName, const string &fileName, const string &sNodeName, int level, int &configId);
+
+	/**
+	 * 新增配置文件
+	 *
+	 * @param replace: 是否替换(false时, 如果有冲突就insert失败)
+	 * @return : 返回值详见tarsErrCode枚举值
+	 */
+	int insertHistoryConfigFile(int configId, const string &reason, const string &content, bool replace);
+
 protected:
     /**
      * 获取server的配置模板
@@ -231,7 +295,6 @@ public:
      */
     vector<vector<string> > getAllServerIds(string & result);
 
-
     /**
      * 设置server发布版本
      * @param app:       应用
@@ -243,17 +306,17 @@ public:
     int setPatchInfo(const string & app, const string & serverName, const string & nodeName,
             const string & version, const string & user);
 
-    /**
-     * 自动伸缩时调用的灰度发布接口
-     *
-     * @param app:       应用
-     * @param servername: server 名
-     * @param nodename : node id
-     * @param status  : 流量状态,NORMAL-正常流量,NO_FLOW-无流量
-     *
-     * @return : 0-成功 others-失败
-     */
-    int gridPatchServer(const string & app, const string & servername, const string & nodename, const string &status);
+//    /**
+//     * 自动伸缩时调用的灰度发布接口
+//     *
+//     * @param app:       应用
+//     * @param servername: server 名
+//     * @param nodename : node id
+//     * @param status  : 流量状态,NORMAL-正常流量,NO_FLOW-无流量
+//     *
+//     * @return : 0-成功 others-失败
+//     */
+//    int gridPatchServer(const string & app, const string & servername, const string & nodename, const string &status);
 
     /**
      * 轮询数据库，将心跳超时的registry设为不存活
@@ -284,15 +347,10 @@ public:
      */
     void doReserveDb(const string path, TC_Config *pconf);
 
-//    int getServerInfo(const tars::srvRequestInfo & info,vector<tars::serverInfo>& vServerInfo);
 protected:
     //mysql连接对象
     static vector<TC_Mysql*> _mysqlReg;
 	static vector<TC_ThreadMutex*> _mysqlLocks;
-
-//    //node节点代理列表
-//    static map<string , NodePrx> _mapNodePrxCache;
-//    static TC_ThreadLock _NodePrxLock;
 
     //匹配分组信息
     static vector<map<string,string>> _serverGroupRule;
@@ -302,7 +360,6 @@ protected:
 
     //分组信息
     static map<string,int> _serverGroupCache;
-//    static map<string,int> _groupNameIDCache;
 
     //保留历史发布记录
     static int _patchHistory;

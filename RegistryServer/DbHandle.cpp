@@ -1674,21 +1674,22 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
 
     try
     {
-        string sSql = "replace into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version) "
-                      "values ";
+        string sSql{};
 
         TC_Endpoint locator;
         locator.parse(mapServantEndpoint[(*g_pconf)["/tars/objname<QueryObjName>"]]);
 
         for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
         {
-            sSql += (iter == mapServantEndpoint.begin() ? string("") : string(", ")) +
-                    "('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) + "', "
-                    "'" + iter->first + "', '" + iter->second + "', now(), 'active', " +
-                    "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')";
+            sSql = "insert into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version) values ";
+            sSql += ("('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) +
+                     "','" + iter->first + "', '" + iter->second + "', now(), 'active', " +
+                     "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')");
+            sSql += ("on duplicate key update endpoint='" + iter->second + "',");
+            sSql += ("last_heartbeat=now(),present_state='active',");
+            sSql += ("taf_version='" + _mysqlReg.escapeString(Application::getTarsVersion()) + "'");
+            _mysqlReg.execute(sSql);
         }
-        _mysqlReg.execute(sSql);
-        TLOG_DEBUG("CDbHandle::updateRegistryInfo2Db affected:" << _mysqlReg.getAffectedRows() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {

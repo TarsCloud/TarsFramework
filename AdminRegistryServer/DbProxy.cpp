@@ -22,8 +22,6 @@
 
 TC_ThreadLock DbProxy::_mutex;
 
-//map<string, NodePrx> DbProxy::_mapNodePrxCache;
-//TC_ThreadLock DbProxy::_NodePrxLock;
 
 vector<map<string, string>> DbProxy::_serverGroupRule;
 
@@ -344,6 +342,7 @@ map<string, string> DbProxy::getActiveNodeList(string& result)
 
     return  mapNodeList;
 }
+
 int DbProxy::setPatchInfo(const string& app, const string& serverName, const string& nodeName,
                           const string& version, const string& user)
 {
@@ -439,40 +438,40 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
         return -1;
     }
 }
-
-int DbProxy::gridPatchServer(const string& app, const string& servername, const string& nodename, const string& status)
-{
-    try
-    {
-		MYSQL_LOCK;
-        string sSql("update t_server_conf");
-        sSql += " set grid_flag='";
-        sSql += status;
-        sSql += "' where application='";
-        sSql += MYSQL_INDEX->escapeString(app);
-        sSql += "' and server_name='";
-        sSql += MYSQL_INDEX->escapeString(servername);
-        sSql += "' and node_name='";
-        sSql += MYSQL_INDEX->escapeString(nodename);
-        sSql += "'";
-
-        int64_t iStart = TC_TimeProvider::getInstance()->getNowMs();
-
-        MYSQL_INDEX->execute(sSql);
-
-        TLOG_DEBUG(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
-                  << "|affected:" << MYSQL_INDEX->getAffectedRows() << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
-
-        return 0;
-
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
-                  << "|exception: " << ex.what() << endl);
-        return -1;
-    }
-}
+//
+//int DbProxy::gridPatchServer(const string& app, const string& servername, const string& nodename, const string& status)
+//{
+//    try
+//    {
+//		MYSQL_LOCK;
+//        string sSql("update t_server_conf");
+//        sSql += " set grid_flag='";
+//        sSql += status;
+//        sSql += "' where application='";
+//        sSql += MYSQL_INDEX->escapeString(app);
+//        sSql += "' and server_name='";
+//        sSql += MYSQL_INDEX->escapeString(servername);
+//        sSql += "' and node_name='";
+//        sSql += MYSQL_INDEX->escapeString(nodename);
+//        sSql += "'";
+//
+//        int64_t iStart = TC_TimeProvider::getInstance()->getNowMs();
+//
+//        MYSQL_INDEX->execute(sSql);
+//
+//        TLOG_DEBUG(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
+//                  << "|affected:" << MYSQL_INDEX->getAffectedRows() << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
+//
+//        return 0;
+//
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
+//                  << "|exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//}
 
 vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& serverName, const string& nodeName, bool withDnsServer)
 {
@@ -977,10 +976,10 @@ int DbProxy::updateRegistryInfo2Db(bool bRegHeartbeatOff)
 
         MYSQL_INDEX->execute(sSql);
 
-		if(MYSQL_INDEX->getAffectedRows() > 0)
-		{
-			TLOG_DEBUG(__FUNCTION__ << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
-		}
+		// if(MYSQL_INDEX->getAffectedRows() > 0)
+		// {
+		// 	TLOG_DEBUG(__FUNCTION__ << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
+		// }
     }
     catch (TC_Mysql_Exception& ex)
     {
@@ -1195,5 +1194,246 @@ int DbProxy::updateServerFlowStateOne(const string & app, const string & serverN
                   << " exception: " << ex.what() << endl);
     }
     return -1;
+}
+
+
+int DbProxy::uninstallServer(const string &sApplication, const string &sServerName, const string &nodeName, string &result)
+{
+    try
+    {
+        MYSQL_LOCK
+
+        string sSql = "update t_server_conf set registry_timestamp='" + TC_Common::tm2str(TNOW) + "' where application='" + MYSQL_INDEX->escapeString(sApplication) + "' and server_name='" + MYSQL_INDEX->escapeString(sServerName) + "'";
+        MYSQL_INDEX->execute(sSql);
+
+        //删除tars服务本身的记录
+        string sWhere = "where application='" + MYSQL_INDEX->escapeString(sApplication) + "' and server_name='" + MYSQL_INDEX->escapeString(sServerName) + "' and node_name='" + MYSQL_INDEX->escapeString(nodeName) + "'";
+        MYSQL_INDEX->deleteRecord("t_adapter_conf", sWhere);
+        MYSQL_INDEX->deleteRecord("t_server_conf", sWhere);
+
+        //删除节点配置
+        sWhere = "where server_name ='" + MYSQL_INDEX->escapeString(sApplication + "."+sServerName)+ "' and host='"+ MYSQL_INDEX->escapeString(nodeName) + "' and level=3";
+        MYSQL_INDEX->deleteRecord("t_config_files", sWhere);
+
+        string sql = "select * from t_server_conf where application='" + MYSQL_INDEX->escapeString(sApplication) + "' and server_name='" + MYSQL_INDEX->escapeString(sServerName) + "'";
+        TC_Mysql::MysqlData data = MYSQL_INDEX->queryRecord(sql);
+        if (data.size() == 0)
+        {
+            sWhere = "where server_name ='" + sApplication + "."+sServerName+ "' and level=2";
+            MYSQL_INDEX->deleteRecord("t_config_files", sWhere);
+        }
+
+        return 0;
+
+    }
+    catch (TC_Mysql_Exception& ex)
+    {
+        TLOG_ERROR(__FUNCTION__ << " " << sApplication << "." << sServerName << "_" << nodeName
+                  << " exception: " << ex.what() << endl);
+    }
+    return -1;
+}
+
+int DbProxy::hasServer(const string &sApplication, const string &sServerName, bool &has)
+{
+   try
+    {
+        MYSQL_LOCK
+
+        string sSql = "select id from t_server_conf where application='" + MYSQL_INDEX->escapeString(sApplication) + "' and server_name='" + MYSQL_INDEX->escapeString(sServerName) + "'";
+        has = MYSQL_INDEX->existRecord(sSql);
+
+        return 0;
+
+    }
+    catch (TC_Mysql_Exception& ex)
+    {
+        TLOG_ERROR(__FUNCTION__ << " " << sApplication << "." << sServerName 
+                  << " exception: " << ex.what() << endl);
+    }
+    return -1;
+}
+
+int DbProxy::insertServerConf(const ServerConf &conf, bool replace)
+{
+   	try
+    {
+        map<string, pair<TC_Mysql::FT, string> > m;
+        m["application"]    = make_pair(TC_Mysql::DB_STR, conf.application);
+        m["server_name"]    = make_pair(TC_Mysql::DB_STR, conf.serverName);
+        m["node_name"]      = make_pair(TC_Mysql::DB_STR, conf.nodeName);
+        m["exe_path"]       = make_pair(TC_Mysql::DB_STR, conf.exePath);
+        m["template_name"]  = make_pair(TC_Mysql::DB_STR, conf.profile);
+        m["posttime"]       = make_pair(TC_Mysql::DB_STR, TC_Common::now2str("%Y-%m-%d %H:%M:%S"));
+        m["tars_version"]   = make_pair(TC_Mysql::DB_STR, TARS_VERSION);
+        m["server_type"]    = make_pair(TC_Mysql::DB_STR, conf.serverType);
+		m["base_path"]    = make_pair(TC_Mysql::DB_STR, conf.basePath);
+		m["setting_state"]    = make_pair(TC_Mysql::DB_STR, conf.settingState);
+		m["monitor_script_path"]    = make_pair(TC_Mysql::DB_STR, conf.monitorScript);
+		m["start_script_path"]    = make_pair(TC_Mysql::DB_STR, conf.startScript);
+		m["stop_script_path"]    = make_pair(TC_Mysql::DB_STR, conf.stopScript);
+		m["enable_group"]    = make_pair(TC_Mysql::DB_STR, conf.enableGroup);
+		m["ip_group_name"]    = make_pair(TC_Mysql::DB_STR, conf.ipGroupName);
+
+		MYSQL_LOCK
+
+		if(replace)
+		{
+			MYSQL_INDEX->replaceRecord("t_server_conf", m);
+		}
+		else
+		{
+			MYSQL_INDEX->insertRecord("t_server_conf", m);
+		}
+
+        return 0;
+
+    }
+    catch (TC_Mysql_Exception& ex)
+    {
+        TLOG_ERROR(__FUNCTION__ << " " << conf.application << "." << conf.serverName
+                  << " exception: " << ex.what() << endl);
+    }
+    return -1;
+}
+
+int DbProxy::insertAdapterConf(const string &application, const string &serverName, const string &nodeName, const AdapterConf &conf, bool replace)
+{
+	try
+	{
+		map<string, pair<TC_Mysql::FT, string> > m;
+		m["application"]        = make_pair(TC_Mysql::DB_STR, application);
+		m["server_name"]        = make_pair(TC_Mysql::DB_STR, serverName);
+		m["node_name"]          = make_pair(TC_Mysql::DB_STR, nodeName);
+		m["adapter_name"]       = make_pair(TC_Mysql::DB_STR, conf.adapterName);
+		m["thread_num"]         = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(conf.threadNum));
+		m["endpoint"]           = make_pair(TC_Mysql::DB_STR, conf.endpoint);
+		m["max_connections"]    = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(conf.maxConnections));
+		m["servant"]            = make_pair(TC_Mysql::DB_STR, conf.servant);
+		m["queuecap"]           = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(conf.queuecap));
+		m["queuetimeout"]       = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(conf.queuetimeout));
+		m["posttime"]           = make_pair(TC_Mysql::DB_STR, TC_Common::now2str("%Y-%m-%d %H:%M:%S"));
+		m["lastuser"]           = make_pair(TC_Mysql::DB_STR, "");
+		m["protocol"]           = make_pair(TC_Mysql::DB_STR, conf.protocol);
+
+		MYSQL_LOCK
+
+		if(replace)
+		{
+			MYSQL_INDEX->replaceRecord("t_adapter_conf", m);
+		}
+		else
+		{
+			MYSQL_INDEX->insertRecord("t_adapter_conf", m);
+		}
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " " << application << "." << serverName
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::insertConfigFile(const string &sFullServerName, const string &fileName, const string &content, const string &sNodeName, int level, bool replace)
+{
+	try
+	{
+		map<string, pair<TC_Mysql::FT, string> > m;
+		m["server_name"]    = make_pair(TC_Mysql::DB_STR, sFullServerName);
+		m["host"]           = make_pair(TC_Mysql::DB_STR, sNodeName);
+		m["filename"]       = make_pair(TC_Mysql::DB_STR, fileName);
+		m["config"]         = make_pair(TC_Mysql::DB_STR, content);
+		m["posttime"]       = make_pair(TC_Mysql::DB_STR, TC_Common::now2str("%Y-%m-%d %H:%M:%S"));
+		m["lastuser"]       = make_pair(TC_Mysql::DB_STR, "");
+		m["level"]          = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(level));
+		m["config_flag"]    = make_pair(TC_Mysql::DB_INT, "0");
+
+		MYSQL_LOCK
+
+		if(replace)
+		{
+			MYSQL_INDEX->replaceRecord("t_config_files", m);
+		}
+		else
+		{
+			MYSQL_INDEX->insertRecord("t_config_files", m);
+		}
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " " << sFullServerName << "." << fileName
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::getConfigFileId(const string &sFullServerName, const string &fileName,  const string &sNodeName, int level, int &configId)
+{
+	try
+	{
+		MYSQL_LOCK
+		string sSql =
+				"select id from t_config_files where server_name = '" + MYSQL_INDEX->escapeString(sFullServerName) +
+				"' and filename = '" + MYSQL_INDEX->escapeString(fileName) + "' and host = '" +
+				MYSQL_INDEX->escapeString(sNodeName) + "' and level = " + TC_Common::tostr(level);
+		TC_Mysql::MysqlData data = MYSQL_INDEX->queryRecord(sSql);
+		if (data.size() != 1)
+		{
+			string errmsg = string("get id from t_config_files error, serverName = ") + sFullServerName;
+			TLOG_ERROR(errmsg << endl);
+			return -1;
+		}
+
+		configId = TC_Common::strto<int>(data[0]["id"]);
+
+		return 0;
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " " << sFullServerName << "." << fileName
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::insertHistoryConfigFile(int configId, const string &reason, const string &content, bool replace)
+{
+	try
+	{
+		map<string, pair<TC_Mysql::FT, string> > m;
+		m["configid"]       = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(configId));
+		m["reason"]         = make_pair(TC_Mysql::DB_STR, reason);
+		m["reason_select"]  = make_pair(TC_Mysql::DB_STR, "");
+		m["content"]        = make_pair(TC_Mysql::DB_STR, content);
+		m["posttime"]       = make_pair(TC_Mysql::DB_STR, TC_Common::now2str("%Y-%m-%d %H:%M:%S"));
+		m["lastuser"]       = make_pair(TC_Mysql::DB_STR, "");
+
+		MYSQL_LOCK
+
+		if(replace)
+		{
+			MYSQL_INDEX->replaceRecord("t_config_history_files", m);
+		}
+		else
+		{
+			MYSQL_INDEX->insertRecord("t_config_history_files", m);
+		}
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " " << configId
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
 }
 
