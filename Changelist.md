@@ -1,3 +1,17 @@
+# v3.0.8 20220606
+
+### en
+
+- Add: tars admin add interface to add server & adapter & conf
+- Fix: dcache patch bug
+- Fix: getStateInfo bug
+
+### cn
+
+- Add: tars admin 添加了添加 server, adapter, conf 的接口
+- Fix: 修复 tarsAdmin dcache 发布的 bug
+- Fix: 修复 tarsAdmin getStateInfo bug
+
 # v3.0.7 20220530
 
 ### en
