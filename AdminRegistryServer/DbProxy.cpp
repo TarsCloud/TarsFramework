@@ -1437,3 +1437,93 @@ int DbProxy::insertHistoryConfigFile(int configId, const string &reason, const s
 	return -1;
 }
 
+int DbProxy::registerPlugin(const PluginConf &conf)
+{
+	try
+	{
+		map<string, pair<TC_Mysql::FT, string> > m;
+		m["f_name"]       = make_pair(TC_Mysql::DB_STR, conf.name);
+		m["f_name_en"]    = make_pair(TC_Mysql::DB_STR, conf.name_en);
+		m["f_obj"]  	  = make_pair(TC_Mysql::DB_STR, conf.obj);
+		m["f_type"]       = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(conf.type));
+		m["f_path"]       = make_pair(TC_Mysql::DB_STR, conf.path);
+
+		MYSQL_LOCK
+
+		MYSQL_INDEX->replaceRecord("db_tars_web.t_plugin", m);
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " name:" << conf.name
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::getAuth(const string &uid, vector<DbProxy::UserFlag> &flags)
+{
+	try
+	{
+		string sql;
+		TC_Mysql::MysqlData data;
+		{
+			MYSQL_LOCK
+			sql = "select * from db_user_system.t_auth where uid = '" + MYSQL_INDEX->escapeString(uid) + "'";
+
+			data = MYSQL_INDEX->queryRecord(sql);
+		}
+
+		for(size_t i = 0; i < data.size(); i++)
+		{
+			DbProxy::UserFlag flag;
+
+			flag.flag = data[i]["flag"];
+			flag.role = data[i]["role"];
+
+			flags.push_back(flag);
+		}
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " uid:" << uid
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::getTicket(const string &ticket, string &uid)
+{
+	try
+	{
+		TC_Mysql::MysqlData data;
+		{
+			MYSQL_LOCK
+
+			string sql;
+			sql = "select * from db_user_system.t_login_temp_info where ticket = '" +
+				  MYSQL_INDEX->escapeString(ticket) + "'";
+
+			data = MYSQL_INDEX->queryRecord(sql);
+		}
+
+		if(data.size() >= 1)
+		{
+			uid = data[0]["uid"];
+		}
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR(__FUNCTION__ << " uid:" << uid
+								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}

@@ -44,6 +44,7 @@ struct TarsNodeNotRegistryException : public TarsException
 class DbProxy : public tars::TC_Singleton<DbProxy>
 {
 public:
+
     /**
      * 构造函数
      */
@@ -250,6 +251,37 @@ public:
 	 * @return : 返回值详见tarsErrCode枚举值
 	 */
 	int insertHistoryConfigFile(int configId, const string &reason, const string &content, bool replace);
+
+	/**
+	 *
+	 * @param conf
+	 * @return
+	 */
+	int registerPlugin(const PluginConf &conf);
+
+	/**
+	 * 用户权限flag
+	 */
+	struct UserFlag
+	{
+		string flag;
+		string role;
+	};
+	/**
+	 * 获取用户的权限
+	 * @param uid
+	 * @param data
+	 * @return
+	 */
+	int getAuth(const string &uid, vector<UserFlag> &data);
+
+	/**
+	 * 获取ticket
+	 * @param ticket
+	 * @param uid
+	 * @return
+	 */
+	int getTicket(const string &ticket, string &uid);
 
 protected:
     /**
