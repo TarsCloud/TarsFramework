@@ -1648,6 +1648,30 @@ int AdminRegistryImp::hasServer(const string &application, const string &serverN
 	return -1;
 }
 
+int AdminRegistryImp::registerPlugin(const PluginConf &conf, CurrentPtr current)
+{
+	TLOG_DEBUG("name: " << conf.name << ", obj:" << conf.obj << endl);
+
+	try
+	{
+		int ret = DBPROXY->registerPlugin(conf);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
 int AdminRegistryImp::insertServerConf(const ServerConf &conf, bool replace, CurrentPtr current)
 {
 	TLOG_DEBUG("application: " << conf.application << ", serverName:" << conf.serverName << endl);
@@ -1751,6 +1775,184 @@ int AdminRegistryImp::insertHistoryConfigFile(int configId, const string &reason
 	try
 	{
 		int ret = DBPROXY->insertHistoryConfigFile(configId, reason, content, replace);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::hasDevAuth(const string &application, const string & serverName, const string & uid, bool &has, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << application << ", serverName:" << serverName << ", uid:" << uid << endl);
+
+	try
+	{
+		vector<DbProxy::UserFlag> flags;
+
+		int ret = DBPROXY->getAuth(uid, flags);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		has = false;
+		for(auto flag: flags)
+		{
+			if(flag.role == "admin")
+			{
+				has = true;
+				return 0;
+			}
+
+			if(flag.flag == "*" && (flag.role == "developer" || flag.role == "operator"))
+			{
+				has = true;
+				return 0;
+			}
+
+			if((flag.flag == application || flag.flag == (application + ".*")) && (flag.role == "developer" || flag.role == "operator"))
+			{
+				has = true;
+				return 0;
+			}
+
+			if(!serverName.empty())
+			{
+				if (flag.flag == (application + "." + serverName) &&
+					(flag.role == "developer" || flag.role == "operator"))
+				{
+					has = true;
+					return 0;
+				}
+			}
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::hasOpeAuth(const string & application, const string & serverName, const string & uid, bool &has, CurrentPtr current)
+{
+	TLOG_DEBUG("application: " << application << ", serverName:" << serverName << ", uid:" << uid << endl);
+
+	try
+	{
+		vector<DbProxy::UserFlag> flags;
+
+		int ret = DBPROXY->getAuth(uid, flags);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		has = false;
+		for(auto flag: flags)
+		{
+			if(flag.role == "admin")
+			{
+				has = true;
+				return 0;
+			}
+
+			if(flag.flag == "*" && (flag.role == "operator"))
+			{
+				has = true;
+				return 0;
+			}
+
+			if((flag.flag == application || flag.flag == (application + ".*")) && (flag.role == "operator"))
+			{
+				has = true;
+				return 0;
+			}
+
+			if(!serverName.empty())
+			{
+				if (flag.flag == (application + "." + serverName) &&
+					(flag.role == "operator"))
+				{
+					has = true;
+					return 0;
+				}
+			}
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::hasAdminAuth(const string & uid, bool &has, CurrentPtr current)
+{
+	TLOG_DEBUG(", uid:" << uid << endl);
+
+	try
+	{
+		vector<DbProxy::UserFlag> flags;
+
+		int ret = DBPROXY->getAuth(uid, flags);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		has = false;
+		for(auto flag: flags)
+		{
+			if(flag.role == "admin")
+			{
+				has = true;
+				return 0;
+			}
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::checkTicket(const string & ticket, string &uid, CurrentPtr current)
+{
+	TLOG_DEBUG("ticket:" << ticket << endl);
+
+	try
+	{
+		int ret = DBPROXY->getTicket(ticket, uid);
+
+		TLOG_DEBUG("ticket:" << ticket << ", ret:" << ret << ", uid:" << uid << endl);
 
 		if(ret < 0)
 		{

@@ -590,6 +590,43 @@ public:
 	 * @return : 返回值详见tarsErrCode枚举值
 	 */
 	virtual int insertHistoryConfigFile(int configId, const string &reason, const string &content, bool replace, CurrentPtr current);
+
+	/**
+	 * 注册插件
+	 * @param conf
+	 * @param current
+	 * @return
+	 */
+	virtual int registerPlugin(const PluginConf &conf, CurrentPtr current);
+
+	/**
+	 * 是否有有开发权限
+	 *
+	 * @return : 返回值详见tarsErrCode枚举值
+	 */
+	virtual int hasDevAuth(const string &application, const string & serverName, const string & uid, bool &has, CurrentPtr current);
+
+	/**
+	 * 是否有运维权限
+	 *
+	 * @return : 返回值详见tarsErrCode枚举值
+	 */
+	virtual int hasOpeAuth(const string & application, const string & serverName, const string & uid, bool &has, CurrentPtr current);
+
+	/**
+	 * 是否有有管理员权限
+	 *
+	 * @return : 返回值详见tarsErrCode枚举值
+	 */
+	virtual int hasAdminAuth(const string & uid, bool &has, CurrentPtr current);
+
+	/**
+	 * 解析ticket, uid不为空则有效, 否则无效需要重新登录
+	 *
+	 * @return : 返回值详见tarsErrCode枚举值
+	 */
+	virtual int checkTicket(const string & ticket, string &uid, CurrentPtr current);
+
 protected:
 	/**
 	 * 删除太早的历史记录
