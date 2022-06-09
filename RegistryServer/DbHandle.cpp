@@ -1687,7 +1687,7 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
                      "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')");
             sSql += ("on duplicate key update endpoint='" + iter->second + "',");
             sSql += ("last_heartbeat=now(),present_state='active',");
-            sSql += ("taf_version='" + _mysqlReg.escapeString(Application::getTarsVersion()) + "'");
+            sSql += ("tars_version='" + _mysqlReg.escapeString(Application::getTarsVersion()) + "'");
             _mysqlReg.execute(sSql);
         }
     }
