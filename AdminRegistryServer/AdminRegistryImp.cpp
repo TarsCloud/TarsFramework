@@ -2002,7 +2002,6 @@ int AdminRegistryImp::getPatchPackage(const string &application, const string &s
 
 	try
 	{
-		// int ret = DBPROXY->getPatchPackage(application, serverName, packageType, defaultVersion, pack);
 		int ret = DBPROXY->getPatchPackage(application, serverName, defaultVersion, pack);
 
 //		TLOG_DEBUG("tree size:" << tree.size() << endl);

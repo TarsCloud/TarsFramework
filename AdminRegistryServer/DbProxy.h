@@ -298,7 +298,6 @@ public:
 	 * @return
 	 */
 	int getPatchPackage(const string &application, const string &serverName, int defaultVersion, PatchPackage &pack);
-
 	/**
 	 * get server name list
 	 * @param fullServerName
