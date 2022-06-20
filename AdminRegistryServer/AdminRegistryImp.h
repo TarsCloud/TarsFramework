@@ -627,6 +627,33 @@ public:
 	 */
 	virtual int checkTicket(const string & ticket, string &uid, CurrentPtr current);
 
+	/**
+	 * 获取server tree
+	 * @param tree
+	 * @param current
+	 * @return
+	 */
+	virtual int getServerTree(vector<ServerTree> &tree, CurrentPtr current);
+
+	/**
+	 *
+	 * @param server
+	 * @param packageType
+	 * @param defaultVersion
+	 * @param pack
+	 * @param current
+	 * @return
+	 */
+	virtual int getPatchPackage(const string &application, const string &serverName, int packageType, int defaultVersion, PatchPackage &pack, CurrentPtr current);
+
+	/**
+	 *
+	 * @param fullServerName
+	 * @param serverList
+	 * @return
+	 */
+	virtual int getServerNameList(const vector<ApplicationServerName> &fullServerName, vector<map<string, string>> &serverList, CurrentPtr current);
+
 protected:
 	/**
 	 * 删除太早的历史记录
@@ -635,7 +662,7 @@ protected:
 	 */
     void deleteHistorys(const string &application, const string &serverName);
 
-    string getRemoteLogIp(const string& serverIp);
+//    string getRemoteLogIp(const string& serverIp);
 protected:
 
 	string getServerType(const std::string & application, const std::string & serverName, const std::string & nodeName);

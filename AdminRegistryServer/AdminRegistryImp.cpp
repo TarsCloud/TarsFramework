@@ -1236,24 +1236,24 @@ int AdminRegistryImp::getLogFileList(const std::string & application,const std::
 
     return -1;
 }
-
-string AdminRegistryImp::getRemoteLogIp(const string& serverIp)
-{
-    try
-    {
-        vector<TC_Endpoint> ep = Application::getCommunicator()->getEndpoint(_remoteLogObj);
-        if (ep.size() > 0)
-        {
-            return ep[0].getHost();
-        }
-        return "";    
-    }
-    catch(const std::exception& e)
-    {
-        TLOG_ERROR(e.what() << '\n');
-    }
-    return "";
-}
+//
+//string AdminRegistryImp::getRemoteLogIp(const string& serverIp)
+//{
+//    try
+//    {
+//        vector<TC_Endpoint> ep = Application::getCommunicator()->getEndpoint(_remoteLogObj);
+//        if (ep.size() > 0)
+//        {
+//            return ep[0].getHost();
+//        }
+//        return "";
+//    }
+//    catch(const std::exception& e)
+//    {
+//        TLOG_ERROR(e.what() << '\n');
+//    }
+//    return "";
+//}
 
 int AdminRegistryImp::getNodeLoad(const string& application, const string& serverName, const std::string & nodeName, int pid, string& fileData, tars::CurrentPtr current)
 {
@@ -1953,6 +1953,89 @@ int AdminRegistryImp::checkTicket(const string & ticket, string &uid, CurrentPtr
 		int ret = DBPROXY->getTicket(ticket, uid);
 
 		TLOG_DEBUG("ticket:" << ticket << ", ret:" << ret << ", uid:" << uid << endl);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::getServerTree(vector<ServerTree> &tree, CurrentPtr current)
+{
+	TLOG_DEBUG("" << endl);
+
+	try
+	{
+		int ret = DBPROXY->getServerTree(tree);
+
+		TLOG_DEBUG("tree size:" << tree.size() << endl);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::getPatchPackage(const string &application, const string &serverName, int packageType, int defaultVersion, PatchPackage &pack, CurrentPtr current)
+{
+	TLOG_DEBUG("" << endl);
+
+	try
+	{
+		int ret = DBPROXY->getPatchPackage(application, serverName, packageType, defaultVersion, pack);
+
+//		TLOG_DEBUG("tree size:" << tree.size() << endl);
+
+		if(ret < 0)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+	catch (exception & ex)
+	{
+		TLOG_ERROR(ex.what() << endl);
+		return EM_TARS_UNKNOWN_ERR;
+	}
+
+	return -1;
+}
+
+int AdminRegistryImp::getServerNameList(const vector<ApplicationServerName> &fullServerName, vector<map<string, string>> &serverList, CurrentPtr current)
+{
+	TLOG_DEBUG("" << endl);
+
+	try
+	{
+		if(fullServerName.empty())
+		{
+			return 0;
+		}
+
+		int ret = DBPROXY->getServerNameList(fullServerName, serverList);
+
+//		TLOG_DEBUG("tree size:" << tree.size() << endl);
 
 		if(ret < 0)
 		{

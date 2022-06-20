@@ -283,6 +283,31 @@ public:
 	 */
 	int getTicket(const string &ticket, string &uid);
 
+	/**
+	 *
+	 * @param tree
+	 * @return
+	 */
+	int getServerTree(vector<ServerTree> &tree);
+
+	/**
+	 *
+	 * @param server
+	 * @param packageType
+	 * @param defaultVersion
+	 * @param pack
+	 * @return
+	 */
+	int getPatchPackage(const string &application, const string &serverName, int packageType, int defaultVersion, PatchPackage &pack);
+
+	/**
+	 * get server name list
+	 * @param fullServerName
+	 * @param serverList
+	 * @return
+	 */
+	int getServerNameList(const vector<ApplicationServerName> &fullServerName, vector<map<string, string>> &serverList);
+
 protected:
     /**
      * 获取server的配置模板

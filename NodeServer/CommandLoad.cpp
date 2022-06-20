@@ -283,6 +283,8 @@ int CommandLoad::updateConfigFile(string& sResult)
 {
     try
     {
+		_serverObjectPtr->clearPorts();
+
         //node根据server desc生成配置。
         TC_Config           tConf;
         map<string, string> m;

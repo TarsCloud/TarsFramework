@@ -68,11 +68,11 @@ int DbProxy::init(TC_Config *pconf)
     }
     catch (TC_Config_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
 
     return 0;
@@ -195,7 +195,7 @@ int DbProxy::getTaskHistory(const string & application, const string & serverNam
 				+ MYSQL_INDEX->escapeString(serverName) + "' and t2.command='"
 				+ MYSQL_INDEX->escapeString(command) + "' order by create_time desc, task_no";
 			res = MYSQL_INDEX->queryRecord(sSql);
-			TLOG_DEBUG(__FUNCTION__ << " size:" << res.size() << ", sql:" << sSql << endl);
+			TLOG_DEBUG(" size:" << res.size() << ", sql:" << sSql << endl);
 		}
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -237,7 +237,7 @@ int DbProxy::getTaskHistory(const string & application, const string & serverNam
     }
     catch (exception &ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -279,7 +279,7 @@ int DbProxy::setTaskItemInfo(const string & itemNo, const map<string, string> &i
     }
     catch (exception &ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -305,7 +305,7 @@ int DbProxy::undeploy(const string & application, const string & serverName, con
     catch (exception &ex)
     {
         log = ex.what();
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -328,7 +328,7 @@ map<string, string> DbProxy::getActiveNodeList(string& result)
 			res = MYSQL_INDEX->queryRecord(sSql);
 		}
 		
-        TLOG_DEBUG(__FUNCTION__ << " (present_state='active') affected:" << res.size() << endl);
+        TLOG_DEBUG(" (present_state='active') affected:" << res.size() << endl);
         for (unsigned i = 0; i < res.size(); i++)
         {
             mapNodeList[res[i]["node_name"]] = res[i]["node_obj"];
@@ -359,7 +359,7 @@ int DbProxy::setPatchInfo(const string& app, const string& serverName, const str
                       "    and node_name='" + MYSQL_INDEX->escapeString(nodeName) + "' ";
          
         MYSQL_INDEX->execute(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+        TLOG_DEBUG(" " << app << "." << serverName << "_" << nodeName
                   << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
 
         return 0;
@@ -383,7 +383,7 @@ int DbProxy::getNodeVersion(const string& nodeName, string& version, string& res
                       "where node_name='" + MYSQL_INDEX->escapeString(nodeName) + "'";
 
         TC_Mysql::MysqlData res = MYSQL_INDEX->queryRecord(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " (node_name='" << nodeName << "') affected:" << res.size() << endl);
+        TLOG_DEBUG(" (node_name='" << nodeName << "') affected:" << res.size() << endl);
         if (res.size() > 0)
         {
             version = res[0]["tars_version"];
@@ -425,7 +425,7 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
                       "    and node_name='" + MYSQL_INDEX->escapeString(nodeName) + "' ";
 
         MYSQL_INDEX->execute(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName << ", " << etos(state) << ", processId:" << processId
+        TLOG_DEBUG(" " << app << "." << serverName << "_" << nodeName << ", " << etos(state) << ", processId:" << processId
 			<< " affected:" << MYSQL_INDEX->getAffectedRows()
                   << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
         return 0;
@@ -433,7 +433,7 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+        TLOG_ERROR(" " << app << "." << serverName << "_" << nodeName
                   << " exception: " << ex.what() << endl);
         return -1;
     }
@@ -459,7 +459,7 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
 //
 //        MYSQL_INDEX->execute(sSql);
 //
-//        TLOG_DEBUG(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
+//        TLOG_DEBUG("|app:" << app << "|server:" << servername << "|node:" << nodename
 //                  << "|affected:" << MYSQL_INDEX->getAffectedRows() << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
 //
 //        return 0;
@@ -467,7 +467,7 @@ int DbProxy::updateServerState(const string& app, const string& serverName, cons
 //    }
 //    catch (TC_Mysql_Exception& ex)
 //    {
-//        TLOG_ERROR(__FUNCTION__ << "|app:" << app << "|server:" << servername << "|node:" << nodename
+//        TLOG_ERROR("|app:" << app << "|server:" << servername << "|node:" << nodename
 //                  << "|exception: " << ex.what() << endl);
 //        return -1;
 //    }
@@ -600,18 +600,18 @@ vector<ServerDescriptor> DbProxy::getServers(const string& app, const string& se
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+        TLOG_ERROR(" " << app << "." << serverName << "_" << nodeName
                   << " exception: " << ex.what() << "|" << sSql << endl);
         return vServers;
     }
     catch (TC_Config_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+        TLOG_ERROR(" " << app << "." << serverName << "_" << nodeName
                   << " TC_Config_Exception exception: " << ex.what() << endl);
         throw TarsException(string("TC_Config_Exception exception: ") + ex.what());
     }
 
-    TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+    TLOG_DEBUG(" " << app << "." << serverName << "_" << nodeName
               << " getServers affected:" << num
               << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
 
@@ -637,7 +637,7 @@ int DbProxy::getNodeList(const string& app, const string& serverName, vector<str
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         ret = -1;
     }
     return ret;
@@ -681,19 +681,19 @@ string DbProxy::getProfileTemplate(const string& sTemplateName, map<string, int>
         }
         sResultDesc += "(" + sTemplateName + ":OK)";
 
-        TLOG_DEBUG(__FUNCTION__ << " " << sTemplateName << " " << sResultDesc << endl);
+        TLOG_DEBUG(" " << sTemplateName << " " << sResultDesc << endl);
 
         return confMyself.tostr();
     }
     catch (TC_Mysql_Exception& ex)
     {
         sResultDesc += "(" + sTemplateName + ":" + ex.what() + ")";
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (TC_Config_Exception& ex)
     {
         sResultDesc += "(" + sTemplateName + ":" + ex.what() + ")";
-        TLOG_ERROR(__FUNCTION__ << " TC_Config_Exception exception: " << ex.what() << endl);
+        TLOG_ERROR(" TC_Config_Exception exception: " << ex.what() << endl);
     }
 
     return  "";
@@ -712,7 +712,7 @@ vector<string> DbProxy::getAllApplicationNames(string& result)
 			res = MYSQL_INDEX->queryRecord(sSql);
 		}
 
-        TLOG_DEBUG(__FUNCTION__ << " affected:" << res.size() << endl);
+        TLOG_DEBUG(" affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -721,7 +721,7 @@ vector<string> DbProxy::getAllApplicationNames(string& result)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return vApps;
     }
 
@@ -739,7 +739,7 @@ vector<vector<string> > DbProxy::getAllServerIds(string& result)
         string sSql = "select application, server_name, node_name, setting_state, present_state,server_type from t_server_conf";
 
         res = MYSQL_INDEX->queryRecord(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " affected:" << res.size() << endl);
+        TLOG_DEBUG(" affected:" << res.size() << endl);
 
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -753,7 +753,7 @@ vector<vector<string> > DbProxy::getAllServerIds(string& result)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return vServers;
     }
 
@@ -827,11 +827,11 @@ int DbProxy::getGroupId(const string& ip)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << ex.what() << endl);
+        TLOG_ERROR(" " << ex.what() << endl);
     }
     return -1;
 }
@@ -849,7 +849,7 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
 
 			res = MYSQL_INDEX->queryRecord(sSql);
 		}
-        TLOG_DEBUG(__FUNCTION__ << " '" << nodeName << "' affected:" << res.size() << endl);
+        TLOG_DEBUG(" '" << nodeName << "' affected:" << res.size() << endl);
 
         if (res.size() == 0)
         {
@@ -869,12 +869,12 @@ NodePrx DbProxy::getNodePrx(const string& nodeName)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << nodeName << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" " << nodeName << " exception: " << ex.what() << endl);
         throw TarsNodeNotRegistryException(string("get node record from db error:") + ex.what());
     }
     catch (tars::TarsException& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << nodeName << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" " << nodeName << " exception: " << ex.what() << endl);
         throw ex;
     }
 
@@ -913,7 +913,7 @@ int DbProxy::getFramework(vector<tars::FrameworkServer> &servers)
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+		TLOG_ERROR(" exception: " << ex.what() << endl);
 		return -1;
 	}
 }
@@ -928,14 +928,14 @@ int DbProxy::checkRegistryTimeout(unsigned uTimeout)
                       "where last_heartbeat < date_sub(now(), INTERVAL " + tars::TC_Common::tostr(uTimeout) + " SECOND)";
 
         MYSQL_INDEX->execute(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " (" << uTimeout  << "s) affected:" << MYSQL_INDEX->getAffectedRows() << endl);
+        TLOG_DEBUG(" (" << uTimeout  << "s) affected:" << MYSQL_INDEX->getAffectedRows() << endl);
 
         return MYSQL_INDEX->getAffectedRows();
 
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -978,17 +978,17 @@ int DbProxy::updateRegistryInfo2Db(bool bRegHeartbeatOff)
 
 		// if(MYSQL_INDEX->getAffectedRows() > 0)
 		// {
-		// 	TLOG_DEBUG(__FUNCTION__ << " affected:" << MYSQL_INDEX->getAffectedRows() << endl);
+		// 	TLOG_DEBUG(" affected:" << MYSQL_INDEX->getAffectedRows() << endl);
 		// }
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return -1;
     }
     catch (exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
         return -1;
     }
 
@@ -1008,7 +1008,7 @@ int DbProxy::loadIPPhysicalGroupInfo()
 		}
 		if( res.size() > 0)
 		{
-			TLOG_DEBUG(__FUNCTION__ << " get server group from db, records affected:" << res.size() << endl);
+			TLOG_DEBUG(" get server group from db, records affected:" << res.size() << endl);
 		}
 
         TC_ThreadLock::Lock lock(_mutex);
@@ -1019,11 +1019,11 @@ int DbProxy::loadIPPhysicalGroupInfo()
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << ex.what() << endl);
+        TLOG_ERROR(" " << ex.what() << endl);
     }
     return -1;
 }
@@ -1038,7 +1038,7 @@ int DbProxy::getInfoByPatchId(const string &patchId, string &patchFile, string &
 
         if (res.size() == 0)
         {
-            TLOG_ERROR(__FUNCTION__ << " get patch tgz, md5 from db error, no records! patchId=" << patchId << endl);
+            TLOG_ERROR(" get patch tgz, md5 from db error, no records! patchId=" << patchId << endl);
             return -1;
         }
 
@@ -1049,11 +1049,11 @@ int DbProxy::getInfoByPatchId(const string &patchId, string &patchFile, string &
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << ex.what() << endl);
+        TLOG_ERROR(" " << ex.what() << endl);
     }
     return -1;
 }
@@ -1072,11 +1072,11 @@ int DbProxy::updatePatchByPatchId(const string &application, const string & serv
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << ex.what() << endl);
+        TLOG_ERROR(" " << ex.what() << endl);
     }
     return -1;
 }
@@ -1107,11 +1107,11 @@ vector<string> DbProxy::deleteHistorys(const string &application, const string &
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " exception: " << ex.what() << endl);
+        TLOG_ERROR(" exception: " << ex.what() << endl);
     }
     catch (exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << ex.what() << endl);
+        TLOG_ERROR(" " << ex.what() << endl);
     }
     return tgz;
 }
@@ -1151,7 +1151,7 @@ int DbProxy::updateServerFlowState(const string & app, const string & serverName
                       "    and node_name in " + nodeListIn;
 
         MYSQL_INDEX->execute(sSql);
-        TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeListIn
+        TLOG_DEBUG(" " << app << "." << serverName << "_" << nodeListIn
 			<< " affected:" << MYSQL_INDEX->getAffectedRows()
                   << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
         return (int)(MYSQL_INDEX->getAffectedRows());
@@ -1159,7 +1159,7 @@ int DbProxy::updateServerFlowState(const string & app, const string & serverName
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << TC_Common::tostr(nodeList)
+        TLOG_ERROR(" " << app << "." << serverName << "_" << TC_Common::tostr(nodeList)
                   << " exception: " << ex.what() << endl);
     }
     return -1;
@@ -1183,14 +1183,14 @@ int DbProxy::updateServerFlowStateOne(const string & app, const string & serverN
 
         MYSQL_INDEX->execute(sSql);
         size_t ar = MYSQL_INDEX->getAffectedRows();
-        TLOG_DEBUG(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName
+        TLOG_DEBUG(" " << app << "." << serverName << "_" << nodeName
 			<< " affected:" << ar
                   << "|cost:" << (TC_TimeProvider::getInstance()->getNowMs() - iStart) << endl);
         return (int)ar;
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << app << "." << serverName << "_" << nodeName 
+        TLOG_ERROR(" " << app << "." << serverName << "_" << nodeName
                   << " exception: " << ex.what() << endl);
     }
     return -1;
@@ -1228,7 +1228,7 @@ int DbProxy::uninstallServer(const string &sApplication, const string &sServerNa
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << sApplication << "." << sServerName << "_" << nodeName
+        TLOG_ERROR(" " << sApplication << "." << sServerName << "_" << nodeName
                   << " exception: " << ex.what() << endl);
     }
     return -1;
@@ -1248,7 +1248,7 @@ int DbProxy::hasServer(const string &sApplication, const string &sServerName, bo
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << sApplication << "." << sServerName 
+        TLOG_ERROR(" " << sApplication << "." << sServerName
                   << " exception: " << ex.what() << endl);
     }
     return -1;
@@ -1291,7 +1291,7 @@ int DbProxy::insertServerConf(const ServerConf &conf, bool replace)
     }
     catch (TC_Mysql_Exception& ex)
     {
-        TLOG_ERROR(__FUNCTION__ << " " << conf.application << "." << conf.serverName
+        TLOG_ERROR(" " << conf.application << "." << conf.serverName
                   << " exception: " << ex.what() << endl);
     }
     return -1;
@@ -1332,7 +1332,7 @@ int DbProxy::insertAdapterConf(const string &application, const string &serverNa
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " " << application << "." << serverName
+		TLOG_ERROR(" " << application << "." << serverName
 								<< " exception: " << ex.what() << endl);
 	}
 	return -1;
@@ -1368,7 +1368,7 @@ int DbProxy::insertConfigFile(const string &sFullServerName, const string &fileN
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " " << sFullServerName << "." << fileName
+		TLOG_ERROR(" " << sFullServerName << "." << fileName
 								<< " exception: " << ex.what() << endl);
 	}
 	return -1;
@@ -1397,7 +1397,7 @@ int DbProxy::getConfigFileId(const string &sFullServerName, const string &fileNa
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " " << sFullServerName << "." << fileName
+		TLOG_ERROR(" " << sFullServerName << "." << fileName
 								<< " exception: " << ex.what() << endl);
 	}
 	return -1;
@@ -1431,7 +1431,7 @@ int DbProxy::insertHistoryConfigFile(int configId, const string &reason, const s
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " " << configId
+		TLOG_ERROR(" " << configId
 								<< " exception: " << ex.what() << endl);
 	}
 	return -1;
@@ -1457,7 +1457,7 @@ int DbProxy::registerPlugin(const PluginConf &conf)
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " name:" << conf.name
+		TLOG_ERROR(" name:" << conf.name
 								<< " exception: " << ex.what() << endl);
 	}
 	return -1;
@@ -1491,7 +1491,7 @@ int DbProxy::getAuth(const string &uid, vector<DbProxy::UserFlag> &flags)
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " uid:" << uid
+		TLOG_ERROR("uid:" << uid
 								<< " exception: " << ex.what() << endl);
 	}
 	return -1;
@@ -1522,8 +1522,109 @@ int DbProxy::getTicket(const string &ticket, string &uid)
 	}
 	catch (TC_Mysql_Exception& ex)
 	{
-		TLOG_ERROR(__FUNCTION__ << " uid:" << uid
+		TLOG_ERROR("uid:" << uid
 								<< " exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::getServerTree(vector<ServerTree> &tree)
+{
+	try
+	{
+		TC_Mysql::MysqlData data;
+		{
+			MYSQL_LOCK
+
+			string sql;
+			sql = "select * from t_server_conf";
+
+			data = MYSQL_INDEX->queryRecord(sql);
+		}
+
+		for(size_t i = 0; i < data.size(); i++)
+		{
+			ServerTree s;
+			s.application = data[i]["application"];
+			s.server_name = data[i]["server_name"];
+			s.enable_set = data[i]["enable_set"];
+			s.set_name = data[i]["set_name"];
+			s.set_area = data[i]["set_area"];
+			s.set_group = data[i]["set_group"];
+
+			tree.push_back(s);
+		}
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR("exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::getPatchPackage(const string &application, const string &serverName, int packageType, int defaultVersion, PatchPackage &pack)
+{
+	try
+	{
+		TC_Mysql::MysqlData data;
+		{
+			MYSQL_LOCK
+
+			string sql;
+			sql = "select id, md5 from t_server_patchs where server='" + MYSQL_INDEX->escapeString(application + "." + serverName) + "' and package_type = " + TC_Common::tostr(packageType) + " and default_version = " + TC_Common::tostr(defaultVersion) + " limit 0, 1";
+
+			data = MYSQL_INDEX->queryRecord(sql);
+		}
+
+		if(data.size() > 0)
+		{
+			pack.id = TC_Common::strto<int>(data[0]["id"]);
+			pack.md5= data[0]["md5"];
+			return 0;
+		}
+
+		return -1;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR("exception: " << ex.what() << endl);
+	}
+	return -1;
+}
+
+int DbProxy::getServerNameList(const vector<ApplicationServerName> &fullServerName, vector<map<string, string>> &serverList)
+{
+	try
+	{
+		string where = " where 1=1 and ( (1=2) ";
+
+		TC_Mysql::MysqlData data;
+		{
+			MYSQL_LOCK
+			for(auto fName : fullServerName)
+			{
+				where += " or (application='" + MYSQL_INDEX->escapeString(fName.application) + "' and server_name='" + MYSQL_INDEX->escapeString(fName.serverName) + "') ";
+			}
+			where += ")";
+
+			string sql;
+			sql = "select * from t_server_conf" + where;
+
+			data = MYSQL_INDEX->queryRecord(sql);
+		}
+
+		serverList.swap(data.data());
+
+		return 0;
+
+	}
+	catch (TC_Mysql_Exception& ex)
+	{
+		TLOG_ERROR("exception: " << ex.what() << endl);
 	}
 	return -1;
 }
