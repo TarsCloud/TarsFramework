@@ -149,7 +149,8 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
             else
             {
                 //重定向失败 直接退出
-                exit(0);
+//                exit(0);
+				g_app.terminate();
             }
         }
         else
@@ -171,7 +172,8 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
         {
             cerr << "cannot execute " << argv[0] << ", errno:" << strerror(errno) << endl;
         }
-        exit(0);
+//        exit(0);
+		g_app.terminate();
     }
     else
     {

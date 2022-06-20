@@ -610,6 +610,8 @@ int ServerManager::getStateInfo(const std::string & application,const std::strin
 		info.serverState = pServerObjectPtr->getState();
 		info.processId = pServerObjectPtr->getPid();
 		info.settingState = pServerObjectPtr->isEnabled()==true?Active:Inactive;
+		info.exState["PROC_START_TIME"] = TC_Common::tostr(pServerObjectPtr->getProcStartTime());
+		info.exState["RUN_SECONDS"] = TC_Common::tostr(TNOW - pServerObjectPtr->getProcStartTime());
 
 		NODE_LOG(serverId)->debug() << "NodeImp::getStateInfo " << result << endl;
 

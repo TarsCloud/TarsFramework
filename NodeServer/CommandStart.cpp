@@ -463,15 +463,12 @@ bool CommandStart::startNormal(string& sResult)
 
 bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string &sResult)
 {
-	string command = "docker run --rm --name " + TC_Common::lower(serverObjectPtr->getServerId());
+	string command = "docker run --rm --name " + serverObjectPtr->getServerId();
 
 	TC_Docker docker;
 	docker.setDockerUnixLocal(g_app.getDocketSocket());
 
 	vector<string> entrypoint;
-//	entrypoint.emplace_back("sh");
-//	entrypoint.emplace_back("-c");
-//	entrypoint.emplace_back("touch " + TC_File::simplifyDirectory(serverObjectPtr->getServerDir() + FILE_SEP + "bin/*") + " && " + CommandStart::getStartScript(serverObjectPtr));
 
 	entrypoint.emplace_back(CommandStart::getStartScript(serverObjectPtr));
 
