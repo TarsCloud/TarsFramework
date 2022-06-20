@@ -406,8 +406,15 @@ int ServerObject::checkPid()
 
 			string value = JsonValueStringPtr::dynamicCast(sPtr->value["Status"])->value;
 
+			string startTime = JsonValueStringPtr::dynamicCast(sPtr->value["StartedAt"])->value;
+
+			pid_t pid = (pid_t)(JsonValueNumPtr::dynamicCast(sPtr->value["Pid"])->value);
+
 			if(value == "running")
 			{
+				_procStartTime = TC_Common::UTC2LocalTime(startTime);
+				setPid(pid);
+
 				return 0;
 			}
             else if(value == "exited")
@@ -489,26 +496,19 @@ void ServerObject::keepAlive(int64_t pid, const string &adapter)
     //Java KeepAliive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
     if (0 != checkPid() || _state != ServerObject::Active)
     {    
-        setPid(pid);
-    }
+//        setPid(pid);
+		if (!isContainer())
+		{
+			setPid(pid);
+		}
+
+	}
 
     //心跳不改变正在转换期状态(Activating除外)
     if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
     {
         setState(ServerObject::Active);
     }
-
-	//Java KeepAlive服务有时会传来一个不存在的PID，会导致不断的启动新Java进程
-	if (0 != checkPid() || _state != ServerObject::Active)
-	{
-		setPid(pid);
-	}
-
-	//心跳不改变正在转换期状态(Activating除外)
-	if(toStringState(_state).find("ing") == string::npos || _state == ServerObject::Activating)
-	{
-		setState(ServerObject::Active);
-	}
 
 	if(!_loaded)
 	{
@@ -535,7 +535,11 @@ void ServerObject::keepActiving(const ServerInfo &si)
     }
     time_t now  = TNOW;
     setLastKeepAliveTime(now);
-    setPid(si.pid);
+//    setPid(si.pid);
+	if (!isContainer())
+	{
+		setPid(si.pid);
+	}
 
     setState(ServerObject::Activating);
 }
@@ -644,6 +648,22 @@ void ServerObject::setPid(int64_t pid)
 	NODE_LOG(_serverId)->debug() << FILE_FUN << " pid changed! " << _pid << " --->>> " << pid << endl;
 
 	_pid = pid;
+
+	if (_pid != 0)
+	{
+		if (!isContainer())
+		{
+			_procStartTime = TC_Port::getPidStartTime(_pid);
+		}
+		// 如果是容器， 则在 checkPid 中更新
+	}
+	else
+	{
+		_procStartTime = 0;
+	}
+
+	NODE_LOG(_serverId)->debug() << FILE_FUN << " pid proc startTime: " << _pid << " --->>> " << _procStartTime << endl;
+
 }
 
 void ServerObject::setPatchPercent(const int iPercent)

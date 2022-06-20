@@ -506,6 +506,11 @@ public:
 		return _ports;
 	}
 
+	time_t getProcStartTime() const
+	{
+		return _procStartTime;
+	}
+
 public:
     /**
      * auto check routine
@@ -607,6 +612,7 @@ private:
     ServerLimitResourcePtr _serviceLimitResource;
     bool				 _started;				//是否已经通过commandStart启动成功
 	int64_t              _startTime;			//启动的时间,作为checkpid系统延迟判断的起点
+	time_t               _procStartTime = 0;    // 进程启动时间， 从系统中获取
 };
 
 typedef TC_AutoPtr<ServerObject> ServerObjectPtr;
