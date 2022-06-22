@@ -1565,7 +1565,7 @@ int DbProxy::getServerTree(vector<ServerTree> &tree)
 	return -1;
 }
 
-int DbProxy::getPatchPackage(const string &application, const string &serverName, int packageType, int defaultVersion, PatchPackage &pack)
+int DbProxy::getPatchPackage(const string &application, const string &serverName, int defaultVersion, PatchPackage &pack)
 {
 	try
 	{
@@ -1574,7 +1574,7 @@ int DbProxy::getPatchPackage(const string &application, const string &serverName
 			MYSQL_LOCK
 
 			string sql;
-			sql = "select id, md5 from t_server_patchs where server='" + MYSQL_INDEX->escapeString(application + "." + serverName) + "' and package_type = " + TC_Common::tostr(packageType) + " and default_version = " + TC_Common::tostr(defaultVersion) + " limit 0, 1";
+			sql = "select id, md5 from t_server_patchs where server='" + MYSQL_INDEX->escapeString(application + "." + serverName) + "' and default_version = " + TC_Common::tostr(defaultVersion) + " limit 0, 1";
 
 			data = MYSQL_INDEX->queryRecord(sql);
 		}
