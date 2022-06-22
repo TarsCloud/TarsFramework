@@ -293,12 +293,11 @@ public:
 	/**
 	 *
 	 * @param server
-	 * @param packageType
 	 * @param defaultVersion
 	 * @param pack
 	 * @return
 	 */
-	int getPatchPackage(const string &application, const string &serverName, int packageType, int defaultVersion, PatchPackage &pack);
+	int getPatchPackage(const string &application, const string &serverName, int defaultVersion, PatchPackage &pack);
 
 	/**
 	 * get server name list
