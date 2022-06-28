@@ -1,5 +1,18 @@
-# v3.0.8 20220606
+# v3.0.8 20220628
 
+### en
+
+- Update: tars admin getpatchpackage package type not use
+- Add: tarsnode add server start time in linux
+- Add: tarsnode not update pid when server in docker mode(pid is docker pid)
+- Fix: tarsnode upload load clear ports
+### cn
+
+
+- Update: tars admin getpatchpackage packagetype字段不使用, 为了兼容不删除
+- Add: tarsnode 添加了服务启动时间(linux下)
+- Add: tarsnode 不更新pid 当服务是容器模式时 
+- Fix: tarsnode 加载服务时, 先清除掉端口
 ### en
 
 - Add: tars admin add interface to add server & adapter & conf
