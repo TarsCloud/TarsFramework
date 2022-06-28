@@ -79,7 +79,7 @@ public:
 
 		int ret = ServerManager::getInstance()->getPatchPercent(application, serverName, info);
 
-		NODE_LOG(application + "." + serverName)->debug() << "requestId:" << requestId << ", " << info.writeToJsonString() << endl;
+		NODE_LOG(application + "." + serverName)->debug() << "requestId:" << requestId << ", ret:" << ret << ", " << info.writeToJsonString() << endl;
 
 		TarsOutputStream<BufferWriterString> os;
 		info.writeTo(os);

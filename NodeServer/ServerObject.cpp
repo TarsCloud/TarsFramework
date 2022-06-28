@@ -820,7 +820,7 @@ bool ServerObject::isCoreDump(int pid)
 //checkServer时对服务所占用的内存上报到主控
 bool ServerObject::checkServer(int iTimeout)
 {
-	if(_state == ServerObject::Inactive && _desc.settingState == "inactive")
+	if((_state == ServerObject::Inactive && _desc.settingState == "inactive") )
 	{
 		return false;
 	}
@@ -831,12 +831,12 @@ bool ServerObject::checkServer(int iTimeout)
 
 	    int flag = checkPid();
 
-		if(flag != 0 && _state != ServerObject::Inactive)
+		if(flag != 0 && _state != ServerObject::Inactive && !(_state == ServerObject::Patching || _state==ServerObject::BatchPatching))
 		{
     		NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
 		    NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
 
-			//pid不存在, 同步状态
+    		//pid不存在, 同步状态
 			setState(ServerObject::Inactive, true);
 		}
 		else if(flag == 0)

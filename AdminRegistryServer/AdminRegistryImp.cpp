@@ -1070,7 +1070,7 @@ int AdminRegistryImp::getPatchPercent_inner(const string &application, const str
 		}
 		else
 		{
-			TLOG_ERROR(application + "." + serverName + "_" + nodeName << ", iRet:" << iRet << ", result:" << result << endl);
+			TLOG_ERROR(application + "." + serverName + "_" + nodeName << ", iRet:" << iRet << endl);
 			tPatchInfo.sResult = "getPatchPercent " + nodeName + " error, iRet:" + TC_Common::tostr(iRet);
 		}
 	}
