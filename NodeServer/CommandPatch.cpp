@@ -348,35 +348,6 @@ int CommandPatch::execute(string &sResult)
             conf.parseFile(_serverObjectPtr->getConfigFile());
             string packageFormat= _serverObjectPtr->getPackageFormat(); //conf.get("/tars/application/server<packageFormat>","war");
 
-            if(packageFormat == "image")
-            {
-            	string cmd = busybox + " tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
-
-            	//解压
-            	system(cmd.c_str());
-
-            	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd <<endl;
-
-            	//镜像模式
-            	vector<string> files;
-            	tars::TC_File::listDirectory(sLocalExtractPach, files, true);
-            	if(files.empty())
-            	{
-            		sResult = sLocalExtractPach + " directory is empty!";
-            		NODE_LOG(_serverObjectPtr->getServerId())->error() <<FILE_FUN<<sResult<< endl;
-            		iRet = -6;
-            		break;
-            	}
-
-            	NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<< "copy directory:" << files[0] << " -> " << _serverObjectPtr->getExePath() << endl;
-
-            	string cpCmd = busybox + string(" cp -rf ") + files[0] + " " +  _serverObjectPtr->getExePath();
-
-            	system(cpCmd.c_str());
-//            	TC_File::copyFile(files[0], _serverObjectPtr->getExePath(), true);
-            }
-            else
-            {
             	string cmd,sLocalTgzFile_bak;
             	if (_serverObjectPtr->getServerType() == "tars_java") //如果是tars_java，使用war 方法
             	{
@@ -404,7 +375,7 @@ int CommandPatch::execute(string &sResult)
             	//解压
             	system(cmd.c_str());
 
-            	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd <<endl;
+            	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "unzip:" << cmd << ", error: " << TC_Exception::getSystemError() <<endl;
 
             	/**
 				 * 有可能system这里解压失败了，
@@ -455,8 +426,9 @@ int CommandPatch::execute(string &sResult)
             	if (_serverObjectPtr->getServerType() == "tars_java" && packageFormat=="jar")
             	{
             		string  cpCmd = busybox + " cp -f "+sLocalTgzFile_bak + " " + _serverObjectPtr->getExePath();
-            		NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << endl;
             		system(cpCmd.c_str());
+
+					NODE_LOG(_serverObjectPtr->getServerId())->debug() <<FILE_FUN<<"|copy :" << cpCmd << ", " << TC_Exception::getSystemError() << endl;
             	}
             	else
             	{
@@ -493,7 +465,6 @@ int CommandPatch::execute(string &sResult)
 
             		TC_File::copyFile(srcPath, _serverObjectPtr->getExePath(), true);
             	}
-            }
 
         } while ( false );
 
