@@ -173,7 +173,7 @@ int ESReader::listFunction(const string& date, const string& serverName, set<str
                 "must": [
                   {
                     "prefix": {
-                      "vertexes.vertex": "SERVER."
+                      "vertexes.vertex.keyword": "SERVER."
                     }
                   }
                 ]
@@ -295,7 +295,7 @@ int ESReader::getServerGraph(const string& date, const string& serverName, vecto
         "bool":{
             "filter":[
                 {"term":{"type":"server"}},
-                {"nested":{"path":"vertexes","query":{"bool":{"must":[{"term":{"vertexes.vertex":"SERVER"}}]}}}}
+                {"nested":{"path":"vertexes","query":{"bool":{"must":[{"term":{"vertexes.vertex.keyword":"SERVER"}}]}}}}
             ]
         }
     }
@@ -336,7 +336,7 @@ int ESReader::getFunctionGraph(const string& date, const string& functionName, v
         "bool":{
             "filter":[
                 {"term":{"type":"function"}},
-                {"nested":{"path":"vertexes","query":{"bool":{"must":[{"term":{"vertexes.vertex":"FUNCTION"}}]}}}}
+                {"nested":{"path":"vertexes","query":{"bool":{"must":[{"term":{"vertexes.vertex.keyword":"FUNCTION"}}]}}}}
             ]
         }
     }
@@ -375,7 +375,7 @@ int ESReader::getTrace(const string& date, const string& traceName, ITrace& trac
     "query":{
         "bool":{
             "filter":[
-                {"term":{"trace":"TRACE"}}
+                {"term":{"trace.keyword":"TRACE"}}
             ]
         }
     }

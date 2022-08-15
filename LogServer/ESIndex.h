@@ -13,34 +13,70 @@ constexpr char LogIndexTemplate[] = R"(
   "mappings": {
     "properties": {
       "trace": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "span": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "parent": {
-        "type": "keyword"
-      },
-      "type": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "master": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "slave": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "function": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "time": {
         "type": "long"
       },
+      "type": {
+        "type": "text"
+      },
       "ret": {
-        "type": "keyword"
+        "type": "text"
       },
       "data": {
-        "type": "keyword"
+        "type": "text"
       }
     }
   }
@@ -53,13 +89,31 @@ constexpr char TraceIndexTemplate[] = R"(
   "mappings": {
     "properties": {
       "trace": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "tSpan": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "tMaster": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "tsTime": {
         "type": "long"
@@ -68,25 +122,61 @@ constexpr char TraceIndexTemplate[] = R"(
         "type": "long"
       },
       "sHash": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "fHash": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "spans": {
         "type": "nested",
         "properties": {
           "span": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "parent": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "master": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "slave": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "csTime": {
             "type": "long"
@@ -101,22 +191,37 @@ constexpr char TraceIndexTemplate[] = R"(
             "type": "long"
           },
           "csData": {
-            "type": "keyword"
+            "type": "text"
           },
           "srData": {
-            "type": "keyword"
+            "type": "text"
           },
           "ssData": {
-            "type": "keyword"
+            "type": "text"
           },
           "crData": {
-            "type": "keyword"
+            "type": "text"
           },
           "ret": {
-            "type": "keyword"
+            "type": "text"
           },
           "children": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
+          },
+          "function": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           }
         }
       }
@@ -131,13 +236,25 @@ constexpr char GraphIndexTemplate[] = R"(
   "mappings": {
     "properties": {
       "type": {
-        "type": "keyword"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        }
       },
       "vertexes": {
         "type": "nested",
         "properties": {
           "vertex": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "callCount": {
             "type": "long"
@@ -151,10 +268,22 @@ constexpr char GraphIndexTemplate[] = R"(
         "type": "nested",
         "properties": {
           "fromVertex": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "toVertex": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            }
           },
           "callCount": {
             "type": "long"
