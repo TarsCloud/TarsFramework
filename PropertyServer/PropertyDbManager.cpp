@@ -615,7 +615,7 @@ int PropertyDbManager::insert2MultiDbs(int iIndex, const PropertyMsg &propertyms
 ///////////////////////////////////////////////////////////
 int PropertyDbManager::sendAlarmSMS(const string &sMsg)
 {
-    string errInfo = " ERROR:" + ServerConfig::LocalIp + "|" + sMsg +  ":统计入库失败，请及时处理!";
+    string errInfo = "[error]:" + ServerConfig::LocalIp + "|" + sMsg +  ":insert to database error!";
     TARS_NOTIFY_ERROR(errInfo);
 
     TLOGERROR("TARS_NOTIFY_ERROR " << errInfo << endl);

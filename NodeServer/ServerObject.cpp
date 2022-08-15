@@ -408,7 +408,7 @@ int ServerObject::checkPid()
 
 			string startTime = JsonValueStringPtr::dynamicCast(sPtr->value["StartedAt"])->value;
 
-			pid_t pid = (pid_t)(JsonValueNumPtr::dynamicCast(sPtr->value["Pid"])->value);
+			int64_t pid = (int64_t)(JsonValueNumPtr::dynamicCast(sPtr->value["Pid"])->value);
 
 			if(value == "running")
 			{
