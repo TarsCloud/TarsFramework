@@ -1,3 +1,14 @@
+
+# v3.0.9 20220816
+
+### en
+
+- fix: es compatibility of tarslog
+- add: tarsnode log when call system()
+### cn
+
+- fix: tarslog兼容es的问题
+- add: tarsnode调用system时增加日志
 # v3.0.8 20220628
 
 ### en
