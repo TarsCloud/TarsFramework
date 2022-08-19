@@ -1447,6 +1447,7 @@ int DbProxy::registerPlugin(const PluginConf &conf)
 		m["f_obj"]  	  = make_pair(TC_Mysql::DB_STR, conf.obj);
 		m["f_type"]       = make_pair(TC_Mysql::DB_INT, TC_Common::tostr(conf.type));
 		m["f_path"]       = make_pair(TC_Mysql::DB_STR, conf.path);
+		m["f_extern"]       = make_pair(TC_Mysql::DB_STR, TC_Common::tostr(conf.fextern));
 
 		MYSQL_LOCK
 
