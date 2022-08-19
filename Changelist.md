@@ -1,14 +1,16 @@
 
-# v3.0.10 20220816
+# v3.0.10 20220819
 
 ### en
 
 - fix: es compatibility of tarslog
 - add: tarsnode log when call system()
+- add: tarsAdminRegistry support plugin extern
 ### cn
 
 - fix: tarslog兼容es的问题
 - add: tarsnode调用system时增加日志
+- add: arsAdminRegistry支持外部插件
 # v3.0.9 20220628
 
 ### en
