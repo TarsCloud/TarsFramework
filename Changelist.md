@@ -1,4 +1,13 @@
 
+
+# v3.0.11 20220823
+
+### en
+
+- fix tars_node_init.sql not init tarsAdminRegistry
+### cn
+
+- fix: tars_node_init.sql 中不要初始化tarsAdminRegistry
 # v3.0.10 20220819
 
 ### en
@@ -10,7 +19,7 @@
 
 - fix: tarslog兼容es的问题
 - add: tarsnode调用system时增加日志
-- add: arsAdminRegistry支持外部插件
+- add: tarsAdminRegistry支持外部插件
 # v3.0.9 20220628
 
 ### en
