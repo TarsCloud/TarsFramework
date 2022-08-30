@@ -126,7 +126,7 @@ int main( int argc, char* argv[] )
 #if !TARGET_PLATFORM_WINDOWS
         if (!bNoDaemon)
         {
-            // TC_Common::daemon();
+            TC_Common::daemon();
         }
 #endif
         parseConfig(argc,argv);
