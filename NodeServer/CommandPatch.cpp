@@ -369,7 +369,7 @@ int CommandPatch::execute(string &sResult)
             	}
             	else
             	{
-            		cmd = busybox + " tar xzfv " + sLocalTgzFile + " -C " + sLocalExtractPach;
+            		cmd = busybox + " tar xzf " + sLocalTgzFile + " -C " + sLocalExtractPach;
             	}
 
             	//解压

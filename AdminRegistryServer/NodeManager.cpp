@@ -198,7 +198,6 @@ unordered_map<string, NodeManager::UidTimeStr> NodeManager::getNodeList()
 
 void NodeManager::createNodeCurrent(const string& nodeName, const string &sid, CurrentPtr &current)
 {
-
 	TC_ThreadLock::Lock lock(_NodePrxLock);
 
 	auto it = _mapNodeId.find(nodeName);
@@ -206,7 +205,7 @@ void NodeManager::createNodeCurrent(const string& nodeName, const string &sid, C
 	{
 		it->second.timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
 
-//		TLOG_DEBUG("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << ", uid:" << current->getUId() << endl);
+		TLOG_DEBUG("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << ", uid:" << current->getUId() << endl);
 
 		auto ii = it->second.its.find(current->getUId());
 		if(ii != it->second.its.end())
@@ -284,8 +283,11 @@ void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 	auto it = _mapIdNode.find(current->getUId());
 	if(it != _mapIdNode.end())
 	{
-		for(auto nodeName : it->second)
+//		TLOG_DEBUG("uid:" << current->getUId() << ", node name size: " << it->second.size() << endl);
+		for(auto &nodeName : it->second)
 		{
+//			TLOG_DEBUG("nodeName:" << nodeName << endl);
+
 			auto ii = _mapNodeId.find(nodeName);
 			if(ii != _mapNodeId.end())
 			{
@@ -294,6 +296,10 @@ void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 				{
 					ii->second.uids.erase(iu->second);
 					ii->second.its.erase(iu);
+				}
+
+				if(ii->second.uids.empty()) {
+					_mapNodeId.erase(ii);
 				}
 			}
 		}
