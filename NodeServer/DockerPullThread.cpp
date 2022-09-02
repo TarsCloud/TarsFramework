@@ -218,7 +218,13 @@ void DockerPullThread::doPull(ServerObjectPtr server, std::function<void(ServerO
 			if(!isSucc)
 			{
 				isNeedPull = true;
-				result = "inspect image:" + server->getServerDescriptor().baseImage + "  error" + docker.getErrMessage();
+
+                if(docker.getErrMessage().find("no such image") != string::npos)
+                {
+                    isSucc = true;
+                }
+                
+                result = "inspect image:" + server->getServerDescriptor().baseImage + "  error" + docker.getErrMessage();
 				NODE_LOG(server->getServerId())->debug() << FILE_FUN << result << endl;
 				g_app.reportServer(server->getServerId(), "", server->getNodeInfo().nodeName, result);
 				break;
