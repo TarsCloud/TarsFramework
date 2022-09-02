@@ -56,6 +56,7 @@ void AdminRegistryServer::initialize()
         }
 		ExecuteTask::getInstance()->init(g_pconf);
 
+		NodeManager::getInstance()->initialize();
 		NodeManager::getInstance()->start();
     }
     catch(TC_Exception & ex)
