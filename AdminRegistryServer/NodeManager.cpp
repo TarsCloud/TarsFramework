@@ -7,6 +7,46 @@
 #include "servant/Application.h"
 #include "DbProxy.h"
 
+class NodeServantProxyCallback : public ServantProxyCallback
+{
+public:
+	NodeServantProxyCallback(const CurrentPtr &current) : _current(current)
+	{
+
+	}
+
+	virtual int onDispatch(ReqMessagePtr msg)
+	{
+		TLOG_DEBUG("response iRet:" << msg->response->iRet << ", iRequestId:" << _current->getRequestId() << ", " << _current->getFuncName() << ", " << _current->getIp() << ":" << _current->getPort() << endl);
+		if(msg->response->iRet == 0)
+		{
+			if(msg->response->context.find("TARS_WEB_FORWARD") == msg->response->context.end())
+			{
+				msg->response->iRequestId = _current->getRequestId();
+
+				TarsOutputStream<BufferWriterVector> os;
+
+				tars::Int32 iHeaderLen = 0;
+
+				//	先预留4个字节长度
+				os.writeBuf((const char*)&iHeaderLen, sizeof(iHeaderLen));
+
+				msg->response->writeTo(os);
+
+				iHeaderLen = htonl(os.getLength());
+
+				memcpy((void*)os.getBuffer(), (const char*)&iHeaderLen, sizeof(iHeaderLen));
+
+				_current->sendResponse(os.getBuffer(), os.getLength());
+			}
+		}
+		return 0;
+	}
+
+protected:
+	CurrentPtr _current;
+};
+
 class AsyncNodePrxCallback : public NodePrxCallback
 {
 public:
@@ -205,7 +245,7 @@ void NodeManager::createNodeCurrent(const string& nodeName, const string &sid, C
 	{
 		it->second.timeStr = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
 
-		TLOG_DEBUG("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << ", uid:" << current->getUId() << endl);
+//		TLOG_DEBUG("nodeName:" << nodeName << ", connection uid size:" << it->second.uids.size() << ", uid:" << current->getUId() << endl);
 
 		auto ii = it->second.its.find(current->getUId());
 		if(ii != it->second.its.end())
@@ -271,7 +311,7 @@ CurrentPtr NodeManager::getNodeCurrent(const string& nodeName)
 		return _mapIdCurrent.at(*uid);
 	}
 
-	TLOG_ERROR("nodeName:" << nodeName << " no alive connection." << endl);
+//	TLOG_ERROR("nodeName:" << nodeName << " no alive connection." << endl);
 
 	return NULL;
 }
@@ -283,11 +323,8 @@ void NodeManager::eraseNodeCurrent(CurrentPtr &current)
 	auto it = _mapIdNode.find(current->getUId());
 	if(it != _mapIdNode.end())
 	{
-//		TLOG_DEBUG("uid:" << current->getUId() << ", node name size: " << it->second.size() << endl);
 		for(auto &nodeName : it->second)
 		{
-//			TLOG_DEBUG("nodeName:" << nodeName << endl);
-
 			auto ii = _mapNodeId.find(nodeName);
 			if(ii != _mapNodeId.end())
 			{
@@ -315,6 +352,11 @@ void NodeManager::terminate()
 	_terminate = true;
 
 	_cond.notify_one();
+}
+
+void NodeManager::initialize()
+{
+	_adminPrx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(ServerConfig::Application + "." + ServerConfig::ServerName + ".AdminRegObj");
 }
 
 void NodeManager::run()
@@ -405,8 +447,39 @@ int NodeManager::requestNode(const string & nodeName, string &out, CurrentPtr cu
 
 		if(!nodePrx)
 		{
-			TLOG_ERROR("nodeName:" << nodeName << ", no long connection" <<endl);
-			return EM_TARS_NODE_NO_CONNECTION;
+			if(current->getContext().find("TARS_WEB_FORWARD") != current->getContext().end())
+			{
+				TLOG_ERROR("nodeName:" << nodeName << ", no long connection" <<endl);
+				current->setResponseContext(current->getContext());
+				return EM_TARS_NODE_NO_CONNECTION;
+			}
+			else
+			{
+				ServantProxyCallbackPtr callback = new NodeServantProxyCallback(current);
+
+				current->getContext()["TARS_WEB_FORWARD"] = "on";
+
+				vector<EndpointInfo> activeEndPoint;
+				vector<EndpointInfo> inactiveEndPoint;
+				_adminPrx->tars_endpoints(activeEndPoint, inactiveEndPoint);
+
+				for(auto &ep : activeEndPoint)
+				{
+					current->setResponse(false);
+
+					string obj = ServerConfig::Application + "." + ServerConfig::ServerName + ".AdminRegObj@" + ep.getEndpoint().toString();
+
+					TLOG_DEBUG("nodeName:" << nodeName << ", requestId:" << current->getRequestId() << ", forward to other admin, obj:" << obj << endl);
+
+					AdminRegPrx adminPrx = Application::getCommunicator()->stringToProxy<AdminRegPrx>(obj);
+
+					adminPrx->tars_invoke_async(current->getPacketType(),
+							current->getFuncName(), current->getRequestBuffer(), current->getContext(),
+							current->getRequestStatus(), callback);
+				}
+
+				return EM_TARS_NODE_NO_CONNECTION;
+			}
 		}
 
 		if(current)

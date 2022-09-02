@@ -34,7 +34,7 @@ public:
 		TarsOutputStream<BufferWriterString> os;
 		os.write(result, 0);
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, os.getByteBuffer());
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, os.getByteBuffer());
 	}
 
 	virtual void callback_getLogData(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName,  const std::string& logFile,  const std::string& cmd)
@@ -45,7 +45,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << "requestId:" << requestId << ", " << logFile << ", " << cmd << ", ret:" << ret << ", " << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_getLogFileList(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -59,7 +59,7 @@ public:
 		TarsOutputStream<BufferWriterString> os;
 		os.write(result, 0);
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, os.getByteBuffer());
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, os.getByteBuffer());
 	}
 
 	virtual void callback_getNodeLoad(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName, tars::Int32 pid)
@@ -70,7 +70,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << "requestId:" << requestId << ", ret:" << ret << ", " << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_getPatchPercent(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -84,7 +84,7 @@ public:
 		TarsOutputStream<BufferWriterString> os;
 		info.writeTo(os);
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__ ,  ret, os.getByteBuffer());
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__ ,  ret, os.getByteBuffer());
 	}
 
 	virtual void callback_delCache(tars::Int32 requestId,  const std::string& nodeName,  const std::string& sFullCacheName,  const std::string& sBackupPath,  const std::string& sKey)
@@ -95,7 +95,7 @@ public:
 
 		TLOG_DEBUG("requestId:" << requestId << ", " << sFullCacheName << ", " << sBackupPath << ", " << sKey << result << endl);
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_getStateInfo(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -111,7 +111,7 @@ public:
 		os.write(info, 0);
 		os.write(result, 1);
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, os.getByteBuffer());
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, os.getByteBuffer());
 	}
 
 	virtual void callback_loadServer(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -122,7 +122,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << "requestId:" << requestId << ", " << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_notifyServer(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName,  const std::string& command)
@@ -133,7 +133,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << "requestId:" << requestId << ", " << command << ", " << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_patchPro(tars::Int32 requestId, const string &nodeName,  const tars::PatchRequest& req)
@@ -144,13 +144,13 @@ public:
 
 		NODE_LOG(req.appname+ "." + req.servername)->debug() << "requestId:" << requestId << ", " << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_ping(tars::Int32 requestId, const string &nodeName)
 	{
 		TLOG_DEBUG("requestId:" << requestId << endl);
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, 0, "ping succ");
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, 0, "ping succ");
 	}
 
 	virtual void callback_shutdown(tars::Int32 requestId, const string &nodeName)
@@ -159,7 +159,7 @@ public:
 
 		int ret = ServerManager::getInstance()->shutdown(result);
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_destroyServer(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -170,7 +170,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_startServer(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -181,7 +181,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 	virtual void callback_stopServer(tars::Int32 requestId, const string &nodeName,  const std::string& application,  const std::string& serverName)
@@ -192,7 +192,7 @@ public:
 
 		NODE_LOG(application + "." + serverName)->debug() << result << endl;
 
-		_adminPrx->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
+		_adminPrx->tars_hash(tars::hash<string>()(nodeName))->async_reportResult(NULL, requestId, __FUNCTION__, ret, result);
 	}
 
 protected:

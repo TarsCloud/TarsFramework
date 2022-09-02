@@ -64,6 +64,7 @@ int AdminRegistryImp::reportNode(const ReportNode &rn, CurrentPtr current)
 
 int AdminRegistryImp::deleteNode(const ReportNode &rn, CurrentPtr current)
 {
+	TLOG_DEBUG("nodeName:" << rn.nodeName << ",uid:" << current->getUId() << endl);
 	NodeManager::getInstance()->deleteNodeCurrent(rn.nodeName, rn.sid, current);
 	return 0;
 }

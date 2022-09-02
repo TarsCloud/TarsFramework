@@ -32,6 +32,7 @@ public:
 	NodeManager();
 
 	void terminate();
+	void initialize();
 
 	NodePrx getNodePrx(const string& nodeName);
 	void eraseNodePrx(const string& nodeName);
@@ -273,6 +274,9 @@ protected:
 	int _timeout = 5000;
 
 	TC_TimeoutQueue<NodeResultInfoPtr>	_timeoutQueue;
+
+	AdminRegPrx _adminPrx;
+
 };
 
 
