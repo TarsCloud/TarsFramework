@@ -473,8 +473,25 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	entrypoint.emplace_back(CommandStart::getStartScript(serverObjectPtr));
 
 	map<string, string> mounts;
-	mounts[serverObjectPtr->getServerDir()] = serverObjectPtr->getServerDir();
-	mounts[serverObjectPtr->getLogPath()] = serverObjectPtr->getLogPath();
+	string hostPath = TC_Port::getEnv("TARS_HOSTPATH");
+
+	if(!hostPath.empty())
+	{
+		//在容器内部, 目录要映射成宿主机的目录才行
+
+		// /usr/local/app/tars/tarsnode/data/Test.BroadcastServer -> /data/tars/tarsnode-data/data/Test.BroadcastServer
+		string serverDir = TC_File::simplifyDirectory(TC_Common::replace(serverObjectPtr->getServerDir(), TC_File::simplifyDirectory(ServerConfig::TarsPath + FILE_SEP + "tarsnode"), hostPath + FILE_SEP + "tarsnode-data"));
+		mounts[serverDir] = serverObjectPtr->getServerDir();
+
+		// /usr/local/app/tars/app_log/ -> /data/tars/app_log/
+		string logDir = TC_File::simplifyDirectory(TC_Common::replace(serverObjectPtr->getLogPath(), ServerConfig::TarsPath, hostPath));
+		mounts[logDir] = serverObjectPtr->getLogPath();
+	}
+	else
+	{
+		mounts[serverObjectPtr->getServerDir()] = serverObjectPtr->getServerDir();
+		mounts[serverObjectPtr->getLogPath()] = serverObjectPtr->getLogPath();
+	}
 	mounts["/etc/localtime"] = "/etc/localtime";
 
 	for(auto &volume: serverObjectPtr->getVolumes())
