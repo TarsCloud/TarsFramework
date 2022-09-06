@@ -1,13 +1,27 @@
+# v3.0.12 20220906
 
+### en
+- fix: deploy/docker.sh use tonistiigi/binfmt:latest
+- fix: tarsnode start server in docker mode when tarsnode is docker
+- fix: tarsnode docker pull bug when image not exists
+- fix: tarsnode longconnection active status bug in tarsweb
+- fix: the script process does not exit after starting tarsnode under Linux
+
+### cn
+- fix: deploy/docker.sh使用tonistiigi/binfmt:latest
+- fix: tarsnode是容器模式下且以容器化方式启动业务服务的bug
+- fix: tarsnode以容器化启动业务服务, 拉取基础镜像的bug
+- fix: tarsnode长连接模式下tarsweb显示的bug
+- fix: linux下启动tarsnode后脚本进程不退出问题修复
 
 # v3.0.11 20220823
 
 ### en
-
 - fix tars_node_init.sql not init tarsAdminRegistry
 ### cn
 
 - fix: tars_node_init.sql 中不要初始化tarsAdminRegistry
+
 # v3.0.10 20220819
 
 ### en
