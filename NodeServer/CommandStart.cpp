@@ -479,12 +479,12 @@ bool CommandStart::startContainer(const ServerObjectPtr &serverObjectPtr, string
 	{
 		//在容器内部, 目录要映射成宿主机的目录才行
 
-		// /usr/local/app/tars/tarsnode/data/Test.BroadcastServer -> /data/tars/tarsnode-data/data/Test.BroadcastServer
-		string serverDir = TC_File::simplifyDirectory(TC_Common::replace(serverObjectPtr->getServerDir(), TC_File::simplifyDirectory(ServerConfig::TarsPath + FILE_SEP + "tarsnode"), hostPath + FILE_SEP + "tarsnode-data"));
+		// /usr/local/app/tars/tarsnode/data/Test.BroadcastServer -> /data/tars/tarsnode-data/Test.BroadcastServer
+		string serverDir = TC_File::simplifyDirectory(TC_Common::replace(serverObjectPtr->getServerDir(), TC_File::simplifyDirectory(ServerConfig::TarsPath + FILE_SEP + "tarsnode" + FILE_SEP + "data"), hostPath + FILE_SEP + "tarsnode-data"));
 		mounts[serverDir] = serverObjectPtr->getServerDir();
 
 		// /usr/local/app/tars/app_log/ -> /data/tars/app_log/
-		string logDir = TC_File::simplifyDirectory(TC_Common::replace(serverObjectPtr->getLogPath(), ServerConfig::TarsPath, hostPath));
+		string logDir = TC_File::simplifyDirectory(TC_Common::replace(serverObjectPtr->getLogPath(), ServerConfig::TarsPath, hostPath + FILE_SEP));
 		mounts[logDir] = serverObjectPtr->getLogPath();
 	}
 	else
