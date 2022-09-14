@@ -56,6 +56,13 @@ public:
      */
     virtual void destroy() {};
 
+	/**
+	 * 连接关闭
+	 * @param current
+	 * @return
+	 */
+	virtual int doClose(CurrentPtr current);
+
     /** 
      * 根据id获取所有该对象的活动endpoint列表
      */
@@ -85,6 +92,22 @@ public:
      * 根据id获取对象同set endpoint列表
      */
     Int32 findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp, CurrentPtr current);
+
+	/**
+	 * 注册变化
+	 * @param id
+	 * @param current
+	 * @return
+	 */
+	Int32 registerQuery(const std::string & id, CurrentPtr current);
+
+	/**
+	 * 注册变化
+	 * @param id
+	 * @param current
+	 * @return
+	 */
+	Int32 registerChange(const std::string & id, CurrentPtr current);
 
 private:
     /**

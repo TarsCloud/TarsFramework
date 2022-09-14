@@ -15,6 +15,7 @@
  */
 
 #include "QueryImp.h"
+#include "RegisterQueryManager.h"
 #include "util/tc_clientsocket.h"
 
 extern TC_Config * g_pconf;
@@ -206,3 +207,20 @@ string QueryImp::eFunTostr(const FUNID eFnId)
     return sFun;
 }
 
+int QueryImp::doClose(CurrentPtr current)
+{
+	RegisterQueryManager::getInstance()->closeQuery(current);
+	return 0;
+}
+
+Int32 QueryImp::registerQuery(const std::string & id, CurrentPtr current)
+{
+	RegisterQueryManager::getInstance()->registerQuery(id, current);
+	return 0;
+}
+
+Int32 QueryImp::registerChange(const std::string & id, CurrentPtr current)
+{
+	RegisterQueryManager::getInstance()->registerChange(id, current);
+	return 0;
+}

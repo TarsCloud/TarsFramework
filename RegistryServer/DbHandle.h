@@ -30,15 +30,11 @@
 #include "Node.h"
 #include "servant/RemoteLogger.h"
 
-//#define GROUPCACHEFILE      "serverGroupCache.dat"
-//#define GROUPPROICACHEFILE  "GroupPrioCache.dat"
-
 using namespace tars;
 //////////////////////////////////////////////////////
 
 //<servant, ObjectItem>
 typedef map<string, ObjectItem> ObjectsCache;
-//typedef TarsHashMap<ObjectName, ObjectItem, ThreadLockPolicy, FileStorePolicy> FileHashMap;
 
 //_mapServantStatus的key
 struct ServantStatusKey
@@ -120,12 +116,12 @@ public:
      */ 
     void updateMysql();
 
-    /**
-     * 获取特定node id的对象代理
-     * @param nodeName : node id
-     * @return :  对象代理的智能指针
-     */
-    NodePrx getNodePrx(const string & nodeName);
+//    /**
+//     * 获取特定node id的对象代理
+//     * @param nodeName : node id
+//     * @return :  对象代理的智能指针
+//     */
+//    NodePrx getNodePrx(const string & nodeName);
 
     /**
      * 保存node注册的session
@@ -504,15 +500,6 @@ private:
     void updateStatusCache(const std::map<ServantStatusKey, int>& mStatus,bool updateAll=false);
 
     /**
-     * 更新缓存中的服务流量状态值
-     *
-     * @param mStatus
-     * @param updateAll 是否全部更新
-     * @param bFirstLoad  是否是第一次全量加载
-     */
-    void updateFlowStatusCache(const std::map<ServantStatusKey, int>& mStatus, bool updateAll);
-
-    /**
      * 更新缓存中的服务信息
      *
      * @param objCache
@@ -558,10 +545,6 @@ protected:
     //mysql连接对象
     TC_Mysql _mysqlReg;
 
-//    //node节点代理列表
-//    static map<string , NodePrx> _mapNodePrxCache;
-//    static TC_ThreadLock _NodePrxLock;
-
     //对象列表缓存
     static TC_ReadersWriterData<ObjectsCache>    _objectsCache;
 
@@ -574,22 +557,16 @@ protected:
     //servant状态表
     static std::map<ServantStatusKey, int> _mapServantStatus;
 
-    //servant流量状态表
-    static std::map<ServantStatusKey, int> _mapServantFlowStatus;
-
     //存在多线程更新_mapServantStatus，需要加锁
     static TC_ThreadLock _mapServantStatusLock;
-
-    //存在多线程更新_mapServantFlowStatus，需要加锁
-    static TC_ThreadLock _mapServantFlowStatusLock;
 
     //分组信息
     static TC_ReadersWriterData<map<string,int> > _groupIdMap;
     static TC_ReadersWriterData<map<string,int> > _groupNameMap;
 
-     // stat监控数据mysql连接对象
-     static tars::TC_Mysql _mysqlQueryStat;
-     static bool _isMysqlQueryStatInited;
+    // stat监控数据mysql连接对象
+    static tars::TC_Mysql _mysqlQueryStat;
+    static bool _isMysqlQueryStatInited;
 };
 
 #endif

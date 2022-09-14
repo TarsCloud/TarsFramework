@@ -21,19 +21,17 @@
 #include "LoadBalanceThread.h"
 #include "util.h"
 #include "NodeManager.h"
+#include "RegisterQueryManager.h"
 
 TC_ReadersWriterData<ObjectsCache> CDbHandle::_objectsCache;
 
 TC_ReadersWriterData<std::map<int, CDbHandle::GroupPriorityEntry> > CDbHandle::_mapGroupPriority;
 
 std::map<ServantStatusKey, int> CDbHandle::_mapServantStatus;
-std::map<ServantStatusKey, int> CDbHandle::_mapServantFlowStatus;
+//std::map<ServantStatusKey, int> CDbHandle::_mapServantFlowStatus;
 
 TC_ThreadLock CDbHandle::_mapServantStatusLock;
-TC_ThreadLock CDbHandle::_mapServantFlowStatusLock;
-
-//map<string, NodePrx> CDbHandle::_mapNodePrxCache;
-//TC_ThreadLock CDbHandle::_NodePrxLock;
+//TC_ThreadLock CDbHandle::_mapServantFlowStatusLock;
 
 //key-ip, value-组编号
 TC_ReadersWriterData<map<string, int> > CDbHandle::_groupIdMap;
@@ -222,13 +220,6 @@ int CDbHandle::registerNode(const string& name, const NodeInfo& ni, const LoadIn
         TLOG_DEBUG("registry node :" << name << " affected:" << _mysqlReg.getAffectedRows() << endl);
 
         NodeManager::getInstance()->createNodePrx(name, ni.nodeObj);
-//
-//        NodePrx nodePrx;
-//        g_app.getCommunicator()->stringToProxy(ni.nodeObj, nodePrx);
-//
-//        TC_ThreadLock::Lock lock(_NodePrxLock);
-//        _mapNodePrxCache[name] = nodePrx;
-
     }
     catch (TC_Mysql_Exception& ex)
     {
@@ -258,9 +249,6 @@ int CDbHandle::destroyNode(const string& name)
         TLOG_DEBUG("CDbHandle::destroyNode " << name << " affected:" << _mysqlReg.getAffectedRows() << endl);
 
         NodeManager::getInstance()->eraseNodePrx(name);
-
-//        TC_ThreadLock::Lock lock(_NodePrxLock);
-//        _mapNodePrxCache.erase(name);
     }
     catch (TC_Mysql_Exception& ex)
     {
@@ -869,47 +857,47 @@ int CDbHandle::setServerTarsVersion(const string& app, const string& serverName,
         return -1;
     }
 }
-
-NodePrx CDbHandle::getNodePrx(const string& nodeName)
-{
-    try
-    {
-        auto nodePrx = NodeManager::getInstance()->getNodePrx(nodeName);
-
-        if(nodePrx)
-        {
-            return nodePrx;
-        }
-
-        string sSql = "select node_obj "
-                      "from t_node_info "
-                      "where node_name='" + _mysqlReg.escapeString(nodeName) + "' and present_state='active'";
-
-        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-        TLOG_DEBUG("CDbHandle::getNodePrx '" << nodeName << "' affected:" << res.size() << endl);
-
-        if (res.size() == 0)
-        {
-            throw Tars("node '" + nodeName + "' not registered  or heartbeart timeout,please check for it");
-        }
-
-        nodePrx = NodeManager::getInstance()->createNodePrx(nodeName, res[0]["node_obj"]);
-
-        return nodePrx;
-
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
-        throw Tars(string("get node record from db error:") + ex.what());
-    }
-    catch (TarsException& ex)
-    {
-        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
-        throw ex;
-    }
-
-}
+//
+//NodePrx CDbHandle::getNodePrx(const string& nodeName)
+//{
+//    try
+//    {
+//        auto nodePrx = NodeManager::getInstance()->getNodePrx(nodeName);
+//
+//        if(nodePrx)
+//        {
+//            return nodePrx;
+//        }
+//
+//        string sSql = "select node_obj "
+//                      "from t_node_info "
+//                      "where node_name='" + _mysqlReg.escapeString(nodeName) + "' and present_state='active'";
+//
+//        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
+//        TLOG_DEBUG("CDbHandle::getNodePrx '" << nodeName << "' affected:" << res.size() << endl);
+//
+//        if (res.size() == 0)
+//        {
+//            throw Tars("node '" + nodeName + "' not registered  or heartbeart timeout,please check for it");
+//        }
+//
+//        nodePrx = NodeManager::getInstance()->createNodePrx(nodeName, res[0]["node_obj"]);
+//
+//        return nodePrx;
+//
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
+//        throw Tars(string("get node record from db error:") + ex.what());
+//    }
+//    catch (TarsException& ex)
+//    {
+//        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
+//        throw ex;
+//    }
+//
+//}
 
 int CDbHandle::checkNodeTimeout(unsigned uTimeout)
 {
@@ -1414,7 +1402,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     ObjectsCache objectsCache;
     SetDivisionCache setDivisionCache;
     std::map<ServantStatusKey, int> mapStatus;
-    std::map<ServantStatusKey, int> mapFlowStatus;
+//    std::map<ServantStatusKey, int> mapFlowStatus;
 
     try
     {
@@ -1557,14 +1545,14 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                     bActive = false;
                 }
 
-                if (res[i]["flow_state"] == "inactive")
-                {
-                    mapFlowStatus[statusKey] = Inactive;
-                }
-                else
-                {
-                    mapFlowStatus[statusKey] = Active;
-                }
+//                if (res[i]["flow_state"] == "inactive")
+//                {
+//                    mapFlowStatus[statusKey] = Inactive;
+//                }
+//                else
+//                {
+//                    mapFlowStatus[statusKey] = Active;
+//                }
 
                 if (bSet)
                 {
@@ -1617,12 +1605,10 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
 
         updateObjectsCache(objectsCache, bLoadAll);
         updateStatusCache(mapStatus, bLoadAll);
-        updateFlowStatusCache(mapFlowStatus, bLoadAll);
         updateDivisionCache(setDivisionCache, bLoadAll);
 
         TLOG_DEBUG("loaded objects to cache  size:" << objectsCache.size() << endl);
         TLOG_DEBUG("loaded server status to cache size:" << mapStatus.size() << endl);
-        TLOG_DEBUG("loaded server flow status to cache size:" << mapFlowStatus.size() << endl);
         TLOG_DEBUG("loaded set server to cache size:" << setDivisionCache.size() << endl);
         // FDLOG() << "loaded objects to cache size:" << objectsCache.size() << endl;
         // FDLOG() << "loaded set server to cache size:" << setDivisionCache.size() << endl;
@@ -1730,7 +1716,6 @@ vector<EndpointF> CDbHandle::findObjectById(const string& id)
 
 int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp)
 {
-
     TLOG_DEBUG(__FUNCTION__ << " id: " << id << endl);
 
     ObjectsCache::iterator it;
@@ -2058,27 +2043,29 @@ void CDbHandle::updateStatusCache(const std::map<ServantStatusKey, int>& mStatus
         }
     }
 }
-
-void CDbHandle::updateFlowStatusCache(const std::map<ServantStatusKey, int>& mStatus, bool updateAll)
-{
-    TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
-    if (updateAll)
-    {
-        //全量更新
-        _mapServantFlowStatus = mStatus;
-    }
-    else
-    {
-        std::map<ServantStatusKey, int>::const_iterator it = mStatus.begin();
-        for (; it != mStatus.end(); it++)
-        {
-            _mapServantFlowStatus[it->first] = it->second;
-        }
-    }
-}
+//
+//void CDbHandle::updateFlowStatusCache(const std::map<ServantStatusKey, int>& mStatus, bool updateAll)
+//{
+//    TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
+//    if (updateAll)
+//    {
+//        //全量更新
+//        _mapServantFlowStatus = mStatus;
+//    }
+//    else
+//    {
+//        std::map<ServantStatusKey, int>::const_iterator it = mStatus.begin();
+//        for (; it != mStatus.end(); it++)
+//        {
+//            _mapServantFlowStatus[it->first] = it->second;
+//        }
+//    }
+//}
 
 void CDbHandle::updateObjectsCache(const ObjectsCache& objCache, bool updateAll)
 {
+	RegisterQueryManager::getInstance()->pushObj(_objectsCache.getReaderData(), objCache);
+
     //全量更新
     if (updateAll)
     {
@@ -2097,6 +2084,8 @@ void CDbHandle::updateObjectsCache(const ObjectsCache& objCache, bool updateAll)
             //增量的时候加载的是服务的所有节点，因此这里直接替换
             tmpObjCache[it->first] = it->second;
         }
+
+
         _objectsCache.swap();
     }
 }
@@ -2172,26 +2161,26 @@ string CDbHandle::Ip2StarStr(uint32_t ip)
     sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
     return string(str);
 }
-
-int CDbHandle::updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive)
-{
-    TLOG_DEBUG("CDbHandle::updateServerFlowState:" << app << "." << serverName << ", " << TC_Common::tostr(nodeList) << ", status:" << (bActive ? "active" : "inactive") << endl);
-    TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
-    for (size_t i = 0; i < nodeList.size(); i++)
-    {
-        ServantStatusKey statusKey = {app, serverName, nodeList[i]};
-        if (bActive) 
-        {
-            _mapServantFlowStatus[statusKey] = Active;
-        }
-        else
-        {
-            _mapServantFlowStatus[statusKey] = Inactive;
-        }
-    }
-
-    return 0;
-}
+//
+//int CDbHandle::updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive)
+//{
+//    TLOG_DEBUG("CDbHandle::updateServerFlowState:" << app << "." << serverName << ", " << TC_Common::tostr(nodeList) << ", status:" << (bActive ? "active" : "inactive") << endl);
+//    TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
+//    for (size_t i = 0; i < nodeList.size(); i++)
+//    {
+//        ServantStatusKey statusKey = {app, serverName, nodeList[i]};
+//        if (bActive)
+//        {
+//            _mapServantFlowStatus[statusKey] = Active;
+//        }
+//        else
+//        {
+//            _mapServantFlowStatus[statusKey] = Inactive;
+//        }
+//    }
+//
+//    return 0;
+//}
 
 int CDbHandle::getFrameworkKey(FrameworkKey &fKey)
 {

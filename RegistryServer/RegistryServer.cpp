@@ -16,7 +16,7 @@
 
 #include "RegistryServer.h"
 #include "util.h"
-
+#include "RegisterQueryManager.h"
 #include "LoadBalanceThread.h"
 
 extern TC_Config *g_pconf;
@@ -49,10 +49,6 @@ void RegistryServer::initialize()
 		//拉取docker镜像
 		_dockerThread.init();
 		_dockerThread.start();
-//
-//        //监控所有服务状态的线程
-//        _checksetingThread.init();
-//        _checksetingThread.start();
 
         // 启动动态负载均衡加载线程
         LOAD_BALANCE_INS->init();
@@ -68,6 +64,8 @@ void RegistryServer::initialize()
 
         //供tars的服务获取路由的对象
         addServant<QueryImp>((*g_pconf)["/tars/objname<QueryObjName>"]);
+
+		RegisterQueryManager::getInstance()->start();
 
         RemoteTimeLogger::getInstance()->enableRemote("", false);
 
@@ -98,7 +96,9 @@ void RegistryServer::destroyApp()
         _registryProcThread->terminate();
     }
 
-    TLOG_DEBUG("RegistryServer::destroyApp ok" << endl);
+	RegisterQueryManager::getInstance()->terminate();
+
+	TLOG_DEBUG("RegistryServer::destroyApp ok" << endl);
 }
 
 RegistryProcThread* RegistryServer::getRegProcThread()
