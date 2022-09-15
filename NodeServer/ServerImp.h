@@ -17,7 +17,7 @@
 #ifndef __SERVER_IMP_H_
 #define __SERVER_IMP_H_
 #include "Node.h"
-//#include <unistd.h>
+#include "QueryF.h"
 #include "ServerFactory.h"
 #include "util/tc_common.h"
 
@@ -25,6 +25,75 @@
 
 using namespace tars;
 using namespace std;
+
+class QueryImp : public QueryF
+{
+public:
+	/**
+	 * 初始化
+	 */
+	virtual void initialize()
+	{
+	};
+
+	/**
+	 * 退出
+	 */
+	virtual void destroy()
+	{
+	};
+
+	virtual int doClose(CurrentPtr current);
+
+	/**
+	 * 根据id获取所有该对象的活动endpoint列表
+	 */
+	virtual vector<EndpointF> findObjectById(const string & id, CurrentPtr current);
+
+	/**
+	 * 根据id获取所有对象,包括活动和非活动对象
+	 */
+	virtual Int32 findObjectById4Any(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
+
+	/**
+	 * 根据id获取对象所有endpoint列表
+	 */
+	Int32 findObjectById4All(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
+
+	/**
+	 * 根据id获取对象同组endpoint列表
+	 */
+	Int32 findObjectByIdInSameGroup(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
+
+	/**
+	 * 根据id获取对象指定归属地的endpoint列表
+	 */
+	Int32 findObjectByIdInSameStation(const std::string & id, const std::string & sStation, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current);
+
+	/**
+	 * 根据id获取对象同set endpoint列表
+	 */
+	Int32 findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp, CurrentPtr current);
+
+	/**
+	 * 注册变化
+	 * @param id
+	 * @param current
+	 * @return
+	 */
+	Int32 registerQuery(const std::string & id, CurrentPtr current);
+
+	/**
+	 * 注册变化
+	 * @param id
+	 * @param current
+	 * @return
+	 */
+	Int32 registerChange(const vector<std::string> & ids, CurrentPtr current);
+
+protected:
+
+};
 
 class ServerImp : public ServerF
 {
@@ -47,16 +116,19 @@ public:
     /**
      * 初始化
      */
-    virtual void initialize()
-    {
-    };
+    virtual void initialize();
 
     /**
      * 退出
      */
-    virtual void destroy()
-    {
-    };
+    virtual void destroy();
+
+	/**
+	 * 连接关闭
+	 * @param current
+	 * @return
+	 */
+	virtual int doClose(CurrentPtr current);
 
     /**
      * 上报心跳
@@ -82,7 +154,15 @@ public:
     */
     unsigned int getLatestKeepAliveTime(CurrentPtr current);
 
+	/**
+	 * 没有接口时(模拟主控该接口)
+	 * @param current
+	 * @return
+	 */
+	virtual int doNoFunc(CurrentPtr current, vector<char> &buffer);
+
 private:
+	QueryImp _queryImp;
 };
 
 typedef TC_AutoPtr<ServerImp> ServerImpPtr;

@@ -22,23 +22,21 @@
 #include "util.h"
 #include "NodeManager.h"
 #include "RegisterQueryManager.h"
-
-TC_ReadersWriterData<ObjectsCache> CDbHandle::_objectsCache;
-
-TC_ReadersWriterData<std::map<int, CDbHandle::GroupPriorityEntry> > CDbHandle::_mapGroupPriority;
+//
+//TC_ReadersWriterData<ObjectsCache> CDbHandle::_objectsCache;
+//
+//TC_ReadersWriterData<std::map<int, GroupPriorityEntry> > CDbHandle::_mapGroupPriority;
 
 std::map<ServantStatusKey, int> CDbHandle::_mapServantStatus;
-//std::map<ServantStatusKey, int> CDbHandle::_mapServantFlowStatus;
 
 TC_ThreadLock CDbHandle::_mapServantStatusLock;
-//TC_ThreadLock CDbHandle::_mapServantFlowStatusLock;
+//
+////key-ip, value-组编号
+//TC_ReadersWriterData<map<string, int> > CDbHandle::_groupIdMap;
+////key-group_name, value-组编号
+//TC_ReadersWriterData<map<string, int> > CDbHandle::_groupNameMap;
 
-//key-ip, value-组编号
-TC_ReadersWriterData<map<string, int> > CDbHandle::_groupIdMap;
-//key-group_name, value-组编号
-TC_ReadersWriterData<map<string, int> > CDbHandle::_groupNameMap;
-
-TC_ReadersWriterData<CDbHandle::SetDivisionCache> CDbHandle::_setDivisionCache;
+//TC_ReadersWriterData<CDbHandle::SetDivisionCache> CDbHandle::_setDivisionCache;
 
 tars::TC_Mysql CDbHandle::_mysqlQueryStat;
 bool CDbHandle::_isMysqlQueryStatInited = false;
@@ -508,8 +506,9 @@ string CDbHandle::getProfileTemplate(const string& sTemplateName, string& sResul
 void CDbHandle::getAllDynamicWeightServant(std::vector<string> &vtServant)
 {
     ostringstream log;
-    const auto &objectCache = _objectsCache.getReaderData();
-    log << objectCache.size() << "|";
+//    const auto &objectCache = _objectsCache.getReaderData();
+	const auto &objectCache = ObjectsCacheManager::getInstance()->getReaderObjectsCache();
+	log << objectCache.size() << "|";
     for (const auto &objPair : objectCache)
     {
         if (!objPair.second.vActiveEndpoints.empty())
@@ -955,194 +954,59 @@ int CDbHandle::checkRegistryTimeout(unsigned uTimeout)
         TLOG_ERROR("CDbHandle::checkRegistryTimeout exception: " << ex.what() << endl);
         return -1;
     }
-
 }
-//
-//int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
+
+//int CDbHandle::getGroupId(const string& ip)
 //{
+//
+//    map<string, int>& groupIdMap = _groupIdMap.getReaderData();
+//    map<string, int>::iterator it = groupIdMap.find(ip);
+//    if (it != groupIdMap.end())
+//    {
+//        return it->second;
+//    }
+//
+//    uint32_t uip = stringIpToInt(ip);
+//    string ipStar = Ip2StarStr(uip);
+//    it = groupIdMap.find(ipStar);
+//    if (it != groupIdMap.end())
+//    {
+//        return it->second;
+//    }
+//
+//    return -1;
+//}
+//
+//int CDbHandle::getGroupIdByName(const string& sGroupName)
+//{
+//    int iGroupId = -1;
 //    try
 //    {
-//        TLOG_DEBUG("CDbHandle::checkSettingState ____________________________________" << endl);
-//
-//        string sSql = "select application, server_name, node_name, setting_state "
-//                      "from t_server_conf "
-//                      "where setting_state='active' "  //检查应当启动的
-//                      "and server_type != 'tars_dns'"  //仅用来提供dns服务的除外
-//                      "and registry_timestamp >='" + TC_Common::tm2str(TC_TimeProvider::getInstance()->getNow() - iCheckLeastChangedTime) + "'";
-//
-//        int64_t iStart = TNOWMS;
-//
-//        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-//
-//        TLOG_DEBUG("CDbHandle::checkSettingState setting_state='active' affected:" << res.size() << "|cost:" << (TNOWMS - iStart) << endl);
-//
-////        NodePrx nodePrx;
-//        for (unsigned i = 0; i < res.size(); i++)
+//        if (sGroupName.empty())
 //        {
-//            string sResult;
-//            TLOG_DEBUG("checking [" << i << "]: " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << endl);
-//            try
-//            {
-//				NodePrx nodePrx = getNodePrx(res[i]["node_name"]);
-//                if (nodePrx)
-//                {
-//                    try
-//                    {
-//                        if (nodePrx->getSettingState(res[i]["application"], res[i]["server_name"], sResult) != Active)
-//                        {
-//                            string sTempSql = "select application, server_name, node_name, setting_state "
-//                                              "from t_server_conf "
-//                                              "where setting_state='active' "
-//                                              "and application = '" + res[i]["application"] + "' "
-//                                                                                              "and server_name = '" +
-//                                              res[i]["server_name"] + "' "
-//                                                                      "and node_name = '" + res[i]["node_name"] + "'";
+//            return iGroupId;
+//        }
 //
-//                            if (_mysqlReg.queryRecord(sTempSql).size() == 0)
-//                            {
-//                                TLOG_DEBUG(res[i]["application"] << "." << res[i]["server_name"] << "_"
-//                                                                 << res[i]["node_name"]
-//                                                                 << " not setting active,and not need restart" << endl);
-//                                continue;
-//                            }
-//
-//                            TLOG_DEBUG(
-//                                    res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
-//                                                          << " not setting active, start it" << endl);
-//
-//                            int iRet = nodePrx->startServer(res[i]["application"], res[i]["server_name"], sResult);
-//
-//                            TLOG_DEBUG("startServer ret=" << iRet << ",result=" << sResult << endl);
-//                        }
-//                    }
-//                    catch(exception &ex)
-//                    {
-//                        TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
-//                                               << "' exception: " << ex.what() << endl);
-//                    }
-//                }
-//            }
-//
-//            catch (TarsException& ex)
-//            {
-//                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
-//                          << "' exception: " << ex.what() << endl);
-//            }
-//            catch (exception& ex)
-//            {
-//                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << "' exception: " << ex.what() << endl);
-//            }
+//        map<string, int>& groupNameMap = _groupNameMap.getReaderData();
+//        map<string, int>::iterator it = groupNameMap.find(sGroupName);
+//        if (it != groupNameMap.end())
+//        {
+//            TLOGINFO("CDbHandle::getGroupIdByName: "<< sGroupName << "|" << it->second << endl);
+//            return it->second;
 //        }
 //    }
-//    catch (TC_Mysql_Exception& ex)
+//    catch (exception& ex)
 //    {
-//        TLOG_ERROR("CDbHandle::checkSettingState  exception: " << ex.what() << endl);
-//        return -1;
+//        TLOG_ERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
 //    }
-//    TLOG_DEBUG("CDbHandle::checkSettingState ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl);
+//    catch (...)
+//    {
+//        TLOG_ERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
+//    }
 //
-//    return 0;
+//    TLOGINFO("CDbHandle::getGroupIdByName " << sGroupName << "|" << endl);
+//    return -1;
 //}
-
-//
-//int CDbHandle::checkSettingState(const int iCheckLeastChangedTime)
-//{
-//    try
-//    {
-//        TLOG_DEBUG("CDbHandle::checkSettingState ____________________________________" << endl);
-//
-//        string sSql = "select application, server_name, node_name, setting_state "
-//                      "from t_server_conf "
-//                      "where setting_state='active' "  //检查应当启动的
-//                      "and server_type != 'tars_dns'"  //仅用来提供dns服务的除外
-//                      "and registry_timestamp >='" + TC_Common::tm2str(TC_TimeProvider::getInstance()->getNow() - iCheckLeastChangedTime) + "'";
-//
-//        int64_t iStart = TNOWMS;
-//
-//        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-//
-//        TLOG_DEBUG("CDbHandle::checkSettingState setting_state='active' affected:" << res.size() << "|cost:" << (TNOWMS - iStart) << endl);
-//
-//        for (unsigned i = 0; i < res.size(); i++)
-//        {
-//            TLOG_DEBUG("checking [" << i << "]: " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << endl);
-//            try
-//            {
-//              	NodeManager::getInstance()->async_startServer(res[i]["application"], res[i]["server_name"], res[i]["node_name"]);
-//            }
-//            catch (TarsException& ex)
-//            {
-//                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"]
-//                                       << "' exception: " << ex.what() << endl);
-//            }
-//            catch (exception& ex)
-//            {
-//                TLOG_ERROR("checking " << res[i]["application"] << "." << res[i]["server_name"] << "_" << res[i]["node_name"] << "' exception: " << ex.what() << endl);
-//            }
-//        }
-//    }
-//    catch (TC_Mysql_Exception& ex)
-//    {
-//        TLOG_ERROR("CDbHandle::checkSettingState  exception: " << ex.what() << endl);
-//        return -1;
-//    }
-//    TLOG_DEBUG("CDbHandle::checkSettingState ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl);
-//
-//    return 0;
-//}
-
-
-int CDbHandle::getGroupId(const string& ip)
-{
-
-    map<string, int>& groupIdMap = _groupIdMap.getReaderData();
-    map<string, int>::iterator it = groupIdMap.find(ip);
-    if (it != groupIdMap.end())
-    {
-        return it->second;
-    }
-
-    uint32_t uip = stringIpToInt(ip);
-    string ipStar = Ip2StarStr(uip);
-    it = groupIdMap.find(ipStar);
-    if (it != groupIdMap.end())
-    {
-        return it->second;
-    }
-
-    return -1;
-}
-
-int CDbHandle::getGroupIdByName(const string& sGroupName)
-{
-    int iGroupId = -1;
-    try
-    {
-        if (sGroupName.empty())
-        {
-            return iGroupId;
-        }
-
-        map<string, int>& groupNameMap = _groupNameMap.getReaderData();
-        map<string, int>::iterator it = groupNameMap.find(sGroupName);
-        if (it != groupNameMap.end())
-        {
-            TLOGINFO("CDbHandle::getGroupIdByName: "<< sGroupName << "|" << it->second << endl);
-            return it->second;
-        }
-    }
-    catch (exception& ex)
-    {
-        TLOG_ERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
-    }
-    catch (...)
-    {
-        TLOG_ERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
-    }
-
-    TLOGINFO("CDbHandle::getGroupIdByName " << sGroupName << "|" << endl);
-    return -1;
-}
 
 int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 {
@@ -1182,10 +1046,10 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 
 void CDbHandle::load2GroupMap(const vector<map<string, string> >& serverGroupRule)
 {
-    map<string, int>& groupIdMap = _groupIdMap.getWriterData();
-    map<string, int>& groupNameMap = _groupNameMap.getWriterData();
-    groupIdMap.clear();  //规则改变 清除以前缓存
-    groupNameMap.clear();
+    map<string, int> groupIdMap;// = _groupIdMap.getWriterData();
+    map<string, int> groupNameMap;// = _groupNameMap.getWriterData();
+//    groupIdMap.clear();  //规则改变 清除以前缓存
+//    groupNameMap.clear();
     vector<map<string, string> >::const_iterator it = serverGroupRule.begin();
     for (; it != serverGroupRule.end(); it++)
     {
@@ -1198,15 +1062,16 @@ void CDbHandle::load2GroupMap(const vector<map<string, string> >& serverGroupRul
 
         groupNameMap[it->find("group_name")->second] = groupId;
     }
-    _groupIdMap.swap();
-    _groupNameMap.swap();
+//    _groupIdMap.swap();
+//    _groupNameMap.swap();
 
+	ObjectsCacheManager::getInstance()->onChangeGroupIdName(groupIdMap, groupNameMap);
 }
 
 
 int CDbHandle::loadGroupPriority(bool fromInit)
 {
-    std::map<int, GroupPriorityEntry> & mapPriority = _mapGroupPriority.getWriterData();
+    std::map<int, GroupPriorityEntry>  mapPriority;// = _mapGroupPriority.getWriterData();
     mapPriority.clear();
     try
     {
@@ -1221,11 +1086,16 @@ int CDbHandle::loadGroupPriority(bool fromInit)
             mapPriority[i].sStation = res[i]["station"];
 
             std::vector<int> vecGroupID = TC_Common::sepstr<int>(res[i]["group_list"], "|,;", false);
-            std::copy(vecGroupID.begin(), vecGroupID.end(), std::inserter(mapPriority[i].setGroupID, mapPriority[i].setGroupID.begin()));
+			for(auto &v : vecGroupID)
+			{
+				mapPriority[i].setGroupID[v] = true;
+			}
+//            std::copy(vecGroupID.begin(), vecGroupID.end(), std::inserter(mapPriority[i].setGroupID, mapPriority[i].setGroupID.begin()));
             TLOG_DEBUG("loaded groups priority to cache [" << mapPriority[i].sStation << "] group size:" << mapPriority[i].setGroupID.size() << endl);
         }
 
-        _mapGroupPriority.swap();
+		ObjectsCacheManager::getInstance()->onChangeGroupPriorityEntry(mapPriority);
+//        _mapGroupPriority.swap();
 
         TLOG_DEBUG("loaded groups priority to cache virtual group size:" << mapPriority.size() << endl);
     }
@@ -1490,9 +1360,9 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 }
 
                 epf.authType    = ep.getAuthType();
-                epf.grouprealid = getGroupId(epf.host);
+                epf.grouprealid = ObjectsCacheManager::getInstance()->getGroupId(epf.host);
                 string ip_group_name = TC_Common::trim(res[i]["ip_group_name"]);
-                epf.grouprealid = ip_group_name.empty() ? getGroupId(epf.host) : getGroupIdByName(ip_group_name);
+                epf.grouprealid = ip_group_name.empty() ? epf.grouprealid : ObjectsCacheManager::getInstance()->getGroupIdByName(ip_group_name);
                 epf.groupworkid = TC_Common::lower(res[i]["enable_group"]) == "y" ? epf.grouprealid : -1;
                 if (TC_Common::lower(res[i]["enable_group"]) == "y" && epf.grouprealid == -1)
                 {
@@ -1584,7 +1454,7 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                 else if (!bLoadAll)
                 {
                     //增量加载,如果不启用set也要赋个空值，防止更新缓存时不彻底
-                    map<string, vector<CDbHandle::SetServerInfo> > mTemp = setDivisionCache[res[i]["servant"]];
+                    map<string, vector<SetServerInfo> > mTemp = setDivisionCache[res[i]["servant"]];
                     setDivisionCache[res[i]["servant"]] = mTemp;
                 }
             }
@@ -1693,309 +1563,322 @@ int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
     return 0;
 }
 
-vector<EndpointF> CDbHandle::findObjectById(const string& id)
-{
-    ObjectsCache::iterator it;
-    ObjectsCache& usingCache = _objectsCache.getReaderData();
+//vector<EndpointF> CDbHandle::findObjectById(const string& id)
+//{
+//	std::vector<tars::EndpointF> vtEp = ObjectsCacheManager::getInstance()->findObjectById(id);
+//
+//	if(!vtEp.empty())
+//	{
+//		LOAD_BALANCE_INS->getDynamicWeight(id, vtEp);
+//	}
+//
+//	return vtEp;
+//
+//    ObjectsCache::iterator it;
+//    ObjectsCache& usingCache = _objectsCache.getReaderData();
+//
+//    if ((it = usingCache.find(id)) != usingCache.end())
+//    {
+//        // 不能是引用，会改变原始缓存数据
+//        std::vector<tars::EndpointF> vtEp = it->second.vActiveEndpoints;
+//
+//        LOAD_BALANCE_INS->getDynamicWeight(id, vtEp);
+//
+//        return vtEp;
+//    }
+//    else
+//    {
+//        vector<EndpointF> activeEp;
+//        return activeEp;
+//    }
+//}
 
-    if ((it = usingCache.find(id)) != usingCache.end())
-    {
-        // 不能是引用，会改变原始缓存数据
-        std::vector<tars::EndpointF> vtEp = it->second.vActiveEndpoints;
+//int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp)
+//{
+//    TLOG_DEBUG(__FUNCTION__ << " id: " << id << endl);
+//	int ret = ObjectsCacheManager::getInstance()->findObjectById4All(id, activeEp, inactiveEp);
+//
+//	if(!activeEp.empty())
+//	{
+//		LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
+//	}
+//    ObjectsCache::iterator it;
+//    ObjectsCache& usingCache = _objectsCache.getReaderData();
+//
+//    if ((it = usingCache.find(id)) != usingCache.end())
+//    {
+//        activeEp   = it->second.vActiveEndpoints;
+//        inactiveEp = it->second.vInactiveEndpoints;
+//
+//        LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
+//    }
+//    else
+//    {
+//        activeEp.clear();
+//        inactiveEp.clear();
+//    }
 
-        LOAD_BALANCE_INS->getDynamicWeight(id, vtEp);
+//    return ret;
+//}
+//
+//vector<EndpointF> CDbHandle::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, int iGroupId, ostringstream& os)
+//{
+//    os << "|";
+//    vector<EndpointF> vResult;
+//
+//    for (unsigned i = 0; i < vecEps.size(); i++)
+//    {
+//        os << vecEps[i].host << ":" << vecEps[i].port << "(" << vecEps[i].groupworkid << ");";
+//        if (GroupSelect == ENUM_USE_WORK_GROUPID && vecEps[i].groupworkid == iGroupId)
+//        {
+//            vResult.push_back(vecEps[i]);
+//        }
+//        if (GroupSelect == ENUM_USE_REAL_GROUPID && vecEps[i].grouprealid == iGroupId)
+//        {
+//            vResult.push_back(vecEps[i]);
+//        }
+//    }
+//
+//    return vResult;
+//}
+//
+//vector<EndpointF> CDbHandle::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, const map<int, bool>& setGroupID, ostringstream& os)
+//{
+//    os << "|";
+//    std::vector<EndpointF> vecResult;
+//
+//    for (std::vector<EndpointF>::size_type i = 0; i < vecEps.size(); i++)
+//    {
+//        os << vecEps[i].host << ":" << vecEps[i].port << "(" << vecEps[i].groupworkid << ")";
+//        if (GroupSelect == ENUM_USE_WORK_GROUPID && setGroupID.count(vecEps[i].groupworkid) == 1)
+//        {
+//            vecResult.push_back(vecEps[i]);
+//        }
+//        if (GroupSelect == ENUM_USE_REAL_GROUPID && setGroupID.count(vecEps[i].grouprealid) == 1)
+//        {
+//            vecResult.push_back(vecEps[i]);
+//        }
+//    }
+//
+//    return vecResult;
+//}
+//
+//int CDbHandle::findObjectByIdInSameGroup(const string& id, const string& ip, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp, ostringstream& os)
+//{
+//    activeEp.clear();
+//    inactiveEp.clear();
+//
+//    int iClientGroupId  = getGroupId(ip);
+//
+//    os << "|(" << iClientGroupId << ")";
+//
+//    if (iClientGroupId == -1)
+//    {
+//        return findObjectById4All(id, activeEp, inactiveEp);
+//    }
+//
+//    ObjectsCache::iterator it;
+//    ObjectsCache& usingCache = _objectsCache.getReaderData();
+//
+//    if ((it = usingCache.find(id)) != usingCache.end())
+//    {
+//        activeEp    = getEpsByGroupId(it->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupId, os);
+//        inactiveEp  = getEpsByGroupId(it->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupId, os);
+//
+//        if (activeEp.size() == 0) //没有同组的endpoit,匹配未启用分组的服务
+//        {
+//            activeEp    = getEpsByGroupId(it->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
+//            inactiveEp  = getEpsByGroupId(it->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
+//        }
+//        if (activeEp.size() == 0) //没有同组的endpoit
+//        {
+//            activeEp   = it->second.vActiveEndpoints;
+//            inactiveEp = it->second.vInactiveEndpoints;
+//        }
+//    }
+//
+//    LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
+//
+//    return  0;
+//}
+//
+//int CDbHandle::findObjectByIdInGroupPriority(const std::string& sID, const std::string& sIP, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
+//{
+//    vecActive.clear();
+//    vecInactive.clear();
+//
+//    int iClientGroupID = getGroupId(sIP);
+//    os << "|(" << iClientGroupID << ")";
+//    if (iClientGroupID == -1)
+//    {
+//        return findObjectById4All(sID, vecActive, vecInactive);
+//    }
+//
+//    ObjectsCache& usingCache = _objectsCache.getReaderData();
+//    ObjectsCache::iterator itObject = usingCache.find(sID);
+//    if (itObject == usingCache.end()) return 0;
+//
+//    //首先在同组中查找
+//    {
+//        vecActive     = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupID, os);
+//        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupID, os);
+//        os << "|(In Same Group: " << iClientGroupID << " Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
+//    }
+//
+//    //启用分组，但同组中没有找到，在优先级序列中查找
+//    std::map<int, GroupPriorityEntry> & mapPriority = _mapGroupPriority.getReaderData();
+//    for (std::map<int, GroupPriorityEntry>::iterator it = mapPriority.begin(); it != mapPriority.end() && vecActive.empty(); it++)
+//    {
+//        if (it->second.setGroupID.count(iClientGroupID) == 0)
+//        {
+//            os << "|(Not In Priority " << it->second.sGroupID << ")";
+//            continue;
+//        }
+//        vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, it->second.setGroupID, os);
+//        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, it->second.setGroupID, os);
+//        os << "|(In Priority: " << it->second.sGroupID << " Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
+//    }
+//
+//    //没有同组的endpoit,匹配未启用分组的服务
+//    if (vecActive.empty())
+//    {
+//        vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
+//        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
+//        os << "|(In No Grouop: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
+//    }
+//
+//    //在未分组的情况下也没有找到，返回全部地址(此时基本上所有的服务都已挂掉)
+//    if (vecActive.empty())
+//    {
+//        vecActive    = itObject->second.vActiveEndpoints;
+//        vecInactive    = itObject->second.vInactiveEndpoints;
+//        os << "|(In All: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
+//    }
+//
+//    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
+//
+//    return 0;
+//}
+//
+//int CDbHandle::findObjectByIdInSameStation(const std::string& sID, const std::string& sStation, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
+//{
+//    vecActive.clear();
+//    vecInactive.clear();
+//
+//    //获得station所有组
+//    std::map<int, GroupPriorityEntry> & mapPriority         = _mapGroupPriority.getReaderData();
+//    std::map<int, GroupPriorityEntry>::iterator itGroup     = mapPriority.end();
+//    for (itGroup = mapPriority.begin(); itGroup != mapPriority.end(); itGroup++)
+//    {
+//        if (itGroup->second.sStation != sStation) continue;
+//
+//        break;
+//    }
+//
+//    if (itGroup == mapPriority.end())
+//    {
+//        os << "|not found station:" << sStation;
+//        return -1;
+//    }
+//
+//    ObjectsCache& usingCache = _objectsCache.getReaderData();
+//    ObjectsCache::iterator itObject = usingCache.find(sID);
+//    if (itObject == usingCache.end()) return 0;
+//
+//    //查找对应所有组下的IP地址
+//    vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
+//    vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
+//
+//    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
+//
+//    return 0;
+//}
 
-        return vtEp;
-    }
-    else
-    {
-        vector<EndpointF> activeEp;
-        return activeEp;
-    }
-}
+//int CDbHandle::findObjectByIdInSameSet(const string& sID, const vector<string>& vtSetInfo, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
+//{
+//    string sSetName   = vtSetInfo[0];
+//    string sSetArea   = vtSetInfo[0] + "." + vtSetInfo[1];
+//    string sSetId     = vtSetInfo[0] + "." + vtSetInfo[1] + "." + vtSetInfo[2];
+//
+//    SetDivisionCache& usingSetDivisionCache = _setDivisionCache.getReaderData();
+//    SetDivisionCache::iterator it = usingSetDivisionCache.find(sID);
+//    if (it == usingSetDivisionCache.end())
+//    {
+//        //此情况下没启动set
+//        TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
+//        return -1;
+//    }
+//
+//    map<string, vector<SetServerInfo> >::iterator setNameIt = it->second.find(sSetName);
+//    if (setNameIt == (it->second).end())
+//    {
+//        //此情况下没启动set
+//        TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
+//        return -1;
+//    }
+//
+//    if (vtSetInfo[2] == "*")
+//    {
+//        //检索通配组和set组中的所有服务
+//        vector<SetServerInfo>  vServerInfo = setNameIt->second;
+//        for (size_t i = 0; i < vServerInfo.size(); i++)
+//        {
+//            if (vServerInfo[i].sSetArea == sSetArea)
+//            {
+//                if (vServerInfo[i].bActive)
+//                {
+//                    vecActive.push_back(vServerInfo[i].epf);
+//                }
+//                else
+//                {
+//                    vecInactive.push_back(vServerInfo[i].epf);
+//                }
+//            }
+//        }
+//
+//        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
+//
+//        return (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
+//    }
+//    else
+//    {
+//
+//        // 1.从指定set组中查找
+//        int iRet = findObjectByIdInSameSet(sSetId, setNameIt->second, vecActive, vecInactive, os);
+//        if (iRet != 0 && vtSetInfo[2] != "*")
+//        {
+//            // 2. 步骤1中没找到，在通配组里找
+//            string sWildSetId =  vtSetInfo[0] + "." + vtSetInfo[1] + ".*";
+//            iRet = findObjectByIdInSameSet(sWildSetId, setNameIt->second, vecActive, vecInactive, os);
+//        }
+//
+//        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
+//
+//        return iRet;
+//    }
+//}
+//
+//int CDbHandle::findObjectByIdInSameSet(const string& sSetId, const vector<SetServerInfo>& vSetServerInfo, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
+//{
+//    for (size_t i = 0; i < vSetServerInfo.size(); ++i)
+//    {
+//        if (vSetServerInfo[i].sSetId == sSetId)
+//        {
+//            if (vSetServerInfo[i].bActive)
+//            {
+//                vecActive.push_back(vSetServerInfo[i].epf);
+//            }
+//            else
+//            {
+//                vecInactive.push_back(vSetServerInfo[i].epf);
+//            }
+//        }
+//    }
+//
+//    int iRet = (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
+//    return iRet;
+//}
 
-int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp)
-{
-    TLOG_DEBUG(__FUNCTION__ << " id: " << id << endl);
-
-    ObjectsCache::iterator it;
-    ObjectsCache& usingCache = _objectsCache.getReaderData();
-
-    if ((it = usingCache.find(id)) != usingCache.end())
-    {
-        activeEp   = it->second.vActiveEndpoints;
-        inactiveEp = it->second.vInactiveEndpoints;
-
-        LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
-    }
-    else
-    {
-        activeEp.clear();
-        inactiveEp.clear();
-    }
-
-    return  0;
-}
-
-vector<EndpointF> CDbHandle::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, int iGroupId, ostringstream& os)
-{
-    os << "|";
-    vector<EndpointF> vResult;
-
-    for (unsigned i = 0; i < vecEps.size(); i++)
-    {
-        os << vecEps[i].host << ":" << vecEps[i].port << "(" << vecEps[i].groupworkid << ");";
-        if (GroupSelect == ENUM_USE_WORK_GROUPID && vecEps[i].groupworkid == iGroupId)
-        {
-            vResult.push_back(vecEps[i]);
-        }
-        if (GroupSelect == ENUM_USE_REAL_GROUPID && vecEps[i].grouprealid == iGroupId)
-        {
-            vResult.push_back(vecEps[i]);
-        }
-    }
-
-    return vResult;
-}
-
-vector<EndpointF> CDbHandle::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, const set<int>& setGroupID, ostringstream& os)
-{
-    os << "|";
-    std::vector<EndpointF> vecResult;
-
-    for (std::vector<EndpointF>::size_type i = 0; i < vecEps.size(); i++)
-    {
-        os << vecEps[i].host << ":" << vecEps[i].port << "(" << vecEps[i].groupworkid << ")";
-        if (GroupSelect == ENUM_USE_WORK_GROUPID && setGroupID.count(vecEps[i].groupworkid) == 1)
-        {
-            vecResult.push_back(vecEps[i]);
-        }
-        if (GroupSelect == ENUM_USE_REAL_GROUPID && setGroupID.count(vecEps[i].grouprealid) == 1)
-        {
-            vecResult.push_back(vecEps[i]);
-        }
-    }
-
-    return vecResult;
-}
-
-int CDbHandle::findObjectByIdInSameGroup(const string& id, const string& ip, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp, ostringstream& os)
-{
-    activeEp.clear();
-    inactiveEp.clear();
-
-    int iClientGroupId  = getGroupId(ip);
-
-    os << "|(" << iClientGroupId << ")";
-
-    if (iClientGroupId == -1)
-    {
-        return findObjectById4All(id, activeEp, inactiveEp);
-    }
-
-    ObjectsCache::iterator it;
-    ObjectsCache& usingCache = _objectsCache.getReaderData();
-
-    if ((it = usingCache.find(id)) != usingCache.end())
-    {
-        activeEp    = getEpsByGroupId(it->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupId, os);
-        inactiveEp  = getEpsByGroupId(it->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupId, os);
-
-        if (activeEp.size() == 0) //没有同组的endpoit,匹配未启用分组的服务
-        {
-            activeEp    = getEpsByGroupId(it->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-            inactiveEp  = getEpsByGroupId(it->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-        }
-        if (activeEp.size() == 0) //没有同组的endpoit
-        {
-            activeEp   = it->second.vActiveEndpoints;
-            inactiveEp = it->second.vInactiveEndpoints;
-        }
-    }
-
-    LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
-
-    return  0;
-}
-
-int CDbHandle::findObjectByIdInGroupPriority(const std::string& sID, const std::string& sIP, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-{
-    vecActive.clear();
-    vecInactive.clear();
-
-    int iClientGroupID = getGroupId(sIP);
-    os << "|(" << iClientGroupID << ")";
-    if (iClientGroupID == -1)
-    {
-        return findObjectById4All(sID, vecActive, vecInactive);
-    }
-
-    ObjectsCache& usingCache = _objectsCache.getReaderData();
-    ObjectsCache::iterator itObject = usingCache.find(sID);
-    if (itObject == usingCache.end()) return 0;
-
-    //首先在同组中查找
-    {
-        vecActive     = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupID, os);
-        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupID, os);
-        os << "|(In Same Group: " << iClientGroupID << " Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-    }
-
-    //启用分组，但同组中没有找到，在优先级序列中查找
-    std::map<int, GroupPriorityEntry> & mapPriority = _mapGroupPriority.getReaderData();
-    for (std::map<int, GroupPriorityEntry>::iterator it = mapPriority.begin(); it != mapPriority.end() && vecActive.empty(); it++)
-    {
-        if (it->second.setGroupID.count(iClientGroupID) == 0)
-        {
-            os << "|(Not In Priority " << it->second.sGroupID << ")";
-            continue;
-        }
-        vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, it->second.setGroupID, os);
-        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, it->second.setGroupID, os);
-        os << "|(In Priority: " << it->second.sGroupID << " Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-    }
-
-    //没有同组的endpoit,匹配未启用分组的服务
-    if (vecActive.empty())
-    {
-        vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-        os << "|(In No Grouop: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-    }
-
-    //在未分组的情况下也没有找到，返回全部地址(此时基本上所有的服务都已挂掉)
-    if (vecActive.empty())
-    {
-        vecActive    = itObject->second.vActiveEndpoints;
-        vecInactive    = itObject->second.vInactiveEndpoints;
-        os << "|(In All: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-    }
-
-    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-
-    return 0;
-}
-
-int CDbHandle::findObjectByIdInSameStation(const std::string& sID, const std::string& sStation, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-{
-    vecActive.clear();
-    vecInactive.clear();
-
-    //获得station所有组
-    std::map<int, GroupPriorityEntry> & mapPriority         = _mapGroupPriority.getReaderData();
-    std::map<int, GroupPriorityEntry>::iterator itGroup     = mapPriority.end();
-    for (itGroup = mapPriority.begin(); itGroup != mapPriority.end(); itGroup++)
-    {
-        if (itGroup->second.sStation != sStation) continue;
-
-        break;
-    }
-
-    if (itGroup == mapPriority.end())
-    {
-        os << "|not found station:" << sStation;
-        return -1;
-    }
-
-    ObjectsCache& usingCache = _objectsCache.getReaderData();
-    ObjectsCache::iterator itObject = usingCache.find(sID);
-    if (itObject == usingCache.end()) return 0;
-
-    //查找对应所有组下的IP地址
-    vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
-    vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
-
-    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-
-    return 0;
-}
-
-int CDbHandle::findObjectByIdInSameSet(const string& sID, const vector<string>& vtSetInfo, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-{
-    string sSetName   = vtSetInfo[0];
-    string sSetArea   = vtSetInfo[0] + "." + vtSetInfo[1];
-    string sSetId     = vtSetInfo[0] + "." + vtSetInfo[1] + "." + vtSetInfo[2];
-
-    SetDivisionCache& usingSetDivisionCache = _setDivisionCache.getReaderData();
-    SetDivisionCache::iterator it = usingSetDivisionCache.find(sID);
-    if (it == usingSetDivisionCache.end())
-    {
-        //此情况下没启动set
-        TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
-        return -1;
-    }
-
-    map<string, vector<SetServerInfo> >::iterator setNameIt = it->second.find(sSetName);
-    if (setNameIt == (it->second).end())
-    {
-        //此情况下没启动set
-        TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
-        return -1;
-    }
-
-    if (vtSetInfo[2] == "*")
-    {
-        //检索通配组和set组中的所有服务
-        vector<SetServerInfo>  vServerInfo = setNameIt->second;
-        for (size_t i = 0; i < vServerInfo.size(); i++)
-        {
-            if (vServerInfo[i].sSetArea == sSetArea)
-            {
-                if (vServerInfo[i].bActive)
-                {
-                    vecActive.push_back(vServerInfo[i].epf);
-                }
-                else
-                {
-                    vecInactive.push_back(vServerInfo[i].epf);
-                }
-            }
-        }
-
-        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-
-        return (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
-    }
-    else
-    {
-
-        // 1.从指定set组中查找
-        int iRet = findObjectByIdInSameSet(sSetId, setNameIt->second, vecActive, vecInactive, os);
-        if (iRet != 0 && vtSetInfo[2] != "*")
-        {
-            // 2. 步骤1中没找到，在通配组里找
-            string sWildSetId =  vtSetInfo[0] + "." + vtSetInfo[1] + ".*";
-            iRet = findObjectByIdInSameSet(sWildSetId, setNameIt->second, vecActive, vecInactive, os);
-        }
-
-        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-
-        return iRet;
-    }
-
-
-}
-
-int CDbHandle::findObjectByIdInSameSet(const string& sSetId, const vector<SetServerInfo>& vSetServerInfo, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-{
-    for (size_t i = 0; i < vSetServerInfo.size(); ++i)
-    {
-        if (vSetServerInfo[i].sSetId == sSetId)
-        {
-            if (vSetServerInfo[i].bActive)
-            {
-                vecActive.push_back(vSetServerInfo[i].epf);
-            }
-            else
-            {
-                vecInactive.push_back(vSetServerInfo[i].epf);
-            }
-        }
-    }
-
-    int iRet = (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
-    return iRet;
-}
 int CDbHandle::getNodeTemplateName(const string nodeName, string& sTemplateName)
 {
     try
@@ -2064,29 +1947,31 @@ void CDbHandle::updateStatusCache(const std::map<ServantStatusKey, int>& mStatus
 
 void CDbHandle::updateObjectsCache(const ObjectsCache& objCache, bool updateAll)
 {
-	RegisterQueryManager::getInstance()->pushObj(_objectsCache.getReaderData(), objCache);
+//	RegisterQueryManager::getInstance()->pushObj(_objectsCache.getReaderData(), objCache);
+	RegisterQueryManager::getInstance()->pushObj(ObjectsCacheManager::getInstance()->getReaderObjectsCache(), objCache);
 
     //全量更新
     if (updateAll)
     {
-        _objectsCache.getWriterData() = objCache;
-        _objectsCache.swap();
+		ObjectsCacheManager::getInstance()->onChange(objCache);
+//        _objectsCache.getWriterData() = objCache;
+//        _objectsCache.swap();
     }
     else
     {
-        //用查询数据覆盖一下
-        _objectsCache.getWriterData() = _objectsCache.getReaderData();
-        ObjectsCache& tmpObjCache = _objectsCache.getWriterData();
-
-        ObjectsCache::const_iterator it = objCache.begin();
-        for (; it != objCache.end(); it++)
-        {
-            //增量的时候加载的是服务的所有节点，因此这里直接替换
-            tmpObjCache[it->first] = it->second;
-        }
-
-
-        _objectsCache.swap();
+		ObjectsCacheManager::getInstance()->onUpdate(objCache);
+//        //用查询数据覆盖一下
+//        _objectsCache.getWriterData() = _objectsCache.getReaderData();
+//        ObjectsCache& tmpObjCache = _objectsCache.getWriterData();
+//
+//        ObjectsCache::const_iterator it = objCache.begin();
+//        for (; it != objCache.end(); it++)
+//        {
+//            //增量的时候加载的是服务的所有节点，因此这里直接替换
+//            tmpObjCache[it->first] = it->second;
+//        }
+//
+//        _objectsCache.swap();
     }
 }
 
@@ -2095,28 +1980,32 @@ void CDbHandle::updateDivisionCache(const SetDivisionCache& setDivisionCache, bo
     //全量更新
     if (updateAll)
     {
-        _setDivisionCache.getWriterData() = setDivisionCache;
-        _setDivisionCache.swap();
+		ObjectsCacheManager::getInstance()->onChangeSetInfo(setDivisionCache);
+//
+//		_setDivisionCache.getWriterData() = setDivisionCache;
+//        _setDivisionCache.swap();
     }
     else
     {
-        _setDivisionCache.getWriterData() = _setDivisionCache.getReaderData();
-        SetDivisionCache& tmpsetCache = _setDivisionCache.getWriterData();
-        SetDivisionCache::const_iterator it = setDivisionCache.begin();
-        for (; it != setDivisionCache.end(); it++)
-        {
-            //有set信息才更新
-            if (it->second.size() > 0)
-            {
-                tmpsetCache[it->first] = it->second;
-            }
-            else if (tmpsetCache.count(it->first))
-            {
-                //这个服务的所有节点都没有启用set，删除缓存中的set信息
-                tmpsetCache.erase(it->first);
-            }
-        }
-        _setDivisionCache.swap();
+		ObjectsCacheManager::getInstance()->onUpdateSetInfo(setDivisionCache);
+//
+//        _setDivisionCache.getWriterData() = _setDivisionCache.getReaderData();
+//        SetDivisionCache& tmpsetCache = _setDivisionCache.getWriterData();
+//        SetDivisionCache::const_iterator it = setDivisionCache.begin();
+//        for (; it != setDivisionCache.end(); it++)
+//        {
+//            //有set信息才更新
+//            if (it->second.size() > 0)
+//            {
+//                tmpsetCache[it->first] = it->second;
+//            }
+//            else if (tmpsetCache.count(it->first))
+//            {
+//                //这个服务的所有节点都没有启用set，删除缓存中的set信息
+//                tmpsetCache.erase(it->first);
+//            }
+//        }
+//        _setDivisionCache.swap();
     }
 }
 void CDbHandle::sendSqlErrorAlarmSMS(const string &err)
@@ -2126,60 +2015,40 @@ void CDbHandle::sendSqlErrorAlarmSMS(const string &err)
 
     TLOG_ERROR("TARS_NOTIFY_ERROR " << errInfo << endl);
 }
-
-uint32_t CDbHandle::stringIpToInt(const std::string& sip)
-{
-    string ip1, ip2, ip3, ip4;
-    uint32_t dip, p1, p2, p3;
-    dip = 0;
-    p1 = sip.find('.');
-    p2 = sip.find('.', p1 + 1);
-    p3 = sip.find('.', p2 + 1);
-    ip1 = sip.substr(0, p1);
-    ip2 = sip.substr(p1 + 1, p2 - p1 - 1);
-    ip3 = sip.substr(p2 + 1, p3 - p2 - 1);
-    ip4 = sip.substr(p3 + 1, sip.size() - p3 - 1);
-    (((unsigned char *)&dip)[0]) = TC_Common::strto<unsigned int>(ip1);
-    (((unsigned char *)&dip)[1]) = TC_Common::strto<unsigned int>(ip2);
-    (((unsigned char *)&dip)[2]) = TC_Common::strto<unsigned int>(ip3);
-    (((unsigned char *)&dip)[3]) = TC_Common::strto<unsigned int>(ip4);
-    return htonl(dip);
-}
-
-string CDbHandle::Ip2Str(uint32_t ip)
-{
-    char str[50];
-    unsigned char  *p = (unsigned char *)&ip;
-    sprintf(str, "%u.%u.%u.%u", p[3], p[2], p[1], p[0]);
-    return string(str);
-}
-
-string CDbHandle::Ip2StarStr(uint32_t ip)
-{
-    char str[50];
-    unsigned char  *p = (unsigned char *)&ip;
-    sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
-    return string(str);
-}
 //
-//int CDbHandle::updateServerFlowState(const string & app, const string & serverName, const vector<string>& nodeList, bool bActive)
+//uint32_t CDbHandle::stringIpToInt(const std::string& sip)
 //{
-//    TLOG_DEBUG("CDbHandle::updateServerFlowState:" << app << "." << serverName << ", " << TC_Common::tostr(nodeList) << ", status:" << (bActive ? "active" : "inactive") << endl);
-//    TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
-//    for (size_t i = 0; i < nodeList.size(); i++)
-//    {
-//        ServantStatusKey statusKey = {app, serverName, nodeList[i]};
-//        if (bActive)
-//        {
-//            _mapServantFlowStatus[statusKey] = Active;
-//        }
-//        else
-//        {
-//            _mapServantFlowStatus[statusKey] = Inactive;
-//        }
-//    }
+//    string ip1, ip2, ip3, ip4;
+//    uint32_t dip, p1, p2, p3;
+//    dip = 0;
+//    p1 = sip.find('.');
+//    p2 = sip.find('.', p1 + 1);
+//    p3 = sip.find('.', p2 + 1);
+//    ip1 = sip.substr(0, p1);
+//    ip2 = sip.substr(p1 + 1, p2 - p1 - 1);
+//    ip3 = sip.substr(p2 + 1, p3 - p2 - 1);
+//    ip4 = sip.substr(p3 + 1, sip.size() - p3 - 1);
+//    (((unsigned char *)&dip)[0]) = TC_Common::strto<unsigned int>(ip1);
+//    (((unsigned char *)&dip)[1]) = TC_Common::strto<unsigned int>(ip2);
+//    (((unsigned char *)&dip)[2]) = TC_Common::strto<unsigned int>(ip3);
+//    (((unsigned char *)&dip)[3]) = TC_Common::strto<unsigned int>(ip4);
+//    return htonl(dip);
+//}
 //
-//    return 0;
+//string CDbHandle::Ip2Str(uint32_t ip)
+//{
+//    char str[50];
+//    unsigned char  *p = (unsigned char *)&ip;
+//    sprintf(str, "%u.%u.%u.%u", p[3], p[2], p[1], p[0]);
+//    return string(str);
+//}
+//
+//string CDbHandle::Ip2StarStr(uint32_t ip)
+//{
+//    char str[50];
+//    unsigned char  *p = (unsigned char *)&ip;
+//    sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
+//    return string(str);
 //}
 
 int CDbHandle::getFrameworkKey(FrameworkKey &fKey)

@@ -1,7 +1,8 @@
 
 set(MODULE "tarsregistry")
 
-# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/deploy/${MODULE}/bin)
+include_directories(${PROJECT_SOURCE_DIR}/objects)
 
-#complice_module(${MODULE} "Registry.tars")
+link_libraries(objects)
+
 complice_module(${MODULE})

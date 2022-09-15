@@ -17,6 +17,17 @@
 #include "ServerImp.h"
 #include "util.h"
 #include "NodeServer.h"
+#include "QueryObjectsManager.h"
+
+void ServerImp::initialize()
+{
+	_queryImp.initialize();
+}
+
+void ServerImp::destroy()
+{
+	_queryImp.destroy();
+}
 
 int ServerImp::keepAlive( const ServerInfo& serverInfo, CurrentPtr current )
 {
@@ -130,3 +141,62 @@ unsigned int ServerImp::getLatestKeepAliveTime(CurrentPtr current)
     return 0;
 }
 
+int ServerImp::doClose(CurrentPtr current)
+{
+	_queryImp.doClose(current);
+	return 0;
+}
+
+int ServerImp::doNoFunc(CurrentPtr current, vector<char> &buffer)
+{
+	return _queryImp.dispatch(current, buffer);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int QueryImp::doClose(CurrentPtr current)
+{
+	return 0;
+}
+
+vector<EndpointF> QueryImp::findObjectById(const string & id, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->findObjectById(id, current);
+}
+
+Int32 QueryImp::findObjectById4Any(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->findObjectById4Any(id, activeEp, inactiveEp, current);
+}
+
+Int32 QueryImp::findObjectById4All(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->findObjectById4All(id, activeEp, inactiveEp, current);
+}
+
+Int32 QueryImp::findObjectByIdInSameGroup(const std::string & id, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->findObjectByIdInSameGroup(id, activeEp, inactiveEp, current);
+}
+
+Int32 QueryImp::findObjectByIdInSameStation(const std::string & id, const std::string & sStation, vector<EndpointF> &activeEp, vector<EndpointF> &inactiveEp, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->findObjectByIdInSameStation(id, sStation, activeEp, inactiveEp, current);
+}
+
+Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string & setId,vector<EndpointF> &activeEp,vector<EndpointF> &inactiveEp, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->findObjectByIdInSameSet(id, setId, activeEp, inactiveEp, current);
+}
+
+Int32 QueryImp::registerQuery(const std::string & id, CurrentPtr current)
+{
+	return QueryObjectsManager::getInstance()->registerQuery(id, current);
+}
+
+Int32 QueryImp::registerChange(const vector<std::string> & ids, CurrentPtr current)
+{
+	TLOG_ERROR("should not be called" << endl);
+
+	return 0;
+}

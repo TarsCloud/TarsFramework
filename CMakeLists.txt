@@ -46,14 +46,6 @@ macro(complice_module MODULE)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_BINARY_DIR}/${BUILD_SERVER}/${MODULE}/bin)
     endforeach()   
 
-    include_directories(${PROJECT_SOURCE_DIR}/tarscpp/servant/protocol/framework)
-    include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/include)
-    if(WIN32)
-        include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/src/epoll_windows)
-    endif()
-
-    include_directories(${servant_SOURCE_DIR}/servant)
-
     aux_source_directory(. DIR_SRCS)
 
     add_executable(${MODULE} ${DIR_SRCS})
@@ -75,6 +67,15 @@ macro(complice_module MODULE)
     endif()
 endmacro()
 
+
+include_directories(${PROJECT_SOURCE_DIR}/tarscpp/servant/protocol/framework)
+include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/include)
+if(WIN32)
+    include_directories(${PROJECT_SOURCE_DIR}/tarscpp/util/src/epoll_windows)
+endif()
+
+include_directories(${servant_SOURCE_DIR}/servant)
+
 add_subdirectory(mysql-tool)
 add_subdirectory(ConfigServer)
 add_subdirectory(NodeServer)
@@ -85,6 +86,7 @@ add_subdirectory(RegistryServer)
 add_subdirectory(PropertyServer)
 add_subdirectory(LogServer)
 add_subdirectory(patchclient)
+add_subdirectory(objects)
 add_subdirectory(StatServer)
 add_subdirectory(QueryStatServer)
 add_subdirectory(QueryPropertyServer)

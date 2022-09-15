@@ -18,21 +18,13 @@
 #define __QUERY_IMP_H__
 
 #include "QueryF.h"
+#include "QueryPushF.h"
 #include "DbHandle.h"
 
 using namespace tars;
 
 //////////////////////////////////////////////////////
 
-enum FUNID
-{
-    FUNID_findObjectById              = 0,
-    FUNID_findObjectById4Any          = 1,
-    FUNID_findObjectById4All          = 2,
-    FUNID_findObjectByIdInSameGroup   = 3,
-    FUNID_findObjectByIdInSameStation = 4,
-    FUNID_findObjectByIdInSameSet     = 5
-};
 
 //////////////////////////////////////////////////////
 /**
@@ -107,7 +99,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerChange(const std::string & id, CurrentPtr current);
+	Int32 registerChange(const vector<std::string> & ids, CurrentPtr current);
 
 private:
     /**
