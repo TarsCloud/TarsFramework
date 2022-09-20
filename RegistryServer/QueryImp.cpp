@@ -231,14 +231,14 @@ int QueryImp::doClose(CurrentPtr current)
 	return 0;
 }
 
-Int32 QueryImp::registerQuery(const std::string & id, CurrentPtr current)
+Int32 QueryImp::registerQuery(const std::string & id, const string &name, CurrentPtr current)
 {
-	RegisterQueryManager::getInstance()->registerQuery(id, current);
+	RegisterQueryManager::getInstance()->registerQuery(id, name, current);
 	return 0;
 }
 
-Int32 QueryImp::registerChange(const vector<std::string> & ids, CurrentPtr current)
+Int32 QueryImp::registerChange(const vector<std::string> & ids, const string &name, CurrentPtr current)
 {
-	RegisterQueryManager::getInstance()->registerChange(ids, current);
+	RegisterQueryManager::getInstance()->registerChange(ids, name, current);
 	return 0;
 }

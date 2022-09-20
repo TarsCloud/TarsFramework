@@ -387,12 +387,12 @@ public:
      */
     int checkNodeTimeout(unsigned uTimeout);
 
-    /**
-     * 轮询数据库，将心跳超时的registry设为不存活
-     * @param iTiemout 超时时间
-     * @return
-     */
-    int checkRegistryTimeout(unsigned uTimeout);
+//    /**
+//     * 轮询数据库，将心跳超时的registry设为不存活
+//     * @param iTiemout 超时时间
+//     * @return
+//     */
+//    int checkRegistryTimeout(unsigned uTimeout);
 
     /**
      * 在加载对象列表之前，计算当前非活动状态的node的比率
@@ -428,10 +428,10 @@ public:
      */
     int loadStatData(const vector<string> &vtServer, tars::TC_Mysql::MysqlData &statData);
 
-    /**
-     * 更新registry信息到db
-     */
-    int updateRegistryInfo2Db(bool bRegHeartbeatOff=false);
+//    /**
+//     * 更新registry信息到db
+//     */
+//    int updateRegistryInfo2Db(bool bRegHeartbeatOff=false);
 
     /**
      * 获取对应node的模板名称

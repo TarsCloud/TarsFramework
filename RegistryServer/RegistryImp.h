@@ -156,7 +156,18 @@ public:
      * @return 0-成功 others-失败
      */
     virtual Int32 getClientIp(std::string &sClientIp, CurrentPtr current);
-    
+
+	/**
+	* 获取特定ip所属group
+	*
+	* @param sting: ip
+	* @param out int  : group id
+	*
+	* @return : 处理结果
+	*/
+
+	virtual int getGroupId(const string & ip,int &groupId, CurrentPtr current);
+
     /**
      * 发布任务完成后，UPDATE版本号和发布人 
      * @param PatchResult: 发布结果 

@@ -933,28 +933,28 @@ int CDbHandle::checkNodeTimeout(unsigned uTimeout)
     }
 
 }
-
-int CDbHandle::checkRegistryTimeout(unsigned uTimeout)
-{
-    try
-    {
-        string sSql = "update t_registry_info "
-                      "set present_state='inactive' "
-                      "where last_heartbeat < date_sub(now(), INTERVAL " + TC_Common::tostr(uTimeout) + " SECOND)";
-
-        _mysqlReg.execute(sSql);
-
-        TLOG_DEBUG("CDbHandle::checkRegistryTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << endl);
-
-        return _mysqlReg.getAffectedRows();
-
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR("CDbHandle::checkRegistryTimeout exception: " << ex.what() << endl);
-        return -1;
-    }
-}
+//
+//int CDbHandle::checkRegistryTimeout(unsigned uTimeout)
+//{
+//    try
+//    {
+//        string sSql = "update t_registry_info "
+//                      "set present_state='inactive' "
+//                      "where last_heartbeat < date_sub(now(), INTERVAL " + TC_Common::tostr(uTimeout) + " SECOND)";
+//
+//        _mysqlReg.execute(sSql);
+//
+//        TLOG_DEBUG("CDbHandle::checkRegistryTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << endl);
+//
+//        return _mysqlReg.getAffectedRows();
+//
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR("CDbHandle::checkRegistryTimeout exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//}
 
 //int CDbHandle::getGroupId(const string& ip)
 //{
@@ -1046,26 +1046,30 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 
 void CDbHandle::load2GroupMap(const vector<map<string, string> >& serverGroupRule)
 {
-    map<string, int> groupIdMap;// = _groupIdMap.getWriterData();
-    map<string, int> groupNameMap;// = _groupNameMap.getWriterData();
-//    groupIdMap.clear();  //规则改变 清除以前缓存
-//    groupNameMap.clear();
-    vector<map<string, string> >::const_iterator it = serverGroupRule.begin();
-    for (; it != serverGroupRule.end(); it++)
-    {
-        int groupId = TC_Common::strto<int>(it->find("group_id")->second);
-        vector<string> vIp = TC_Common::sepstr<string>(it->find("allow_ip_rule")->second, "|");
-        for (size_t j = 0; j < vIp.size(); j++)
-        {
-            groupIdMap[vIp[j]] = groupId;
-        }
+//    map<string, int> groupIdMap;// = _groupIdMap.getWriterData();
+//    map<string, int> groupNameMap;// = _groupNameMap.getWriterData();
+//    vector<map<string, string> >::const_iterator it = serverGroupRule.begin();
+//    for (; it != serverGroupRule.end(); it++)
+//    {
+//        int groupId = TC_Common::strto<int>(it->find("group_id")->second);
+//		string sOrder = it->find("ip_order")->second;
+//		vector<string> vAllowIp = TC_Common::sepstr<string>(it->find("allow_ip_rule")->second, ",;|"); //vServerGroupInfo[i]["allow_ip_rule"];
+//		vector<string> vDennyIp = TC_Common::sepstr<string>(it->find("denny_ip_rule")->second, ",;|"); //vServerGroupInfo[i]["allow_ip_rule"];
+//
+//        vector<string> vIp = TC_Common::sepstr<string>(it->find("allow_ip_rule")->second, "|");
+//        for (size_t j = 0; j < vIp.size(); j++)
+//        {
+//            groupIdMap[vIp[j]] = groupId;
+//        }
+//
+//        groupNameMap[it->find("group_name")->second] = groupId;
+//    }
 
-        groupNameMap[it->find("group_name")->second] = groupId;
-    }
-//    _groupIdMap.swap();
-//    _groupNameMap.swap();
+//	ObjectsCacheManager::getInstance()->onChangeGroupIdName(groupIdMap, groupNameMap);
 
-	ObjectsCacheManager::getInstance()->onChangeGroupIdName(groupIdMap, groupNameMap);
+	RegisterQueryManager::getInstance()->pushServerGroupRule(serverGroupRule);
+
+	ObjectsCacheManager::getInstance()->onChangeServerGroupRule(serverGroupRule);
 }
 
 
@@ -1093,6 +1097,8 @@ int CDbHandle::loadGroupPriority(bool fromInit)
 //            std::copy(vecGroupID.begin(), vecGroupID.end(), std::inserter(mapPriority[i].setGroupID, mapPriority[i].setGroupID.begin()));
             TLOG_DEBUG("loaded groups priority to cache [" << mapPriority[i].sStation << "] group size:" << mapPriority[i].setGroupID.size() << endl);
         }
+
+		RegisterQueryManager::getInstance()->pushGroupPriorityEntry(mapPriority);
 
 		ObjectsCacheManager::getInstance()->onChangeGroupPriorityEntry(mapPriority);
 //        _mapGroupPriority.swap();
@@ -1272,7 +1278,6 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
     ObjectsCache objectsCache;
     SetDivisionCache setDivisionCache;
     std::map<ServantStatusKey, int> mapStatus;
-//    std::map<ServantStatusKey, int> mapFlowStatus;
 
     try
     {
@@ -1301,19 +1306,18 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
             sSql1 += " where server.application=tmp.application and server.server_name=tmp.server_name";
         }
 
-        string sSql2 = "select servant, endpoint, enable_group, present_state as setting_state, present_state, 'active' as flow_state, tars_version as application, tars_version as server_name, tars_version as node_name,'N' as enable_set,'' as set_name,'' as set_area,'' as set_group ,'' "
-                       "as ip_group_name , '' as bak_flag from t_registry_info order by endpoint";
+//        string sSql2 = "select servant, endpoint, enable_group, present_state as setting_state, present_state, 'active' as flow_state, tars_version as application, tars_version as server_name, tars_version as node_name,'N' as enable_set,'' as set_name,'' as set_area,'' as set_group ,'' "
+//                       "as ip_group_name , '' as bak_flag from t_registry_info order by endpoint";
 
         TC_Mysql::MysqlData res;
 
         {
-            TC_Mysql::MysqlData res1  = _mysqlReg.queryRecord(sSql1);
+            res  = _mysqlReg.queryRecord(sSql1);
 
-            TC_Mysql::MysqlData res2  = _mysqlReg.queryRecord(sSql2);
-            TLOG_DEBUG("CDbHandle::loadObjectIdCache load " << (bLoadAll ? "all " : "") << "Active objects from db, records affected:" << (res1.size() + res2.size())
-                      << "|cost:" << (TNOWMS - iStart) << endl);
+//            TC_Mysql::MysqlData res2  = _mysqlReg.queryRecord(sSql2);
+            TLOG_DEBUG("CDbHandle::loadObjectIdCache load " << (bLoadAll ? "all " : "") << "Active objects from db, records affected:" << res.size() << ", cost:" << (TNOWMS - iStart) << endl);
             iStart = TNOWMS;
-            res = UnionRecord(res1, res2);
+//            res = UnionRecord(res1, res2);
         }
         for (unsigned i = 0; i < res.size(); i++)
         {
@@ -1511,57 +1515,57 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
 
     return 0;
 }
-
-int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
-{
-    if (bRegHeartbeatOff)
-    {
-        TLOG_DEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
-        return 0;
-    }
-
-    map<string, string>::iterator iter;
-    map<string, string> mapServantEndpoint = g_app.getServantEndpoint();
-    if (mapServantEndpoint.size() == 0)
-    {
-        TLOG_ERROR("fatal error, get registry servant failed!" << endl);
-        return -1;
-    }
-
-    try
-    {
-        string sSql{};
-
-        TC_Endpoint locator;
-        locator.parse(mapServantEndpoint[(*g_pconf)["/tars/objname<QueryObjName>"]]);
-
-        for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
-        {
-            sSql = "insert into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version) values ";
-            sSql += ("('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) +
-                     "','" + iter->first + "', '" + iter->second + "', now(), 'active', " +
-                     "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')");
-            sSql += ("on duplicate key update endpoint='" + iter->second + "',");
-            sSql += ("last_heartbeat=now(),present_state='active',");
-            sSql += ("tars_version='" + _mysqlReg.escapeString(Application::getTarsVersion()) + "'");
-            _mysqlReg.execute(sSql);
-        }
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
-        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
-        return -1;
-    }
-    catch (exception& ex)
-    {
-	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
-        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
-        return -1;
-    }
-
-    return 0;
-}
+//
+//int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
+//{
+//    if (bRegHeartbeatOff)
+//    {
+//        TLOG_DEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
+//        return 0;
+//    }
+//
+//    map<string, string>::iterator iter;
+//    map<string, string> mapServantEndpoint = g_app.getServantEndpoint();
+//    if (mapServantEndpoint.size() == 0)
+//    {
+//        TLOG_ERROR("fatal error, get registry servant failed!" << endl);
+//        return -1;
+//    }
+//
+//    try
+//    {
+//        string sSql{};
+//
+//        TC_Endpoint locator;
+//        locator.parse(mapServantEndpoint[(*g_pconf)["/tars/objname<QueryObjName>"]]);
+//
+//        for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
+//        {
+//            sSql = "insert into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version) values ";
+//            sSql += ("('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) +
+//                     "','" + iter->first + "', '" + iter->second + "', now(), 'active', " +
+//                     "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')");
+//            sSql += ("on duplicate key update endpoint='" + iter->second + "',");
+//            sSql += ("last_heartbeat=now(),present_state='active',");
+//            sSql += ("tars_version='" + _mysqlReg.escapeString(Application::getTarsVersion()) + "'");
+//            _mysqlReg.execute(sSql);
+//        }
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
+//        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//    catch (exception& ex)
+//    {
+//	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
+//        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//
+//    return 0;
+//}
 
 //vector<EndpointF> CDbHandle::findObjectById(const string& id)
 //{
@@ -1980,14 +1984,20 @@ void CDbHandle::updateDivisionCache(const SetDivisionCache& setDivisionCache, bo
     //全量更新
     if (updateAll)
     {
+		RegisterQueryManager::getInstance()->pushSetInfo(setDivisionCache);
 		ObjectsCacheManager::getInstance()->onChangeSetInfo(setDivisionCache);
-//
 //		_setDivisionCache.getWriterData() = setDivisionCache;
 //        _setDivisionCache.swap();
     }
     else
     {
-		ObjectsCacheManager::getInstance()->onUpdateSetInfo(setDivisionCache);
+		auto setInfo = ObjectsCacheManager::getInstance()->getSetInfo();
+
+		if(setInfo != setDivisionCache)
+		{
+			RegisterQueryManager::getInstance()->pushSetInfo(setInfo);
+			ObjectsCacheManager::getInstance()->onChangeSetInfo(setDivisionCache);
+		}
 //
 //        _setDivisionCache.getWriterData() = _setDivisionCache.getReaderData();
 //        SetDivisionCache& tmpsetCache = _setDivisionCache.getWriterData();
@@ -2007,6 +2017,8 @@ void CDbHandle::updateDivisionCache(const SetDivisionCache& setDivisionCache, bo
 //        }
 //        _setDivisionCache.swap();
     }
+
+
 }
 void CDbHandle::sendSqlErrorAlarmSMS(const string &err)
 {

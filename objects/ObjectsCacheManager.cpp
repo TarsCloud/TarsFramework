@@ -12,12 +12,24 @@ ObjectsCacheManager::ObjectsCacheManager()
 
 void ObjectsCacheManager::onChange(const ObjectsCache& objCache)
 {
+	TLOGEX_DEBUG("push", "change size:" << objCache.size() << endl);
 	_objectsCache.getWriterData() = objCache;
 	_objectsCache.swap();
 }
 
 void ObjectsCacheManager::onUpdate(const ObjectsCache& objCache)
 {
+	if(objCache.empty())
+	{
+		return;
+	}
+
+	TLOGEX_DEBUG("push", "update objects size:" << objCache.size() << endl);
+
+	for(auto e : objCache)
+	{
+		TLOGEX_DEBUG("push", "update objects size:" << e.first << ", active size:" << e.second.vActiveEndpoints.size() << ", inactive size:" << e.second.vInactiveEndpoints.size() << endl);
+	}
 	_objectsCache.getWriterData() = _objectsCache.getReaderData();
 	ObjectsCache& tmpObjCache = _objectsCache.getWriterData();
 
@@ -33,14 +45,19 @@ void ObjectsCacheManager::onUpdate(const ObjectsCache& objCache)
 
 void ObjectsCacheManager::onChange( const std::string& id, const ObjectItem &item)
 {
+	TLOGEX_DEBUG("push", "change id:" << id << ", item size:" << item.vActiveEndpoints.size() << ", inactive size:" << item.vInactiveEndpoints.size() << endl);
+
 	auto &data = _objectsCache.getWriterData();
 	data[id] = item;
 
 	_objectsCache.swap();
+
 }
 
 void ObjectsCacheManager::onChangeGroupPriorityEntry( const map<tars::Int32, tars::GroupPriorityEntry>& group)
 {
+	TLOGEX_DEBUG("push", "group size:" << group.size() << endl);
+
 	_mapGroupPriority.getWriterData() = group;
 
 	_mapGroupPriority.swap();
@@ -48,13 +65,26 @@ void ObjectsCacheManager::onChangeGroupPriorityEntry( const map<tars::Int32, tar
 
 void ObjectsCacheManager::onChangeSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo)
 {
+	TLOGEX_DEBUG("push", "set size:" << setInfo.size() << endl);
+
 	_setDivisionCache.getWriterData() = setInfo;
 
 	_setDivisionCache.swap();
 }
 
+map<std::string, map<std::string, vector<tars::SetServerInfo>>> ObjectsCacheManager::getSetInfo()
+{
+	return _setDivisionCache.getReaderData();
+}
+
 void ObjectsCacheManager::onUpdateSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo)
 {
+	if(setInfo.empty())
+	{
+		return;
+	}
+	TLOGEX_DEBUG("push", "set size:" << setInfo.size() << endl);
+
 	_setDivisionCache.getWriterData() = _setDivisionCache.getReaderData();
 	SetDivisionCache& tmpsetCache = _setDivisionCache.getWriterData();
 	auto it = setInfo.begin();
@@ -73,12 +103,21 @@ void ObjectsCacheManager::onUpdateSetInfo( const map<std::string, map<std::strin
 	}
 	_setDivisionCache.swap();
 }
-void ObjectsCacheManager::onChangeGroupIdName(const map<string,int> &groupId, const map<string,int> &groupNameMap)
+
+void ObjectsCacheManager::onChangeServerGroupRule(const vector<map<string, string>> &serverGroupRule)
 {
-	_groupIdMap.getWriterData() = groupId;
-	_groupIdMap.swap();
-	_groupNameMap.getWriterData() = groupNameMap;
-	_groupNameMap.swap();
+	TLOGEX_DEBUG("push", "serverGroupRule size:" << serverGroupRule.size() << endl);
+
+	_serverGroupRule.getWriterData() = serverGroupRule;
+	_serverGroupRule.swap();
+
+	TC_RW_WLockT<TC_ThreadRWLocker> lock(_rwMutex);
+	_serverGroupCache.clear();
+
+//	_groupIdMap.getWriterData() = groupId;
+//	_groupIdMap.swap();
+//	_groupNameMap.getWriterData() = groupNameMap;
+//	_groupNameMap.swap();
 }
 
 bool ObjectsCacheManager::hasObjectId(const string &id)
@@ -184,54 +223,139 @@ int ObjectsCacheManager::findObjectById4All(const string& id, vector<EndpointF>&
 
 int ObjectsCacheManager::getGroupId(const string& ip)
 {
-
-	map<string, int>& groupIdMap = _groupIdMap.getReaderData();
-	map<string, int>::iterator it = groupIdMap.find(ip);
-	if (it != groupIdMap.end())
 	{
-		return it->second;
+		TC_RW_RLockT<TC_ThreadRWLocker> lock(_rwMutex);
+		auto it = _serverGroupCache.find(ip);
+		if (it != _serverGroupCache.end())
+		{
+			return it->second;
+		}
 	}
 
-	uint32_t uip = stringIpToInt(ip);
-	string ipStar = Ip2StarStr(uip);
-	it = groupIdMap.find(ipStar);
-	if (it != groupIdMap.end())
+	auto &vServerGroupInfo = _serverGroupRule.getReaderData();
+
+	bool bFind = false;
+
+	int groupId = -1;
+	for (auto it = vServerGroupInfo.begin(); it != vServerGroupInfo.end(); it++)
 	{
-		return it->second;
+		groupId = TC_Common::strto<int>(it->find("group_id")->second);
+		string sOrder = it->find("ip_order")->second;
+		vector<string> vAllowIp = TC_Common::sepstr<string>(it->find("allow_ip_rule")->second, ",;|");
+		vector<string> vDennyIp = TC_Common::sepstr<string>(it->find("denny_ip_rule")->second, ",;|");
+
+		if (sOrder == "allow_denny")
+		{
+			if (TC_Common::matchPeriod(ip, vAllowIp))
+			{
+				bFind = true;
+				break;
+			}
+		}
+		else if (sOrder == "denny_allow")
+		{
+			if (TC_Common::matchPeriod(ip, vDennyIp))
+			{
+				//在不允许的ip列表中则不属于本行所对应组  继续匹配查找
+				continue;
+			}
+			if (TC_Common::matchPeriod(ip, vAllowIp))
+			{
+				bFind = true;
+				break;
+			}
+		}
+	}
+
+	if (bFind == true)
+	{
+		TC_RW_WLockT<TC_ThreadRWLocker> lock(_rwMutex);
+
+		_serverGroupCache[ip] = groupId;
+
+		return groupId;
 	}
 
 	return -1;
+//	map<string, int>& groupIdMap = _groupIdMap.getReaderData();
+//	map<string, int>::iterator it = groupIdMap.find(ip);
+//	if (it != groupIdMap.end())
+//	{
+//		return it->second;
+//	}
+//
+//	uint32_t uip = stringIpToInt(ip);
+//	string ipStar = Ip2StarStr(uip);
+//	it = groupIdMap.find(ipStar);
+//	if (it != groupIdMap.end())
+//	{
+//		return it->second;
+//	}
+//
+//	return -1;
 }
 
 int ObjectsCacheManager::getGroupIdByName(const string& sGroupName)
 {
-    int iGroupId = -1;
-    try
-    {
-        if (sGroupName.empty())
-        {
-            return iGroupId;
-        }
+	{
+		TC_RW_RLockT<TC_ThreadRWLocker> lock(_rwMutex);
+		auto it = _groupNameCache.find(sGroupName);
+		if (it != _groupNameCache.end())
+		{
+			return it->second;
+		}
+	}
 
-        map<string, int>& groupNameMap = _groupNameMap.getReaderData();
-        map<string, int>::iterator it = groupNameMap.find(sGroupName);
-        if (it != groupNameMap.end())
-        {
-            TLOGINFO("CDbHandle::getGroupIdByName: "<< sGroupName << "|" << it->second << endl);
-            return it->second;
-        }
-    }
-    catch (exception& ex)
-    {
-        TLOG_ERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
-    }
-    catch (...)
-    {
-        TLOG_ERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
-    }
+	auto &vServerGroupInfo = _serverGroupRule.getReaderData();
 
-    TLOGINFO("CDbHandle::getGroupIdByName " << sGroupName << "|" << endl);
-    return -1;
+	int groupId = -1;
+	for (auto it = vServerGroupInfo.begin(); it != vServerGroupInfo.end(); it++)
+	{
+		groupId = TC_Common::strto<int>(it->find("group_id")->second);
+
+		TC_RW_WLockT<TC_ThreadRWLocker> lock(_rwMutex);
+
+		_groupNameCache[it->find("group_name")->second] = groupId;
+	}
+
+	{
+		TC_RW_RLockT<TC_ThreadRWLocker> lock(_rwMutex);
+		auto it = _groupNameCache.find(sGroupName);
+		if (it != _groupNameCache.end())
+		{
+			return it->second;
+		}
+	}
+
+	return -1;
+
+//    int iGroupId = -1;
+//    try
+//    {
+//        if (sGroupName.empty())
+//        {
+//            return iGroupId;
+//        }
+//
+//        map<string, int>& groupNameMap = _groupNameMap.getReaderData();
+//        map<string, int>::iterator it = groupNameMap.find(sGroupName);
+//        if (it != groupNameMap.end())
+//        {
+//            TLOGINFO("CDbHandle::getGroupIdByName: "<< sGroupName << "|" << it->second << endl);
+//            return it->second;
+//        }
+//    }
+//    catch (exception& ex)
+//    {
+//        TLOG_ERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
+//    }
+//    catch (...)
+//    {
+//        TLOG_ERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
+//    }
+//
+//    TLOGINFO("CDbHandle::getGroupIdByName " << sGroupName << "|" << endl);
+//    return -1;
 }
 
 vector<EndpointF> ObjectsCacheManager::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, int iGroupId, ostringstream& os)
@@ -533,38 +657,38 @@ string ObjectsCacheManager::eFunTostr(const FUNID eFnId)
 {
 	return etos(eFnId).substr(5);
 }
-
-uint32_t ObjectsCacheManager::stringIpToInt(const std::string& sip)
-{
-	string ip1, ip2, ip3, ip4;
-	uint32_t dip, p1, p2, p3;
-	dip = 0;
-	p1 = sip.find('.');
-	p2 = sip.find('.', p1 + 1);
-	p3 = sip.find('.', p2 + 1);
-	ip1 = sip.substr(0, p1);
-	ip2 = sip.substr(p1 + 1, p2 - p1 - 1);
-	ip3 = sip.substr(p2 + 1, p3 - p2 - 1);
-	ip4 = sip.substr(p3 + 1, sip.size() - p3 - 1);
-	(((unsigned char *)&dip)[0]) = TC_Common::strto<unsigned int>(ip1);
-	(((unsigned char *)&dip)[1]) = TC_Common::strto<unsigned int>(ip2);
-	(((unsigned char *)&dip)[2]) = TC_Common::strto<unsigned int>(ip3);
-	(((unsigned char *)&dip)[3]) = TC_Common::strto<unsigned int>(ip4);
-	return htonl(dip);
-}
-
-string ObjectsCacheManager::Ip2Str(uint32_t ip)
-{
-	char str[50];
-	unsigned char  *p = (unsigned char *)&ip;
-	sprintf(str, "%u.%u.%u.%u", p[3], p[2], p[1], p[0]);
-	return string(str);
-}
-
-string ObjectsCacheManager::Ip2StarStr(uint32_t ip)
-{
-	char str[50];
-	unsigned char  *p = (unsigned char *)&ip;
-	sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
-	return string(str);
-}
+//
+//uint32_t ObjectsCacheManager::stringIpToInt(const std::string& sip)
+//{
+//	string ip1, ip2, ip3, ip4;
+//	uint32_t dip, p1, p2, p3;
+//	dip = 0;
+//	p1 = sip.find('.');
+//	p2 = sip.find('.', p1 + 1);
+//	p3 = sip.find('.', p2 + 1);
+//	ip1 = sip.substr(0, p1);
+//	ip2 = sip.substr(p1 + 1, p2 - p1 - 1);
+//	ip3 = sip.substr(p2 + 1, p3 - p2 - 1);
+//	ip4 = sip.substr(p3 + 1, sip.size() - p3 - 1);
+//	(((unsigned char *)&dip)[0]) = TC_Common::strto<unsigned int>(ip1);
+//	(((unsigned char *)&dip)[1]) = TC_Common::strto<unsigned int>(ip2);
+//	(((unsigned char *)&dip)[2]) = TC_Common::strto<unsigned int>(ip3);
+//	(((unsigned char *)&dip)[3]) = TC_Common::strto<unsigned int>(ip4);
+//	return htonl(dip);
+//}
+//
+//string ObjectsCacheManager::Ip2Str(uint32_t ip)
+//{
+//	char str[50];
+//	unsigned char  *p = (unsigned char *)&ip;
+//	sprintf(str, "%u.%u.%u.%u", p[3], p[2], p[1], p[0]);
+//	return string(str);
+//}
+//
+//string ObjectsCacheManager::Ip2StarStr(uint32_t ip)
+//{
+//	char str[50];
+//	unsigned char  *p = (unsigned char *)&ip;
+//	sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
+//	return string(str);
+//}

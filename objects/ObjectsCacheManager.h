@@ -28,7 +28,9 @@ public:
 	void onChangeGroupPriorityEntry( const map<tars::Int32, tars::GroupPriorityEntry>& group);
 	void onChangeSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo);
 	void onUpdateSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo);
-	void onChangeGroupIdName(const map<string,int> &groupId, const map<string,int> &groupNameMap);
+	void onChangeServerGroupRule(const vector<map<string, string>> &serverGroupRule);
+
+	map<std::string, map<std::string, vector<tars::SetServerInfo>>> getSetInfo();
 
 	/**
 	 * 是否拥有objectId
@@ -96,20 +98,20 @@ protected:
 
 	void doDaylog(const FUNID eFnId,const string& id,const vector<EndpointF> &activeEp, const vector<EndpointF> &inactiveEp, const CurrentPtr& current,const ostringstream& os,const string& sSetid = "");
 
-	/**
-	 * ip转换
-	 */
-	uint32_t stringIpToInt(const std::string& sip);
-
-	/**
-	 * ip转换
-	 */
-	string Ip2Str(uint32_t ip);
-
-	/**
-	 * ip转换
-	 */
-	string Ip2StarStr(uint32_t ip);
+//	/**
+//	 * ip转换
+//	 */
+//	uint32_t stringIpToInt(const std::string& sip);
+//
+//	/**
+//	 * ip转换
+//	 */
+//	string Ip2Str(uint32_t ip);
+//
+//	/**
+//	 * ip转换
+//	 */
+//	string Ip2StarStr(uint32_t ip);
 
 protected:
 
@@ -126,8 +128,13 @@ protected:
 	TC_ReadersWriterData<std::map<int, GroupPriorityEntry>> _mapGroupPriority;
 
 	//分组信息
-	TC_ReadersWriterData<map<string,int> > _groupIdMap;
-	TC_ReadersWriterData<map<string,int> > _groupNameMap;
+	TC_ReadersWriterData<vector<map<string, string>>> _serverGroupRule;
+
+	unordered_map<string,int> _serverGroupCache;
+	unordered_map<string,int> _groupNameCache;
+
+//	TC_ReadersWriterData<map<string,int> > _groupIdMap;
+//	TC_ReadersWriterData<map<string,int> > _groupNameMap;
 
 };
 

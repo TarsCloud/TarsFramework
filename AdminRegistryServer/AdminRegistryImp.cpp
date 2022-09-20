@@ -312,10 +312,24 @@ int AdminRegistryImp::getGroupId(const string & ip, int &groupId, string &result
     {
         TLOG_DEBUG("AdminRegistryImp::getGroupId ip: "<<ip<<endl);
 
-        return DBPROXY->getGroupId(ip);
+		int flag = _registryPrx->getGroupId(ip, groupId);
+
+//		groupId = DBPROXY->getGroupId(ip);
+
+		if(flag == 0)
+		{
+			result = "succ";
+		}
+		else
+		{
+			result = "load groupId error";
+		}
+
+		return flag;
     }
     catch(TarsException & ex)
     {
+		result = string("error:") + ex.what();
         TLOG_ERROR(("AdminRegistryImp::getGroupId '" + ip + "' exception:" + ex.what())<< endl);
         return -1;
     }
@@ -506,7 +520,7 @@ int AdminRegistryImp::stopServer(const string & application, const string & serv
         }
         else
         {
-			iRet = NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
+			iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
         }
 
         return iRet;

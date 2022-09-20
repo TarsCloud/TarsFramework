@@ -17,15 +17,19 @@ class RegisterQueryManager : public TC_Singleton<RegisterQueryManager>, public T
 public:
 
 	//
-	void registerQuery(const string &id, CurrentPtr current);
+	void registerQuery(const string &id, const string &name, CurrentPtr current);
 
 	//
-	void registerChange(const vector<string> &id, CurrentPtr current);
+	void registerChange(const vector<string> &id, const string &name, CurrentPtr current);
 
 	//
 	void closeQuery(CurrentPtr current);
 
 	void pushObj(const ObjectsCache& allCache, const ObjectsCache &objectsCache);
+
+	void pushGroupPriorityEntry( const map<tars::Int32, tars::GroupPriorityEntry>& group);
+	void pushSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo);
+	void pushServerGroupRule(const vector<map<string, string>> &serverGroupRule);
 
 	void terminate();
 
@@ -41,7 +45,8 @@ protected:
 protected:
 
 	//
-	std::mutex			_mutex;
+	TC_ThreadRWLocker _mutex;
+//	std::mutex			_mutex;
 
 	//<id, <uid, current>>
 	unordered_map<string, unordered_map<int, CurrentPtr>> _queries;
@@ -54,6 +59,9 @@ protected:
 
 	//<uid, ids>
 	unordered_map<int, unordered_set<string>> _uidToChangeIds;
+
+	//change current
+	 unordered_map<int, CurrentPtr> _changeCurrents;
 
 	bool _terminate = false;
 

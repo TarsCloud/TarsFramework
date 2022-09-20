@@ -26,8 +26,7 @@ public:
 	virtual void callback_onChange(const std::string& id, const ObjectItem &item);
 	virtual void callback_onChangeGroupPriorityEntry( const map<tars::Int32, tars::GroupPriorityEntry>& group);
 	virtual void callback_onChangeSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo);
-	virtual void callback_onChangeGroupIdName(const map<string,int> &groupId, const map<string,int> &groupNameMap);
-
+	virtual void callback_onChangeServerGroupRule(const vector<map<string, string>> &serverGroupRule);
 protected:
 	QueryFPrx _queryFPrx;
 	std::mutex _mutex;
@@ -82,7 +81,13 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerQuery(const std::string & id, CurrentPtr current);
+	Int32 registerQuery(const std::string & id, const string &name, CurrentPtr current);
+
+	/**
+	 *
+	 * @param current
+	 */
+	void closeQuery(CurrentPtr current);
 
 	/**
 	 * 注册变化(tarsnode这个接口其实不会被调用到, 除非tarsnode自己连接自己!)
@@ -90,13 +95,20 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerChange(const vector<std::string> & ids, CurrentPtr current);
+	Int32 registerChange(const vector<std::string> & ids,  CurrentPtr current);
 
 	/**
 	 *
 	 * @param id
 	 */
 	void addObjectId(const string &id);
+
+	/**
+	 *
+	 * @param id
+	 */
+	void pushObjQuery(const string &id);
+
 protected:
 	virtual void run();
 
@@ -111,6 +123,12 @@ protected:
 
 	//关注的obj
 	unordered_set<string> _objs;
+
+	//<obj, <uid, current>>
+	unordered_map<string, unordered_map<int, CurrentPtr>> _queries;
+
+	//<uid, objs>
+	unordered_map<int, unordered_set<string>> _uidToQueryIds;
 
 	//读写锁
 	TC_ThreadRWLocker _rwMutex;

@@ -21,7 +21,10 @@
 
 void ServerImp::initialize()
 {
+	_queryImp.setApplication(this->getApplication());
+	_queryImp.setHandle(this->getHandle());
 	_queryImp.initialize();
+//	_queryImp.setHandle()
 }
 
 void ServerImp::destroy()
@@ -147,15 +150,22 @@ int ServerImp::doClose(CurrentPtr current)
 	return 0;
 }
 
-int ServerImp::doNoFunc(CurrentPtr current, vector<char> &buffer)
+int ServerImp::doNoServant(CurrentPtr current, vector<char> &buffer)
 {
+	TLOG_DEBUG("no servant:" << current->getServantName() <<endl);
 	return _queryImp.dispatch(current, buffer);
 }
+//
+//int ServerImp::doNoFunc(CurrentPtr current, vector<char> &buffer)
+//{
+//	return _queryImp.dispatch(current, buffer);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int QueryImp::doClose(CurrentPtr current)
 {
+	QueryObjectsManager::getInstance()->closeQuery(current);
 	return 0;
 }
 
@@ -189,12 +199,12 @@ Int32 QueryImp::findObjectByIdInSameSet(const std::string & id,const std::string
 	return QueryObjectsManager::getInstance()->findObjectByIdInSameSet(id, setId, activeEp, inactiveEp, current);
 }
 
-Int32 QueryImp::registerQuery(const std::string & id, CurrentPtr current)
+Int32 QueryImp::registerQuery(const std::string & id, const string& name, CurrentPtr current)
 {
-	return QueryObjectsManager::getInstance()->registerQuery(id, current);
+	return QueryObjectsManager::getInstance()->registerQuery(id, name, current);
 }
 
-Int32 QueryImp::registerChange(const vector<std::string> & ids, CurrentPtr current)
+Int32 QueryImp::registerChange(const vector<std::string> & ids, const string& name, CurrentPtr current)
 {
 	TLOG_ERROR("should not be called" << endl);
 

@@ -373,29 +373,28 @@ public:
 //     */
 //    int gridPatchServer(const string & app, const string & servername, const string & nodename, const string &status);
 
-    /**
-     * 轮询数据库，将心跳超时的registry设为不存活
-     * @param iTiemout 超时时间
-     * @return
-     */
-    int checkRegistryTimeout(unsigned uTimeout);
+//    /**
+//     * 轮询数据库，将心跳超时的registry设为不存活
+//     * @param iTiemout 超时时间
+//     * @return
+//     */
+//    int checkRegistryTimeout(unsigned uTimeout);
+//
+//    /**
+//     * 更新registry信息到db
+//     */
+//    int updateRegistryInfo2Db(bool bRegHeartbeatOff);
 
-    /**
-     * 更新registry信息到db
-     */
-    int updateRegistryInfo2Db(bool bRegHeartbeatOff);
-
-
-    /**
-     * 根据ip获取组id
-     * @return int <0 失败 其它正常
-     */
-    int getGroupId(const string& ip);
+//    /**
+//     * 根据ip获取组id
+//     * @return int <0 失败 其它正常
+//     */
+//    int getGroupId(const string& ip);
 
     /**
      * 加载IP物理分组信息
     */
-    int loadIPPhysicalGroupInfo();
+//    int loadIPPhysicalGroupInfo();
 
     /**
      * 只保留必要的数据
@@ -408,13 +407,13 @@ protected:
 	static vector<TC_ThreadMutex*> _mysqlLocks;
 
     //匹配分组信息
-    static vector<map<string,string>> _serverGroupRule;
+//    static vector<map<string,string>> _serverGroupRule;
 
     //用于初始化保护
     static TC_ThreadLock _mutex;
 
-    //分组信息
-    static map<string,int> _serverGroupCache;
+//    //分组信息
+//    static map<string,int> _serverGroupCache;
 
     //保留历史发布记录
     static int _patchHistory;

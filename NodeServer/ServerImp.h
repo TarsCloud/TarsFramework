@@ -81,7 +81,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerQuery(const std::string & id, CurrentPtr current);
+	Int32 registerQuery(const std::string & id, const string& name, CurrentPtr current);
 
 	/**
 	 * 注册变化
@@ -89,7 +89,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerChange(const vector<std::string> & ids, CurrentPtr current);
+	Int32 registerChange(const vector<std::string> & ids, const string& name, CurrentPtr current);
 
 protected:
 
@@ -155,11 +155,18 @@ public:
     unsigned int getLatestKeepAliveTime(CurrentPtr current);
 
 	/**
-	 * 没有接口时(模拟主控该接口)
+	 * 没有Servant时(模拟主控该接口)
 	 * @param current
 	 * @return
 	 */
-	virtual int doNoFunc(CurrentPtr current, vector<char> &buffer);
+	virtual int doNoServant(CurrentPtr current, vector<char> &buffer);
+
+//	/**
+//	 * 没有接口时(模拟主控该接口)
+//	 * @param current
+//	 * @return
+//	 */
+//	virtual int doNoFunc(CurrentPtr current, vector<char> &buffer);
 
 private:
 	QueryImp _queryImp;

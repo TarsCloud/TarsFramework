@@ -1,25 +1,20 @@
 <tars>
     <reap>
-        #加载object间隔时间(s)
-        loadObjectsInterval = 30
-        #轮询server状态的间隔时间(s)
-        queryInterval       = 150
 
         #第一阶段加载时间间隔，位是秒
-        loadObjectsInterval1 = 13
-        #第一阶段加载最近时间更新的记录,默认是60秒
-        LeastChangedTime1    = 600
+        loadObjectsInterval1 = 1
 
         #第二阶段（全量）加载时间间隔，单位是秒
-        loadObjectsInterval2 = 3601
+        loadObjectsInterval2 = 360
 
-        #node心跳超时时间,单位是秒
-        nodeTimeout         = 250
+        #node心跳超时时间(一旦超时, 认为这个节点上所有服务都inactive),单位是秒
+        nodeTimeout         = 15
+        #检查node是否超时的间隔, 单位是秒
+        nodeTimeoutInterval = 5
+
         #主控心跳超时检测时间,单位是秒
-        registryTimeout    = 150
+        #registryTimeout    = 150
 
-        #服务状态监控加载最近时间更新的记录，单位是秒
-        querylesttime       = 300
         #主控心跳关闭开关,默认允许心跳检测，要迁移的时候设置次项为N
         # heartbeatoff=Y
      

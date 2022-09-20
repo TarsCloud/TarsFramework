@@ -4,10 +4,13 @@
 
 #include "RegisterQueryManager.h"
 #include "servant/QueryPushF.h"
+#include "servant/RemoteLogger.h"
 
-void RegisterQueryManager::registerChange(const vector<string> &ids, CurrentPtr current)
+void RegisterQueryManager::registerChange(const vector<string> &ids, const string &name, CurrentPtr current)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+	TLOGEX_DEBUG("push", name << ", " << current->getHostName() << " " << TC_Common::tostr(ids.begin(), ids.end(), " ") << endl);
+
+	TC_RW_WLockT<TC_ThreadRWLocker> lock(_mutex);
 
 	for(auto &id : ids)
 	{
@@ -15,11 +18,15 @@ void RegisterQueryManager::registerChange(const vector<string> &ids, CurrentPtr 
 
 		_changes[id][current->getUId()] = current;
 	}
+
+	_changeCurrents[current->getUId()] = current;
 }
 
-void RegisterQueryManager::registerQuery(const string &id, CurrentPtr current)
+void RegisterQueryManager::registerQuery(const string &id, const string &name, CurrentPtr current)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+	TLOGEX_DEBUG("push", name << ", " << id << " " << current->getHostName() << endl);
+
+	TC_RW_WLockT<TC_ThreadRWLocker> lock(_mutex);
 
 	_uidToQueryIds[current->getUId()].insert(id);
 
@@ -29,7 +36,7 @@ void RegisterQueryManager::registerQuery(const string &id, CurrentPtr current)
 
 void RegisterQueryManager::closeQuery(CurrentPtr current)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+	TC_RW_WLockT<TC_ThreadRWLocker> lock(_mutex);
 
 	{
 		auto it = _uidToChangeIds.find(current->getUId());
@@ -51,6 +58,8 @@ void RegisterQueryManager::closeQuery(CurrentPtr current)
 				}
 			}
 		}
+
+		_changeCurrents.erase(current->getUId());
 	}
 
 	{
@@ -97,7 +106,17 @@ void RegisterQueryManager::pushObj(const ObjectsCache& allCache, const ObjectsCa
 			change.insert(e);
 		}
 	}
-	_ids.push_back(change);
+
+	if(!change.empty())
+	{
+		TLOGEX_DEBUG("push", "change objects size:" << change.size() << endl);
+
+		for(auto &c : change)
+		{
+			TLOGEX_DEBUG("push", "ids:" << c.first << ", active size:" << c.second.vActiveEndpoints.size() << ", inactive size:" << c.second.vInactiveEndpoints.size() << endl);
+		}
+		_ids.push_back(change);
+	}
 }
 
 void RegisterQueryManager::terminate()
@@ -108,7 +127,7 @@ void RegisterQueryManager::terminate()
 
 unordered_map<int, CurrentPtr> RegisterQueryManager::getChanges(const string &id)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+	TC_RW_RLockT<TC_ThreadRWLocker> lock(_mutex);
 
 	auto it = _changes.find(id);
 
@@ -122,7 +141,7 @@ unordered_map<int, CurrentPtr> RegisterQueryManager::getChanges(const string &id
 
 unordered_map<int, CurrentPtr> RegisterQueryManager::getQueries(const string &id)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+	TC_RW_RLockT<TC_ThreadRWLocker> lock(_mutex);
 
 	auto it = _queries.find(id);
 
@@ -147,8 +166,50 @@ void RegisterQueryManager::onPush(const ObjectsCache &objectsCache)
 		auto queries = getQueries(cache.first);
 		for (auto e: queries)
 		{
+			TLOGEX_DEBUG("push", cache.first << " " << e.second->getHostName() << endl);
 			QueryPushF::async_response_push_onQuery(e.second, cache.first);
 		}
+	}
+}
+
+void RegisterQueryManager::pushGroupPriorityEntry( const map<tars::Int32, tars::GroupPriorityEntry>& group)
+{
+	if(group.empty())
+	{
+		return;
+	}
+	TC_RW_RLockT<TC_ThreadRWLocker> lock(_mutex);
+
+	for(auto &e: _changeCurrents)
+	{
+		QueryPushF::async_response_push_onChangeGroupPriorityEntry(e.second, group);
+	}
+}
+
+void RegisterQueryManager::pushSetInfo( const map<std::string, map<std::string, vector<tars::SetServerInfo> > >& setInfo)
+{
+	if(setInfo.empty())
+	{
+		return;
+	}
+	TC_RW_RLockT<TC_ThreadRWLocker> lock(_mutex);
+	for(auto &e: _changeCurrents)
+	{
+		QueryPushF::async_response_push_onChangeSetInfo(e.second, setInfo);
+	}
+}
+
+void RegisterQueryManager::pushServerGroupRule(const vector<map<string, string>> &serverGroupRule)
+{
+	if(serverGroupRule.empty())
+	{
+		return;
+	}
+
+	TC_RW_RLockT<TC_ThreadRWLocker> lock(_mutex);
+	for(auto &e: _changeCurrents)
+	{
+		QueryPushF::async_response_push_onChangeServerGroupRule(e.second, serverGroupRule);
 	}
 }
 

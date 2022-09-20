@@ -23,10 +23,10 @@
 TC_ThreadLock DbProxy::_mutex;
 
 
-vector<map<string, string>> DbProxy::_serverGroupRule;
+//vector<map<string, string>> DbProxy::_serverGroupRule;
 
 //key-ip, value-组编号
-map<string, int> DbProxy::_serverGroupCache;
+//map<string, int> DbProxy::_serverGroupCache;
 
 vector<tars::TC_Mysql*> DbProxy::_mysqlReg;
 vector<TC_ThreadMutex*> DbProxy::_mysqlLocks;
@@ -760,81 +760,82 @@ vector<vector<string> > DbProxy::getAllServerIds(string& result)
     return vServers;
 
 }
-int DbProxy::getGroupId(const string& ip)
-{
-    bool bFind      = false;
-    int iGroupId    = -1;
-    string sOrder;
-    string sAllowIpRule;
-    string sDennyIpRule;
-    vector<map<string, string> > vServerGroupInfo;
-    try
-    {
-        {
-            TC_ThreadLock::Lock lock(_mutex);
-            map<string, int>::iterator it = _serverGroupCache.find(ip);
-            if (it != _serverGroupCache.end())
-            {
-                return it->second;
-            }
-            vServerGroupInfo = _serverGroupRule;
-        }
-
-        for (unsigned i = 0; i < vServerGroupInfo.size(); i++)
-        {
-            iGroupId                    = TC_Common::strto<int>(vServerGroupInfo[i]["group_id"]);
-            sOrder                      = vServerGroupInfo[i]["ip_order"];
-            sAllowIpRule                = vServerGroupInfo[i]["allow_ip_rule"];
-            sDennyIpRule                = vServerGroupInfo[i]["denny_ip_rule"];
-            vector<string> vAllowIp     = TC_Common::sepstr<string>(sAllowIpRule, ",|;");
-            vector<string> vDennyIp     = TC_Common::sepstr<string>(sDennyIpRule, ",|;");
-            if (sOrder == "allow_denny")
-            {
-                if (TC_Common::matchPeriod(ip, vAllowIp))
-                {
-                    bFind = true;
-                    break;
-                }
-            }
-            else if (sOrder == "denny_allow")
-            {
-                if (TC_Common::matchPeriod(ip, vDennyIp))
-                {
-                    //在不允许的ip列表中则不属于本行所对应组  继续匹配查找
-                    continue;
-                }
-                if (TC_Common::matchPeriod(ip, vAllowIp))
-                {
-                    bFind = true;
-                    break;
-                }
-            }
-        }
-
-        if (bFind == true)
-        {
-            TC_ThreadLock::Lock lock(_mutex);
-            _serverGroupCache[ip] = iGroupId;
-
-            TLOGINFO("get groupId succ|ip|" << ip
-                     << "|group_id|" << iGroupId << "|ip_order|" << sOrder
-                     << "|allow_ip_rule|" << sAllowIpRule
-                     << "|denny_ip_rule|" << sDennyIpRule
-                     << "|ServerGroupCache|" << TC_Common::tostr(_serverGroupCache) << endl);
-
-            return iGroupId;
-        }
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR(" exception: " << ex.what() << endl);
-    }
-    catch (exception& ex)
-    {
-        TLOG_ERROR(" " << ex.what() << endl);
-    }
-    return -1;
-}
+//
+//int DbProxy::getGroupId(const string& ip)
+//{
+//    bool bFind      = false;
+//    int iGroupId    = -1;
+//    string sOrder;
+//    string sAllowIpRule;
+//    string sDennyIpRule;
+//    vector<map<string, string> > vServerGroupInfo;
+//    try
+//    {
+//        {
+//            TC_ThreadLock::Lock lock(_mutex);
+//            map<string, int>::iterator it = _serverGroupCache.find(ip);
+//            if (it != _serverGroupCache.end())
+//            {
+//                return it->second;
+//            }
+//            vServerGroupInfo = _serverGroupRule;
+//        }
+//
+//        for (unsigned i = 0; i < vServerGroupInfo.size(); i++)
+//        {
+//            iGroupId                    = TC_Common::strto<int>(vServerGroupInfo[i]["group_id"]);
+//            sOrder                      = vServerGroupInfo[i]["ip_order"];
+//            sAllowIpRule                = vServerGroupInfo[i]["allow_ip_rule"];
+//            sDennyIpRule                = vServerGroupInfo[i]["denny_ip_rule"];
+//            vector<string> vAllowIp     = TC_Common::sepstr<string>(sAllowIpRule, ",|;");
+//            vector<string> vDennyIp     = TC_Common::sepstr<string>(sDennyIpRule, ",|;");
+//            if (sOrder == "allow_denny")
+//            {
+//                if (TC_Common::matchPeriod(ip, vAllowIp))
+//                {
+//                    bFind = true;
+//                    break;
+//                }
+//            }
+//            else if (sOrder == "denny_allow")
+//            {
+//                if (TC_Common::matchPeriod(ip, vDennyIp))
+//                {
+//                    //在不允许的ip列表中则不属于本行所对应组  继续匹配查找
+//                    continue;
+//                }
+//                if (TC_Common::matchPeriod(ip, vAllowIp))
+//                {
+//                    bFind = true;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if (bFind == true)
+//        {
+//            TC_ThreadLock::Lock lock(_mutex);
+//            _serverGroupCache[ip] = iGroupId;
+//
+//            TLOGINFO("get groupId succ|ip|" << ip
+//                     << "|group_id|" << iGroupId << "|ip_order|" << sOrder
+//                     << "|allow_ip_rule|" << sAllowIpRule
+//                     << "|denny_ip_rule|" << sDennyIpRule
+//                     << "|ServerGroupCache|" << TC_Common::tostr(_serverGroupCache) << endl);
+//
+//            return iGroupId;
+//        }
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR(" exception: " << ex.what() << endl);
+//    }
+//    catch (exception& ex)
+//    {
+//        TLOG_ERROR(" " << ex.what() << endl);
+//    }
+//    return -1;
+//}
 
 NodePrx DbProxy::getNodePrx(const string& nodeName)
 {
@@ -917,116 +918,112 @@ int DbProxy::getFramework(vector<tars::FrameworkServer> &servers)
 		return -1;
 	}
 }
-
-int DbProxy::checkRegistryTimeout(unsigned uTimeout)
-{
-    try
-    {
-		MYSQL_LOCK;
-        string sSql = "update t_registry_info "
-                      "set present_state='inactive' "
-                      "where last_heartbeat < date_sub(now(), INTERVAL " + tars::TC_Common::tostr(uTimeout) + " SECOND)";
-
-        MYSQL_INDEX->execute(sSql);
-        TLOG_DEBUG(" (" << uTimeout  << "s) affected:" << MYSQL_INDEX->getAffectedRows() << endl);
-
-        return MYSQL_INDEX->getAffectedRows();
-
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR(" exception: " << ex.what() << endl);
-        return -1;
-    }
-
-}
-
-int DbProxy::updateRegistryInfo2Db(bool bRegHeartbeatOff)
-{
-    if (bRegHeartbeatOff)
-    {
-        TLOG_DEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
-        return 0;
-    }
-
-    map<string, string>::iterator iter;
-    map<string, string> mapServantEndpoint = g_app.getServantEndpoint();
-    if (mapServantEndpoint.size() == 0)
-    {
-        TLOG_ERROR("fatal error, get registry servant failed!" << endl);
-        return -1;
-    }
-
-    try
-    {
-		MYSQL_LOCK;
-        string sSql = "replace into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version)  values ";
-
-        string sVersion = Application::getTarsVersion() + "_" + SERVER_VERSION;
-        for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
-        {
-            TC_Endpoint locator;
-            locator.parse(iter->second);
-
-            sSql += (iter == mapServantEndpoint.begin() ? string("") : string(", ")) +
-                    "('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) + "', "
-                    "'" + iter->first + "', '" + iter->second + "', now(), 'active', " +
-                    "'" + MYSQL_INDEX->escapeString(sVersion) + "')";
-        }
-
-        MYSQL_INDEX->execute(sSql);
-
-		// if(MYSQL_INDEX->getAffectedRows() > 0)
-		// {
-		// 	TLOG_DEBUG(" affected:" << MYSQL_INDEX->getAffectedRows() << endl);
-		// }
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR(" exception: " << ex.what() << endl);
-        return -1;
-    }
-    catch (exception& ex)
-    {
-        TLOG_ERROR(" exception: " << ex.what() << endl);
-        return -1;
-    }
-
-    return 0;
-}
-
-int DbProxy::loadIPPhysicalGroupInfo()
-{
-    try
-    {
-		TC_Mysql::MysqlData res;
-		{
-			MYSQL_LOCK;
-			string sSql = "select group_id,ip_order,allow_ip_rule,denny_ip_rule,group_name from t_server_group_rule "
-                      "order by group_id";
-			res = MYSQL_INDEX->queryRecord(sSql);
-		}
-		if( res.size() > 0)
-		{
-			TLOG_DEBUG(" get server group from db, records affected:" << res.size() << endl);
-		}
-
-        TC_ThreadLock::Lock lock(_mutex);
-        _serverGroupRule.clear();
-        _serverGroupRule = res.data();
-
-        _serverGroupCache.clear();  //规则改变 清除以前缓存
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOG_ERROR(" exception: " << ex.what() << endl);
-    }
-    catch (exception& ex)
-    {
-        TLOG_ERROR(" " << ex.what() << endl);
-    }
-    return -1;
-}
+//
+//int DbProxy::checkRegistryTimeout(unsigned uTimeout)
+//{
+//    try
+//    {
+//		MYSQL_LOCK;
+//        string sSql = "update t_registry_info "
+//                      "set present_state='inactive' "
+//                      "where last_heartbeat < date_sub(now(), INTERVAL " + tars::TC_Common::tostr(uTimeout) + " SECOND)";
+//
+//        MYSQL_INDEX->execute(sSql);
+//        TLOG_DEBUG(" (" << uTimeout  << "s) affected:" << MYSQL_INDEX->getAffectedRows() << endl);
+//
+//        return MYSQL_INDEX->getAffectedRows();
+//
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR(" exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//
+//}
+//
+//int DbProxy::updateRegistryInfo2Db(bool bRegHeartbeatOff)
+//{
+//    if (bRegHeartbeatOff)
+//    {
+//        TLOG_DEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
+//        return 0;
+//    }
+//
+//    map<string, string>::iterator iter;
+//    map<string, string> mapServantEndpoint = g_app.getServantEndpoint();
+//    if (mapServantEndpoint.size() == 0)
+//    {
+//        TLOG_ERROR("fatal error, get registry servant failed!" << endl);
+//        return -1;
+//    }
+//
+//    try
+//    {
+//		MYSQL_LOCK;
+//        string sSql = "replace into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version)  values ";
+//
+//        string sVersion = Application::getTarsVersion() + "_" + SERVER_VERSION;
+//        for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
+//        {
+//            TC_Endpoint locator;
+//            locator.parse(iter->second);
+//
+//            sSql += (iter == mapServantEndpoint.begin() ? string("") : string(", ")) +
+//                    "('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) + "', "
+//                    "'" + iter->first + "', '" + iter->second + "', now(), 'active', " +
+//                    "'" + MYSQL_INDEX->escapeString(sVersion) + "')";
+//        }
+//
+//        MYSQL_INDEX->execute(sSql);
+//
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR(" exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//    catch (exception& ex)
+//    {
+//        TLOG_ERROR(" exception: " << ex.what() << endl);
+//        return -1;
+//    }
+//
+//    return 0;
+//}
+//
+//int DbProxy::loadIPPhysicalGroupInfo()
+//{
+//    try
+//    {
+//		TC_Mysql::MysqlData res;
+//		{
+//			MYSQL_LOCK;
+//			string sSql = "select group_id,ip_order,allow_ip_rule,denny_ip_rule,group_name from t_server_group_rule "
+//                      "order by group_id";
+//			res = MYSQL_INDEX->queryRecord(sSql);
+//		}
+//		if( res.size() > 0)
+//		{
+//			TLOG_DEBUG(" get server group from db, records affected:" << res.size() << endl);
+//		}
+//
+//        TC_ThreadLock::Lock lock(_mutex);
+//        _serverGroupRule.clear();
+//        _serverGroupRule = res.data();
+//
+//        _serverGroupCache.clear();  //规则改变 清除以前缓存
+//    }
+//    catch (TC_Mysql_Exception& ex)
+//    {
+//        TLOG_ERROR(" exception: " << ex.what() << endl);
+//    }
+//    catch (exception& ex)
+//    {
+//        TLOG_ERROR(" " << ex.what() << endl);
+//    }
+//    return -1;
+//}
 
 int DbProxy::getInfoByPatchId(const string &patchId, string &patchFile, string &md5)
 {

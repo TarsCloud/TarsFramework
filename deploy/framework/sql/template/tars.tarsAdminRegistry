@@ -9,8 +9,8 @@
 		sync_node_timeout=4000
 	</nodeinfo>
 	<reap>
-		updateHeartInterval=15
-		registryTimeout=150
+		#updateHeartInterval=15
+		#registryTimeout=150
 	</reap>
     <patch>
         #call tarspatch server timeout(ms)

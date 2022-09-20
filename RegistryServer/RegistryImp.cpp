@@ -127,6 +127,24 @@ int RegistryImp::getClientIp(std::string &sClientIp,CurrentPtr current)
     return 0;
 }
 
+
+int RegistryImp::getGroupId(const string & ip, int &groupId, tars::CurrentPtr current)
+{
+	try
+	{
+		TLOG_DEBUG("RegistryImp::getGroupId ip: "<<ip<<endl);
+
+		groupId= ObjectsCacheManager::getInstance()->getGroupId(ip);
+
+		return 0;
+	}
+	catch(TarsException & ex)
+	{
+		TLOG_ERROR(("RegistryImp::getGroupId '" + ip + "' exception:" + ex.what())<< endl);
+		return -1;
+	}
+}
+
 int RegistryImp::updatePatchResult(const PatchResult & result, CurrentPtr current)
 {
     TLOG_DEBUG( "RegistryImp::updatePatchResult " << result.sApplication + "." + result.sServerName + "_" + result.sNodeName << "|V:" << result.sVersion << "|U:" <<  result.sUserName << endl);

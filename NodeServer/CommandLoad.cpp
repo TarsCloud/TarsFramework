@@ -393,74 +393,14 @@ int CommandLoad::updateConfigFile(string& sResult)
         map<string, string> mMacro;
         mMacro.clear();
 
-		string locator = Application::getCommunicator()->getProperty("locator");
-		if(!locator.empty())
+		if(tConf.get("/tars/application/server<locator-node>", "") == "y")
 		{
-			string::size_type pos = locator.find("@");
-			string obj;
-
-			if(pos != string::npos)
-			{
-				obj = locator.substr(0, pos);
-				locator = locator.substr(pos + 1);
-
-				vector<string> vEndpoints = TC_Endpoint::sepEndpoint(locator);
-
-				locator = "";
-				for(size_t i = 0; i < vEndpoints.size(); i++)
-				{
-					TC_Endpoint ep;
-					ep.parse(vEndpoints[i]);
-
-					locator += replaceHostLocalIp(ep);
-                    
-                    if(i != vEndpoints.size() - 1)
-                        locator += ":";
-				}
-
-				mMacro["locator"] = obj + "@" + locator;
-			}
+			mMacro["locator"] = g_app.getAdapterEndpoint("ServerAdapter").toString();
 		}
-
-        //>>修改成从主控获取locator地址
-        vector<EndpointF> activeEp;
-        vector<EndpointF> inactiveEp;
-        int iRet = 0;
-
-        if(_succ)
-        {
-            QueryFPrx queryProxy = AdminProxy::getInstance()->getQueryProxy();
-             try
-            {
-                iRet = queryProxy->findObjectById4All(AdminProxy::getInstance()->getQueryProxyName(), activeEp, inactiveEp);
-                NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "iRet:" << iRet << ", " << activeEp.size() << "|" << inactiveEp.size() << endl;
-            }
-            catch (exception& e)
-            {
-                //获取主控地址异常时,仍使用node中的locator
-                NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "get registry locator exception:" << e.what() << endl;
-                iRet = -1;
-            }
-            catch (...)
-            {
-                NODE_LOG(_serverObjectPtr->getServerId())->error()<< FILE_FUN << "get registry locator unknown exception"  << endl;
-                iRet = -1;
-            }
-        }
-
-        if (iRet == 0 && activeEp.size() > 0)
-        {
-            string sLocator = AdminProxy::getInstance()->getQueryProxyName() + "@";
-            for (size_t i = 0; i < activeEp.size(); ++i)
-            {
-                string sSingleAddr = "tcp -h " + replaceHostLocalIp(activeEp[i].host) + " -p " + TC_Common::tostr(activeEp[i].port);
-                sLocator += sSingleAddr + ":";
-            }
-
-            sLocator = sLocator.substr(0, sLocator.length() - 1);
-            mMacro["locator"] = sLocator;
-	        NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "locator:" << sLocator << endl;
-        }
+		else
+		{
+			mMacro["locator"] = getLocator();
+		}
 
         mMacro["modulename"] = _desc.application + "." + _desc.serverName;
         mMacro["app"]        = _desc.application;
@@ -640,3 +580,81 @@ void CommandLoad::getRemoteConf()
     }
 }
 
+string CommandLoad::getLocator()
+{
+	string locator;
+
+	//>>修改成从主控获取locator地址
+	vector<EndpointF> activeEp;
+	vector<EndpointF> inactiveEp;
+	int iRet = 0;
+
+	if(_succ)
+	{
+		QueryFPrx queryProxy = AdminProxy::getInstance()->getQueryProxy();
+		try
+		{
+			iRet = queryProxy->findObjectById4All(AdminProxy::getInstance()->getQueryProxyName(), activeEp, inactiveEp);
+			NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "iRet:" << iRet << ", " << activeEp.size() << "|" << inactiveEp.size() << endl;
+		}
+		catch (exception& e)
+		{
+			//获取主控地址异常时,仍使用node中的locator
+			NODE_LOG(_serverObjectPtr->getServerId())->error() << FILE_FUN << "get registry locator exception:" << e.what() << endl;
+			iRet = -1;
+		}
+		catch (...)
+		{
+			NODE_LOG(_serverObjectPtr->getServerId())->error()<< FILE_FUN << "get registry locator unknown exception"  << endl;
+			iRet = -1;
+		}
+	}
+
+	if (iRet == 0 && activeEp.size() > 0)
+	{
+		string sLocator = AdminProxy::getInstance()->getQueryProxyName() + "@";
+		for (size_t i = 0; i < activeEp.size(); ++i)
+		{
+			string sSingleAddr = "tcp -h " + replaceHostLocalIp(activeEp[i].host) + " -p " + TC_Common::tostr(activeEp[i].port);
+			sLocator += sSingleAddr + ":";
+		}
+
+		sLocator = sLocator.substr(0, sLocator.length() - 1);
+		locator = sLocator;
+	}
+	else
+	{
+		locator = Application::getCommunicator()->getProperty("locator");
+		if(!locator.empty())
+		{
+			string::size_type pos = locator.find("@");
+			string obj;
+
+			if(pos != string::npos)
+			{
+				obj = locator.substr(0, pos);
+				locator = locator.substr(pos + 1);
+
+				vector<string> vEndpoints = TC_Endpoint::sepEndpoint(locator);
+
+				locator = "";
+				for(size_t i = 0; i < vEndpoints.size(); i++)
+				{
+					TC_Endpoint ep;
+					ep.parse(vEndpoints[i]);
+
+					locator += replaceHostLocalIp(ep);
+
+					if(i != vEndpoints.size() - 1)
+						locator += ":";
+				}
+
+				locator = obj + "@" + locator;
+			}
+		}
+	}
+
+	NODE_LOG(_serverObjectPtr->getServerId())->debug() << FILE_FUN << "locator:" << locator << endl;
+
+	return locator;
+}

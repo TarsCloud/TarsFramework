@@ -22,13 +22,13 @@ extern TC_Config * g_pconf;
 ReapThread::ReapThread()
 : _terminate(false)
 , _loadObjectsInterval1(10)
-, _leastChangedTime1(60)
+//, _leastChangedTime1(60)
 , _loadObjectsInterval2(3600)
-, _leastChangedTime2(30*60)
-, _registryTimeout(150)
+//, _leastChangedTime2(30*60)
+//, _registryTimeout(150)
 , _recoverProtect(true)
 , _recoverProtectRate(30)
-, _heartBeatOff(false)
+//, _heartBeatOff(false)
 {
 }
 
@@ -50,14 +50,14 @@ int ReapThread::init()
     _db.init(g_pconf);
 
     //加载对象列表的时间间隔
-    _loadObjectsInterval1 = TC_Common::strto<int>((*g_pconf).get("/tars/reap<loadObjectsInterval1>", "10"));
+    _loadObjectsInterval1 = TC_Common::strto<int>((*g_pconf).get("/tars/reap<loadObjectsInterval1>", "1"));
     //第一阶段加载最近时间更新的记录,默认是60秒
-    _leastChangedTime1    = TC_Common::strto<int>((*g_pconf).get("/tars/reap<LeastChangedTime1>", "150"));
+//    _leastChangedTime1    = TC_Common::strto<int>((*g_pconf).get("/tars/reap<LeastChangedTime1>", "60"));
 
     _loadObjectsInterval2 = TC_Common::strto<int>((*g_pconf).get("/tars/reap<loadObjectsInterval2>", "300"));
 
     //主控心跳超时时间
-    _registryTimeout      = TC_Common::strto<int>((*g_pconf)["/tars/reap<registryTimeout>"]);
+//    _registryTimeout      = TC_Common::strto<int>((*g_pconf)["/tars/reap<registryTimeout>"]);
 
     //是否启用DB恢复保护功能
     _recoverProtect       = (*g_pconf).get("/tars/reap<recoverProtect>", "N") == "N"?false:true;
@@ -66,12 +66,12 @@ int ReapThread::init()
     _recoverProtectRate   = TC_Common::strto<int>((*g_pconf).get("/tars/reap<recoverProtectRate>", "30"));
 
     //是否关闭更新主控心跳时间,一般需要迁移主控服务是，设置此项为Y
-    _heartBeatOff = (*g_pconf).get("/tars/reap<heartbeatoff>", "N") == "Y"?true:false;
+//    _heartBeatOff = (*g_pconf).get("/tars/reap<heartbeatoff>", "N") == "Y"?true:false;
 
     //最小值保护
-    _loadObjectsInterval1  = _loadObjectsInterval1 < 5 ? 5 : _loadObjectsInterval1;
+    _loadObjectsInterval1  = _loadObjectsInterval1 < 1 ? 1 : _loadObjectsInterval1;
 
-    _registryTimeout       = _registryTimeout      < 5 ? 5 : _registryTimeout;
+//    _registryTimeout       = _registryTimeout      < 2 ? 2 : _registryTimeout;
 
     _recoverProtectRate    = _recoverProtectRate   < 1 ? 30: _recoverProtectRate;
 
@@ -99,7 +99,8 @@ void ReapThread::run()
     //全量加载时间
     time_t tLastLoadObjectsStep2 = TC_TimeProvider::getInstance()->getNow();
 
-    time_t tLastQueryServer      = 0;
+//    time_t _leastChangedTime1      = _loadObjectsInterval1 + 1;
+
 	time_t tNow;
     while(!_terminate)
     {
@@ -112,26 +113,27 @@ void ReapThread::run()
 			{
 				tLastLoadObjectsStep1 = tNow;
 
-				_db.updateRegistryInfo2Db(_heartBeatOff);
+//				_db.updateRegistryInfo2Db(_heartBeatOff);
 
 				if (tNow - tLastLoadObjectsStep2 >= _loadObjectsInterval2)
 				{
 					tLastLoadObjectsStep2 = tNow;
-					//全量加载,_leastChangedTime2参数没有意义
-					_db.loadObjectIdCache(_recoverProtect, _recoverProtectRate, _leastChangedTime2, true, false);
+					//全量加载, 参数0无意义
+					_db.loadObjectIdCache(_recoverProtect, _recoverProtectRate, 0, true, false);
 				}
 				else
 				{
-					_db.loadObjectIdCache(_recoverProtect, _recoverProtectRate, _leastChangedTime1, false, false);
+					//多加载2秒的时间, 避免遗漏数据没有加载
+					 _db.loadObjectIdCache(_recoverProtect, _recoverProtectRate, TNOW - tLastLoadObjectsStep1 + 2, false, false);
 				}
 			}
 
 			//轮询心跳超时的主控
-			if (tNow - tLastQueryServer >= _registryTimeout)
-			{
-				tLastQueryServer = tNow;
-				_db.checkRegistryTimeout(_registryTimeout);
-			}
+//			if (tNow - tLastQueryServer >= _registryTimeout)
+//			{
+//				tLastQueryServer = tNow;
+//				_db.checkRegistryTimeout(_registryTimeout);
+//			}
 
             TC_ThreadLock::Lock lock(*this);
             timedWait(100); //ms

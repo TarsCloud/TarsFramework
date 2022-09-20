@@ -71,18 +71,18 @@ protected:
      * 第一阶段加载时间 consider
      */
     int        _loadObjectsInterval1;
-    int        _leastChangedTime1;
+//    int        _leastChangedTime1;
 
     /*
      * 全量加载时间,单位是秒
      */
     int        _loadObjectsInterval2;
-    int        _leastChangedTime2;
+//    int        _leastChangedTime2;
  
     /*
      * registry心跳超时时间
      */
-    int        _registryTimeout;
+//    int        _registryTimeout;
 
     /*
      * 是否启用DB恢复保护功能，默认为打开
@@ -97,7 +97,7 @@ protected:
     /*
      * 主控心跳时间更新开关
      */
-    bool       _heartBeatOff;
+//    bool       _heartBeatOff;
 
 };
 

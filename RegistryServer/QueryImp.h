@@ -91,7 +91,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerQuery(const std::string & id, CurrentPtr current);
+	Int32 registerQuery(const std::string & id, const string &name, CurrentPtr current);
 
 	/**
 	 * 注册变化
@@ -99,7 +99,7 @@ public:
 	 * @param current
 	 * @return
 	 */
-	Int32 registerChange(const vector<std::string> & ids, CurrentPtr current);
+	Int32 registerChange(const vector<std::string> & ids, const string &name, CurrentPtr current);
 
 private:
     /**

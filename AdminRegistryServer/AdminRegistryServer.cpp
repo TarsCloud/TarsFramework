@@ -45,8 +45,8 @@ void AdminRegistryServer::initialize()
 
 		DBPROXY->init(g_pconf);
         //轮询线程
-        _reapThread.init();
-        _reapThread.start();
+//        _reapThread.init();
+//        _reapThread.start();
 
         //供admin client访问的对象
         string adminObj = g_pconf->get("/tars/objname<AdminRegObjName>", "");
@@ -102,7 +102,7 @@ int AdminRegistryServer::loadServantEndpoint()
 
 void AdminRegistryServer::destroyApp()
 {
-    _reapThread.terminate();
+//    _reapThread.terminate();
 	NodeManager::getInstance()->terminate();
 	NodeManager::getInstance()->join();
 

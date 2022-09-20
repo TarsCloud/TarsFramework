@@ -27,7 +27,7 @@ KeepAliveThread::KeepAliveThread()
     _nodeInfo               = _platformInfo.getNodeInfo();
     _heartTimeout           = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<heartTimeout>", "10"));
     _monitorInterval        = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorInterval>", "2"));    
-    _reportAliveInterval    = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<reportAliveInterval>", "10"));
+    _reportAliveInterval    = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<reportAliveInterval>", "5"));
 
     _monitorIntervalMs      = TC_Common::strto<int>(g_pconf->get("/tars/node/keepalive<monitorIntervalMs>", "10"));
 

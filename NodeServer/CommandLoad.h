@@ -65,6 +65,12 @@ private:
 	 */
 	string replaceHostLocalIp(const string &ip);
 
+	/**
+	 * 获取locator
+	 * @return
+	 */
+	string getLocator();
+
 private:
     static std::mutex _mutex;
     static set<int> _allPorts;

@@ -24,6 +24,9 @@
 
             #跟主控/本地cache同步服务状态间隔时间(s)
             synStatInterval = 60
+
+            #node上报主控keepalive时间(s)
+            reportAliveInterval = 5
         </keepalive>
 
         <hashmap>

@@ -15,7 +15,7 @@
  */
 
 #include "servant/Application.h"
-#include "AdminReapThread.h"
+//#include "AdminReapThread.h"
 
 using namespace tars;
 
@@ -56,7 +56,7 @@ private:
 protected:
 
     //用于执行定时操作的线程对象
-    AdminReapThread     _reapThread;
+//    AdminReapThread     _reapThread;
 
     //对象-适配器 列表
     map<string, string> _mapServantEndpoint;
