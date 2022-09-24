@@ -48,7 +48,7 @@ public:
      * @param sResult
      * @param current
      */
-    virtual void reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current);
+//    virtual void reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current);
 
     /**
      * notify
@@ -58,12 +58,12 @@ public:
      * @param sResult
      * @param current
      */
-    virtual void notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current);
+//    virtual void notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current);
 
     /**
      * get notify info
      */
-    virtual tars::Int32 getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stInfo,tars::TarsCurrentPtr current);
+//    virtual tars::Int32 getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stInfo,tars::TarsCurrentPtr current);
 
     /*
      *reportNotifyInfo
@@ -81,13 +81,13 @@ private:
 
     void creatTb(const string &sTbName);
 
-    bool IsNeedFilte(const string& sServerName,const string& sResult);
+//    bool IsNeedFilte(const string& sServerName,const string& sResult);
 
 protected:
     TC_Mysql _mysqlConfig;
     string     _sql;                //创建表
-    size_t   _maxPageSize;
-    size_t   _maxPageNum;
+//    size_t   _maxPageSize;
+//    size_t   _maxPageNum;
    /*
      * 按模块配置过滤规则
      * key=default 表示全局规则
@@ -100,7 +100,7 @@ protected:
          </filter> 
        </tars>
      */
-   map<string,set<string> > _setFilter;
+//   map<string,set<string> > _setFilter;
 };
 
 #endif

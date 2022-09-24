@@ -24,7 +24,6 @@ void ServerImp::initialize()
 	_queryImp.setApplication(this->getApplication());
 	_queryImp.setHandle(this->getHandle());
 	_queryImp.initialize();
-//	_queryImp.setHandle()
 }
 
 void ServerImp::destroy()
@@ -155,11 +154,6 @@ int ServerImp::doNoServant(CurrentPtr current, vector<char> &buffer)
 	TLOG_DEBUG("no servant:" << current->getServantName() <<endl);
 	return _queryImp.dispatch(current, buffer);
 }
-//
-//int ServerImp::doNoFunc(CurrentPtr current, vector<char> &buffer)
-//{
-//	return _queryImp.dispatch(current, buffer);
-//}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 

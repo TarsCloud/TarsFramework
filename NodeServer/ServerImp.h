@@ -161,13 +161,6 @@ public:
 	 */
 	virtual int doNoServant(CurrentPtr current, vector<char> &buffer);
 
-//	/**
-//	 * 没有接口时(模拟主控该接口)
-//	 * @param current
-//	 * @return
-//	 */
-//	virtual int doNoFunc(CurrentPtr current, vector<char> &buffer);
-
 private:
 	QueryImp _queryImp;
 };

@@ -98,21 +98,6 @@ protected:
 
 	void doDaylog(const FUNID eFnId,const string& id,const vector<EndpointF> &activeEp, const vector<EndpointF> &inactiveEp, const CurrentPtr& current,const ostringstream& os,const string& sSetid = "");
 
-//	/**
-//	 * ip转换
-//	 */
-//	uint32_t stringIpToInt(const std::string& sip);
-//
-//	/**
-//	 * ip转换
-//	 */
-//	string Ip2Str(uint32_t ip);
-//
-//	/**
-//	 * ip转换
-//	 */
-//	string Ip2StarStr(uint32_t ip);
-
 protected:
 
 	//读写锁
@@ -132,9 +117,6 @@ protected:
 
 	unordered_map<string,int> _serverGroupCache;
 	unordered_map<string,int> _groupNameCache;
-
-//	TC_ReadersWriterData<map<string,int> > _groupIdMap;
-//	TC_ReadersWriterData<map<string,int> > _groupNameMap;
 
 };
 

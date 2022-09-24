@@ -657,38 +657,3 @@ string ObjectsCacheManager::eFunTostr(const FUNID eFnId)
 {
 	return etos(eFnId).substr(5);
 }
-//
-//uint32_t ObjectsCacheManager::stringIpToInt(const std::string& sip)
-//{
-//	string ip1, ip2, ip3, ip4;
-//	uint32_t dip, p1, p2, p3;
-//	dip = 0;
-//	p1 = sip.find('.');
-//	p2 = sip.find('.', p1 + 1);
-//	p3 = sip.find('.', p2 + 1);
-//	ip1 = sip.substr(0, p1);
-//	ip2 = sip.substr(p1 + 1, p2 - p1 - 1);
-//	ip3 = sip.substr(p2 + 1, p3 - p2 - 1);
-//	ip4 = sip.substr(p3 + 1, sip.size() - p3 - 1);
-//	(((unsigned char *)&dip)[0]) = TC_Common::strto<unsigned int>(ip1);
-//	(((unsigned char *)&dip)[1]) = TC_Common::strto<unsigned int>(ip2);
-//	(((unsigned char *)&dip)[2]) = TC_Common::strto<unsigned int>(ip3);
-//	(((unsigned char *)&dip)[3]) = TC_Common::strto<unsigned int>(ip4);
-//	return htonl(dip);
-//}
-//
-//string ObjectsCacheManager::Ip2Str(uint32_t ip)
-//{
-//	char str[50];
-//	unsigned char  *p = (unsigned char *)&ip;
-//	sprintf(str, "%u.%u.%u.%u", p[3], p[2], p[1], p[0]);
-//	return string(str);
-//}
-//
-//string ObjectsCacheManager::Ip2StarStr(uint32_t ip)
-//{
-//	char str[50];
-//	unsigned char  *p = (unsigned char *)&ip;
-//	sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
-//	return string(str);
-//}
