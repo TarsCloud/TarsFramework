@@ -501,7 +501,7 @@ private:
      * @param updateAll 是否全部更新
      * @param bFirstLoad  是否是第一次全量加载
      */
-    void updateObjectsCache(const ObjectsCache& objCache,bool updateAll=false);
+    void updateObjectsCache(ObjectsCache& objCache,bool updateAll=false);
 
     /**
      * 更新缓存中的set信息

@@ -1949,8 +1949,18 @@ void CDbHandle::updateStatusCache(const std::map<ServantStatusKey, int>& mStatus
 //    }
 //}
 
-void CDbHandle::updateObjectsCache(const ObjectsCache& objCache, bool updateAll)
+void CDbHandle::updateObjectsCache(ObjectsCache& objCache, bool updateAll)
 {
+	{
+		//如果admin是active空的, 则将inactive都设置为active, 否则整个框架无法使用了
+		auto it = objCache.find("tars.tarsAdminRegistry.AdminRegObj");
+		if(it != objCache.end() && it->second.vActiveEndpoints.empty())
+		{
+			it->second.vActiveEndpoints = it->second.vInactiveEndpoints;
+			it->second.vInactiveEndpoints.clear();
+		}
+	}
+
 //	RegisterQueryManager::getInstance()->pushObj(_objectsCache.getReaderData(), objCache);
 	RegisterQueryManager::getInstance()->pushObj(ObjectsCacheManager::getInstance()->getReaderObjectsCache(), objCache);
 

@@ -13,6 +13,7 @@ ObjectsCacheManager::ObjectsCacheManager()
 void ObjectsCacheManager::onChange(const ObjectsCache& objCache)
 {
 	TLOGEX_DEBUG("push", "change size:" << objCache.size() << endl);
+
 	_objectsCache.getWriterData() = objCache;
 	_objectsCache.swap();
 }
@@ -47,8 +48,8 @@ void ObjectsCacheManager::onChange( const std::string& id, const ObjectItem &ite
 {
 	TLOGEX_DEBUG("push", "change id:" << id << ", item size:" << item.vActiveEndpoints.size() << ", inactive size:" << item.vInactiveEndpoints.size() << endl);
 
-	auto &data = _objectsCache.getWriterData();
-	data[id] = item;
+	auto &tmpObjCache = _objectsCache.getWriterData();
+	tmpObjCache[id] = item;
 
 	_objectsCache.swap();
 
