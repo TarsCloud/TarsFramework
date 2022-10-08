@@ -22,21 +22,10 @@
 #include "util.h"
 #include "NodeManager.h"
 #include "RegisterQueryManager.h"
-//
-//TC_ReadersWriterData<ObjectsCache> CDbHandle::_objectsCache;
-//
-//TC_ReadersWriterData<std::map<int, GroupPriorityEntry> > CDbHandle::_mapGroupPriority;
 
 std::map<ServantStatusKey, int> CDbHandle::_mapServantStatus;
 
 TC_ThreadLock CDbHandle::_mapServantStatusLock;
-//
-////key-ip, value-组编号
-//TC_ReadersWriterData<map<string, int> > CDbHandle::_groupIdMap;
-////key-group_name, value-组编号
-//TC_ReadersWriterData<map<string, int> > CDbHandle::_groupNameMap;
-
-//TC_ReadersWriterData<CDbHandle::SetDivisionCache> CDbHandle::_setDivisionCache;
 
 tars::TC_Mysql CDbHandle::_mysqlQueryStat;
 bool CDbHandle::_isMysqlQueryStatInited = false;
@@ -856,47 +845,6 @@ int CDbHandle::setServerTarsVersion(const string& app, const string& serverName,
         return -1;
     }
 }
-//
-//NodePrx CDbHandle::getNodePrx(const string& nodeName)
-//{
-//    try
-//    {
-//        auto nodePrx = NodeManager::getInstance()->getNodePrx(nodeName);
-//
-//        if(nodePrx)
-//        {
-//            return nodePrx;
-//        }
-//
-//        string sSql = "select node_obj "
-//                      "from t_node_info "
-//                      "where node_name='" + _mysqlReg.escapeString(nodeName) + "' and present_state='active'";
-//
-//        TC_Mysql::MysqlData res = _mysqlReg.queryRecord(sSql);
-//        TLOG_DEBUG("CDbHandle::getNodePrx '" << nodeName << "' affected:" << res.size() << endl);
-//
-//        if (res.size() == 0)
-//        {
-//            throw Tars("node '" + nodeName + "' not registered  or heartbeart timeout,please check for it");
-//        }
-//
-//        nodePrx = NodeManager::getInstance()->createNodePrx(nodeName, res[0]["node_obj"]);
-//
-//        return nodePrx;
-//
-//    }
-//    catch (TC_Mysql_Exception& ex)
-//    {
-//        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
-//        throw Tars(string("get node record from db error:") + ex.what());
-//    }
-//    catch (TarsException& ex)
-//    {
-//        TLOG_ERROR("CDbHandle::getNodePrx " << nodeName << " exception: " << ex.what() << endl);
-//        throw ex;
-//    }
-//
-//}
 
 int CDbHandle::checkNodeTimeout(unsigned uTimeout)
 {
@@ -933,80 +881,6 @@ int CDbHandle::checkNodeTimeout(unsigned uTimeout)
     }
 
 }
-//
-//int CDbHandle::checkRegistryTimeout(unsigned uTimeout)
-//{
-//    try
-//    {
-//        string sSql = "update t_registry_info "
-//                      "set present_state='inactive' "
-//                      "where last_heartbeat < date_sub(now(), INTERVAL " + TC_Common::tostr(uTimeout) + " SECOND)";
-//
-//        _mysqlReg.execute(sSql);
-//
-//        TLOG_DEBUG("CDbHandle::checkRegistryTimeout (" << uTimeout  << "s) affected:" << _mysqlReg.getAffectedRows() << endl);
-//
-//        return _mysqlReg.getAffectedRows();
-//
-//    }
-//    catch (TC_Mysql_Exception& ex)
-//    {
-//        TLOG_ERROR("CDbHandle::checkRegistryTimeout exception: " << ex.what() << endl);
-//        return -1;
-//    }
-//}
-
-//int CDbHandle::getGroupId(const string& ip)
-//{
-//
-//    map<string, int>& groupIdMap = _groupIdMap.getReaderData();
-//    map<string, int>::iterator it = groupIdMap.find(ip);
-//    if (it != groupIdMap.end())
-//    {
-//        return it->second;
-//    }
-//
-//    uint32_t uip = stringIpToInt(ip);
-//    string ipStar = Ip2StarStr(uip);
-//    it = groupIdMap.find(ipStar);
-//    if (it != groupIdMap.end())
-//    {
-//        return it->second;
-//    }
-//
-//    return -1;
-//}
-//
-//int CDbHandle::getGroupIdByName(const string& sGroupName)
-//{
-//    int iGroupId = -1;
-//    try
-//    {
-//        if (sGroupName.empty())
-//        {
-//            return iGroupId;
-//        }
-//
-//        map<string, int>& groupNameMap = _groupNameMap.getReaderData();
-//        map<string, int>::iterator it = groupNameMap.find(sGroupName);
-//        if (it != groupNameMap.end())
-//        {
-//            TLOGINFO("CDbHandle::getGroupIdByName: "<< sGroupName << "|" << it->second << endl);
-//            return it->second;
-//        }
-//    }
-//    catch (exception& ex)
-//    {
-//        TLOG_ERROR("CDbHandle::getGroupIdByName exception:" << ex.what() << endl);
-//    }
-//    catch (...)
-//    {
-//        TLOG_ERROR("CDbHandle::getGroupIdByName unknown exception" << endl);
-//    }
-//
-//    TLOGINFO("CDbHandle::getGroupIdByName " << sGroupName << "|" << endl);
-//    return -1;
-//}
 
 int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 {
@@ -1046,27 +920,6 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 
 void CDbHandle::load2GroupMap(const vector<map<string, string> >& serverGroupRule)
 {
-//    map<string, int> groupIdMap;// = _groupIdMap.getWriterData();
-//    map<string, int> groupNameMap;// = _groupNameMap.getWriterData();
-//    vector<map<string, string> >::const_iterator it = serverGroupRule.begin();
-//    for (; it != serverGroupRule.end(); it++)
-//    {
-//        int groupId = TC_Common::strto<int>(it->find("group_id")->second);
-//		string sOrder = it->find("ip_order")->second;
-//		vector<string> vAllowIp = TC_Common::sepstr<string>(it->find("allow_ip_rule")->second, ",;|"); //vServerGroupInfo[i]["allow_ip_rule"];
-//		vector<string> vDennyIp = TC_Common::sepstr<string>(it->find("denny_ip_rule")->second, ",;|"); //vServerGroupInfo[i]["allow_ip_rule"];
-//
-//        vector<string> vIp = TC_Common::sepstr<string>(it->find("allow_ip_rule")->second, "|");
-//        for (size_t j = 0; j < vIp.size(); j++)
-//        {
-//            groupIdMap[vIp[j]] = groupId;
-//        }
-//
-//        groupNameMap[it->find("group_name")->second] = groupId;
-//    }
-
-//	ObjectsCacheManager::getInstance()->onChangeGroupIdName(groupIdMap, groupNameMap);
-
 	RegisterQueryManager::getInstance()->pushServerGroupRule(serverGroupRule);
 
 	ObjectsCacheManager::getInstance()->onChangeServerGroupRule(serverGroupRule);
@@ -1419,15 +1272,6 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
                     bActive = false;
                 }
 
-//                if (res[i]["flow_state"] == "inactive")
-//                {
-//                    mapFlowStatus[statusKey] = Inactive;
-//                }
-//                else
-//                {
-//                    mapFlowStatus[statusKey] = Active;
-//                }
-
                 if (bSet)
                 {
                     if (res[i]["set_name"].empty() || res[i]["set_area"].empty() || res[i]["set_group"].empty() || res[i]["set_name"] == "*" || res[i]["set_area"] == "*")
@@ -1515,373 +1359,6 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
 
     return 0;
 }
-//
-//int CDbHandle::updateRegistryInfo2Db(bool bRegHeartbeatOff)
-//{
-//    if (bRegHeartbeatOff)
-//    {
-//        TLOG_DEBUG("updateRegistryInfo2Db not need to update reigstry status !" << endl);
-//        return 0;
-//    }
-//
-//    map<string, string>::iterator iter;
-//    map<string, string> mapServantEndpoint = g_app.getServantEndpoint();
-//    if (mapServantEndpoint.size() == 0)
-//    {
-//        TLOG_ERROR("fatal error, get registry servant failed!" << endl);
-//        return -1;
-//    }
-//
-//    try
-//    {
-//        string sSql{};
-//
-//        TC_Endpoint locator;
-//        locator.parse(mapServantEndpoint[(*g_pconf)["/tars/objname<QueryObjName>"]]);
-//
-//        for (iter = mapServantEndpoint.begin(); iter != mapServantEndpoint.end(); iter++)
-//        {
-//            sSql = "insert into t_registry_info (locator_id, servant, endpoint, last_heartbeat, present_state, tars_version) values ";
-//            sSql += ("('" + locator.getHost() + ":" + TC_Common::tostr<int>(locator.getPort()) +
-//                     "','" + iter->first + "', '" + iter->second + "', now(), 'active', " +
-//                     "'" + _mysqlReg.escapeString(Application::getTarsVersion()) + "')");
-//            sSql += ("on duplicate key update endpoint='" + iter->second + "',");
-//            sSql += ("last_heartbeat=now(),present_state='active',");
-//            sSql += ("tars_version='" + _mysqlReg.escapeString(Application::getTarsVersion()) + "'");
-//            _mysqlReg.execute(sSql);
-//        }
-//    }
-//    catch (TC_Mysql_Exception& ex)
-//    {
-//	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
-//        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
-//        return -1;
-//    }
-//    catch (exception& ex)
-//    {
-//	    sendSqlErrorAlarmSMS(string("CDbHandle::updateRegistryInfo2Db:") + ex.what());
-//        TLOG_ERROR("CDbHandle::updateRegistryInfo2Db exception: " << ex.what() << endl);
-//        return -1;
-//    }
-//
-//    return 0;
-//}
-
-//vector<EndpointF> CDbHandle::findObjectById(const string& id)
-//{
-//	std::vector<tars::EndpointF> vtEp = ObjectsCacheManager::getInstance()->findObjectById(id);
-//
-//	if(!vtEp.empty())
-//	{
-//		LOAD_BALANCE_INS->getDynamicWeight(id, vtEp);
-//	}
-//
-//	return vtEp;
-//
-//    ObjectsCache::iterator it;
-//    ObjectsCache& usingCache = _objectsCache.getReaderData();
-//
-//    if ((it = usingCache.find(id)) != usingCache.end())
-//    {
-//        // 不能是引用，会改变原始缓存数据
-//        std::vector<tars::EndpointF> vtEp = it->second.vActiveEndpoints;
-//
-//        LOAD_BALANCE_INS->getDynamicWeight(id, vtEp);
-//
-//        return vtEp;
-//    }
-//    else
-//    {
-//        vector<EndpointF> activeEp;
-//        return activeEp;
-//    }
-//}
-
-//int CDbHandle::findObjectById4All(const string& id, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp)
-//{
-//    TLOG_DEBUG(__FUNCTION__ << " id: " << id << endl);
-//	int ret = ObjectsCacheManager::getInstance()->findObjectById4All(id, activeEp, inactiveEp);
-//
-//	if(!activeEp.empty())
-//	{
-//		LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
-//	}
-//    ObjectsCache::iterator it;
-//    ObjectsCache& usingCache = _objectsCache.getReaderData();
-//
-//    if ((it = usingCache.find(id)) != usingCache.end())
-//    {
-//        activeEp   = it->second.vActiveEndpoints;
-//        inactiveEp = it->second.vInactiveEndpoints;
-//
-//        LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
-//    }
-//    else
-//    {
-//        activeEp.clear();
-//        inactiveEp.clear();
-//    }
-
-//    return ret;
-//}
-//
-//vector<EndpointF> CDbHandle::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, int iGroupId, ostringstream& os)
-//{
-//    os << "|";
-//    vector<EndpointF> vResult;
-//
-//    for (unsigned i = 0; i < vecEps.size(); i++)
-//    {
-//        os << vecEps[i].host << ":" << vecEps[i].port << "(" << vecEps[i].groupworkid << ");";
-//        if (GroupSelect == ENUM_USE_WORK_GROUPID && vecEps[i].groupworkid == iGroupId)
-//        {
-//            vResult.push_back(vecEps[i]);
-//        }
-//        if (GroupSelect == ENUM_USE_REAL_GROUPID && vecEps[i].grouprealid == iGroupId)
-//        {
-//            vResult.push_back(vecEps[i]);
-//        }
-//    }
-//
-//    return vResult;
-//}
-//
-//vector<EndpointF> CDbHandle::getEpsByGroupId(const vector<EndpointF>& vecEps, const GroupUseSelect GroupSelect, const map<int, bool>& setGroupID, ostringstream& os)
-//{
-//    os << "|";
-//    std::vector<EndpointF> vecResult;
-//
-//    for (std::vector<EndpointF>::size_type i = 0; i < vecEps.size(); i++)
-//    {
-//        os << vecEps[i].host << ":" << vecEps[i].port << "(" << vecEps[i].groupworkid << ")";
-//        if (GroupSelect == ENUM_USE_WORK_GROUPID && setGroupID.count(vecEps[i].groupworkid) == 1)
-//        {
-//            vecResult.push_back(vecEps[i]);
-//        }
-//        if (GroupSelect == ENUM_USE_REAL_GROUPID && setGroupID.count(vecEps[i].grouprealid) == 1)
-//        {
-//            vecResult.push_back(vecEps[i]);
-//        }
-//    }
-//
-//    return vecResult;
-//}
-//
-//int CDbHandle::findObjectByIdInSameGroup(const string& id, const string& ip, vector<EndpointF>& activeEp, vector<EndpointF>& inactiveEp, ostringstream& os)
-//{
-//    activeEp.clear();
-//    inactiveEp.clear();
-//
-//    int iClientGroupId  = getGroupId(ip);
-//
-//    os << "|(" << iClientGroupId << ")";
-//
-//    if (iClientGroupId == -1)
-//    {
-//        return findObjectById4All(id, activeEp, inactiveEp);
-//    }
-//
-//    ObjectsCache::iterator it;
-//    ObjectsCache& usingCache = _objectsCache.getReaderData();
-//
-//    if ((it = usingCache.find(id)) != usingCache.end())
-//    {
-//        activeEp    = getEpsByGroupId(it->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupId, os);
-//        inactiveEp  = getEpsByGroupId(it->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupId, os);
-//
-//        if (activeEp.size() == 0) //没有同组的endpoit,匹配未启用分组的服务
-//        {
-//            activeEp    = getEpsByGroupId(it->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-//            inactiveEp  = getEpsByGroupId(it->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-//        }
-//        if (activeEp.size() == 0) //没有同组的endpoit
-//        {
-//            activeEp   = it->second.vActiveEndpoints;
-//            inactiveEp = it->second.vInactiveEndpoints;
-//        }
-//    }
-//
-//    LOAD_BALANCE_INS->getDynamicWeight(id, activeEp);
-//
-//    return  0;
-//}
-//
-//int CDbHandle::findObjectByIdInGroupPriority(const std::string& sID, const std::string& sIP, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-//{
-//    vecActive.clear();
-//    vecInactive.clear();
-//
-//    int iClientGroupID = getGroupId(sIP);
-//    os << "|(" << iClientGroupID << ")";
-//    if (iClientGroupID == -1)
-//    {
-//        return findObjectById4All(sID, vecActive, vecInactive);
-//    }
-//
-//    ObjectsCache& usingCache = _objectsCache.getReaderData();
-//    ObjectsCache::iterator itObject = usingCache.find(sID);
-//    if (itObject == usingCache.end()) return 0;
-//
-//    //首先在同组中查找
-//    {
-//        vecActive     = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupID, os);
-//        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, iClientGroupID, os);
-//        os << "|(In Same Group: " << iClientGroupID << " Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-//    }
-//
-//    //启用分组，但同组中没有找到，在优先级序列中查找
-//    std::map<int, GroupPriorityEntry> & mapPriority = _mapGroupPriority.getReaderData();
-//    for (std::map<int, GroupPriorityEntry>::iterator it = mapPriority.begin(); it != mapPriority.end() && vecActive.empty(); it++)
-//    {
-//        if (it->second.setGroupID.count(iClientGroupID) == 0)
-//        {
-//            os << "|(Not In Priority " << it->second.sGroupID << ")";
-//            continue;
-//        }
-//        vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, it->second.setGroupID, os);
-//        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, it->second.setGroupID, os);
-//        os << "|(In Priority: " << it->second.sGroupID << " Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-//    }
-//
-//    //没有同组的endpoit,匹配未启用分组的服务
-//    if (vecActive.empty())
-//    {
-//        vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-//        vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_WORK_GROUPID, -1, os);
-//        os << "|(In No Grouop: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-//    }
-//
-//    //在未分组的情况下也没有找到，返回全部地址(此时基本上所有的服务都已挂掉)
-//    if (vecActive.empty())
-//    {
-//        vecActive    = itObject->second.vActiveEndpoints;
-//        vecInactive    = itObject->second.vInactiveEndpoints;
-//        os << "|(In All: Active=" << vecActive.size() << " Inactive=" << vecInactive.size() << ")";
-//    }
-//
-//    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-//
-//    return 0;
-//}
-//
-//int CDbHandle::findObjectByIdInSameStation(const std::string& sID, const std::string& sStation, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-//{
-//    vecActive.clear();
-//    vecInactive.clear();
-//
-//    //获得station所有组
-//    std::map<int, GroupPriorityEntry> & mapPriority         = _mapGroupPriority.getReaderData();
-//    std::map<int, GroupPriorityEntry>::iterator itGroup     = mapPriority.end();
-//    for (itGroup = mapPriority.begin(); itGroup != mapPriority.end(); itGroup++)
-//    {
-//        if (itGroup->second.sStation != sStation) continue;
-//
-//        break;
-//    }
-//
-//    if (itGroup == mapPriority.end())
-//    {
-//        os << "|not found station:" << sStation;
-//        return -1;
-//    }
-//
-//    ObjectsCache& usingCache = _objectsCache.getReaderData();
-//    ObjectsCache::iterator itObject = usingCache.find(sID);
-//    if (itObject == usingCache.end()) return 0;
-//
-//    //查找对应所有组下的IP地址
-//    vecActive    = getEpsByGroupId(itObject->second.vActiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
-//    vecInactive    = getEpsByGroupId(itObject->second.vInactiveEndpoints, ENUM_USE_REAL_GROUPID, itGroup->second.setGroupID, os);
-//
-//    LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-//
-//    return 0;
-//}
-
-//int CDbHandle::findObjectByIdInSameSet(const string& sID, const vector<string>& vtSetInfo, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-//{
-//    string sSetName   = vtSetInfo[0];
-//    string sSetArea   = vtSetInfo[0] + "." + vtSetInfo[1];
-//    string sSetId     = vtSetInfo[0] + "." + vtSetInfo[1] + "." + vtSetInfo[2];
-//
-//    SetDivisionCache& usingSetDivisionCache = _setDivisionCache.getReaderData();
-//    SetDivisionCache::iterator it = usingSetDivisionCache.find(sID);
-//    if (it == usingSetDivisionCache.end())
-//    {
-//        //此情况下没启动set
-//        TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
-//        return -1;
-//    }
-//
-//    map<string, vector<SetServerInfo> >::iterator setNameIt = it->second.find(sSetName);
-//    if (setNameIt == (it->second).end())
-//    {
-//        //此情况下没启动set
-//        TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
-//        return -1;
-//    }
-//
-//    if (vtSetInfo[2] == "*")
-//    {
-//        //检索通配组和set组中的所有服务
-//        vector<SetServerInfo>  vServerInfo = setNameIt->second;
-//        for (size_t i = 0; i < vServerInfo.size(); i++)
-//        {
-//            if (vServerInfo[i].sSetArea == sSetArea)
-//            {
-//                if (vServerInfo[i].bActive)
-//                {
-//                    vecActive.push_back(vServerInfo[i].epf);
-//                }
-//                else
-//                {
-//                    vecInactive.push_back(vServerInfo[i].epf);
-//                }
-//            }
-//        }
-//
-//        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-//
-//        return (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
-//    }
-//    else
-//    {
-//
-//        // 1.从指定set组中查找
-//        int iRet = findObjectByIdInSameSet(sSetId, setNameIt->second, vecActive, vecInactive, os);
-//        if (iRet != 0 && vtSetInfo[2] != "*")
-//        {
-//            // 2. 步骤1中没找到，在通配组里找
-//            string sWildSetId =  vtSetInfo[0] + "." + vtSetInfo[1] + ".*";
-//            iRet = findObjectByIdInSameSet(sWildSetId, setNameIt->second, vecActive, vecInactive, os);
-//        }
-//
-//        LOAD_BALANCE_INS->getDynamicWeight(sID, vecActive);
-//
-//        return iRet;
-//    }
-//}
-//
-//int CDbHandle::findObjectByIdInSameSet(const string& sSetId, const vector<SetServerInfo>& vSetServerInfo, std::vector<EndpointF>& vecActive, std::vector<EndpointF>& vecInactive, std::ostringstream& os)
-//{
-//    for (size_t i = 0; i < vSetServerInfo.size(); ++i)
-//    {
-//        if (vSetServerInfo[i].sSetId == sSetId)
-//        {
-//            if (vSetServerInfo[i].bActive)
-//            {
-//                vecActive.push_back(vSetServerInfo[i].epf);
-//            }
-//            else
-//            {
-//                vecInactive.push_back(vSetServerInfo[i].epf);
-//            }
-//        }
-//    }
-//
-//    int iRet = (vecActive.empty() && vecInactive.empty()) ? -2 : 0;
-//    return iRet;
-//}
 
 int CDbHandle::getNodeTemplateName(const string nodeName, string& sTemplateName)
 {
@@ -1930,62 +1407,34 @@ void CDbHandle::updateStatusCache(const std::map<ServantStatusKey, int>& mStatus
         }
     }
 }
-//
-//void CDbHandle::updateFlowStatusCache(const std::map<ServantStatusKey, int>& mStatus, bool updateAll)
-//{
-//    TC_ThreadLock::Lock lock(_mapServantFlowStatusLock);
-//    if (updateAll)
-//    {
-//        //全量更新
-//        _mapServantFlowStatus = mStatus;
-//    }
-//    else
-//    {
-//        std::map<ServantStatusKey, int>::const_iterator it = mStatus.begin();
-//        for (; it != mStatus.end(); it++)
-//        {
-//            _mapServantFlowStatus[it->first] = it->second;
-//        }
-//    }
-//}
+
+void CDbHandle::reserveAlive(ObjectsCache& objCache, const string &obj)
+{
+	//如果是active空的, 则将inactive都设置为active, 否则整个框架无法使用了
+	auto it = objCache.find(obj);
+	if(it != objCache.end() && it->second.vActiveEndpoints.empty())
+	{
+		it->second.vActiveEndpoints = it->second.vInactiveEndpoints;
+		it->second.vInactiveEndpoints.clear();
+	}
+}
 
 void CDbHandle::updateObjectsCache(ObjectsCache& objCache, bool updateAll)
 {
-	{
-		//如果admin是active空的, 则将inactive都设置为active, 否则整个框架无法使用了
-		auto it = objCache.find("tars.tarsAdminRegistry.AdminRegObj");
-		if(it != objCache.end() && it->second.vActiveEndpoints.empty())
-		{
-			it->second.vActiveEndpoints = it->second.vInactiveEndpoints;
-			it->second.vInactiveEndpoints.clear();
-		}
-	}
+	reserveAlive(objCache, "tars.tarsAdminRegistry.AdminRegObj");
+	reserveAlive(objCache, "tars.tarsregistry.RegistryObj");
+	reserveAlive(objCache, "tars.tarsregistry.QueryObj");
 
-//	RegisterQueryManager::getInstance()->pushObj(_objectsCache.getReaderData(), objCache);
 	RegisterQueryManager::getInstance()->pushObj(ObjectsCacheManager::getInstance()->getReaderObjectsCache(), objCache);
 
     //全量更新
     if (updateAll)
     {
 		ObjectsCacheManager::getInstance()->onChange(objCache);
-//        _objectsCache.getWriterData() = objCache;
-//        _objectsCache.swap();
     }
     else
     {
 		ObjectsCacheManager::getInstance()->onUpdate(objCache);
-//        //用查询数据覆盖一下
-//        _objectsCache.getWriterData() = _objectsCache.getReaderData();
-//        ObjectsCache& tmpObjCache = _objectsCache.getWriterData();
-//
-//        ObjectsCache::const_iterator it = objCache.begin();
-//        for (; it != objCache.end(); it++)
-//        {
-//            //增量的时候加载的是服务的所有节点，因此这里直接替换
-//            tmpObjCache[it->first] = it->second;
-//        }
-//
-//        _objectsCache.swap();
     }
 }
 
@@ -2037,41 +1486,7 @@ void CDbHandle::sendSqlErrorAlarmSMS(const string &err)
 
     TLOG_ERROR("TARS_NOTIFY_ERROR " << errInfo << endl);
 }
-//
-//uint32_t CDbHandle::stringIpToInt(const std::string& sip)
-//{
-//    string ip1, ip2, ip3, ip4;
-//    uint32_t dip, p1, p2, p3;
-//    dip = 0;
-//    p1 = sip.find('.');
-//    p2 = sip.find('.', p1 + 1);
-//    p3 = sip.find('.', p2 + 1);
-//    ip1 = sip.substr(0, p1);
-//    ip2 = sip.substr(p1 + 1, p2 - p1 - 1);
-//    ip3 = sip.substr(p2 + 1, p3 - p2 - 1);
-//    ip4 = sip.substr(p3 + 1, sip.size() - p3 - 1);
-//    (((unsigned char *)&dip)[0]) = TC_Common::strto<unsigned int>(ip1);
-//    (((unsigned char *)&dip)[1]) = TC_Common::strto<unsigned int>(ip2);
-//    (((unsigned char *)&dip)[2]) = TC_Common::strto<unsigned int>(ip3);
-//    (((unsigned char *)&dip)[3]) = TC_Common::strto<unsigned int>(ip4);
-//    return htonl(dip);
-//}
-//
-//string CDbHandle::Ip2Str(uint32_t ip)
-//{
-//    char str[50];
-//    unsigned char  *p = (unsigned char *)&ip;
-//    sprintf(str, "%u.%u.%u.%u", p[3], p[2], p[1], p[0]);
-//    return string(str);
-//}
-//
-//string CDbHandle::Ip2StarStr(uint32_t ip)
-//{
-//    char str[50];
-//    unsigned char  *p = (unsigned char *)&ip;
-//    sprintf(str, "%u.%u.%u.*", p[3], p[2], p[1]);
-//    return string(str);
-//}
+
 
 int CDbHandle::getFrameworkKey(FrameworkKey &fKey)
 {

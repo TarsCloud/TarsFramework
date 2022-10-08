@@ -398,7 +398,7 @@ void NodeServer::reportServer(const string& sServerId, const string &sSet, const
         if (pNotifyPrx && sResult != "")
         {
             ReportInfo ri;
-            ri.eType = REPORT;
+            ri.eType = 0;
             ri.sApp = sServerId;
             ri.sServer = sServerId;
 

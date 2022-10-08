@@ -599,7 +599,7 @@ bool ServerObject::isTimeOut(int iTimeout)
     {
         if(now - it->second > iTimeout)
         {
-	        NODE_LOG(_serverId)->error() << "ServerObject::isTimeOut server "<< it->first<<" time out "<<now - it->second<<"|>|"<<iTimeout<<"|"<<TC_Common::tostr(_adapterKeepAliveTime)<< endl;
+	        NODE_LOG(_serverId)->error() << "ServerObject::isTimeOut server "<< it->first<<" time out: " << now - it->second <<" > "<<iTimeout<< ", " <<TC_Common::tostr(_adapterKeepAliveTime)<< endl;
             return true;
         }
         it++;
