@@ -7,5 +7,5 @@ install(TARGETS tarsobjects
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(DIRECTORY . DESTINATION include/objects
-        PATTERN "*.h")
+install(FILES ObjectsCacheManager.h DESTINATION include/framework/objects)
+
