@@ -75,6 +75,9 @@ int ReapThread::init()
 
     _recoverProtectRate    = _recoverProtectRate   < 1 ? 30: _recoverProtectRate;
 
+    //更新主控心跳时间,设置主控状态为active
+    _db.updateRegistryInfo2Db(_heartBeatOff);
+	
     //加载对象列表
     _db.loadObjectIdCache(_recoverProtect, _recoverProtectRate,0,true, true);
 
