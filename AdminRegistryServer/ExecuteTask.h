@@ -110,7 +110,8 @@ protected:
     //返回任务
     TaskRsp         _taskRsp;
 
-	AdminRegistryImp*	_adminPrx;
+    AdminRegPrx	_adminPrx;
+    AdminRegistryImp*	_adminImp;
     time_t          _createTime;
     unsigned int    _timeout;
     bool            _finished;

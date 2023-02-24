@@ -598,6 +598,7 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 
     bool isDnsServer = false;
     int iRet = EM_TARS_SUCCESS;
+    CurrentPtr nodeCurrent = NodeManager::getInstance()->getNodeCurrent(nodeName);
     try
     {
 		if(application == ServerConfig::Application && serverName == ServerConfig::ServerName)
@@ -629,10 +630,14 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 			{
 				isDnsServer = true;
 			}
-			else
+			else if (nodeCurrent)
 			{
-				iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
+                iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, NULL);
 			}
+            else
+            {
+                iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
+            }
 			TLOG_DEBUG("call node restartServer, stop|" << application << "." << serverName << "_" << nodeName << "|"
 														<< current->getHostName() << ":" << current->getPort() << endl);
 			if (iRet != EM_TARS_SUCCESS)
@@ -664,9 +669,13 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
                 TLOG_DEBUG( "|" << " '" + application  + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
                 return DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Active);
             }
+            else if (nodeCurrent)
+            {
+                return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, NULL);
+            }
             else
             {
-				return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
+                return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
             }
         }
         catch(TarsSyncCallTimeoutException& ex)
