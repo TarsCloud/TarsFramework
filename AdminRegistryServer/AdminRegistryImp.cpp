@@ -506,7 +506,7 @@ int AdminRegistryImp::stopServer(const string & application, const string & serv
         }
         else
         {
-			iRet = NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
+			iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
         }
 
         return iRet;
