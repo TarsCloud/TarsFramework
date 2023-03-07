@@ -1,3 +1,14 @@
+# v3.0.13 20230307
+### en
+- feat: tarsadmin support multi service
+- feat: install framework default node version use v16.13.0
+- Fix: the issue that tarsregistry sometimes failed to join the service's locator configuration list
+ 
+### cn
+- feat: tarsadmin支持多副本
+- feat: 安装框架时, 默认的node版本使用v16.13.0
+- 修复: tarsregistry有时候没法加入到服务的模板配置中的bug
+ 
 # v3.0.12 20220906
 
 ### en
