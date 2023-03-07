@@ -49,7 +49,7 @@ if [ "$MIRROR" = "" ]; then
 fi
 #########################################################################
 
-NODE_VERSION="v12.13.0"
+NODE_VERSION="v16.13.0"
 
 INSTALL_PATH=/usr/local/app
 
