@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -56,7 +56,7 @@ int AdminRegistryImp::doClose(CurrentPtr current)
 
 int AdminRegistryImp::reportNode(const ReportNode &rn, CurrentPtr current)
 {
-//	TLOG_DEBUG("nodeName:" << nodeName << ", uid:" << current->getUId() << endl);
+	TLOG_DEBUG("nodeName:" << rn.nodeName << ", uid:" << current->getUId() << endl);
 
 	NodeManager::getInstance()->createNodeCurrent(rn.nodeName, rn.sid, current);
 	return 0;
@@ -598,7 +598,6 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 
     bool isDnsServer = false;
     int iRet = EM_TARS_SUCCESS;
-    CurrentPtr nodeCurrent = NodeManager::getInstance()->getNodeCurrent(nodeName);
     try
     {
 		if(application == ServerConfig::Application && serverName == ServerConfig::ServerName)
@@ -630,14 +629,10 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
 			{
 				isDnsServer = true;
 			}
-			else if (nodeCurrent)
+			else
 			{
-                iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, NULL);
+				iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
 			}
-            else
-            {
-                iRet = NodeManager::getInstance()->stopServer(application, serverName, nodeName, result, current);
-            }
 			TLOG_DEBUG("call node restartServer, stop|" << application << "." << serverName << "_" << nodeName << "|"
 														<< current->getHostName() << ":" << current->getPort() << endl);
 			if (iRet != EM_TARS_SUCCESS)
@@ -669,13 +664,9 @@ int AdminRegistryImp::restartServer(const string & application, const string & s
                 TLOG_DEBUG( "|" << " '" + application  + "." + serverName + "_" + nodeName + "' is tars_dns server" << endl);
                 return DBPROXY->updateServerState(application, serverName, nodeName, "present_state", tars::Active);
             }
-            else if (nodeCurrent)
-            {
-                return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, NULL);
-            }
             else
             {
-                return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
+				return NodeManager::getInstance()->startServer(application, serverName, nodeName, result, current);
             }
         }
         catch(TarsSyncCallTimeoutException& ex)

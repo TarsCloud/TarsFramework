@@ -17,7 +17,6 @@
 #ifndef __AMIN_REGISTRY_H__
 #define __AMIN_REGISTRY_H__
 
-#include "util/tc_common.h"
 #include "AdminReg.h"
 #include "Registry.h"
 #include "Patch.h"
