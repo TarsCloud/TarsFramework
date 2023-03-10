@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -110,8 +110,7 @@ protected:
     //返回任务
     TaskRsp         _taskRsp;
 
-    AdminRegPrx	_adminPrx;
-    AdminRegistryImp*	_adminImp;
+	AdminRegistryImp*	_adminPrx;
     time_t          _createTime;
     unsigned int    _timeout;
     bool            _finished;

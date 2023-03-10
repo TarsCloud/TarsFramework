@@ -144,8 +144,8 @@ protected:
 	std::mutex _mutex;
 	std::condition_variable _cond;
 	string _adminObj;
-	AdminRegPrx _adminPrx;
-//	map<string, AdminRegPrx> _adminPrxs;
+	//AdminRegPrx _adminPrx;
+    map<string, AdminRegPrx> _adminPrxs;
 };
 
 
