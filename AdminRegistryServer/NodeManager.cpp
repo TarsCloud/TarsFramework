@@ -415,6 +415,8 @@ int NodeManager::requestNode(const string & nodeName, string &out, CurrentPtr cu
 
 		_timeoutQueue.push(ptr, ptr->_requestId);
 
+		TLOG_DEBUG("requestNode: requestId:" << ptr->_requestId << ", " << nodeName << ", nodeName" <<endl);
+
 		if(current)
 		{
 			//异步
@@ -494,9 +496,9 @@ int NodeManager::requestNode(const string & nodeName, string &out, CurrentPtr cu
 int NodeManager::pingNode(const string & nodeName, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::pingNode push name:" << nodeName <<endl);
+		TLOG_DEBUG("NodeManager::pingNode push name:" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
 
-		NodePush::async_response_push_ping(nodeCurrent, requestId, nodeName);
+		NodePush::async_response_push_ping(nodeCurrent, requestId, ServerConfig::LocalIp);
 	};
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -535,8 +537,8 @@ int NodeManager::pingNode(const string & nodeName, string &out, tars::CurrentPtr
 int NodeManager::shutdownNode(const string & nodeName, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::shutdownNode push name:" << nodeName<<endl);
-		NodePush::async_response_push_shutdown(nodeCurrent, requestId, nodeName);
+		TLOG_DEBUG("NodeManager::shutdownNode push name:" << nodeName<< ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_shutdown(nodeCurrent, requestId, ServerConfig::LocalIp);
 	};
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -580,8 +582,8 @@ int NodeManager::shutdownNode(const string & nodeName, string &out, tars::Curren
 int NodeManager::getServerState(const string & application, const string & serverName, const string & nodeName, const ServerStateDesc &desc, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::getServerState push name:" << nodeName <<endl);
-		NodePush::async_response_push_getStateInfo(nodeCurrent, requestId, nodeName, application, serverName);
+		TLOG_DEBUG("NodeManager::getServerState push name:" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_getStateInfo(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName, desc](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -656,8 +658,8 @@ int NodeManager::getServerState(const string & application, const string & serve
 int NodeManager::startServer(const string & application, const string & serverName, const string & nodeName, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::startServer push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_startServer(nodeCurrent, requestId, nodeName, application, serverName);
+		TLOG_DEBUG("NodeManager::startServer push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_startServer(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -698,8 +700,8 @@ int NodeManager::startServer(const string & application, const string & serverNa
 int NodeManager::destroyServer(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::destroyServer push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_destroyServer(nodeCurrent, requestId, nodeName, application, serverName);
+		TLOG_DEBUG("NodeManager::destroyServer push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_destroyServer(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -740,8 +742,8 @@ int NodeManager::destroyServer(const string & application, const string & server
 int NodeManager::stopServer(const string & application, const string & serverName, const string & nodeName, string &out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::stopServer push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_stopServer(nodeCurrent, requestId, nodeName, application, serverName);
+		TLOG_DEBUG("NodeManager::stopServer push :" << application << "." << serverName << "_" << nodeName<< ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_stopServer(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -782,8 +784,8 @@ int NodeManager::stopServer(const string & application, const string & serverNam
 int NodeManager::notifyServer(const string & application, const string & serverName, const string & nodeName, const string &command, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName, command](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::notifyServer push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_notifyServer(nodeCurrent, requestId, nodeName, application, serverName, command);
+		TLOG_DEBUG("NodeManager::notifyServer push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_notifyServer(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName, command);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -824,8 +826,8 @@ int NodeManager::notifyServer(const string & application, const string & serverN
 int NodeManager::patchPro(const tars::PatchRequest &req, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [req](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::patchPro push :" << req.appname << "." << req.servername << "_" << req.nodename <<endl);
-		NodePush::async_response_push_patchPro(nodeCurrent, requestId, req.nodename, req);
+		TLOG_DEBUG("NodeManager::patchPro push :" << req.appname << "." << req.servername << "_" << req.nodename << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_patchPro(nodeCurrent, requestId, ServerConfig::LocalIp, req);
 	};
 
 	NodeManager::callback_type callback = [req](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -867,8 +869,8 @@ int NodeManager::patchPro(const tars::PatchRequest &req, string & out, tars::Cur
 int NodeManager::getPatchPercent(const string & application, const string & serverName, const string & nodeName, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::getPatchPercent push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_getPatchPercent(nodeCurrent, requestId, nodeName, application, serverName);
+		TLOG_DEBUG("NodeManager::getPatchPercent push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_getPatchPercent(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -934,8 +936,8 @@ int NodeManager::getPatchPercent(const string & application, const string & serv
 int NodeManager::delCache(const string & nodeName, const std::string & sFullCacheName, const std::string &sBackupPath, const std::string & sKey, std::string &out,CurrentPtr current)
 {
 	NodeManager::push_type push = [nodeName, sFullCacheName, sBackupPath, sKey](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::delCache push :" << sFullCacheName << ", " << sBackupPath << "_" << nodeName << endl);
-		NodePush::async_response_push_delCache(nodeCurrent, requestId, nodeName, sFullCacheName, sBackupPath, sKey);
+		TLOG_DEBUG("NodeManager::delCache push :" << sFullCacheName << ", " << sBackupPath << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_delCache(nodeCurrent, requestId, ServerConfig::LocalIp, sFullCacheName, sBackupPath, sKey);
 	};
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -976,8 +978,8 @@ int NodeManager::delCache(const string & nodeName, const std::string & sFullCach
 int NodeManager::getLogData(const std::string & application, const std::string & serverName, const std::string & nodeName, const std::string &logFile, const std::string &cmd, map<string, string> &context,  string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName, logFile, cmd, context](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::getLogData push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_getLogData(nodeCurrent, requestId, nodeName, application, serverName, logFile, cmd, context);
+		TLOG_DEBUG("NodeManager::getLogData push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_getLogData(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName, logFile, cmd, context);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -1025,8 +1027,8 @@ int NodeManager::getLogData(const std::string & application, const std::string &
 int NodeManager::getLogFileList(const std::string & application, const std::string & serverName, const std::string & nodeName, map<string, string> &context, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName,context](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::getLogFileList push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_getLogFileList(nodeCurrent, requestId, nodeName, application, serverName, context);
+		TLOG_DEBUG("NodeManager::getLogFileList push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_getLogFileList(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName, context);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -1089,8 +1091,8 @@ int NodeManager::getLogFileList(const std::string & application, const std::stri
 int NodeManager::getNodeLoad(const std::string & application, const std::string & serverName, const std::string & nodeName, int pid, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName, pid](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::getNodeLoad push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_getNodeLoad(nodeCurrent, requestId, nodeName, application, serverName, pid);
+		TLOG_DEBUG("NodeManager::getNodeLoad push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_getNodeLoad(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName, pid);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -1145,8 +1147,8 @@ int NodeManager::getNodeLoad(const std::string & application, const std::string 
 int NodeManager::loadServer(const std::string & application, const std::string & serverName, const std::string & nodeName, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [application, serverName, nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::loadServer push :" << application << "." << serverName << "_" << nodeName <<endl);
-		NodePush::async_response_push_loadServer(nodeCurrent, requestId, nodeName, application, serverName);
+		TLOG_DEBUG("NodeManager::loadServer push :" << application << "." << serverName << "_" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_loadServer(nodeCurrent, requestId, ServerConfig::LocalIp, application, serverName);
 	};
 
 	NodeManager::callback_type callback = [application, serverName, nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)
@@ -1187,8 +1189,8 @@ int NodeManager::loadServer(const std::string & application, const std::string &
 int NodeManager::forceDockerLogin(const std::string & nodeName, string & out, tars::CurrentPtr current)
 {
 	NodeManager::push_type push = [nodeName](CurrentPtr &nodeCurrent, int requestId){
-		TLOG_DEBUG("NodeManager::forceDockerLogin push :" << nodeName<<endl);
-		NodePush::async_response_push_forceDockerLogin(nodeCurrent, requestId, nodeName);
+		TLOG_DEBUG("NodeManager::forceDockerLogin push :" << nodeName << ", LocalIp:" << ServerConfig::LocalIp << endl);
+		NodePush::async_response_push_forceDockerLogin(nodeCurrent, requestId, ServerConfig::LocalIp);
 	};
 
 	NodeManager::callback_type callback = [nodeName](CurrentPtr &current, bool timeout, int ret, const string &buff)

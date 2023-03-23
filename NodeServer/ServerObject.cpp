@@ -830,8 +830,11 @@ bool ServerObject::checkServer(int iTimeout)
         string sResult;
 
 	    int flag = checkPid();
-
-		if(flag != 0 && _state != ServerObject::Inactive && !(_state == ServerObject::Patching || _state==ServerObject::BatchPatching))
+        
+        //可能会出现刚startServer完后，就会马上进行心跳检测。
+        //由于fork子进程后调用的是shell/bat脚本来启动程序，返回的是脚本的pid，需要等待进程上报自己的真实pid。
+        //如果进程还在Activating,并且启动的时间还未超时，不能把状态改成Inactive,否则会出现同时启动了多个进程,端口已被占用错误。
+		if(flag != 0 && _state != ServerObject::Inactive && !(_state == ServerObject::Activating && !isStartTimeOut()) && !(_state == ServerObject::Patching || _state==ServerObject::BatchPatching))
 		{
     		NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
 		    NODE_LOG("KeepAliveThread")->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", flag:" << flag << ", auto start:" << isAutoStart() << endl;
