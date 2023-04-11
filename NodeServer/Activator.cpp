@@ -23,8 +23,53 @@
 #endif
 
 #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/sysctl.h>
+
 static pid_t *childpid = NULL; /* ptr to array allocated at run-time */
 #define SHELL   "/bin/sh"
+#endif
+
+
+#if TARGET_PLATFORM_LINUX
+void close_all_file_descriptors(void) {
+	DIR *dir;
+	struct dirent *entry;
+	int fd;
+
+	dir = opendir("/proc/self/fd");
+	if (dir == NULL) {
+		perror("Cannot open /proc/self/fd");
+		exit(EXIT_FAILURE);
+	}
+
+	while ((entry = readdir(dir)) != NULL) {
+		fd = atoi(entry->d_name);
+		if (fd > STDERR_FILENO) { // Skip stdin, stdout, and stderr
+			close(fd);
+		}
+	}
+
+	closedir(dir);
+}
+
+#elif TARGET_PLATFORM_IOS
+void close_all_file_descriptors(void) {
+	int max_fd;
+	int fd;
+	size_t len = sizeof(max_fd);
+
+	// Get the maximum file descriptor number for the current process
+	if (sysctlbyname("kern.maxfilesperproc", &max_fd, &len, NULL, 0) < 0) {
+		perror("Cannot get maximum file descriptor number");
+		exit(EXIT_FAILURE);
+	}
+
+	for (fd = STDERR_FILENO + 1; fd < max_fd; fd++) {
+		close(fd);
+	}
+}
 #endif
 
 int64_t Activator::activate(const string& strExePath, const string& strPwdPath, const string& strRollLogPath, const vector<string>& vOptions, vector<string>& vEnvs)
@@ -126,11 +171,14 @@ int64_t Activator::activate(const string& strExePath, const string& strPwdPath, 
 
     if (pid == 0)
     {
-        int maxFd = static_cast<int>(sysconf(_SC_OPEN_MAX));
-        for (int fd = 3; fd < maxFd; ++fd)
-        {
-            close(fd);
-        }
+		close_all_file_descriptors();
+//
+//        int maxFd = std::min(200000, static_cast<int>(sysconf(_SC_OPEN_MAX)));
+//
+//        for (int fd = 3; fd < maxFd; ++fd)
+//        {
+//            close(fd);
+//        }
 
 		string stdOutLog = !_redirectPath.empty()?  _redirectPath : strRollLogPath;
 
