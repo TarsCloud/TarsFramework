@@ -550,13 +550,21 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
 
         string sTbName("");
         string sSql("");
+
+        string sCutType = g_pconf->get("/tars/reapSql<CutType>", "hour");
+        bool cutByDay = (sCutType == "day");
+
         //select range by f_date and f_tflag
         for(string day = dateFrom; day <= dateTo; day = dateInc(day))
         {
             for(string tflag = tflagFrom; tflag <= tflagTo && (tflag.substr(0,2) < "24"); tflag = tFlagInc(tflag))
             {
                 //table name:tars_2012060723
-                sTbName = sTbNamePre + day + tflag.substr(0,2);
+                sTbName = sTbNamePre + day;
+                if (!cutByDay) {
+                    sTbName += tflag.substr(0,2);
+                }
+                //sTbName = sTbNamePre + day + tflag.substr(0,2);
 
                 sSql = "select " + selectCond + " from " + sTbName + " " + ignoreKey  + whereCond + groupCond  + " order by null;";
 
@@ -598,6 +606,10 @@ void query(int iThread, const TC_DBConf & conf, map<string,string>& mSqlPart, ma
                 }
 
                 TLOGINFO("query iDb :" << iThread << " day:" << day <<" tflag:" << tflag << endl);
+
+                if (cutByDay) {
+                    break;
+                }
             }
         }  //day
 
