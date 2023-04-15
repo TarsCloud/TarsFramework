@@ -1,23 +1,21 @@
 name: C/C++ linux
 
-on: 
+on:
   push:
     branches:
-    - master
+      - master
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v2
-    - name: install
-      run: sudo apt-get install -y bison flex zlib1g-dev cmake
-    - name: git
-      run: git submodule update --init --recursive
-    - name: configure
-      run: cd build;cmake ..
-    - name: make
-      run: cd build; make
 
+    steps:
+      - uses: actions/checkout@v3
+      - name: install
+        run: sudo apt-get install -y bison flex zlib1g-dev cmake
+      - name: git
+        run: git submodule update --init --recursive
+      - name: configure
+        run: cd build;cmake ..
+      - name: make
+        run: cd build; make
