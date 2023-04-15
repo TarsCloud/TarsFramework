@@ -25,12 +25,14 @@
 #if TARGET_PLATFORM_LINUX || TARGET_PLATFORM_IOS
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/sysctl.h>
 
 static pid_t *childpid = NULL; /* ptr to array allocated at run-time */
 #define SHELL   "/bin/sh"
 #endif
 
+#if TARGET_PLATFORM_IOS
+#include <sys/sysctl.h>
+#endif
 
 #if TARGET_PLATFORM_LINUX
 void close_all_file_descriptors(void) {
