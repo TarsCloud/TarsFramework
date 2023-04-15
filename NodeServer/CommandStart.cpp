@@ -335,7 +335,7 @@ void CommandStart::prepareScript()
 	}
 
 	osStartStcript << "trap 'exit' SIGTERM SIGINT" << endl;
-
+	osStartStcript << "pid=0" << endl;
 #endif
 
 	osStartStcript << std::endl;
@@ -408,11 +408,10 @@ void CommandStart::prepareScript()
 	if(_serverObjectPtr->getRunType() != ServerObject::Container)
 	{
 #if !TARGET_PLATFORM_WINDOWS
-		osStartStcript << " &" << endl;
+		osStartStcript << " & pid=$!" << endl;
+		osStartStcript << "echo $pid > " << getStartScript(_serverObjectPtr) + ".pid" << endl << endl;
 #endif
 	}
-
-
 
 	//保存启动方式到bin目录供手工启动
 	TC_File::save2file(getStartScript(_serverObjectPtr), osStartStcript.str());
@@ -448,13 +447,32 @@ bool CommandStart::startNormal(string& sResult)
 	string sExePath         = _serverObjectPtr->getExePath();
 	vEnvs.push_back("LD_LIBRARY_PATH=$LD_LIBRARY_PATH:" + sExePath + ":" + sLibPath);
 
+	TC_File::removeFile(getStartScript(_serverObjectPtr) + ".pid", false);
+
 	iPid = _serverObjectPtr->getActivator()->activate(getStartScript(_serverObjectPtr), sPwdPath, sRollLogFile, {}, vEnvs);
 	if (iPid == 0)  //child process
 	{
 		return false;
 	}
 
-	_serverObjectPtr->setPid(iPid);
+	int64_t now = TNOW;
+	//最长等待二十秒
+	while(!TC_File::isFileExist(getStartScript(_serverObjectPtr) + ".pid") && TNOW - now < 20)
+	{
+		NODE_LOG(_serverObjectPtr->getServerId())->debug() << getStartScript(_serverObjectPtr) + ".pid" << " not exists" << endl;
+		TC_Common::sleep(1);
+	}
+
+	string pid = TC_File::load2str(getStartScript(_serverObjectPtr) + ".pid");
+	NODE_LOG(_serverObjectPtr->getServerId())->debug() << "load pid from:" << getStartScript(_serverObjectPtr) + ".pid" << ", pid:" << pid << endl;
+	if(!pid.empty())
+	{
+		_serverObjectPtr->setPid(TC_Common::strto<int>(pid));
+	}
+	else
+	{
+		_serverObjectPtr->setPid(iPid);
+	}
 
 	bSucc = (_serverObjectPtr->checkPid() == 0) ? true : false;
 
