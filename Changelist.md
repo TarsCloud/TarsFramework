@@ -1,3 +1,16 @@
+
+# v3.0.14 20230415
+### en
+- feat:  tarsnode linux & mac add close_all_file_descriptors
+- fix: tarsnode start java server bug, add tars_start.sh.pid record tars service pid
+- fix: AdminReg stopServer
+- fix: the bug that ports might be used when the service was restarted
+### cn
+- feat: tarsnode启动服务时增加关闭句柄
+- fix: tarsnode 启动服务时, 记录服务的pid
+- fix: AdminReg 修复stopServer的bug
+- fix: 服务重启时端口可能被重用的bug
+
 # v3.0.13 20230307
 ### en
 - feat: tarsadmin support multi service
