@@ -22,7 +22,7 @@ extern TC_Config * g_pconf;
 #define CHECKLIMIT(a,b,c,f)  do{\
     if(IsLimited((a),(b),(c),(f)))\
     {\
-        return 0;\
+        return 429;\
     }}while(0)
     
 using namespace tars;
