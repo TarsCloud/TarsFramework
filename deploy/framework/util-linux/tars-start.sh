@@ -13,6 +13,6 @@ do
   fi
 done
 
-if [ -d WEB_PATH/web ]; then
+if [ -f WEB_PATH/web/package.json ]; then
   pm2 stop -s tars-node-web; cd WEB_PATH/web/; npm run prd;
 fi
