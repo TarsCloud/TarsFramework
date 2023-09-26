@@ -7,10 +7,13 @@ cd TARS_PATH
 
 for var in ${TARS};
 do
-  echo "stop ${var}"
-  TARS_PATH/${var}/util/stop.sh
+  if [ -d ${var} ]; then
+    echo "start ${var}"
+    TARS_PATH/${var}/util/stop.sh
+    sleep 1
+  fi
 done
 
-if [ -d WEB_PATH/web ]; then
+if [ -f WEB_PATH/web/package.json ]; then
   pm2 stop -s tars-node-web
 fi
