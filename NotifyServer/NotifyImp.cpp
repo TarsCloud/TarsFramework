@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tencent is pleased to support the open source community by making Tars available.
  *
  * Copyright (C) 2016THL A29 Limited, a Tencent company. All rights reserved.
@@ -20,6 +20,39 @@
 
 extern TC_Config * g_pconf;
 extern TarsHashMap<NotifyKey, NotifyInfo, ThreadLockPolicy, MemStorePolicy> * g_notifyHash;
+
+std::string Alarm = "[alarm]";
+std::string Error = "[error]";
+std::string Warn = "[warn]";
+std::string Fail = "[fail]";
+std::string Normal = "[normal]";
+
+static std::string getNotifyLevel(const std::string& sNotifyMessage)
+{
+
+    if (sNotifyMessage.find(Alarm) != std::string::npos) return Alarm;
+    if (sNotifyMessage.find(Error) != std::string::npos) return Error;
+    if (sNotifyMessage.find(Warn) != std::string::npos) return Warn;
+    if (sNotifyMessage.find(Fail) != std::string::npos) return Error;
+
+    return Normal;
+}
+
+static std::string getNotifyLevel(int level)
+{
+    switch(level)
+    {
+    case NOTIFYERROR:
+        return Error;
+    case NOTIFYWARN:
+        return Warn;
+    default:
+    case NOTIFYNORMAL:
+        return Normal;
+    }
+
+    return Normal;
+}
 
 void NotifyImp::loadconf()
 {
@@ -321,6 +354,11 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
 						 rd["set_group"] = make_pair(TC_Mysql::DB_STR, "");
 					 }
 
+					 if (info.eType == REPORT) {
+                         rd["command"] = make_pair(TC_Mysql::DB_STR, getNotifyLevel(info.sMessage));
+                     } else {
+                         rd["command"] = make_pair(TC_Mysql::DB_STR, getNotifyLevel(info.eLevel));
+                     }
 					 rd["result"] = make_pair(TC_Mysql::DB_STR, info.sMessage);
 					 rd["notifytime"] = make_pair(TC_Mysql::DB_INT, "now()");
 					 string sTable = "t_server_notifys";
