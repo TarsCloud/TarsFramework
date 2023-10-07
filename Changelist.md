@@ -3,10 +3,13 @@
 - fix tars-start.sh & tars-stop.sh when is slave
 - fix tarsconfig, out of limit return 429
 - fix tarsquerystat/tarsqueryproperty, Resolve the bug where the log cutting parameters are not working prop
+- fix tarsnotify command field is empty
+- 
 ### cn
 - 修复: 备机是tars-start.sh & tars-stop.sh的问题
 - 修复: tarsconfig超过频率限制时返回429
 - 修复: tarsquerystat/tarsqueryproperty解析日志参数的bug
+- 修复: tarsnotify写入数据库时, command字段为空的问题(影响告警)
 
 # v3.0.14 20230415
 ### en
