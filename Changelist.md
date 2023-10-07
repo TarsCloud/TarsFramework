@@ -1,3 +1,12 @@
+# v3.0.15 20231007
+### en
+- fix tars-start.sh & tars-stop.sh when is slave
+- fix tarsconfig, out of limit return 429
+- fix tarsquerystat/tarsqueryproperty, Resolve the bug where the log cutting parameters are not working prop
+### cn
+- 修复: 备机是tars-start.sh & tars-stop.sh的问题
+- 修复: tarsconfig超过频率限制时返回429
+- 修复: tarsquerystat/tarsqueryproperty解析日志参数的bug
 
 # v3.0.14 20230415
 ### en
