@@ -10,7 +10,7 @@ RUN apt install -y mysql-client build-essential unzip make flex bison net-tools 
     && apt install -y libprotobuf-dev libprotobuf-c-dev \
     && apt install -y zlib1g-dev curl libssl-dev \
     && apt install -y npm \
-    && npm install -g npm pm2 n \
+    && npm install -g pm2 n \
     && n install v16.13.0 \
     && apt-get clean
 
