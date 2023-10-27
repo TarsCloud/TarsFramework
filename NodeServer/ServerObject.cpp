@@ -612,7 +612,7 @@ bool ServerObject::isStartTimeOut()
 	Lock lock(*this);
 	int64_t now = TNOWMS;
 
-	int timeout=_activatingTimeout >0 ? _activatingTimeout : 11000;
+	int timeout=_activatingTimeout >0 ? _activatingTimeout : 30000;
 
 	if (now - _startTime >= timeout && now - _keepAliveTime >= timeout)
 	{
