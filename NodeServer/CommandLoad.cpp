@@ -535,8 +535,8 @@ int CommandLoad::updateConfigFile(string& sResult)
         _serverObjectPtr->setMainClass(tConf.get("/tars/application/server<mainclass>", ""));
         _serverObjectPtr->setClassPath(tConf.get("/tars/application/server<classpath>", ""));
         _serverObjectPtr->setEnv(tConf.get("/tars/application/server<env>", ""));
-        _serverObjectPtr->setHeartTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<hearttimeout>", "")));
-        _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "")));
+        _serverObjectPtr->setHeartTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<hearttimeout>", "45000")));
+        _serverObjectPtr->setActivatingTimeout(TC_Common::strto<int>(tConf.get("/tars/application/server<activating-timeout>", "60000")));
         _serverObjectPtr->setPackageFormat(tConf.get("/tars/application/server<packageFormat>", "tgz"));
 
 		_serverObjectPtr->setVolumes(tConf.getDomainMap("/tars/application/container/volumes"));
