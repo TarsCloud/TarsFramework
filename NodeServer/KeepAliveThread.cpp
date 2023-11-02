@@ -102,20 +102,16 @@ void KeepAliveThread::run()
 
     int64_t updateConfigTime = TNOW;
 
-	do
-	{
-		//wait for access registry success!
-		_registryPrx = AdminProxy::getInstance()->getRegistryProxy();
-		try
-		{
-			_registryPrx->tars_set_timeout(1000)->tars_ping();
-			break;
-		}
-		catch (exception &ex)
-		{
-			NODE_LOG("KeepAliveThread")->error() << FILE_FUN << "catch exception:" << ex.what() << endl;
-		}
-	}while(true);
+    _registryPrx = AdminProxy::getInstance()->getRegistryProxy();
+    try
+    {
+        _registryPrx->tars_set_timeout(1000)->tars_ping();
+    }
+    catch (exception &ex)
+    {
+        NODE_LOG("KeepAliveThread")->error() << FILE_FUN << "catch exception:" << ex.what() << endl;
+        TC_Common::sleep(1);
+    }
 
     while (!_terminate)
     {
@@ -210,7 +206,7 @@ bool KeepAliveThread::registerNode()
 
 bool KeepAliveThread::loadAllServers()
 {
-    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "load server begin===============|node name|" << _nodeInfo.nodeName << endl;
+    NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "load server begin, node name: " << _nodeInfo.nodeName << endl;
 
     /**
      * 由于加载失败或者node下没有部署服务，这里就会一直去访问主控
@@ -260,7 +256,7 @@ int KeepAliveThread::reportAlive()
         {
             tReport = tNow;
 
-            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node keep alive time:" << TNOW << ", thread id:" << TC_Thread::CURRENT_THREADID() << endl;
+            NODE_LOG("KeepAliveThread")->debug() << FILE_FUN << "node keep alive time:" << TC_Common::tm2str(TNOW, "%Y-%m-%dT%H:%M:%S") << ", thread id:" << TC_Thread::CURRENT_THREADID() << endl;
             
             int iRet = _registryPrx->keepAlive(_nodeInfo.nodeName, _platformInfo.getLoadInfo());
 

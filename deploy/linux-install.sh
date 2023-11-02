@@ -5,7 +5,6 @@
 
 if (( $# < 7 ))
 then
-    echo $#
     echo "$0 MYSQL_IP MYSQL_PASSWORD INET REBUILD(true/false) SLAVE(false[default]/true) MYSQL_USER MYSQL_PORT OVERWRITE(false/true[default]) NODE_MIRROR(tencentcloud[default]/aliyun)";
     exit 1
 fi
