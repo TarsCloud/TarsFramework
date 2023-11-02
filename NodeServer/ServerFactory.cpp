@@ -83,7 +83,7 @@ ServerObjectPtr ServerFactory::loadServer( const string& application, const stri
 		serverId = "KeepAliveThread";
 	}
 
-	NODE_LOG(serverId)->debug() << "loadServer: '" << application << "." << serverName << "', enableCache:" << enableCache << endl;
+	NODE_LOG(serverId)->debug() << "loadServer: '" << (application.empty()?"all node servers" : serverId) << "', enableCache:" << enableCache << endl;
 
     ServerObjectPtr pServerObjectPtr;
     vector<ServerDescriptor> vServerDescriptor;
@@ -150,7 +150,7 @@ vector<ServerDescriptor> ServerFactory::getServerFromRegistry( const string& app
     vector<ServerDescriptor> vServerDescriptor;
     try
     {
-    	NODE_LOG(serverId)->debug() << FILE_FUN << "app.server: '" << application << "." << serverName << "', nodeName:" << _tPlatformInfo.getNodeName() << endl;
+    	NODE_LOG(serverId)->debug() << FILE_FUN << "app.server: '" << (application.empty()?"all node servers" : serverId) << "', nodeName:" << _tPlatformInfo.getNodeName() << endl;
 
         RegistryPrx _pRegistryPrx = AdminProxy::getInstance()->getRegistryProxy();
 
