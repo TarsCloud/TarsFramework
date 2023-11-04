@@ -1158,6 +1158,7 @@ int CDbHandle::getGroupIdByName(const string& sGroupName)
 
 int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
 {
+start:
     TC_Mysql::MysqlData res;
     try
     {
@@ -1176,8 +1177,9 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
         TLOG_ERROR("CDbHandle::loadIPPhysicalGroupInfo exception: " << ex.what() << endl);
         if (fromInit)
         {
+            TC_Common::sleep(1);
             //初始化是出现异常，退出, 八成是数据库权限问题
-            assert(0);
+            goto start;
         }
     }
     catch (exception& ex)
@@ -1186,7 +1188,8 @@ int CDbHandle::loadIPPhysicalGroupInfo(bool fromInit)
         TLOG_DEBUG("CDbHandle::loadIPPhysicalGroupInfo " << ex.what() << endl);
         if (fromInit)
         {
-            assert(0);
+            TC_Common::sleep(1);
+            goto start;
         }
     }
     return -1;
@@ -1218,6 +1221,7 @@ void CDbHandle::load2GroupMap(const vector<map<string, string> >& serverGroupRul
 
 int CDbHandle::loadGroupPriority(bool fromInit)
 {
+start:
     std::map<int, GroupPriorityEntry> & mapPriority = _mapGroupPriority.getWriterData();
     mapPriority.clear();
     try
@@ -1247,7 +1251,8 @@ int CDbHandle::loadGroupPriority(bool fromInit)
         TLOG_ERROR("CDbHandle::loadGroupPriority exception: " << ex.what() << endl);
         if (fromInit)
         {
-            assert(0);
+            TC_Common::sleep(1);
+            goto start;
         }
         return -1;
     }
@@ -1257,7 +1262,8 @@ int CDbHandle::loadGroupPriority(bool fromInit)
         TLOG_DEBUG("CDbHandle::loadGroupPriority " << ex.what() << endl);
         if (fromInit)
         {
-            assert(0);
+            TC_Common::sleep(1);
+            goto start;
         }
         return -1;
     }
@@ -1411,6 +1417,7 @@ TC_Mysql::MysqlData CDbHandle::UnionRecord(TC_Mysql::MysqlData& data1, TC_Mysql:
 
 int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverProtectRate, const int iLoadTimeInterval, const bool bLoadAll, bool fromInit)
 {
+start:
     ObjectsCache objectsCache;
     SetDivisionCache setDivisionCache;
     std::map<ServantStatusKey, int> mapStatus;
@@ -1637,7 +1644,8 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
         if (fromInit)
         {
             //初始化是出现异常，退出
-            assert(0);
+            TC_Common::sleep(1);
+            goto start;
         }
         return -1;
     }
@@ -1648,7 +1656,8 @@ int CDbHandle::loadObjectIdCache(const bool bRecoverProtect, const int iRecoverP
         if (fromInit)
         {
             //初始化是出现异常，退出
-            assert(0);
+            TC_Common::sleep(1);
+            goto start;
         }
         return -1;
     }
