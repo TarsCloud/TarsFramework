@@ -55,7 +55,7 @@
         #tarsnode close server waiting time
         deactivating-timeout = 3000
         #tarsnode start server waiting time
-        activating-timeout = 10000
+        activating-timeout = 60000
 
     </server>
   </application>
