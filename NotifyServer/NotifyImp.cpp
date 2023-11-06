@@ -19,7 +19,7 @@
 #include "NotifyServer.h"
 
 extern TC_Config * g_pconf;
-extern TarsHashMap<NotifyKey, NotifyInfo, ThreadLockPolicy, MemStorePolicy> * g_notifyHash;
+//extern TarsHashMap<NotifyKey, NotifyInfo, ThreadLockPolicy, MemStorePolicy> * g_notifyHash;
 
 std::string Alarm = "[alarm]";
 std::string Error = "[error]";
@@ -162,86 +162,86 @@ bool NotifyImp::IsNeedFilte(const string& sServerName,const string& sResult)
 
     return false;
 }
-
-void NotifyImp::reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current)
-{
-    string nodeName = current->getHostName() ;
-    // if(nodeName.empty())
-    // {
-    //     nodeName = current->getIp();
-    // }
-
-    TLOGDEBUG("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl);
-
-    if(IsNeedFilte(sServerName,sResult))
-    {
-        TLOGWARN("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult <<"|filted"<< endl);
-        return;
-    }
-    
-    ReportInfo info;
-    info.sApp = sServerName;
-    info.sServer = sServerName;
-
-    vector<string> vModule = TC_Common::sepstr<string>(sServerName,".");
-    if(vModule.size() >= 2)
-    {
-        info.sApp = vModule[0];
-        info.sServer = vModule[1];
-    }
-
-    info.eType     = REPORT;
-    info.sSet      = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
-    info.sMessage  = sResult;
-    info.sThreadId = sThreadId;
-
-    reportNotifyInfo(info, current);
-    
-    return;
-}
-
-void NotifyImp::notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current)
-{
-    string nodeName = current->getHostName() ;
-    // if(nodeName.empty())
-    // {
-    //     nodeName = current->getIp();
-    // }
-
-    ReportInfo info;
-    info.sApp    = sServerName;
-    info.sServer = sServerName;
-
-    vector<string> vModule = TC_Common::sepstr<string>(sServerName, ".");
-    if (vModule.size() >= 2)
-    {
-        info.sApp = vModule[0];
-        info.sServer = vModule[1];
-    }
-
-    info.eType    = NOTIFY;
-    info.sSet     = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
-    info.sMessage = sMessage;
-    info.eLevel   = level;
-
-    reportNotifyInfo(info, current);
-    
-    return;
-}
-
-int NotifyImp::getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stInfo,tars::TarsCurrentPtr current)
-{
-    int iRet = g_notifyHash->get(stKey, stInfo);
-
-    ostringstream os;
-    stKey.displaySimple(os);
-    os << "|";
-    stInfo.displaySimple(os);
-
-    TLOGDEBUG("NotifyImp::getNotifyInfo iRet:" << iRet << "|os:" << os.str() << endl);
-
-    return iRet;
-}
+//
+//void NotifyImp::reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current)
+//{
+//    string nodeName = current->getHostName() ;
+//    // if(nodeName.empty())
+//    // {
+//    //     nodeName = current->getIp();
+//    // }
+//
+//    TLOGDEBUG("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl);
+//
+//    if(IsNeedFilte(sServerName,sResult))
+//    {
+//        TLOGWARN("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult <<"|filted"<< endl);
+//        return;
+//    }
+//
+//    ReportInfo info;
+//    info.sApp = sServerName;
+//    info.sServer = sServerName;
+//
+//    vector<string> vModule = TC_Common::sepstr<string>(sServerName,".");
+//    if(vModule.size() >= 2)
+//    {
+//        info.sApp = vModule[0];
+//        info.sServer = vModule[1];
+//    }
+//
+//    info.eType     = REPORT;
+//    info.sSet      = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
+//    info.sMessage  = sResult;
+//    info.sThreadId = sThreadId;
+//
+//    reportNotifyInfo(info, current);
+//
+//    return;
+//}
+//
+//void NotifyImp::notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current)
+//{
+//    string nodeName = current->getHostName() ;
+//    // if(nodeName.empty())
+//    // {
+//    //     nodeName = current->getIp();
+//    // }
+//
+//    ReportInfo info;
+//    info.sApp    = sServerName;
+//    info.sServer = sServerName;
+//
+//    vector<string> vModule = TC_Common::sepstr<string>(sServerName, ".");
+//    if (vModule.size() >= 2)
+//    {
+//        info.sApp = vModule[0];
+//        info.sServer = vModule[1];
+//    }
+//
+//    info.eType    = NOTIFY;
+//    info.sSet     = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
+//    info.sMessage = sMessage;
+//    info.eLevel   = level;
+//
+//    reportNotifyInfo(info, current);
+//
+//    return;
+//}
+//
+//int NotifyImp::getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stInfo,tars::TarsCurrentPtr current)
+//{
+//    int iRet = g_notifyHash->get(stKey, stInfo);
+//
+//    ostringstream os;
+//    stKey.displaySimple(os);
+//    os << "|";
+//    stInfo.displaySimple(os);
+//
+//    TLOGDEBUG("NotifyImp::getNotifyInfo iRet:" << iRet << "|os:" << os.str() << endl);
+//
+//    return iRet;
+//}
 
 void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurrentPtr current)
 {
@@ -252,58 +252,58 @@ void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurren
 	}
     switch (info.eType)
     {
-        case (NOTIFY):
-        {
-            TLOGDEBUG("NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|nodeId:" << nodeId
-                << "|eLevel:" << tars::etos(info.eLevel) << "|sMessage:" << info.sMessage << endl);
-
-            string sServerId = info.sApp + info.sServer + "_" + nodeId;
-
-            NotifyKey stKey0;
-            stKey0.name = info.sApp + info.sServer;
-            stKey0.ip   = nodeId;
-            stKey0.page = 0;
-
-            NotifyInfo stInfo0;
-
-            NotifyItem stItem;
-            stItem.sTimeStamp = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
-            stItem.sServerId  = sServerId;
-            stItem.iLevel     = info.eLevel;
-            stItem.sMessage   = info.sMessage;
-
-            int iRet;
-            iRet = g_notifyHash->get(stKey0, stInfo0);
-            TLOGDEBUG("get " << sServerId << " page " << stKey0.page << " info return :" << iRet << endl);
-            if (iRet == TC_HashMap::RT_LOAD_DATA_ERR)
-            {
-                return;
-            }
-
-			if (stInfo0.notifyItems.size() < _maxPageSize)
-			{
-				stInfo0.notifyItems.push_back(stItem);
-				iRet = g_notifyHash->set(stKey0, stInfo0);
-				TLOGDEBUG("NotifyImp::reportNotifyInfo set sServerId:" << sServerId << "|page:" << stKey0.page << "|iRet:" << iRet << endl);
-			}
-			else
-			{
-				//0页置换出去
-				NotifyKey stKeyReplPage = stKey0;
-				stKeyReplPage.page = (stInfo0.nextpage + 1) % _maxPageNum;
-				if (stKeyReplPage.page == 0)
-				{
-					stKeyReplPage.page = 1;
-				}
-				iRet = g_notifyHash->set(stKeyReplPage, stInfo0);
-
-				//修改0页
-				stInfo0.nextpage = stKeyReplPage.page;
-				stInfo0.notifyItems.clear();
-				stInfo0.notifyItems.push_back(stItem);
-				iRet = g_notifyHash->set(stKey0, stInfo0);
-			}
-		}
+//        case (NOTIFY):
+//        {
+//            TLOGDEBUG("NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|nodeId:" << nodeId
+//                << "|eLevel:" << tars::etos(info.eLevel) << "|sMessage:" << info.sMessage << endl);
+//
+//            string sServerId = info.sApp + info.sServer + "_" + nodeId;
+//
+//            NotifyKey stKey0;
+//            stKey0.name = info.sApp + info.sServer;
+//            stKey0.ip   = nodeId;
+//            stKey0.page = 0;
+//
+//            NotifyInfo stInfo0;
+//
+//            NotifyItem stItem;
+//            stItem.sTimeStamp = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
+//            stItem.sServerId  = sServerId;
+//            stItem.iLevel     = info.eLevel;
+//            stItem.sMessage   = info.sMessage;
+//
+//            int iRet;
+//            iRet = g_notifyHash->get(stKey0, stInfo0);
+//            TLOGDEBUG("get " << sServerId << " page " << stKey0.page << " info return :" << iRet << endl);
+//            if (iRet == TC_HashMap::RT_LOAD_DATA_ERR)
+//            {
+//                return;
+//            }
+//
+//			if (stInfo0.notifyItems.size() < _maxPageSize)
+//			{
+//				stInfo0.notifyItems.push_back(stItem);
+//				iRet = g_notifyHash->set(stKey0, stInfo0);
+//				TLOGDEBUG("NotifyImp::reportNotifyInfo set sServerId:" << sServerId << "|page:" << stKey0.page << "|iRet:" << iRet << endl);
+//			}
+//			else
+//			{
+//				//0页置换出去
+//				NotifyKey stKeyReplPage = stKey0;
+//				stKeyReplPage.page = (stInfo0.nextpage + 1) % _maxPageNum;
+//				if (stKeyReplPage.page == 0)
+//				{
+//					stKeyReplPage.page = 1;
+//				}
+//				iRet = g_notifyHash->set(stKeyReplPage, stInfo0);
+//
+//				//修改0页
+//				stInfo0.nextpage = stKeyReplPage.page;
+//				stInfo0.notifyItems.clear();
+//				stInfo0.notifyItems.push_back(stItem);
+//				iRet = g_notifyHash->set(stKey0, stInfo0);
+//			}
+//		}
 		case (REPORT):
 		default: {
 					 TLOGDEBUG(

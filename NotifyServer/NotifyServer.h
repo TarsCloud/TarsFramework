@@ -18,7 +18,7 @@
 #define __NOTIFY_SERVER_H_
 
 #include "servant/Application.h"
-#include "LoadDbThread.h"
+//#include "LoadDbThread.h"
 #include "util/tc_timer.h"
 
 using namespace tars;
@@ -36,11 +36,11 @@ public:
      */
     virtual void destroyApp();
 
-    /**
-     * 获取加载db的线程类
-     */
-    inline LoadDbThread * getLoadDbThread() { return _loadDbThread; }
-
+//    /**
+//     * 获取加载db的线程类
+//     */
+//    inline LoadDbThread * getLoadDbThread() { return _loadDbThread; }
+//
 	/**
 	 * is first notify
 	 * @return
@@ -54,7 +54,7 @@ public:
 
 private:
 
-    LoadDbThread *_loadDbThread;
+//    LoadDbThread *_loadDbThread;
 
     TC_Timer _timer;
 };
