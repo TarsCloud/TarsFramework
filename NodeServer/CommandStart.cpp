@@ -221,10 +221,6 @@ bool CommandStart::startByScript(string& sResult)
     {
         iStartWaitInterval = START_WAIT_INTERVAL;
     }
-    if (iStartWaitInterval > 60)
-    {
-        iStartWaitInterval = 60;
-    }
 
     while ((TNOW - iStartWaitInterval) < tNow)
     {
