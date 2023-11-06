@@ -22,7 +22,6 @@
 #include "util/tc_config.h"
 #include "util/tc_mysql.h"
 #include "servant/RemoteLogger.h"
-//#include "LoadDbThread.h"
 
 using namespace tars;
 
@@ -40,30 +39,6 @@ public:
      * 退出
      */
     virtual void destroy() {};
-//
-//    /**
-//     * report
-//     * @param sServerName
-//     * @param sThreadId
-//     * @param sResult
-//     * @param current
-//     */
-//    virtual void reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current);
-//
-//    /**
-//     * notify
-//     * @param sServerName
-//     * @param sThreadId
-//     * @param sCommand
-//     * @param sResult
-//     * @param current
-//     */
-//    virtual void notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current);
-//
-//    /**
-//     * get notify info
-//     */
-//    virtual tars::Int32 getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stInfo,tars::TarsCurrentPtr current);
 
     /*
      *reportNotifyInfo
@@ -77,17 +52,10 @@ protected:
 
 private:
 
-    bool IsdbTableExist(const string& sTbName);
-
-    void creatTb(const string &sTbName);
-
     bool IsNeedFilte(const string& sServerName,const string& sResult);
 
 protected:
     TC_Mysql _mysqlConfig;
-    string     _sql;                //创建表
-    size_t   _maxPageSize;
-    size_t   _maxPageNum;
    /*
      * 按模块配置过滤规则
      * key=default 表示全局规则
