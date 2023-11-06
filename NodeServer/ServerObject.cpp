@@ -824,6 +824,12 @@ bool ServerObject::checkServer(int iTimeout)
 	{
 		return false;
 	}
+    else if (isStarting() || _startTime + 5000 > TNOWMS)
+    {
+        // 正在启动， 或者启动5s以内，先不check
+        NODE_LOG(_serverId)->info() <<FILE_FUN<< _serverId<<"|" << toStringState(_state) << "|" << _pid << ", _startTime:" << _startTime << ", isStarting:" << isStarting() << endl;
+        return false;
+    }
 
     try
     {

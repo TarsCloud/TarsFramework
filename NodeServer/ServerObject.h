@@ -511,6 +511,16 @@ public:
 		return _procStartTime;
 	}
 
+    void setStarting(bool flag)
+    {
+        _isStarting = flag;
+    }
+
+    bool isStarting() const
+    {
+        return _isStarting;
+    }
+
 public:
     /**
      * auto check routine
@@ -611,8 +621,10 @@ private:
     ServerLimitInfo      _limitStateInfo;       //通过node配置设置的资源信息
     ServerLimitResourcePtr _serviceLimitResource;
     bool				 _started;				//是否已经通过commandStart启动成功
-	int64_t              _startTime;			//启动的时间,作为checkpid系统延迟判断的起点
+	int64_t              _startTime = 0;	    //启动的时间,作为checkpid系统延迟判断的起点
 	time_t               _procStartTime = 0;    // 进程启动时间， 从系统中获取
+    bool                 _isStarting = false;   // 正在启动标识
+
 };
 
 typedef TC_AutoPtr<ServerObject> ServerObjectPtr;

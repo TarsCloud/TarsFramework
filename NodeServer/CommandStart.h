@@ -31,6 +31,14 @@ public:
 public:
     CommandStart(const ServerObjectPtr& pServerObjectPtr, bool bByNode = false);
 
+    virtual ~CommandStart()
+    {
+        if (_serverObjectPtr)
+        {
+            _serverObjectPtr->setStarting(false);
+        }
+    }
+
     ExeStatus canExecute(string& sResult);
 
     int execute(string& sResult);

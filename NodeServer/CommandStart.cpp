@@ -41,6 +41,7 @@ CommandStart::CommandStart(const ServerObjectPtr& pServerObjectPtr, bool bByNode
 	_exeFile   = _serverObjectPtr->getExeFile();
 	_logPath   = _serverObjectPtr->getLogPath();
 	_desc      = _serverObjectPtr->getServerDescriptor();
+    _serverObjectPtr->setStarting(true);
 }
 
 //////////////////////////////////////////////////////////////
