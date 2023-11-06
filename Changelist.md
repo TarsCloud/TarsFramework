@@ -1,3 +1,24 @@
+#v3.0.16 20231106
+### en
+- fix: tarsnode start same process two times when process start is slow
+- fix: tarsregistry, when mysql is down not crash
+- fix: tarsnode, when tarsregistry all down, tarsnode still can start local servers
+- fix: deploy dockerfile to support nodejs update
+- fix: tar-server.sh do not update npm
+- tarsnode auto set locator when tarsregistry locator changed
+- set default value of activating-timeout: 60s
+- delete some interface in tarsnotify that not used
+ 
+### cn
+- 修复: tarsnode 会启动两个相同的进程, 当业务进程启动太慢的时候(尤其是java容易出现)
+- 修复: 当mysql无法连接时,启动tarsregistry不再crash
+- 修复: 当tarsregistry都死掉, tarsnode启动后, 能正常拉起所有本地的服务, 不再依赖tarsregistry
+- 修复: 部署Dockerfile中, 不再主动升级npm, 避免兼容性问题
+- 修复: tar-server.sh 也不在主动升级npm
+- tarsnode自动设置locator, 当发现tarsregistry做了迁移locator变更后
+- 修改缺省模板, 设置缺省的activating-timeout值为60s, 保证服务器启动60s不会被tarsnode杀掉
+- 删除了tarsnotify中不再使用的接口和功能代码
+
 # v3.0.15 20231007
 ### en
 - fix tars-start.sh & tars-stop.sh when is slave
