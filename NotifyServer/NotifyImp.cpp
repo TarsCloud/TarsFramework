@@ -19,7 +19,6 @@
 #include "NotifyServer.h"
 
 extern TC_Config * g_pconf;
-//extern TarsHashMap<NotifyKey, NotifyInfo, ThreadLockPolicy, MemStorePolicy> * g_notifyHash;
 
 std::string Alarm = "[alarm]";
 std::string Error = "[error]";
@@ -61,11 +60,7 @@ void NotifyImp::loadconf()
 
     _mysqlConfig.init(tcDBConf);
 
-    _sql = (*g_pconf)["/tars/<sql>"];
-    _maxPageSize = TC_Common::strto<size_t>((*g_pconf)["/tars/hash<max_page_size>"]);
-    _maxPageNum  = TC_Common::strto<size_t>((*g_pconf)["/tars/hash<max_page_num>"]);
-
-    map<string, string> m = g_pconf->getDomainMap("/tars/filter"); 
+    map<string, string> m = g_pconf->getDomainMap("/tars/filter");
     for(map<string,string>::iterator it= m.begin();it != m.end();it++)
     {
         vector<string> vFilters = TC_Common::sepstr<string>(it->second,";|");
@@ -77,60 +72,6 @@ void NotifyImp::loadconf()
 void NotifyImp::initialize()
 {
     loadconf();
-}
-
-bool NotifyImp::IsdbTableExist(const string& sTbName)
-{
-    try
-    {
-        TC_Mysql::MysqlData tTotalRecord = _mysqlConfig.queryRecord("show tables like '%"+sTbName+"%'");
-
-        TLOGINFO("NotifyImp::IsdbTableExist show tables like '%" + sTbName + "%|affected:" << tTotalRecord.size() << endl);
-
-        if (tTotalRecord.size() > 0)
-        {
-            return true;
-        }
-        else
-        {
-            TLOGERROR("NotifyImp::IsdbTableExist sTbName:" << sTbName << "|doesn't exist" << endl);
-            return false;
-        }
-
-    }
-    catch(TC_Mysql_Exception& ex)
-    {
-        TLOGERROR("NotifyImp::IsdbTableExist exception:" << ex.what() << endl);
-        return false;
-    }
-    catch(...)
-    {
-        TLOGERROR("NotifyImp::IsdbTableExist unknown exception." << endl);
-        return false;
-    }
-}
-
-void NotifyImp::creatTb(const string &sTbName)
-{
-    try
-    {
-        if (!IsdbTableExist(sTbName))
-        {
-            string sSql = TC_Common::replace(_sql, "${TABLE}",sTbName);
-
-            _mysqlConfig.execute(sSql);
-
-            TLOGDEBUG("NotifyImp::creatTb sSql:" << sSql << endl);
-        }
-    }
-    catch (TC_Mysql_Exception& ex)
-    {
-        TLOGERROR("NotifyImp::creatTb exception:" << ex.what() << endl);
-    }
-    catch(...)
-    {
-        TLOGERROR("NotifyImp::IsdbTableExist unknown exception." << endl);
-    }
 }
 
 bool NotifyImp::IsNeedFilte(const string& sServerName,const string& sResult)
@@ -162,233 +103,105 @@ bool NotifyImp::IsNeedFilte(const string& sServerName,const string& sResult)
 
     return false;
 }
-//
-//void NotifyImp::reportServer(const string& sServerName, const string& sThreadId, const string& sResult, tars::TarsCurrentPtr current)
-//{
-//    string nodeName = current->getHostName() ;
-//    // if(nodeName.empty())
-//    // {
-//    //     nodeName = current->getIp();
-//    // }
-//
-//    TLOGDEBUG("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult << endl);
-//
-//    if(IsNeedFilte(sServerName,sResult))
-//    {
-//        TLOGWARN("NotifyImp::reportServer sServerName:" << sServerName << "|ip:" << nodeName << "|sThreadId:" << sThreadId << "|sResult:" << sResult <<"|filted"<< endl);
-//        return;
-//    }
-//
-//    ReportInfo info;
-//    info.sApp = sServerName;
-//    info.sServer = sServerName;
-//
-//    vector<string> vModule = TC_Common::sepstr<string>(sServerName,".");
-//    if(vModule.size() >= 2)
-//    {
-//        info.sApp = vModule[0];
-//        info.sServer = vModule[1];
-//    }
-//
-//    info.eType     = REPORT;
-//    info.sSet      = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
-//    info.sMessage  = sResult;
-//    info.sThreadId = sThreadId;
-//
-//    reportNotifyInfo(info, current);
-//
-//    return;
-//}
-//
-//void NotifyImp::notifyServer(const string& sServerName, NOTIFYLEVEL level, const string& sMessage, tars::TarsCurrentPtr current)
-//{
-//    string nodeName = current->getHostName() ;
-//    // if(nodeName.empty())
-//    // {
-//    //     nodeName = current->getIp();
-//    // }
-//
-//    ReportInfo info;
-//    info.sApp    = sServerName;
-//    info.sServer = sServerName;
-//
-//    vector<string> vModule = TC_Common::sepstr<string>(sServerName, ".");
-//    if (vModule.size() >= 2)
-//    {
-//        info.sApp = vModule[0];
-//        info.sServer = vModule[1];
-//    }
-//
-//    info.eType    = NOTIFY;
-//    info.sSet     = g_app.getLoadDbThread()->getSetName(sServerName + nodeName);
-//    info.sMessage = sMessage;
-//    info.eLevel   = level;
-//
-//    reportNotifyInfo(info, current);
-//
-//    return;
-//}
-//
-//int NotifyImp::getNotifyInfo(const tars::NotifyKey & stKey,tars::NotifyInfo &stInfo,tars::TarsCurrentPtr current)
-//{
-//    int iRet = g_notifyHash->get(stKey, stInfo);
-//
-//    ostringstream os;
-//    stKey.displaySimple(os);
-//    os << "|";
-//    stInfo.displaySimple(os);
-//
-//    TLOGDEBUG("NotifyImp::getNotifyInfo iRet:" << iRet << "|os:" << os.str() << endl);
-//
-//    return iRet;
-//}
 
 void NotifyImp::reportNotifyInfo(const tars::ReportInfo & info, tars::TarsCurrentPtr current)
 {
-	string nodeId = info.sNodeName;
-	if(nodeId.empty())
-	{
-		nodeId = current->getIp();
-	}
+    string nodeId = info.sNodeName;
+    if (nodeId.empty())
+    {
+        nodeId = current->getIp();
+    }
     switch (info.eType)
     {
-//        case (NOTIFY):
-//        {
-//            TLOGDEBUG("NotifyImp::reportNotifyInfo  notifyServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet << "|sContainer:" << info.sContainer << "|nodeId:" << nodeId
-//                << "|eLevel:" << tars::etos(info.eLevel) << "|sMessage:" << info.sMessage << endl);
-//
-//            string sServerId = info.sApp + info.sServer + "_" + nodeId;
-//
-//            NotifyKey stKey0;
-//            stKey0.name = info.sApp + info.sServer;
-//            stKey0.ip   = nodeId;
-//            stKey0.page = 0;
-//
-//            NotifyInfo stInfo0;
-//
-//            NotifyItem stItem;
-//            stItem.sTimeStamp = TC_Common::now2str("%Y-%m-%d %H:%M:%S");
-//            stItem.sServerId  = sServerId;
-//            stItem.iLevel     = info.eLevel;
-//            stItem.sMessage   = info.sMessage;
-//
-//            int iRet;
-//            iRet = g_notifyHash->get(stKey0, stInfo0);
-//            TLOGDEBUG("get " << sServerId << " page " << stKey0.page << " info return :" << iRet << endl);
-//            if (iRet == TC_HashMap::RT_LOAD_DATA_ERR)
-//            {
-//                return;
-//            }
-//
-//			if (stInfo0.notifyItems.size() < _maxPageSize)
-//			{
-//				stInfo0.notifyItems.push_back(stItem);
-//				iRet = g_notifyHash->set(stKey0, stInfo0);
-//				TLOGDEBUG("NotifyImp::reportNotifyInfo set sServerId:" << sServerId << "|page:" << stKey0.page << "|iRet:" << iRet << endl);
-//			}
-//			else
-//			{
-//				//0页置换出去
-//				NotifyKey stKeyReplPage = stKey0;
-//				stKeyReplPage.page = (stInfo0.nextpage + 1) % _maxPageNum;
-//				if (stKeyReplPage.page == 0)
-//				{
-//					stKeyReplPage.page = 1;
-//				}
-//				iRet = g_notifyHash->set(stKeyReplPage, stInfo0);
-//
-//				//修改0页
-//				stInfo0.nextpage = stKeyReplPage.page;
-//				stInfo0.notifyItems.clear();
-//				stInfo0.notifyItems.push_back(stItem);
-//				iRet = g_notifyHash->set(stKey0, stInfo0);
-//			}
-//		}
-		case (REPORT):
-		default: {
-					 TLOGDEBUG(
-							 "NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:" << info.sSet
-							 << "|sContainer:" << info.sContainer << "|ip:"
-							 << current->getHostName()
-							 << "|nodeName:" << info.sNodeName << "|sThreadId:"
-							 << info.sThreadId << "|sMessage:" << info.sMessage << endl);
+        case (NOTIFY):
+        case (REPORT):
+        default:
+        {
+            TLOGDEBUG(
+                    "NotifyImp::reportNotifyInfo reportServer:" << info.sApp + "." + info.sServer << "|sSet:"
+                                                                << info.sSet
+                                                                << "|sContainer:" << info.sContainer << "|ip:"
+                                                                << current->getHostName()
+                                                                << "|nodeName:" << info.sNodeName << "|sThreadId:"
+                                                                << info.sThreadId << "|sMessage:" << info.sMessage
+                                                                << endl);
 
-					 if (IsNeedFilte(info.sApp + info.sServer, info.sMessage)) {
-						 TLOGWARN(
-								 "NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:"
-								 << info.sSet << "|sContainer:" << info.sContainer
-								 << "|ip:" << current->getHostName()
-								 << "|nodeName:" << info.sNodeName
-								 << "|sThreadId:" << info.sThreadId
-								 << "|sMessage:" << info.sMessage << "|filted"
-								 << endl);
+            if (IsNeedFilte(info.sApp + info.sServer, info.sMessage))
+            {
+                TLOGWARN(
+                        "NotifyImp::reportNotifyInfo reportServer filter:" << info.sApp + "." + info.sServer << "|sSet:"
+                                                                           << info.sSet << "|sContainer:"
+                                                                           << info.sContainer
+                                                                           << "|ip:" << current->getHostName()
+                                                                           << "|nodeName:" << info.sNodeName
+                                                                           << "|sThreadId:" << info.sThreadId
+                                                                           << "|sMessage:" << info.sMessage << "|filted"
+                                                                           << endl);
 
-						 return;
-					 }
+                return;
+            }
 
-					 string sql;
-					 TC_Mysql::RECORD_DATA rd;
+            string sql;
+            TC_Mysql::RECORD_DATA rd;
 
-					 rd["application"] = make_pair(TC_Mysql::DB_STR, info.sApp);
-					 rd["server_name"] = make_pair(TC_Mysql::DB_STR, info.sServer);
-					 rd["container_name"] = make_pair(TC_Mysql::DB_STR, info.sContainer);
-					 rd["server_id"] = make_pair(TC_Mysql::DB_STR, info.sApp + "." + info.sServer + "_" + nodeId);
-					 rd["node_name"] = make_pair(TC_Mysql::DB_STR, nodeId);
-					 rd["thread_id"] = make_pair(TC_Mysql::DB_STR, info.sThreadId);
+            rd["application"] = make_pair(TC_Mysql::DB_STR, info.sApp);
+            rd["server_name"] = make_pair(TC_Mysql::DB_STR, info.sServer);
+            rd["container_name"] = make_pair(TC_Mysql::DB_STR, info.sContainer);
+            rd["server_id"] = make_pair(TC_Mysql::DB_STR, info.sApp + "." + info.sServer + "_" + nodeId);
+            rd["node_name"] = make_pair(TC_Mysql::DB_STR, nodeId);
+            rd["thread_id"] = make_pair(TC_Mysql::DB_STR, info.sThreadId);
 
-					 if (!info.sSet.empty()) {
-						 vector<string> v = TC_Common::sepstr<string>(info.sSet, ".");
-						 if (v.size() != 3 || (v.size() == 3 && (v[0] == "*" || v[1] == "*"))) {
-							 TLOGERROR("NotifyImp::reportNotifyInfo bad set name:" << info.sSet << endl);
-						 }
-						 else {
-							 rd["set_name"] = make_pair(TC_Mysql::DB_STR, v[0]);
-							 rd["set_area"] = make_pair(TC_Mysql::DB_STR, v[1]);
-							 rd["set_group"] = make_pair(TC_Mysql::DB_STR, v[2]);
-						 }
+            if (!info.sSet.empty())
+            {
+                vector<string> v = TC_Common::sepstr<string>(info.sSet, ".");
+                if (v.size() != 3 || (v.size() == 3 && (v[0] == "*" || v[1] == "*")))
+                {
+                    TLOGERROR("NotifyImp::reportNotifyInfo bad set name:" << info.sSet << endl);
+                } else
+                {
+                    rd["set_name"] = make_pair(TC_Mysql::DB_STR, v[0]);
+                    rd["set_area"] = make_pair(TC_Mysql::DB_STR, v[1]);
+                    rd["set_group"] = make_pair(TC_Mysql::DB_STR, v[2]);
+                }
 
-					 }
-					 else {
-						 rd["set_name"] = make_pair(TC_Mysql::DB_STR, "");
-						 rd["set_area"] = make_pair(TC_Mysql::DB_STR, "");
-						 rd["set_group"] = make_pair(TC_Mysql::DB_STR, "");
-					 }
+            } else
+            {
+                rd["set_name"] = make_pair(TC_Mysql::DB_STR, "");
+                rd["set_area"] = make_pair(TC_Mysql::DB_STR, "");
+                rd["set_group"] = make_pair(TC_Mysql::DB_STR, "");
+            }
 
-					 if (info.eType == REPORT) {
-                         rd["command"] = make_pair(TC_Mysql::DB_STR, getNotifyLevel(info.sMessage));
-                     } else {
-                         rd["command"] = make_pair(TC_Mysql::DB_STR, getNotifyLevel(info.eLevel));
-                     }
-					 rd["result"] = make_pair(TC_Mysql::DB_STR, info.sMessage);
-					 rd["notifytime"] = make_pair(TC_Mysql::DB_INT, "now()");
-					 string sTable = "t_server_notifys";
-					 try {
-						 _mysqlConfig.insertRecord(sTable, rd);
-					 }
-					 catch (TC_Mysql_Exception & ex) {
-						 string err = string(ex.what());
-						 if (std::string::npos != err.find("doesn't exist")) {
-							 creatTb(sTable);
-						 }
-						//  else {
-						// 	 string sInfo =
-						// 		 string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application
-						// 		 + "." + ServerConfig::ServerName;
-						// 	 TARS_NOTIFY_ERROR(sInfo);
-						//  }
-						 TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
-					 }
-					 catch (exception & ex) {
-						 TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
-						 string sInfo =
-							 string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application + "."
-							 + ServerConfig::ServerName;
-					 }
+            if (info.eType == REPORT)
+            {
+                rd["command"] = make_pair(TC_Mysql::DB_STR, getNotifyLevel(info.sMessage));
+            } else
+            {
+                rd["command"] = make_pair(TC_Mysql::DB_STR, getNotifyLevel(info.eLevel));
+            }
+            rd["result"] = make_pair(TC_Mysql::DB_STR, info.sMessage);
+            rd["notifytime"] = make_pair(TC_Mysql::DB_INT, "now()");
+            string sTable = "t_server_notifys";
+            try
+            {
+                _mysqlConfig.insertRecord(sTable, rd);
+            }
+            catch (TC_Mysql_Exception &ex)
+            {
+                TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
+            }
+            catch (exception &ex)
+            {
+                TLOGERROR("NotifyImp::reportNotifyInfo insert2Db exception:" << ex.what() << endl);
+                string sInfo =
+                        string("insert2Db exception") + "|" + ServerConfig::LocalIp + "|" + ServerConfig::Application +
+                        "."
+                        + ServerConfig::ServerName;
+            }
 
-					 TLOGERROR("reportNotifyInfo unknown type:" << info.writeToJsonString() << endl);
-					 break;
-				 }
-	}
+            TLOGERROR("reportNotifyInfo unknown type:" << info.writeToJsonString() << endl);
+            break;
+        }
+    }
 
-	return;
+    return;
 }
