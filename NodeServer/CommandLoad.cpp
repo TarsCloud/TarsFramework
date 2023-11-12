@@ -465,6 +465,7 @@ int CommandLoad::updateConfigFile(string& sResult)
         mMacro["modulename"] = _desc.application + "." + _desc.serverName;
         mMacro["app"]        = _desc.application;
         mMacro["server"]     = _desc.serverName;
+        mMacro["nodename"]   = PlatformInfo().getNodeName();
         mMacro["serverid"]   = _serverObjectPtr->getServerId();
         mMacro["localip"]    = g_app.getAdapterEndpoint("ServerAdapter").getHost();
         mMacro["exe"]        = TC_File::simplifyDirectory(_exeFile);

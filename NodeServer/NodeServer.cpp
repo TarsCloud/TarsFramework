@@ -443,7 +443,7 @@ int NodeServer::onUpdateConfig(const string &nodeId, const string &sConfigFile, 
 	    sTemplate = TC_Common::replace(sTemplate, "${logpath}", config.get("/tars/application/server<logpath>", "tars"));
         sTemplate = TC_Common::replace(sTemplate, "${localip}",sLocalIp);
 		sTemplate = TC_Common::replace(sTemplate, "${local}", config.get("/tars/application/server<local>", ""));
-		sTemplate = TC_Common::replace(sTemplate, "${modulename}", "tars.tarsnode");
+        sTemplate = TC_Common::replace(sTemplate, "${nodename}", config.get("/tars/application/server<nodename>", ""));
 
 //		cout << TC_Common::outfill("", '-') << endl;
 

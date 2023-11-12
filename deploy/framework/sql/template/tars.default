@@ -30,6 +30,8 @@
         app    = ${app}
         #server name
         server  = ${server}
+        #node name
+        nodename = ${nodename}
         #local ip
         localip  = ${localip}
         #local endpoint, for tars-node comunication(optional)
