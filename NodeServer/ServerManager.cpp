@@ -252,17 +252,20 @@ void ServerManager::run()
 			
 		}
 
-		for(auto adminPrx : _adminPrxs)
-		{				
+		auto itPrx = _adminPrxs.begin();
+		while (itPrx != _adminPrxs.end())
+		{
 			try
-			{ 		
-				adminPrx.second->reportNode(rn);
+			{
+				itPrx->second->reportNode(rn);
+				++itPrx;
 			}
 			catch(exception &ex)
 			{
 				TLOG_ERROR("report admin, error:" << ex.what() << endl);
+				itPrx = _adminPrxs.erase(itPrx);
 			}
-		}	
+		}
 
 		int64_t diff = timeout-(TNOWMS-now);
 
