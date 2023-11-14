@@ -236,8 +236,10 @@ void ServerManager::run()
 		time_t now = TNOWMS;
 
 		vector<TC_Endpoint> endPointList = Application::getCommunicator()->getEndpoint4All(_adminObj);
-		for(auto endPoint : endPointList)
+		set<string> adminHosts;
+		for(auto &endPoint : endPointList)
 		{				
+			adminHosts.emplace(endPoint.getHost());
 			auto find = _adminPrxs.find(endPoint.getHost());
 			if(find == _adminPrxs.end())
 			{
@@ -252,17 +254,26 @@ void ServerManager::run()
 			
 		}
 
-		for(auto adminPrx : _adminPrxs)
-		{				
+		auto itPrx = _adminPrxs.begin();
+		while (itPrx != _adminPrxs.end())
+		{
+			if(adminHosts.find(itPrx->first) == adminHosts.end())
+			{
+				itPrx = _adminPrxs.erase(itPrx);
+				continue;
+			}
+
 			try
-			{ 		
-				adminPrx.second->reportNode(rn);
+			{
+				itPrx->second->reportNode(rn);
 			}
 			catch(exception &ex)
 			{
 				TLOG_ERROR("report admin, error:" << ex.what() << endl);
 			}
-		}	
+			
+			++itPrx;
+		}
 
 		int64_t diff = timeout-(TNOWMS-now);
 
