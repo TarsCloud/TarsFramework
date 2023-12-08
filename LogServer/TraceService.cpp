@@ -12,9 +12,6 @@
 
 void TraceService::initialize(TC_Config &config)
 {
-
-    //auto &&config = getConfig();
-
     string message{};
 	if (!loadTimerValue(config, message))
 	{
@@ -66,7 +63,6 @@ void TraceService::initialize(TC_Config &config)
 	});
 	timerThread_.detach();
 
-
 	TimerTaskQueue::instance().pushCycleTask(
 			[this](const size_t&, size_t&)
 			{
@@ -78,7 +74,8 @@ void TraceService::initialize(TC_Config &config)
 				}
 			}, 0, 1);
 
-	ESWriter::createIndexTemplate();
+    ESWriter::createIndexTemplate();
+    TLOG_DEBUG("Initialize succ" << endl);
 };
 
 bool TraceService::loadTimerValue(const TC_Config& config, string& message)
