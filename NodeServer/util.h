@@ -22,11 +22,11 @@
 
 using namespace tars;
 
-#if TARGET_PLATFORM_WINDOWS
-#define __FILENAME__ (strrchr(__FILE__, '\\') ? (strrchr(__FILE__, '\\') + 1):__FILE__)
-#else
-#define __FILENAME__ (strrchr(__FILE__, '/') ? (strrchr(__FILE__, '/') + 1):__FILE__)
-#endif
+//#if TARGET_PLATFORM_WINDOWS
+//#define __FILENAME__ (strrchr(__FILE__, '\\') ? (strrchr(__FILE__, '\\') + 1):__FILE__)
+//#else
+//#define __FILENAME__ (strrchr(__FILE__, '/') ? (strrchr(__FILE__, '/') + 1):__FILE__)
+//#endif
 
 #define FILE_FUN   __FILENAME__<<":"<<__FUNCTION__<<":"<<__LINE__<<"|"
 #define FILE_FUN_STR  TC_Common::tostr(__FILENAME__)+":"+TC_Common::tostr(__FUNCTION__)+":"+TC_Common::tostr(__LINE__)+"|"
