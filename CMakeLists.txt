@@ -18,9 +18,19 @@ include("${PROJECT_SOURCE_DIR}/tarscpp/cmake/ParseAsm.cmake")
 
 add_subdirectory(tarscpp)
 
+if(UNIX OR APPLE)
+    option(ENABLE_ADDRESSSANITIZER "enable AddressSanitizer" OFF)
+    if(ENABLE_ADDRESSSANITIZER)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror -fsanitize=address -fno-omit-frame-pointer -g")
+    endif ()
+
+    message("ENABLE_ADDRESSSANITIZER:   ${ENABLE_ADDRESSSANITIZER}")
+endif()
+
 set(major "3")
 set(minor "0")
 set(patch "16")
+
 set(FRAMEWORK_VERSION ${major}.${minor}.${patch})
 add_definitions(-DFRAMEWORK_VERSION="${FRAMEWORK_VERSION}")
 add_definitions(-DTARS_VERSION="${TARS_VERSION}")
