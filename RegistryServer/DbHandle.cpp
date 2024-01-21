@@ -1508,6 +1508,7 @@ start:
                         epf.istcp = TC_Endpoint::TCP; 
                 }
 
+                epf.nodeName    = TC_Common::trim(res[i]["node_name"]);
                 epf.authType    = ep.getAuthType();
                 epf.grouprealid = getGroupId(epf.host);
                 string ip_group_name = TC_Common::trim(res[i]["ip_group_name"]);
