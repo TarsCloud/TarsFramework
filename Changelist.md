@@ -1,3 +1,13 @@
+#v3.0.17 20240202
+
+### en
+- update tarscpp to v3.0.19
+- fix: tarsnode ServerManager.cpp reportNode 
+- feat tarsnode add nodename to template
+- feat: cmake add open ENABLE_ADDRESSSANITIZER
+- feat: tarsregsitry EndpointF set nodeName
+- optimize: doReserveDb drop table
+
 #v3.0.16 20231106
 ### en
 - fix: tarsnode start same process two times when process start is slow

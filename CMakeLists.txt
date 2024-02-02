@@ -29,7 +29,7 @@ endif()
 
 set(major "3")
 set(minor "0")
-set(patch "16")
+set(patch "17")
 
 set(FRAMEWORK_VERSION ${major}.${minor}.${patch})
 add_definitions(-DFRAMEWORK_VERSION="${FRAMEWORK_VERSION}")
