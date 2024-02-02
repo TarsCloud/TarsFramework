@@ -139,7 +139,7 @@ void PropertyServer::doReserveDb(const string path, TC_Config *pconf)
 				{
                     TLOGDEBUG(__FUNCTION__ << ", drop name:" << name << ", tableName: " << tableName << ", " << (name < tableName) << endl);
 
-					mysql.execute("drop table " + name);
+					mysql.execute("DROP TABLE IF EXISTS " + name);
 				}
 				else
 				{
