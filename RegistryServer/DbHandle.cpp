@@ -1954,7 +1954,7 @@ int CDbHandle::findObjectByIdInSameSet(const string& sID, const vector<string>& 
     {
         //此情况下没启动set
         TLOGINFO("CDbHandle::findObjectByIdInSameSet:" << __LINE__ << "|" << sID << " haven't start set|" << sSetId << endl);
-        return -1;
+        return -2;
     }
 
     if (vtSetInfo[2] == "*")
