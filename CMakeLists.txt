@@ -70,7 +70,7 @@ macro(complice_module MODULE)
     add_dependencies(${MODULE} FRAMEWORK-PROTOCOL)
     add_dependencies(${MODULE} tars2cpp)
 
-    target_link_libraries(${MODULE} tarsservant tarsutil ${LIB_MYSQL})
+    target_link_libraries(${MODULE} tarsservant tarsutil)
 
     if(TARS_SSL)
         target_link_libraries(${MODULE} ${LIB_SSL} ${LIB_CRYPTO})
@@ -78,6 +78,12 @@ macro(complice_module MODULE)
 
     if(TARS_HTTP2)
         target_link_libraries(${MODULE} ${LIB_HTTP2})
+    endif()
+
+    if(NOT WIN32)
+        target_link_libraries(${MODULE} ${CMAKE_BINARY_DIR}/src/mysql/lib/libmysqlclient.a)
+    else ()
+        target_link_libraries(${MODULE} ${LIB_MYSQL})
     endif()
 
     if(NOT WIN32)
