@@ -441,7 +441,8 @@ int CommandPatch::execute(string &sResult)
 					do
 					{
 						vector<string> files;
-						tars::TC_File::listDirectory(srcPath, files, false);
+						// 忽略隐藏文件，避免在mac系统下打包生成的文件影响发布
+						tars::TC_File::listDirectory(srcPath, files, false, true); 
 						if(files.empty())
 						{
 							sResult = cmd + ", error!";
