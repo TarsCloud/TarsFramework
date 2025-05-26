@@ -89,10 +89,7 @@ int64_t ServerObject::savePid()
     string sGetServerPidScript = "ps -ef | grep -v grep | grep -iE '" + _startScript + "' | awk '{print $8 \" \"$2}' >" + sPidFile;
 #endif
 
-    // while ((TNOW - iStartWaitInterval) < tNow)
-    // {
-        //注意:由于是守护进程,不要对sytem返回值进行判断,始终wait不到子进程
-    system(sGetServerPidScript.c_str());
+    TC_Port::exec(sGetServerPidScript.c_str());
 
     string data = TC_File::load2str(sPidFile);
 
